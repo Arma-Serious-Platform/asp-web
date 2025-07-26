@@ -11,7 +11,7 @@ export default function Home() {
           <div id='about' className='w-full flex flex-col gap-4'>
             <h2 className='text-6xl font-bold'>VTG</h2>
             <div className='flex flex-col gap-6 text-xl'>
-              <p>Virtual Tactical Games — українська спільнота TvT у Arma 3.</p>
+              <p>Virtual Tactical Games — українська TvT спільнота у Arma 3.</p>
               <p>
                 Ми організовуємо масштабні бойові сценарії у форматі командних
                 протистоянь, де гравці взаємодіють у групах і виконують завдання

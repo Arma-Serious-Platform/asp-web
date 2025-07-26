@@ -1,5 +1,6 @@
 'use client';
 
+import { ScheduleInfo } from '@/features/schedule';
 import { ROUTES } from '@/shared/config/routes';
 import { Link } from '@/shared/ui/atoms/link';
 import classNames from 'classnames';
@@ -43,6 +44,7 @@ export const Header: FC<HeaderProps> = ({ enableScrollVisibility = false }) => {
         <Link href={ROUTES.home}>
           <Image
             className='mr-4 hover:scale-110 transition-all duration-300'
+            priority
             src='/images/logo.webp'
             width={64}
             height={64}
@@ -59,6 +61,7 @@ export const Header: FC<HeaderProps> = ({ enableScrollVisibility = false }) => {
         </div>
 
         <div className='flex items-center justify-between gap-7'>
+          <ScheduleInfo />
           <Link href={ROUTES.auth.signin}>Увійти</Link>
           <Link href={ROUTES.auth.signup}>Реєстрація</Link>
         </div>

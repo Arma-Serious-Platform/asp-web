@@ -16,6 +16,7 @@ export const Hero: FC<{}> = () => {
       <div className='absolute inset-0 z-10 text-white text-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         <Image
           className='mx-auto'
+          priority
           src='/images/logo.webp'
           width={256}
           height={256}
