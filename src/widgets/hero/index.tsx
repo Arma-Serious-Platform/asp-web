@@ -1,3 +1,5 @@
+import { ServerInfo } from '@/features/server-info';
+
 import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
 import { FC } from 'react';
@@ -31,9 +33,12 @@ export const Hero: FC<{}> = () => {
             Українська Arma III спільнота
           </span>
         </h1>
-        <Button size='lg' className='uppercase hover:scale-104 transition-transform'>
+        <Button
+          size='lg'
+          className='uppercase hover:scale-104 transition-transform'>
           Почати грати
         </Button>
+        <ServerInfo className='mx-auto my-4 min-w-[200px]' />
       </div>
     </div>
   );

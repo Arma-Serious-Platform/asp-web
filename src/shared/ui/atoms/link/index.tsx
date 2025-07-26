@@ -19,7 +19,7 @@ export const Link: FC<
     <NextLink
       href={href}
       className={classNames(className, {
-        'text-primary': isActive || pathname === href,
+        'text-text-primary': isActive || pathname === href,
       })}>
       {children}
     </NextLink>

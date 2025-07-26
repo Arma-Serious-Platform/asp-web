@@ -13,7 +13,7 @@ export const ScheduleInfo: FC<{
       )}>
       <div className='flex gap-2 items-center'>
         <CalendarIcon className='size-4' />
-        <span>П’ятниця та неділя</span>
+        <span>П&apos;ятниця та неділя</span>
       </div>
       <div className='flex gap-2 items-center'>
         <Clock4Icon className='size-4' />

@@ -2,7 +2,8 @@
 
 @theme {
   --color-card: #1f1f1f;
-  --color-primary: #799a63;
+  --color-primary: var(--color-lime-700);
+  --color-text-primary: #799a63;
   --color-foreground: #ffffff;
 }
 
@@ -14,9 +15,9 @@ body {
 }
 
 a:hover {
-  color: var(--color-primary);
+  color: var(--color-text-primary);
 }
 
 a:active {
-  color: var(--color-primary);
+  color: var(--color-text-primary);
 }
