@@ -11,6 +11,7 @@ import { FC, useEffect } from 'react';
 import { serverInfo, ServerInfoModel } from './model';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
+import { View } from '../view';
 
 export const ServerInfo: FC<{
   className?: string;
@@ -47,20 +48,22 @@ export const ServerInfo: FC<{
           {server?.ip}:{server?.port}
         </span>
       </div>
-      <div className='flex gap-2 items-center'>
-        <UsersIcon className='size-4' />
-        <span className='text-primary'>
-          {server?.info?.players}/{server?.info?.maxPlayers}
-        </span>
-      </div>
-      <div className='flex gap-2 items-center'>
-        <MapIcon className='size-4' />
-        <span>{server?.info?.map}</span>
-      </div>
-      <div className='flex gap-2 items-center'>
-        <Gamepad2Icon className='size-4' />
-        <span>{server?.info?.game}</span>
-      </div>
+      <View.Condition if={server?.info}>
+        <div className='flex gap-2 items-center'>
+          <UsersIcon className='size-4' />
+          <span className='text-primary'>
+            {server?.info?.players}/{server?.info?.maxPlayers}
+          </span>
+        </div>
+        <div className='flex gap-2 items-center'>
+          <MapIcon className='size-4' />
+          <span>{server?.info?.map}</span>
+        </div>
+        <div className='flex gap-2 items-center'>
+          <Gamepad2Icon className='size-4' />
+          <span>{server?.info?.game}</span>
+        </div>
+      </View.Condition>
     </div>
   );
 });

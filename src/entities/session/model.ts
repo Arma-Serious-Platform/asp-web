@@ -1,8 +1,9 @@
 import { makeAutoObservable } from "mobx";
 
 import { UserModel } from "@/entities/user/model";
-import { LoginResponse } from "@/shared/sdk/types";
-import { deleteCookie, getCookie, setCookie } from "cookies-next";
+import { LoginResponse } from '@/shared/sdk/types';
+import { deleteCookie, setCookie } from 'cookies-next';
+import { Preloader } from '@/shared/model/loader';
 
 export class SessionModel {
   constructor() {
@@ -11,29 +12,35 @@ export class SessionModel {
 
   user = new UserModel();
 
+  preloader = new Preloader();
+
+  isAuthorized = false;
+
   private setTokens = (token: string, refreshToken: string) => {
     setCookie("token", token, { maxAge: 60 * 60 * 24 * 7 });
     setCookie("refreshToken", refreshToken, { maxAge: 60 * 60 * 24 * 30 });
   }
 
-  authorize = async (dto: LoginResponse) => {
-    this.user.user = dto.user;
+  boot = async (dto: LoginResponse | null) => {
+    if (dto) {
+      this.authorize({ ...dto });
+    } else {
+      this.preloader.stop();
+    }
+  }
 
+  authorize = async (dto: LoginResponse) => {
+    this.isAuthorized = true;
+    this.user.user = dto.user;
     this.setTokens(dto.token, dto.refreshToken);
   }
 
   logout = () => {
+    this.isAuthorized = false;
     this.user.user = null;
 
     deleteCookie("token");
     deleteCookie("refreshToken");
-  }
-
-  get isAuthorized() {
-    const token = getCookie("token");
-    const refreshToken = getCookie("refreshToken");
-
-    return token !== undefined && refreshToken !== undefined;
   }
 }
 

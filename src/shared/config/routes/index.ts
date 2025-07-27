@@ -8,4 +8,10 @@ export const ROUTES = {
     login: '/auth/login',
     signup: '/auth/signup',
   },
+  user: {
+    profile: '/profile',
+  },
+  admin: {
+    dashboard: '/admin/dashboard',
+  },
 } as const;

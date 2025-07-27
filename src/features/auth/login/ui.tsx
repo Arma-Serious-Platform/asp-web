@@ -12,6 +12,7 @@ import { FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { loginModel, LoginModel } from './model';
 import * as yup from 'yup';
+import { useRouter } from 'next/navigation';
 
 const LoginForm: FC<{
   className?: string;
@@ -36,9 +37,13 @@ const LoginForm: FC<{
 
   const { isValid, isSubmitting } = form.formState;
 
+  const router = useRouter();
+
   const onSubmit = async (data: LoginDto) => {
     try {
       await model.login(data);
+
+      router.push(ROUTES.home);
     } catch (error) {
       if (error?.response?.data?.message === 'Invalid credentials') {
         form.setError('password', { message: 'Неправильний email або пароль' });
@@ -76,7 +81,7 @@ const LoginForm: FC<{
             <Input
               {...field}
               type='password'
-              placeholder='Password'
+              placeholder='Пароль'
               error={form.formState.errors.password?.message}
             />
           )}

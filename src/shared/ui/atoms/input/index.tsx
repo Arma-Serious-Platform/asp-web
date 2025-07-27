@@ -105,7 +105,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           value={value}
           onChange={handleChange}
           className={cn(
-            'flex h-9 w-full rounded-md focus:border border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80',
+            'flex h-9 w-full focus:border border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80',
             startIcon && isSmall ? 'pl-9' : '',
             value && closeIcon ? (isSmall ? 'pr-8' : 'pr-9') : '',
             className
@@ -117,7 +117,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {value && closeIcon && (
           <button
             type='button'
-            className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted-foreground hover:text-foreground'
+            className='absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground'
             onClick={(e) => {
               e.preventDefault();
 

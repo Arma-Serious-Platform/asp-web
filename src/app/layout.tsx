@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { Roboto_Condensed } from 'next/font/google';
 import './globals.css';
+import { SessionProvider } from '@/entities/session/provider';
+import { cookies } from 'next/headers';
+import { api } from '@/shared/sdk';
+import { User } from '@/shared/sdk/types';
 
 const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
@@ -12,11 +16,29 @@ export const metadata: Metadata = {
   description: 'Українська Arma III спільнота',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookie = await cookies();
+  const token = cookie.get('token')?.value;
+  const refreshToken = cookie.get('refreshToken')?.value;
+
+  let user: User | null = null;
+
+  if (token) {
+    try {
+      api.instance.defaults.headers.Authorization = `Bearer ${token}`;
+
+      const { data } = await api.getMe();
+
+      user = data;
+    } catch (error) {
+      console.log(error?.response?.data?.message);
+    }
+  }
+
   return (
     <html lang='en'>
       <head>
@@ -41,7 +63,14 @@ export default function RootLayout({
         <link rel='manifest' href='/images/favicon/site.webmanifest' />
       </head>
       <body className={`${robotoCondensed.variable} antialiased`}>
-        {children}
+        <SessionProvider
+          initialData={
+            user
+              ? { user, token: token || '', refreshToken: refreshToken || '' }
+              : null
+          }>
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );
