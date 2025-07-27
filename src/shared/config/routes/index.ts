@@ -5,7 +5,7 @@ export const ROUTES = {
   races: '/races',
   replays: '/replays',
   auth: {
-    signin: '/auth/signin',
+    login: '/auth/login',
     signup: '/auth/signup',
   },
 } as const;

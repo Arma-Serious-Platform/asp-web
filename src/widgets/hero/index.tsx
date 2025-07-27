@@ -6,7 +6,7 @@ import { FC } from 'react';
 
 export const Hero: FC<{}> = () => {
   return (
-    <div className='relative flex flex-col items-center justify-center h-screen w-full shadow-2xl shadow-black'>
+    <div className='relative flex flex-col items-center justify-center min-h-screen w-full shadow-2xl shadow-black'>
       <video
         className='absolute inset-0 w-full h-full object-cover z-10 '
         src='/media/hero.webm'
@@ -38,7 +38,7 @@ export const Hero: FC<{}> = () => {
           className='uppercase hover:scale-104 transition-transform'>
           Почати грати
         </Button>
-        <ServerInfo className='mx-auto my-4 min-w-[200px]' />
+        <ServerInfo className='mx-auto mt-12 min-w-[200px]' />
       </div>
     </div>
   );

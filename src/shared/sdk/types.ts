@@ -47,6 +47,18 @@ enum SquadInviteStatus {
   LEAVED = 'LEAVED',
 }
 
+export type PaginatedRequest<T = { take: number; skip: number }> = {
+  take?: number;
+  skip?: number;
+} & T;
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  total: number;
+  take: number;
+  skip: number;
+};
+
 export type Side = {
   id: string;
   name: string;
@@ -129,4 +141,21 @@ export type SquadInvitation = {
   updatedAt: Date;
   squad: Squad;
   user: User;
+}
+
+export type SignUpDto = {
+  email: string;
+  password: string;
+  nickname: string;
+}
+
+export type LoginDto = {
+  email: string;
+  password: string;
+}
+
+export type LoginResponse = {
+  user: User;
+  token: string;
+  refreshToken: string;
 }

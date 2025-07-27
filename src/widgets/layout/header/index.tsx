@@ -34,8 +34,9 @@ export const Header: FC<HeaderProps> = ({ enableScrollVisibility = false }) => {
   return (
     <header
       className={classNames(
-        'w-full h-16  fixed top-0 z-20 mx-auto flex items-center justify-center transition-colors duration-300',
+        'w-full h-16 sticky top-0 z-20 mx-auto flex items-center justify-center transition-colors duration-300 bg-card',
         {
+          '!fixed': enableScrollVisibility,
           'bg-transparent': !isScrolled && enableScrollVisibility,
           'bg-card/75 backdrop-blur-xs': isScrolled && enableScrollVisibility,
         }
@@ -61,8 +62,8 @@ export const Header: FC<HeaderProps> = ({ enableScrollVisibility = false }) => {
         </div>
 
         <div className='flex items-center justify-between gap-7'>
-          <ScheduleInfo />
-          <Link href={ROUTES.auth.signin}>Увійти</Link>
+          <ScheduleInfo className='mr-4' />
+          <Link href={ROUTES.auth.login}>Увійти</Link>
           <Link href={ROUTES.auth.signup}>Реєстрація</Link>
         </div>
       </div>
