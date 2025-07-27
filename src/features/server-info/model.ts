@@ -11,9 +11,13 @@ class ServerInfoModel {
   public servers: Server[] = [];
 
   public async fetchServers() {
-    const { data: servers } = await api.getServers();
+    try {
+      const { data: servers } = await api.getServers();
 
-    this.servers = servers;
+      this.servers = servers;
+    } catch {
+      this.servers = [];
+    }
   }
 }
 

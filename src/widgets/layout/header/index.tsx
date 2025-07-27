@@ -74,7 +74,7 @@ export const Header: FC<HeaderProps> = observer(
           </View.Condition>
           <View.Condition if={!session.preloader.isLoading}>
             <div className='flex items-center justify-between gap-7'>
-              <ScheduleInfo className='mr-4' />
+              <ScheduleInfo className='mr-4 hidden lg:flex' />
               {!session.isAuthorized && (
                 <>
                   <Link href={ROUTES.auth.login}>Увійти</Link>
