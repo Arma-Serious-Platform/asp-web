@@ -42,7 +42,7 @@ export const ServerInfo: FC<{
         className
       )}>
       <div className='flex gap-2 items-center'>
-        <ServerIcon className='size-4 text-primary' />
+        <ServerIcon className='size-4' />
         <span>{server?.name}</span> |{' '}
         <span className='text-primary'>
           {server?.ip}:{server?.port}

@@ -1,9 +1,10 @@
 import { makeAutoObservable } from "mobx";
 
 import { UserModel } from "@/entities/user/model";
-import { LoginResponse } from '@/shared/sdk/types';
+import { LoginResponse, User } from '@/shared/sdk/types';
 import { deleteCookie, setCookie } from 'cookies-next';
 import { Preloader } from '@/shared/model/loader';
+import { api } from "@/shared/sdk";
 
 export class SessionModel {
   constructor() {
@@ -26,6 +27,16 @@ export class SessionModel {
       this.authorize({ ...dto });
     } else {
       this.preloader.stop();
+    }
+  }
+
+  fetchMe = async () => {
+    try {
+      const { data } = await api.getMe();
+
+      this.user.user = data;
+    } catch (error) {
+      console.error(error);
     }
   }
 

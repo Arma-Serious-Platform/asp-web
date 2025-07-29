@@ -5,7 +5,7 @@ import Image from 'next/image';
 export default function Home() {
   return (
     <Layout headerProps={{ enableScrollVisibility: true }}>
-      <Hero />
+      <Hero variant='home' />
       <div className='bg-black/20 w-full'>
         <div className='container mx-auto w-full flex justify-between p-12 pb-4'>
           <div id='about' className='w-full flex flex-col gap-4'>
