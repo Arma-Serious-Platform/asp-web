@@ -7,18 +7,29 @@ import { profile } from './model';
 import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
 import { ActivityIcon, MailIcon, ShieldUserIcon, UserIcon } from 'lucide-react';
-import { getUserRoleText, getUserStatusText } from '@/entities/user/lib';
+
 import {
   UserNicknameText,
   UserRoleText,
   UserStatusText,
 } from '@/entities/user/ui/user-text';
 import { Hero } from '@/widgets/hero';
+import { session } from '@/entities/session/model';
+import { ROUTES } from '@/shared/config/routes';
+import { useRouter } from 'next/navigation';
 
 const ProfilePage = observer(() => {
+  const router = useRouter();
+
   useEffect(() => {
     profile.init();
   }, []);
+
+  useEffect(() => {
+    if (!session.isAuthorized) {
+      router.push(ROUTES.auth.login);
+    }
+  }, [session.isAuthorized]);
 
   return (
     <Layout className=''>
@@ -36,9 +47,11 @@ const ProfilePage = observer(() => {
                     alt='avatar'
                   />
                 </div>
-                <Button variant='ghost'>Профіль</Button>
-                <Button>Мій загін</Button>
-                <Button>Безпека</Button>
+                <Button className='justify-start' variant='ghost'>
+                  Профіль
+                </Button>
+                <Button className='justify-start'>Мій загін</Button>
+                <Button className='justify-start'>Безпека</Button>
               </div>
 
               <div className='flex flex-col gap-1 p-4'>

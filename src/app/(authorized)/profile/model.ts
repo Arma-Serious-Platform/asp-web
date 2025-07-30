@@ -8,6 +8,8 @@ class ProfileModel {
   }
 
   init = async () => {
+    if (!session.isAuthorized) return;
+
     await session.fetchMe();
   }
 

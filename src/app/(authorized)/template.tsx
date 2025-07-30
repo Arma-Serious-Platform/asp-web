@@ -10,9 +10,9 @@ export default async function AuthTemplate({
   const cookie = await cookies();
   const token = cookie.get('token')?.value;
 
-  if (!token) {
+  if (token) {
     return children;
   }
 
-  return redirect(ROUTES.home);
+  return redirect(ROUTES.auth.login);
 }

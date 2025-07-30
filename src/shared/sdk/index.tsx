@@ -34,6 +34,10 @@ class ApiModel {
     return await this.instance.post('/users/signup', dto);
   };
 
+  confirmSignUp = async (token: string) => {
+    return await this.instance.post('/users/sign-up/confirm', { token });
+  };
+
   login = async (dto: LoginDto) => {
     return await this.instance.post<LoginResponse>('/users/login', dto);
   };

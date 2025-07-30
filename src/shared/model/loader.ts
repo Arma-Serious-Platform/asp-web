@@ -31,4 +31,4 @@ class Preloader {
   };
 }
 
-export { Preloader };
+export { Preloader, Preloader as Loader };

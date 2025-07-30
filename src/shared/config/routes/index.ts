@@ -6,7 +6,7 @@ export const ROUTES = {
   replays: '/replays',
   auth: {
     login: '/auth/login',
-    signup: '/auth/signup',
+    signup: '/auth/sign-up',
   },
   user: {
     profile: '/profile',
