@@ -5,6 +5,7 @@ import {
   LoginResponse,
   Server,
   SignUpDto,
+  Squad,
   User,
 } from './types';
 import { getCookie } from 'cookies-next';
@@ -57,6 +58,12 @@ class ApiModel {
 
   getMe = async () => {
     return await this.instance.get<User>('/users/me');
+  };
+
+  /* Squads */
+
+  getSquads = async () => {
+    return await this.instance.get<Squad[]>('/squads');
   };
 }
 
