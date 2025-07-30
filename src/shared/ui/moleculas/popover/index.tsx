@@ -5,61 +5,58 @@ import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import { cn } from '@/shared/utils/cn';
 
-const PopoverRoot = PopoverPrimitive.Root;
+function PopoverRoot({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot='popover' {...props} />;
+}
 
-const PopoverTrigger = PopoverPrimitive.Trigger;
-const PopoverClose = PopoverPrimitive.Close;
+function PopoverTrigger({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  return <PopoverPrimitive.Trigger data-slot='popover-trigger' {...props} />;
+}
 
-const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = 'center', sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      ref={ref}
-      align={align}
-      sideOffset={sideOffset}
-      onOpenAutoFocus={(e) => e.preventDefault()}
-      className={cn(
-        'z-[70] w-72 rounded-lg border border-neutral-600 bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-        className
-      )}
-      {...props}
-    />
-  </PopoverPrimitive.Portal>
-));
-PopoverContent.displayName = PopoverPrimitive.Content.displayName;
-
-const Popover: React.FC<
-  React.PropsWithChildren<{
-    trigger: React.ReactNode;
-    side?: 'top' | 'bottom' | 'left' | 'right';
-    align?: 'center' | 'end' | 'start';
-    sideOffset?: number;
-    alignOffset?: number;
-    asChild?: boolean;
-  }>
-> = ({
-  children,
-  trigger,
+function PopoverContent({
+  className,
   align = 'center',
-  alignOffset = 0,
-  side = 'bottom',
-  sideOffset = 0,
-  asChild = true,
-}) => {
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        data-slot='popover-content'
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          'bg-card border-primary text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) border p-2 shadow-md outline-hidden',
+          className
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  );
+}
+
+function PopoverAnchor({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot='popover-anchor' {...props} />;
+}
+
+const Popover: React.FC<{
+  className?: string;
+  children: React.ReactNode;
+  asChild?: boolean;
+  trigger: React.ReactNode;
+}> = ({ children, trigger, className, asChild = true }) => {
   return (
     <PopoverRoot>
       <PopoverTrigger asChild={asChild}>{trigger}</PopoverTrigger>
-      <PopoverContent
-        align={align}
-        sideOffset={sideOffset}
-        side={side}
-        alignOffset={alignOffset}>
-        {children}
-      </PopoverContent>
+      <PopoverContent className={className}>{children}</PopoverContent>
     </PopoverRoot>
   );
 };
 
-export { PopoverRoot, PopoverTrigger, PopoverContent, PopoverClose, Popover };
+export { PopoverRoot, PopoverTrigger, PopoverContent, PopoverAnchor, Popover };

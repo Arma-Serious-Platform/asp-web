@@ -4,7 +4,11 @@ import { session } from '@/entities/session/model';
 import { ScheduleInfo } from '@/features/schedule';
 import { View } from '@/features/view';
 import { ROUTES } from '@/shared/config/routes';
+import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
+import { Popover } from '@/shared/ui/moleculas/popover';
+import { Avatar } from '@/shared/ui/organisms/avatar';
+import NextLink from 'next/link';
 
 import classNames from 'classnames';
 import { Loader2Icon } from 'lucide-react';
@@ -84,18 +88,31 @@ export const Header: FC<HeaderProps> = observer(
 
               {session.isAuthorized && session.user?.user && (
                 <>
-                  <Link href={ROUTES.user.profile}>
-                    {session.user?.user?.nickname}
-                  </Link>
-                  <Link
-                    href={ROUTES.auth.login}
-                    onClick={(e) => {
-                      e.preventDefault();
+                  <Popover
+                    className='flex flex-col gap-1'
+                    trigger={
+                      <Button variant='ghost' className='gap-3'>
+                        <Avatar />
+                        {session.user?.user?.nickname}
+                      </Button>
+                    }>
+                    <NextLink href={ROUTES.user.profile}>
+                      <Button align='left' className='w-full'>
+                        Профіль
+                      </Button>
+                    </NextLink>
+                    <NextLink
+                      href={ROUTES.auth.login}
+                      onClick={(e) => {
+                        e.preventDefault();
 
-                      session.logout();
-                    }}>
-                    Вийти
-                  </Link>
+                        session.logout();
+                      }}>
+                      <Button align='left' className='w-full'>
+                        Вийти
+                      </Button>
+                    </NextLink>
+                  </Popover>
                 </>
               )}
             </div>
