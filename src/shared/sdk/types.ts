@@ -159,3 +159,8 @@ export type LoginResponse = {
   token: string;
   refreshToken: string;
 }
+
+export type ChangePasswordDto = {
+  oldPassword: string;
+  newPassword: string;
+}

@@ -1,5 +1,12 @@
 import axios from 'axios';
-import { LoginDto, LoginResponse, Server, SignUpDto, User } from './types';
+import {
+  ChangePasswordDto,
+  LoginDto,
+  LoginResponse,
+  Server,
+  SignUpDto,
+  User,
+} from './types';
 import { getCookie } from 'cookies-next';
 
 class ApiModel {
@@ -40,6 +47,10 @@ class ApiModel {
 
   login = async (dto: LoginDto) => {
     return await this.instance.post<LoginResponse>('/users/login', dto);
+  };
+
+  changePassword = async (dto: ChangePasswordDto) => {
+    return await this.instance.post('/users/change-password', dto);
   };
 
   /* User */

@@ -5,6 +5,7 @@ import { SessionProvider } from '@/entities/session/provider';
 import { cookies } from 'next/headers';
 import { api } from '@/shared/sdk';
 import { User } from '@/shared/sdk/types';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
@@ -63,14 +64,16 @@ export default async function RootLayout({
         <link rel='manifest' href='/images/favicon/site.webmanifest' />
       </head>
       <body className={`${robotoCondensed.variable} antialiased`}>
-        <SessionProvider
-          initialData={
-            user
-              ? { user, token: token || '', refreshToken: refreshToken || '' }
-              : null
-          }>
-          {children}
-        </SessionProvider>
+        <NuqsAdapter>
+          <SessionProvider
+            initialData={
+              user
+                ? { user, token: token || '', refreshToken: refreshToken || '' }
+                : null
+            }>
+            {children}
+          </SessionProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

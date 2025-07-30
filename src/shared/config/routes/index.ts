@@ -2,7 +2,7 @@ export const ROUTES = {
   home: '/',
   rules: '/rules',
   schedule: '/schedule',
-  races: '/races',
+  squads: '/squads',
   replays: '/replays',
   auth: {
     login: '/auth/login',

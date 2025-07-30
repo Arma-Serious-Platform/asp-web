@@ -67,7 +67,7 @@ export const Header: FC<HeaderProps> = observer(
             <Link href={ROUTES.home}>Почати грати</Link>
             <Link href={ROUTES.rules}>Правила</Link>
             <Link href={ROUTES.schedule}>Розклад</Link>
-            <Link href={ROUTES.races}>Загони</Link>
+            <Link href={ROUTES.squads}>Загони</Link>
             <Link href={ROUTES.replays}>Реплеї</Link>
           </div>
 
@@ -96,7 +96,7 @@ export const Header: FC<HeaderProps> = observer(
                         {session.user?.user?.nickname}
                       </Button>
                     }>
-                    <NextLink href={ROUTES.user.profile}>
+                    <NextLink href={`${ROUTES.user.profile}?tab=profile`}>
                       <Button align='left' className='w-full'>
                         Профіль
                       </Button>
