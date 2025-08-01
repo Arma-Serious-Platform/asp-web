@@ -10,8 +10,15 @@ export const ROUTES = {
   },
   user: {
     profile: '/profile',
+    users: {
+      id: (id: string) => `/users/${id}`,
+    },
   },
   admin: {
-    dashboard: '/admin/dashboard',
+    root: '/admin',
+    users: '/admin/users',
+    servers: '/admin/servers',
+    sides: '/admin/sides',
+    squads: '/admin/squads',
   },
 } as const;

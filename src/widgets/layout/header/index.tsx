@@ -11,11 +11,17 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import NextLink from 'next/link';
 
 import classNames from 'classnames';
-import { Loader2Icon } from 'lucide-react';
+import {
+  Loader2Icon,
+  LogOutIcon,
+  ShieldUserIcon,
+  UserIcon,
+} from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
 
 import { FC, useEffect, useState } from 'react';
+import { UserRole } from '@/shared/sdk/types';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -89,18 +95,30 @@ export const Header: FC<HeaderProps> = observer(
               {session.isAuthorized && session.user?.user && (
                 <>
                   <Popover
-                    className='flex flex-col gap-1'
+                    className='flex flex-col gap-1 w-fit p-0 border-none min-w-40'
                     trigger={
-                      <Button variant='ghost' className='gap-3'>
-                        <Avatar />
+                      <Button className='gap-3 !border-none bg-transparent hover:bg-transparent'>
+                        <Avatar size='sm' />
                         {session.user?.user?.nickname}
                       </Button>
                     }>
                     <NextLink href={`${ROUTES.user.profile}?tab=profile`}>
-                      <Button align='left' className='w-full'>
+                      <Button align='left' className='w-full' size='sm'>
+                        <UserIcon className='size-4' />
                         Профіль
                       </Button>
                     </NextLink>
+                    <View.Condition
+                      if={[UserRole.OWNER, UserRole.TECH_ADMIN].includes(
+                        session.user?.user?.role
+                      )}>
+                      <NextLink href={ROUTES.admin.root}>
+                        <Button align='left' className='w-full' size='sm'>
+                          <ShieldUserIcon className='size-4' />
+                          Адміністрування
+                        </Button>
+                      </NextLink>
+                    </View.Condition>
                     <NextLink
                       href={ROUTES.auth.login}
                       onClick={(e) => {
@@ -108,7 +126,8 @@ export const Header: FC<HeaderProps> = observer(
 
                         session.logout();
                       }}>
-                      <Button align='left' className='w-full'>
+                      <Button align='left' className='w-full' size='sm'>
+                        <LogOutIcon className='size-4' />
                         Вийти
                       </Button>
                     </NextLink>

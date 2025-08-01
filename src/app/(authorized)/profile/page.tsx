@@ -56,25 +56,27 @@ const ProfilePage = observer(() => {
                     alt='avatar'
                   />
                 </div>
-                <Button
-                  onClick={() => setTab('profile')}
-                  variant={tab === 'profile' ? 'default' : 'ghost'}
-                  className='justify-start'>
-                  Профіль
-                </Button>
-                <Button
-                  onClick={() => setTab('squad')}
-                  variant={tab === 'squad' ? 'default' : 'ghost'}
-                  className='justify-start'>
-                  Мій загін
-                </Button>
+                <div className='flex flex-col w-full gap-0.5'>
+                  <Button
+                    onClick={() => setTab('profile')}
+                    variant={tab === 'profile' ? 'default' : 'ghost'}
+                    className='justify-start'>
+                    Профіль
+                  </Button>
+                  <Button
+                    onClick={() => setTab('squad')}
+                    variant={tab === 'squad' ? 'default' : 'ghost'}
+                    className='justify-start'>
+                    Мій загін
+                  </Button>
 
-                <Button
-                  onClick={() => setTab('security')}
-                  variant={tab === 'security' ? 'default' : 'ghost'}
-                  className='justify-start'>
-                  Безпека
-                </Button>
+                  <Button
+                    onClick={() => setTab('security')}
+                    variant={tab === 'security' ? 'default' : 'ghost'}
+                    className='justify-start'>
+                    Безпека
+                  </Button>
+                </div>
               </div>
 
               <div className='flex flex-col gap-1 p-4'>

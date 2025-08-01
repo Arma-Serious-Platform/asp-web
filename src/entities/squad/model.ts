@@ -15,7 +15,7 @@ class SquadModel {
   findSquads = async () => {
     try {
       this.loader.start();
-      const { data } = await api.getSquads();
+      const { data } = await api.findSquads();
 
       this.data = data;
     } catch (error) {

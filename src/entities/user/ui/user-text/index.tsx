@@ -20,7 +20,7 @@ export const UserNicknameText: FC<{
           })}>
           [{user.squad.name}]
         </span>
-        {user.nickname}
+        <span>{user.nickname}</span>
       </span>
     );
   }

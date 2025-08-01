@@ -62,7 +62,7 @@ class ApiModel {
 
   /* Squads */
 
-  getSquads = async () => {
+  findSquads = async () => {
     return await this.instance.get<Squad[]>('/squads');
   };
 }
