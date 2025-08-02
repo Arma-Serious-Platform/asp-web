@@ -85,7 +85,7 @@ export const Header: FC<HeaderProps> = observer(
           <View.Condition if={!session.preloader.isLoading}>
             <div className='flex items-center justify-between gap-7'>
               <ScheduleInfo className='mr-4 hidden lg:flex' />
-              {!session.isAuthorized && (
+              {(!session.isAuthorized || !session.user?.user) && (
                 <>
                   <Link href={ROUTES.auth.login}>Увійти</Link>
                   <Link href={ROUTES.auth.signup}>Реєстрація</Link>
@@ -112,7 +112,7 @@ export const Header: FC<HeaderProps> = observer(
                       if={[UserRole.OWNER, UserRole.TECH_ADMIN].includes(
                         session.user?.user?.role
                       )}>
-                      <NextLink href={ROUTES.admin.root}>
+                      <NextLink href={ROUTES.admin.users}>
                         <Button align='left' className='w-full' size='sm'>
                           <ShieldUserIcon className='size-4' />
                           Адміністрування

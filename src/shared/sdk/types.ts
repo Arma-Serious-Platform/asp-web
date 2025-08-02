@@ -113,7 +113,7 @@ export type User = {
   leadingSquad: Squad | null;
   squadInvites: SquadInvitation[];
   squad: Squad | null;
-}
+};
 
 export type Squad = {
   id: string;
@@ -130,7 +130,7 @@ export type Squad = {
   side: Side;
   invites: SquadInvitation[];
   members: User[];
-}
+};
 
 export type SquadInvitation = {
   id: string;
@@ -141,26 +141,30 @@ export type SquadInvitation = {
   updatedAt: Date;
   squad: Squad;
   user: User;
-}
+};
 
 export type SignUpDto = {
   email: string;
   password: string;
   nickname: string;
-}
+};
 
 export type LoginDto = {
   email: string;
   password: string;
-}
+};
 
 export type LoginResponse = {
   user: User;
   token: string;
   refreshToken: string;
-}
+};
 
 export type ChangePasswordDto = {
   oldPassword: string;
   newPassword: string;
-}
+};
+
+export type FindUsersDto = PaginatedRequest<{
+  search?: string;
+}>;

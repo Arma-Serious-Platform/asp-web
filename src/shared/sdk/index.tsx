@@ -1,8 +1,10 @@
 import axios from 'axios';
 import {
   ChangePasswordDto,
+  FindUsersDto,
   LoginDto,
   LoginResponse,
+  PaginatedResponse,
   Server,
   SignUpDto,
   Squad,
@@ -54,10 +56,16 @@ class ApiModel {
     return await this.instance.post('/users/change-password', dto);
   };
 
-  /* User */
+  /* Users */
 
   getMe = async () => {
     return await this.instance.get<User>('/users/me');
+  };
+
+  findUsers = async (dto: FindUsersDto) => {
+    return await this.instance.get<PaginatedResponse<User>>('/users', {
+      params: dto,
+    });
   };
 
   /* Squads */
