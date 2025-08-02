@@ -1,5 +1,6 @@
 import axios from 'axios';
 import {
+  BanUserDto,
   ChangePasswordDto,
   FindUsersDto,
   LoginDto,
@@ -66,6 +67,14 @@ class ApiModel {
     return await this.instance.get<PaginatedResponse<User>>('/users', {
       params: dto,
     });
+  };
+
+  banUser = async (dto: BanUserDto) => {
+    return await this.instance.post(`/users/ban/${dto.userId}`, dto);
+  };
+
+  unbanUser = async (userId: string) => {
+    return await this.instance.post(`/users/unban/${userId}`);
   };
 
   /* Squads */

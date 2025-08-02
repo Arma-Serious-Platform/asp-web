@@ -168,3 +168,12 @@ export type ChangePasswordDto = {
 export type FindUsersDto = PaginatedRequest<{
   search?: string;
 }>;
+
+export type BanUserDto = {
+  userId: string;
+  bannedUntil: Date | null;
+};
+
+export type UnbanUserDto = {
+  userId: string;
+};

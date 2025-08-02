@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { cn } from '@/shared/utils/cn';
-import { Search, X } from 'lucide-react';
+import { SearchIcon, X } from 'lucide-react';
 
 import { formatNumericValue } from '@/shared/utils/string';
+import classNames from 'classnames';
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  startIcon?: boolean;
+  searchIcon?: boolean;
   closeIcon?: boolean;
   error?: string;
   mapSetValue?: (value: string) => string;
@@ -63,7 +64,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       type,
       value: propValue,
       onChange,
-      startIcon,
+      searchIcon,
       closeIcon,
       error,
       ...props
@@ -86,31 +87,29 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       setValue(propValue || '');
     }, [propValue]);
 
-    const height = className?.includes('h-7') ? 'h-7' : 'h-9';
-    const isSmall = height === 'h-7';
-
     return (
       <div className='relative w-full'>
-        {startIcon && (
-          <Search
+        {searchIcon && (
+          <SearchIcon
             className={cn(
-              'absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground',
-              isSmall ? 'h-3 w-3' : 'h-4 w-4'
+              'absolute left-3 top-4.5 -translate-y-1/2 text-muted-foreground',
+              'h-4 w-4'
             )}
           />
         )}
 
         <input
+          ref={ref}
           type={type}
           value={value}
           onChange={handleChange}
-          className={cn(
+          className={classNames(
             'flex h-9 w-full focus:border border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80',
-            startIcon && isSmall ? 'pl-9' : '',
-            value && closeIcon ? (isSmall ? 'pr-8' : 'pr-9') : '',
+            {
+              'pl-9': searchIcon,
+            },
             className
           )}
-          ref={ref}
           {...props}
         />
 
@@ -127,12 +126,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                   target: { value: '' },
                 } as React.ChangeEvent<HTMLInputElement>);
             }}>
-            <X
-              className={cn(
-                'transition-colors',
-                isSmall ? 'w-3 h-3' : 'w-4 h-4'
-              )}
-            />
+            <X className={cn('transition-colors', 'w-4 h-4')} />
           </button>
         )}
 

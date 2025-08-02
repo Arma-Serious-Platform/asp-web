@@ -35,16 +35,24 @@ class Pagination<T, P, Y> {
     );
   }
 
+  setData = (data: T[]) => {
+    this.data = data;
+  }
+
+  private setTotal = (total: number) => {
+    this.total = total;
+  }
+
   init = async (initialParams: P) => {
     try {
       this.preloader.start();
 
       const {
         data: { data, total, ...params },
-      } = await this.api({ skip: 0, ...initialParams });
+      } = await this.api({ ...initialParams });
 
-      this.total = total;
-      this.data = data;
+      this.setTotal(total);
+      this.setData(data);
       this.params = { ...initialParams, ...params, };
     } catch (error) {
       console.log(error);
@@ -59,11 +67,11 @@ class Pagination<T, P, Y> {
 
       const {
         data: { data, total, ...params },
-      } = await this.api({ skip: this.data.length, ...this.params });
+      } = await this.api({ ...this.params, skip: this.data.length, });
 
-      this.total = total;
-      this.data = [...this.data, ...data];
-      this.params = { ...this.params, ...params };
+      this.setTotal(total);
+      this.setData([...this.data, ...data]);
+      this.params = { ...this.params, ...params, skip: this.data.length };
     } catch (error) {
       console.log(error);
     } finally {

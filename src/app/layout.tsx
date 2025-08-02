@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Roboto_Condensed } from 'next/font/google';
+import { Toaster } from 'react-hot-toast';
+
 import './globals.css';
 import { SessionProvider } from '@/entities/session/provider';
 import { cookies } from 'next/headers';
@@ -64,6 +66,25 @@ export default async function RootLayout({
         <link rel='manifest' href='/images/favicon/site.webmanifest' />
       </head>
       <body className={`${robotoCondensed.variable} antialiased`}>
+        <Toaster
+          position='top-center'
+          toastOptions={{
+            success: {
+              style: {
+                backgroundColor: '#1f1f1f',
+                color: '#fff',
+                border: '1px solid #fff',
+              },
+            },
+            error: {
+              style: {
+                backgroundColor: '#1f1f1f',
+                color: '#fff',
+                border: '1px solid #fff',
+              },
+            },
+          }}
+        />
         <NuqsAdapter>
           <SessionProvider
             initialData={

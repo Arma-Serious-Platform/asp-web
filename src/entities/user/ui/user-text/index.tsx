@@ -2,6 +2,7 @@ import { SideType, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC } from 'react';
 import { getUserRoleText, getUserStatusText } from '../../lib';
+import dayjs from 'dayjs';
 
 export const UserNicknameText: FC<{
   user: User | null;
@@ -38,8 +39,8 @@ export const UserRoleText: FC<{
     <span
       className={classNames(
         {
-          'text-red-900': role === UserRole.OWNER,
-          'text-red-800': role === UserRole.TECH_ADMIN,
+          'text-red-700': role === UserRole.OWNER,
+          'text-red-600': role === UserRole.TECH_ADMIN,
           'text-red-500': role === UserRole.GAME_ADMIN,
           'text-neutral-400-500': role === UserRole.USER,
         },
@@ -53,7 +54,8 @@ export const UserRoleText: FC<{
 export const UserStatusText: FC<{
   status?: UserStatus;
   className?: string;
-}> = ({ status, className }) => {
+  bannedUntil?: Date | null;
+}> = ({ status, bannedUntil = null, className }) => {
   if (!status) return null;
 
   return (
@@ -62,11 +64,16 @@ export const UserStatusText: FC<{
         {
           'text-green-500': status === UserStatus.ACTIVE,
           'text-red-500': status === UserStatus.BANNED,
-          'text-yellow-500': status === UserStatus.INVITED,
+          'text-blue-500': status === UserStatus.INVITED,
         },
         className
       )}>
       {getUserStatusText(status)}
+      {bannedUntil && (
+        <span className='text-red-500'>
+          {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}
+        </span>
+      )}
     </span>
   );
 };

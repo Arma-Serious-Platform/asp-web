@@ -38,9 +38,13 @@ export const Header: FC<HeaderProps> = observer(
         setIsScrolled(true);
       }
 
-      window.addEventListener('scroll', () => {
-        setIsScrolled(window.scrollY > 0);
-      });
+      window.addEventListener(
+        'scroll',
+        () => {
+          setIsScrolled(window.scrollY > 0);
+        },
+        { passive: true }
+      );
 
       return () => {
         window.removeEventListener('scroll', () => {});

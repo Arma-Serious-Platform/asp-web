@@ -6,6 +6,7 @@
   --color-text-primary: #799a63;
   --color-foreground: #ffffff;
   --color-muted: #eee;
+  --color-destructive: #ff0000;
 }
 
 body {
