@@ -73,7 +73,7 @@ export const columns: ColumnDef<User>[] = [
                   user: row.original,
                 });
               }}>
-              Бан
+              Заблокувати
               <BanIcon className='w-4 h-4 text-red-500' />
             </Button>
           </View.Condition>
@@ -86,7 +86,7 @@ export const columns: ColumnDef<User>[] = [
                   user: row.original,
                 });
               }}>
-              Розбан
+              Розблокувати
               <HandHeartIcon className='w-4 h-4 text-green-500' />
             </Button>
           </View.Condition>

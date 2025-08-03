@@ -177,3 +177,10 @@ export type BanUserDto = {
 export type UnbanUserDto = {
   userId: string;
 };
+
+export type UpdateServerDto = {
+  id: string;
+  name: string;
+  ip: string;
+  port: number;
+};

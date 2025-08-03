@@ -34,7 +34,7 @@ const BanUnbanUserModal: FC<
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Ви впевнені, що хочете {isBanAction ? ' забанити ' : ' розбанити '}
+            Ви впевнені, що хочете {isBanAction ? ' заблокувати ' : ' розблокувати '}
             гравця{' '}
             <span className='text-primary'>
               {model.visibility?.payload?.user?.nickname}
@@ -45,7 +45,7 @@ const BanUnbanUserModal: FC<
         <div className='flex flex-col gap-2'>
           {isBanAction && (
             <Input
-              placeholder='Час бану'
+              placeholder='Час блокування'
               type='datetime-local'
               onChange={(e) => setBanTime(e.target.value)}
             />
@@ -73,7 +73,7 @@ const BanUnbanUserModal: FC<
                   );
                 }
               }}>
-              {isBanAction ? 'Забанити' : 'Розбанити'}
+              {isBanAction ? 'Заблокувати' : 'Розблокувати'}
             </Button>
           </div>
         </div>

@@ -30,7 +30,7 @@ export class BanUnbanUserModel {
       );
       this.visibility.close();
     } catch {
-      toast.error('Не вдалося забанити гравця');
+      toast.error('Не вдалося заблокувати гравця');
     } finally {
       this.loader.stop();
     }
@@ -50,7 +50,7 @@ export class BanUnbanUserModel {
       );
       this.visibility.close();
     } catch {
-      toast.error('Не вдалося розбанити гравця');
+      toast.error('Не вдалося розблокувати гравця');
     } finally {
       this.loader.stop();
     }

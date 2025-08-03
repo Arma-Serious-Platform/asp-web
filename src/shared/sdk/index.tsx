@@ -9,6 +9,7 @@ import {
   Server,
   SignUpDto,
   Squad,
+  UpdateServerDto,
   User,
 } from './types';
 import { getCookie } from 'cookies-next';
@@ -35,8 +36,14 @@ class ApiModel {
     });
   }
 
-  getServers = async () => {
+  /* Servers */
+
+  findServers = async () => {
     return await this.instance.get<Server[]>('/servers');
+  };
+
+  updateServer = async ({ id, ...dto }: UpdateServerDto) => {
+    return await this.instance.patch<Server>(`/servers/${id}`, dto);
   };
 
   /* Auth */
