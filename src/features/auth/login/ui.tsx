@@ -89,7 +89,7 @@ const LoginForm: FC<{
 
         <div className='flex justify-between gap-1'>
           <span className='text-sm text-muted-foreground'>
-            <Link href={ROUTES.auth.signup}>Забули пароль?</Link>
+            <Link href={ROUTES.auth.forgotPassword}>Забули пароль?</Link>
           </span>
           <span className='text-sm text-muted-foreground'>
             <Link href={ROUTES.auth.signup}>Ще не маєте аккаунту?</Link>

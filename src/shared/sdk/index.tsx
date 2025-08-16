@@ -3,6 +3,7 @@ import {
   BanUserDto,
   ChangePasswordDto,
   FindUsersDto,
+  ForgotPasswordDto,
   LoginDto,
   LoginResponse,
   PaginatedResponse,
@@ -62,6 +63,10 @@ class ApiModel {
 
   changePassword = async (dto: ChangePasswordDto) => {
     return await this.instance.post('/users/change-password', dto);
+  };
+
+  forgotPassword = async (dto: ForgotPasswordDto) => {
+    return await this.instance.post('/users/forgot-password', dto);
   };
 
   /* Users */

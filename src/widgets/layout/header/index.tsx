@@ -82,12 +82,12 @@ export const Header: FC<HeaderProps> = observer(
           </div>
 
           <View.Condition if={session.preloader.isLoading}>
-            <div className='flex items-center justify-between gap-7'>
+            <div className='flex items-center justify-between gap-7 mx-4'>
               <Loader2Icon className='w-4 h-4 animate-spin' />
             </div>
           </View.Condition>
           <View.Condition if={!session.preloader.isLoading}>
-            <div className='flex items-center justify-between gap-7'>
+            <div className='flex items-center justify-between gap-7 mx-4'>
               <ScheduleInfo className='mr-4 hidden lg:flex' />
               {(!session.isAuthorized || !session.user?.user) && (
                 <>

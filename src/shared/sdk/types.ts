@@ -149,6 +149,10 @@ export type SignUpDto = {
   nickname: string;
 };
 
+export type ForgotPasswordDto = {
+  email: string;
+};
+
 export type LoginDto = {
   email: string;
   password: string;
