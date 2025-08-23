@@ -1,6 +1,6 @@
 import { Preloader } from "@/shared/model/loader";
 import { api } from "@/shared/sdk";
-import { Server, UpdateServerDto } from "@/shared/sdk/types";
+import { CreateServerDto, FindServersDto, Server, UpdateServerDto } from "@/shared/sdk/types";
 import { makeAutoObservable } from "mobx";
 import toast from "react-hot-toast";
 
@@ -14,10 +14,10 @@ class ServerModel {
 
   public servers: Server[] = [];
 
-  public async findServers() {
+  public async findServers(dto: FindServersDto = {}) {
     try {
       this.loader.start();
-      const { data: servers } = await api.findServers();
+      const { data: servers } = await api.findServers(dto);
 
       this.servers = servers;
     } catch {
@@ -35,6 +35,19 @@ class ServerModel {
       this.servers = this.servers.map((s) => (s.id === updatedServer.id ? updatedServer : s));
     } catch {
       toast.error('Не вдалося оновити сервер');
+    } finally {
+      this.loader.stop();
+    }
+  }
+
+  createServer = async (server: CreateServerDto) => {
+    try {
+      this.loader.start();
+      const { data: createdServer } = await api.createServer(server);
+
+      this.servers.push(createdServer);
+    } catch {
+      toast.error('Не вдалося створити сервер');
     } finally {
       this.loader.stop();
     }

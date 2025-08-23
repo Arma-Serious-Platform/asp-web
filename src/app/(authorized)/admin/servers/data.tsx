@@ -1,13 +1,20 @@
 import { Server, ServerStatus } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
-import { BanIcon, EditIcon, HandHeartIcon } from 'lucide-react';
+import {
+  BanIcon,
+  EditIcon,
+  HandHeartIcon,
+  MoreHorizontalIcon,
+  TrashIcon,
+} from 'lucide-react';
 
-import { serversModel } from './model';
 import { observer } from 'mobx-react-lite';
 import { session } from '@/entities/session/model';
 import { View } from '@/features/view';
 import { ServerStatusText } from '@/entities/server/ui/server-text';
+import { Popover } from '@/shared/ui/moleculas/popover';
+import { serversModel } from './model';
 
 export const columns: ColumnDef<Server>[] = [
   {
@@ -55,25 +62,40 @@ export const columns: ColumnDef<Server>[] = [
       }
 
       return (
-        <div className='w-full flex gap-2'>
-          <Button size='sm' variant='secondary'>
-            Редагувати
+        <Popover
+          className='w-fit flex flex-col gap-2'
+          trigger={
+            <Button size='icon' variant='secondary'>
+              <MoreHorizontalIcon className='w-4 h-4' />
+            </Button>
+          }>
+          <Button
+            size='sm'
+            variant='secondary'
+            align='left'
+            onClick={() => {
+              serversModel.manageServer.modal.open({
+                server: row.original,
+                mode: 'manage',
+              });
+            }}>
             <EditIcon className='w-4 h-4 text-yellow-500' />
+            Редагувати
           </Button>
 
-          <View.Condition if={row.original.status !== ServerStatus.INACTIVE}>
-            <Button size='sm' variant='secondary'>
-              Деактивувати
-              <BanIcon className='w-4 h-4 text-red-500' />
-            </Button>
-          </View.Condition>
-          <View.Condition if={row.original.status === ServerStatus.INACTIVE}>
-            <Button size='sm' variant='secondary'>
-              Активувати
-              <HandHeartIcon className='w-4 h-4 text-green-500' />
-            </Button>
-          </View.Condition>
-        </div>
+          <Button
+            variant='secondary'
+            align='left'
+            onClick={() => {
+              serversModel.manageServer.modal.open({
+                server: row.original,
+                mode: 'delete',
+              });
+            }}>
+            <TrashIcon className='w-4 h-4 text-red-500' />
+            Видалити
+          </Button>
+        </Popover>
       );
     }),
   },

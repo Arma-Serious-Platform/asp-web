@@ -9,6 +9,11 @@
   --color-destructive: #ff0000;
 }
 
+* {
+  scroll-behavior: smooth;
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Roboto Condensed', 'Roboto Condensed Fallback"';
   color: var(--color-foreground);

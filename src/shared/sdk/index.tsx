@@ -3,6 +3,8 @@ import {
   BanUserDto,
   ChangePasswordDto,
   ConfirmForgotPasswordDto,
+  CreateServerDto,
+  FindServersDto,
   FindUsersDto,
   ForgotPasswordDto,
   LoginDto,
@@ -40,12 +42,22 @@ class ApiModel {
 
   /* Servers */
 
-  findServers = async () => {
-    return await this.instance.get<Server[]>('/servers');
+  findServers = async (dto: FindServersDto) => {
+    return await this.instance.get<Server[]>('/servers', {
+      params: dto,
+    });
   };
 
   updateServer = async ({ id, ...dto }: UpdateServerDto) => {
     return await this.instance.patch<Server>(`/servers/${id}`, dto);
+  };
+
+  createServer = async (dto: CreateServerDto) => {
+    return await this.instance.post<Server>('/servers', dto);
+  };
+
+  deleteServer = async (serverId: string) => {
+    return await this.instance.delete<Server>(`/servers/${serverId}`);
   };
 
   /* Auth */

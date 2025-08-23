@@ -187,9 +187,23 @@ export type UnbanUserDto = {
   userId: string;
 };
 
+export type FindServersDto = PaginatedRequest<{
+  search?: string;
+  status?: ServerStatus;
+  fetchActualInfo?: boolean;
+}>;
+
 export type UpdateServerDto = {
   id: string;
+  name?: string;
+  ip?: string;
+  port?: number;
+  status?: ServerStatus;
+};
+
+export type CreateServerDto = {
   name: string;
   ip: string;
   port: number;
+  status: ServerStatus;
 };

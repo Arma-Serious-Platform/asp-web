@@ -12,7 +12,7 @@ class ServerInfoModel {
 
   public async fetchServers() {
     try {
-      const { data: servers } = await api.findServers();
+      const { data: servers } = await api.findServers({ fetchActualInfo: true });
 
       this.servers = servers;
     } catch {

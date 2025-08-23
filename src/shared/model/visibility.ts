@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Loader } from './loader.ts';
+import { Loader } from './loader';
 
 class Visibility<T = void> {
   isOpen = false;
@@ -14,6 +14,10 @@ class Visibility<T = void> {
 
   clearPayload = () => {
     this.payload = null;
+  };
+
+  changePayload = (payload: T) => {
+    this.payload = payload;
   };
 
   open = (payload?: T) => {

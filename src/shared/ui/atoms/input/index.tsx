@@ -67,6 +67,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       searchIcon,
       closeIcon,
       error,
+      mapSetValue,
       ...props
     },
     ref
@@ -74,8 +75,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const [value, setValue] = React.useState(propValue || '');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (props.mapSetValue) {
-        setValue(props.mapSetValue(e.target.value));
+      if (mapSetValue) {
+        setValue(mapSetValue(e.target.value));
       } else {
         setValue(e.target.value);
       }

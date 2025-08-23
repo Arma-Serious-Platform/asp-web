@@ -67,7 +67,7 @@ export default async function RootLayout({
       </head>
       <body className={`${robotoCondensed.variable} antialiased`}>
         <Toaster
-          position='top-center'
+          position='bottom-center'
           toastOptions={{
             success: {
               style: {
