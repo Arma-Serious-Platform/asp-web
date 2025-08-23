@@ -43,7 +43,7 @@ const LoginForm: FC<{
     try {
       await model.login(data);
 
-      router.push(ROUTES.user.profile);
+      router.push(`${ROUTES.user.profile}?tab=profile`);
     } catch (error) {
       if (error?.response?.data?.message === 'Invalid credentials') {
         form.setError('password', { message: 'Неправильний email або пароль' });

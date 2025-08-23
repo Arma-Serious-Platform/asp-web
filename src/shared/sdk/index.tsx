@@ -2,6 +2,7 @@ import axios from 'axios';
 import {
   BanUserDto,
   ChangePasswordDto,
+  ConfirmForgotPasswordDto,
   FindUsersDto,
   ForgotPasswordDto,
   LoginDto,
@@ -67,6 +68,10 @@ class ApiModel {
 
   forgotPassword = async (dto: ForgotPasswordDto) => {
     return await this.instance.post('/users/forgot-password', dto);
+  };
+
+  confirmForgotPassword = async (dto: ConfirmForgotPasswordDto) => {
+    return await this.instance.post('/users/reset-password', dto);
   };
 
   /* Users */

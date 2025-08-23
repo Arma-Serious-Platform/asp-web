@@ -153,6 +153,11 @@ export type ForgotPasswordDto = {
   email: string;
 };
 
+export type ConfirmForgotPasswordDto = {
+  token: string;
+  newPassword: string;
+};
+
 export type LoginDto = {
   email: string;
   password: string;
