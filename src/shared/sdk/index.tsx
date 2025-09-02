@@ -5,12 +5,14 @@ import {
   ConfirmForgotPasswordDto,
   CreateServerDto,
   FindServersDto,
+  FindSidesDto,
   FindUsersDto,
   ForgotPasswordDto,
   LoginDto,
   LoginResponse,
   PaginatedResponse,
   Server,
+  Side,
   SignUpDto,
   Squad,
   UpdateServerDto,
@@ -110,6 +112,14 @@ class ApiModel {
 
   findSquads = async () => {
     return await this.instance.get<Squad[]>('/squads');
+  };
+
+  /* Sides */
+
+  findSides = async (dto: FindSidesDto) => {
+    return await this.instance.get<PaginatedResponse<Side>>('/sides', {
+      params: dto,
+    });
   };
 }
 

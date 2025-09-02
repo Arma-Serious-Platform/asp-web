@@ -207,3 +207,7 @@ export type CreateServerDto = {
   port: number;
   status: ServerStatus;
 };
+
+export type FindSidesDto = PaginatedRequest<{
+  type?: SideType;
+}>;
