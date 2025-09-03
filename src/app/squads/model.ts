@@ -9,6 +9,6 @@ class SquadsPageModel {
   squads = new SquadModel();
 }
 
-const squadsPageModel = new SquadsPageModel();
+const model = new SquadsPageModel();
 
-export { squadsPageModel };
+export { model };

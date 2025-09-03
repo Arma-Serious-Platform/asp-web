@@ -6,6 +6,7 @@ import {
   CreateServerDto,
   FindServersDto,
   FindSidesDto,
+  FindSquadsDto,
   FindUsersDto,
   ForgotPasswordDto,
   LoginDto,
@@ -110,8 +111,10 @@ class ApiModel {
 
   /* Squads */
 
-  findSquads = async () => {
-    return await this.instance.get<Squad[]>('/squads');
+  findSquads = async (dto: FindSquadsDto) => {
+    return await this.instance.get<PaginatedResponse<Squad>>('/squads', {
+      params: dto,
+    });
   };
 
   /* Sides */

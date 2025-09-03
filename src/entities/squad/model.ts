@@ -1,32 +1,42 @@
-import { Loader } from '@/shared/model/loader';
+import { Pagination } from '@/shared/model/pagination';
 import { api } from '@/shared/sdk';
-import { Squad } from '@/shared/sdk/types';
-import { makeAutoObservable } from 'mobx';
+import { SideType } from '@/shared/sdk/types';
+
+import { get, makeAutoObservable } from 'mobx';
 
 class SquadModel {
   constructor() {
     makeAutoObservable(this);
   }
 
-  data: Squad[] = [];
+  pagination = new Pagination({ api: api.findSquads });
 
-  loader = new Loader();
+  get blueSquads() {
+    return this.pagination.data.filter(
+      (squad) => squad.side?.type === SideType.BLUE
+    );
+  }
 
-  findSquads = async () => {
-    try {
-      this.loader.start();
-      const { data } = await api.findSquads();
+  get redSquads() {
+    return this.pagination.data.filter(
+      (squad) => squad.side?.type === SideType.RED
+    );
+  }
 
-      this.data = data;
-    } catch (error) {
-      console.error(error);
-    } finally {
-      this.loader.stop();
-    }
+  get unassignedSquads() {
+    return this.pagination.data.filter(
+      (squad) => squad.side?.type === SideType.UNASSIGNED
+    );
+  }
+
+  init = async () => {
+    await this.pagination.loadAll();
+
+    return this.pagination.data;
   };
 
   reset = () => {
-    this.data = [];
+    this.pagination.reset();
   };
 }
 

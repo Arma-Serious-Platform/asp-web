@@ -1,4 +1,4 @@
-import { Server, Side } from '@/shared/sdk/types';
+import { Side } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
 import { EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
@@ -6,7 +6,6 @@ import { EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { session } from '@/entities/session/model';
 
-import { ServerStatusText } from '@/entities/server/ui/server-text';
 import { Popover } from '@/shared/ui/moleculas/popover';
 import { sidesModel } from './model';
 import { SideTypeText } from '@/entities/side/ui/side-text';
@@ -29,6 +28,22 @@ export const columns: ColumnDef<Side>[] = [
           <SideTypeText type={row.original.type} />
         </div>
       );
+    }),
+  },
+
+  {
+    accessorKey: 'server',
+    header: () => <div>Сервер</div>,
+    cell: observer(({ row }) => {
+      return <div>{row.original.server?.name}</div>;
+    }),
+  },
+
+  {
+    accessorKey: 'squds',
+    header: () => <div>Загонів</div>,
+    cell: observer(({ row }) => {
+      return <div>{row.original.squads.length}</div>;
     }),
   },
 
@@ -62,6 +77,7 @@ export const columns: ColumnDef<Side>[] = [
   //         </Button>
 
   //         <Button
+  //           size='sm'
   //           variant='secondary'
   //           align='left'
   //           onClick={() => {

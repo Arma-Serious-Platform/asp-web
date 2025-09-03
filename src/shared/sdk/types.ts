@@ -211,3 +211,8 @@ export type CreateServerDto = {
 export type FindSidesDto = PaginatedRequest<{
   type?: SideType;
 }>;
+
+export type FindSquadsDto = PaginatedRequest<{
+  search?: string;
+  sideType?: SideType;
+}>;
