@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { UserModel } from "@/entities/user/model";
-import { LoginResponse, User } from '@/shared/sdk/types';
+import { LoginResponse, UserRole } from '@/shared/sdk/types';
 import { deleteCookie, setCookie } from 'cookies-next';
 import { Preloader } from '@/shared/model/loader';
 import { api } from "@/shared/sdk";
@@ -20,6 +20,10 @@ export class SessionModel {
   private setTokens = (token: string, refreshToken: string) => {
     setCookie("token", token, { maxAge: 60 * 60 * 24 * 7 });
     setCookie("refreshToken", refreshToken, { maxAge: 60 * 60 * 24 * 30 });
+  }
+
+  get isHasAdminPanelAccess() {
+    return [UserRole.OWNER, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   boot = async (dto: LoginResponse | null) => {
