@@ -127,7 +127,10 @@ export type Squad = {
   updatedAt: Date;
   activeCount: number;
   description: string | null;
-  logoUrl: string | null;
+  logo: {
+    id: string;
+    url: string;
+  } | null;
   tag: string;
   leader: User;
   side: Side;

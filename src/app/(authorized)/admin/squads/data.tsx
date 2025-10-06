@@ -18,7 +18,7 @@ export const columns: ColumnDef<Squad>[] = [
     cell: ({ row }) => {
       return (
         <Image
-          src={row.original.logoUrl || '/images/avatar.jpg'}
+          src={row.original.logo?.url || '/images/avatar.jpg'}
           alt={row.original.name}
           width={40}
           height={40}
@@ -86,7 +86,7 @@ export const columns: ColumnDef<Squad>[] = [
   {
     accessorKey: 'actions',
     header: () => <div>Дії</div>,
-    cell: observer(() => {
+    cell: observer(({ row }) => {
       return (
         <Popover
           className='w-fit flex flex-col gap-2'
@@ -102,6 +102,7 @@ export const columns: ColumnDef<Squad>[] = [
             onClick={() => {
               squadsPageModel.manageSquad.modal.open({
                 mode: 'manage',
+                squad: row.original,
               });
             }}>
             <EditIcon className='w-4 h-4 text-yellow-500' />
@@ -115,6 +116,7 @@ export const columns: ColumnDef<Squad>[] = [
             onClick={() => {
               squadsPageModel.manageSquad.modal.open({
                 mode: 'delete',
+                squad: row.original,
               });
             }}>
             <TrashIcon className='w-4 h-4 text-red-500' />

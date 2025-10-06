@@ -22,7 +22,7 @@ import {
   User,
 } from './types';
 import { deleteCookie, getCookie } from 'cookies-next';
-import { redirect } from 'next/navigation';
+
 import { ROUTES } from '../config/routes';
 
 class ApiModel {

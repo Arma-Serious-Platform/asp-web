@@ -112,7 +112,10 @@ const ManageSquadModal: FC<
           onUpdateSuccess
         );
       } else {
-        model.createSquad(data, onCreateSuccess);
+        model.createSquad(
+          { ...data, logo: file || undefined },
+          onCreateSuccess
+        );
       }
     };
 
