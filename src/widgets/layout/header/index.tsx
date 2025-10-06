@@ -80,7 +80,12 @@ export const Header: FC<HeaderProps> = observer(
             <Link href={ROUTES.rules}>Правила</Link>
             <Link href={ROUTES.schedule}>Розклад</Link>
             <Link href={ROUTES.squads}>Загони</Link>
-            <Link href={ROUTES.replays}>Реплеї</Link>
+            <a
+              href='https://replays.vtg.in.ua'
+              target='_blank'
+              rel='noopener noreferrer'>
+              Реплеї
+            </a>
           </div>
 
           <View.Condition if={session.preloader.isLoading}>
