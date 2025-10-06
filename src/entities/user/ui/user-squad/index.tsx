@@ -27,7 +27,7 @@ export const UserSquad: FC<{
     <div className='flex flex-col gap-2'>
       <div className='flex items-center gap-2'>
         <Image
-          src='/images/squad.png'
+          src='/images/logo.webp'
           alt={squad.name}
           width={32}
           height={32}

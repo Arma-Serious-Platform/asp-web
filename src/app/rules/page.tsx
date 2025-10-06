@@ -18,7 +18,7 @@ const RuleContent: FC<
 
   return (
     <div
-      className={cn('pl-4', {
+      className={cn('pl-4 text-neutral-400', {
         'pl-8': dotCount === 2,
         'pl-12': dotCount === 3,
       })}
