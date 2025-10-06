@@ -1,4 +1,8 @@
-import { UserRole, UserStatus } from "@/shared/sdk/types";
+import { UserRole, UserStatus } from '@/shared/sdk/types';
+
+export const hasAccessToAdminPanel = (role?: UserRole) => {
+  return [UserRole.OWNER, UserRole.TECH_ADMIN].includes(role as UserRole);
+};
 
 export const getUserRoleText = (role?: UserRole) => {
   switch (role) {

@@ -86,6 +86,7 @@ export const columns: ColumnDef<Server>[] = [
           <Button
             variant='secondary'
             align='left'
+            size='sm'
             onClick={() => {
               serversModel.manageServer.modal.open({
                 server: row.original,

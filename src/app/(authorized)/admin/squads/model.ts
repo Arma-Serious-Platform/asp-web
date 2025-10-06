@@ -1,5 +1,6 @@
 import { SquadModel } from '@/entities/squad/model';
-import { ManageServerModel } from '@/features/servers/manage/model';
+
+import { ManageSquadModel } from '@/features/squads/manage/model';
 
 import { makeAutoObservable } from 'mobx';
 
@@ -18,7 +19,7 @@ export class SquadsPageModel {
     this.squads.reset();
   };
 
-  manageServer = new ManageServerModel();
+  manageSquad = new ManageSquadModel();
 }
 
 export const squadsPageModel = new SquadsPageModel();

@@ -4,6 +4,7 @@ import {
   ChangePasswordDto,
   ConfirmForgotPasswordDto,
   CreateServerDto,
+  CreateSquadDto,
   FindServersDto,
   FindSidesDto,
   FindSquadsDto,
@@ -17,6 +18,7 @@ import {
   SignUpDto,
   Squad,
   UpdateServerDto,
+  UpdateSquadDto,
   User,
 } from './types';
 import { deleteCookie, getCookie } from 'cookies-next';
@@ -146,6 +148,18 @@ class ApiModel {
   };
 
   /* Squads */
+
+  createSquad = async (dto: CreateSquadDto) => {
+    return await this.instance.post<Squad>('/squads', dto);
+  };
+
+  updateSquad = async ({ id, ...dto }: UpdateSquadDto) => {
+    return await this.instance.patch<Squad>(`/squads/${id}`, dto);
+  };
+
+  deleteSquad = async (squadId: string) => {
+    return await this.instance.delete<Squad>(`/squads/${squadId}`);
+  };
 
   findSquads = async (dto: FindSquadsDto) => {
     return await this.instance.get<PaginatedResponse<Squad>>('/squads', {

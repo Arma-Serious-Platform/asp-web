@@ -219,3 +219,24 @@ export type FindSquadsDto = PaginatedRequest<{
   search?: string;
   sideType?: SideType;
 }>;
+
+export type CreateSquadDto = {
+  name: string;
+  tag: string;
+  description: string;
+  leaderId: string;
+  sideId: string;
+  activeCount: number;
+  logo?: File;
+};
+
+export type UpdateSquadDto = {
+  id: string;
+  name?: string;
+  tag?: string;
+  description?: string;
+  leaderId?: string;
+  sideId?: string;
+  activeCount?: number;
+  logo?: File;
+};

@@ -23,6 +23,7 @@ import Image from 'next/image';
 import { FC, useEffect, useState } from 'react';
 import { UserRole } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
+import { hasAccessToAdminPanel } from '@/entities/user/lib';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -106,7 +107,10 @@ export const Header: FC<HeaderProps> = observer(
                         className={cn(
                           'gap-3 border-none bg-transparent hover:bg-transparent'
                         )}>
-                        <Avatar size='sm' src={session.user?.user?.avatar?.url} />
+                        <Avatar
+                          size='sm'
+                          src={session.user?.user?.avatar?.url}
+                        />
                         {session.user?.user?.nickname}
                       </Button>
                     }>
@@ -117,9 +121,7 @@ export const Header: FC<HeaderProps> = observer(
                       </Button>
                     </NextLink>
                     <View.Condition
-                      if={[UserRole.OWNER, UserRole.TECH_ADMIN].includes(
-                        session.user?.user?.role
-                      )}>
+                      if={hasAccessToAdminPanel(session.user?.user?.role)}>
                       <NextLink href={ROUTES.admin.users}>
                         <Button align='left' className='w-full' size='sm'>
                           <ShieldUserIcon className='size-4' />

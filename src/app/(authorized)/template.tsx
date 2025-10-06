@@ -1,4 +1,6 @@
+import { hasAccessToAdminPanel } from '@/entities/user/lib';
 import { ROUTES } from '@/shared/config/routes';
+import { api } from '@/shared/sdk';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -10,9 +12,11 @@ export default async function AuthTemplate({
   const cookie = await cookies();
   const token = cookie.get('token')?.value;
 
-  if (token) {
-    return children;
-  }
+  const user = await api.getMe();
 
-  return redirect(ROUTES.auth.login);
+  if (!token) return redirect(ROUTES.auth.login);
+
+  if (!hasAccessToAdminPanel(user.data?.role)) return redirect(ROUTES.home);
+
+  return children;
 }

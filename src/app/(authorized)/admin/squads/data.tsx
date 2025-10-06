@@ -66,7 +66,7 @@ export const columns: ColumnDef<Squad>[] = [
             variant='secondary'
             align='left'
             onClick={() => {
-              squadsPageModel.manageServer.modal.open({
+              squadsPageModel.manageSquad.modal.open({
                 mode: 'manage',
               });
             }}>
@@ -79,7 +79,7 @@ export const columns: ColumnDef<Squad>[] = [
             variant='secondary'
             align='left'
             onClick={() => {
-              squadsPageModel.manageServer.modal.open({
+              squadsPageModel.manageSquad.modal.open({
                 mode: 'delete',
               });
             }}>

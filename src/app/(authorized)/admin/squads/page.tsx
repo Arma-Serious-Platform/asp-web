@@ -9,8 +9,9 @@ import { squadsPageModel } from './model';
 
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
-import { ManageServerModal } from '@/features/servers/manage/ui';
+
 import { Button } from '@/shared/ui/atoms/button';
+import { ManageSquadModal } from '@/features/squads/manage/ui';
 
 const AdminPage = observer(() => {
   useEffect(() => {
@@ -20,8 +21,8 @@ const AdminPage = observer(() => {
   return (
     <Layout className='flex w-full mt-10 container mx-auto h-full'>
       <div className='flex flex-col bg-card w-full p-4'>
-        <ManageServerModal
-          model={squadsPageModel.manageServer}
+        <ManageSquadModal
+          model={squadsPageModel.manageSquad}
           onCreateSuccess={() => {
             squadsPageModel.squads.init();
           }}
@@ -36,7 +37,14 @@ const AdminPage = observer(() => {
         <AdminSidebar className='mb-4' />
         <div className='mb-2 flex justify-between items-center'>
           <h1 className='text-2xl font-bold'>Загони</h1>
-          <Button size='sm' variant='secondary'>
+          <Button
+            size='sm'
+            variant='secondary'
+            onClick={() => {
+              squadsPageModel.manageSquad.modal.open({
+                mode: 'manage',
+              });
+            }}>
             Додати загін
           </Button>
         </div>
