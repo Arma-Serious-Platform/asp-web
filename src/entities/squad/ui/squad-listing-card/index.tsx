@@ -19,7 +19,7 @@ const SquadListingCard: FC<{
     })}>
       <div className='flex items-center gap-2'>
         <Image
-          src={squad.logoUrl || '/images/avatar.jpg'}
+          src={squad.logo?.url || '/images/avatar.jpg'}
           alt={squad.name}
           width={40}
           height={40}
