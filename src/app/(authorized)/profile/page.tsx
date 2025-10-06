@@ -68,12 +68,14 @@ const ProfilePage = observer(() => {
                 </div>
                 <div className='flex flex-col w-full gap-0.5'>
                   <Button
+                    size='sm'
                     onClick={() => setTab('profile')}
                     variant={tab === 'profile' ? 'default' : 'ghost'}
                     className='justify-start'>
                     Профіль
                   </Button>
                   <Button
+                    size='sm'
                     onClick={() => setTab('squad')}
                     variant={tab === 'squad' ? 'default' : 'ghost'}
                     className='justify-start'>
@@ -81,6 +83,7 @@ const ProfilePage = observer(() => {
                   </Button>
 
                   <Button
+                    size='sm'
                     onClick={() => setTab('security')}
                     variant={tab === 'security' ? 'default' : 'ghost'}
                     className='justify-start'>

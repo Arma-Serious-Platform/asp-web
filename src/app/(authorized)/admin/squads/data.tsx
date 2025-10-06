@@ -9,6 +9,7 @@ import { observer } from 'mobx-react-lite';
 
 import Image from 'next/image';
 import { squadsPageModel } from './model';
+import { UserNicknameText } from '@/entities/user/ui/user-text';
 
 export const columns: ColumnDef<Squad>[] = [
   {
@@ -25,11 +26,44 @@ export const columns: ColumnDef<Squad>[] = [
       );
     },
   },
+
+  {
+    accessorKey: 'tag',
+    header: () => <div>Тег</div>,
+    cell: ({ row }) => {
+      return <div>{row.original.tag}</div>;
+    },
+  },
+
   {
     accessorKey: 'name',
     header: () => <div>Назва</div>,
     cell: ({ row }) => {
       return <div>{row.original.name}</div>;
+    },
+  },
+
+  {
+    accessorKey: 'leader',
+    header: () => <div>Лідер</div>,
+    cell: ({ row }) => {
+      return (
+        <div>
+          <UserNicknameText
+            user={row.original.leader || null}
+            tag={row.original.tag}
+            sideType={row.original.side?.type}
+          />
+        </div>
+      );
+    },
+  },
+
+  {
+    accessorKey: 'members',
+    header: () => <div>Учасників</div>,
+    cell: ({ row }) => {
+      return <div>{row.original.activeCount || 0}</div>;
     },
   },
 
@@ -52,7 +86,7 @@ export const columns: ColumnDef<Squad>[] = [
   {
     accessorKey: 'actions',
     header: () => <div>Дії</div>,
-    cell: observer(({ row }) => {
+    cell: observer(() => {
       return (
         <Popover
           className='w-fit flex flex-col gap-2'

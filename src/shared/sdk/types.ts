@@ -226,7 +226,7 @@ export type CreateSquadDto = {
   description: string;
   leaderId: string;
   sideId: string;
-  activeCount: number;
+  activeCount?: number;
   logo?: File;
 };
 

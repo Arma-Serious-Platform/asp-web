@@ -65,10 +65,6 @@ const ManageSquadModal: FC<
           description: yup.string().required("Опис є обов'язковим"),
           leaderId: yup.string().required("Лідер є обов'язковим"),
           sideId: yup.string().required("Сторона є обов'язковою"),
-          activeCount: yup
-            .number()
-            .min(0)
-            .required("Кількість активних членів є обов'язковою"),
         })
       ),
       context: {
@@ -80,12 +76,12 @@ const ManageSquadModal: FC<
         description: '',
         leaderId: '',
         sideId: '',
-        activeCount: 0,
       },
     });
 
     const isEdit = Boolean(model.modal.payload?.squad?.id);
     const { tag, sideId } = form.watch();
+    const { isValid } = form.formState;
 
     const onSubmit = async (data: CreateSquadDto) => {
       if (isEdit) {
@@ -195,10 +191,7 @@ const ManageSquadModal: FC<
                         <Select
                           {...field}
                           label='Сторона загону'
-                          options={model.sides.pagination.data.map((side) => ({
-                            label: side.name,
-                            value: side.id,
-                          }))}
+                          options={model.sides.options}
                           error={form.formState.errors.sideId?.message}
                         />
                       )}
@@ -215,15 +208,16 @@ const ManageSquadModal: FC<
                       {() => (
                         <Select
                           {...field}
-                          onSearch={() => {
-                            model.sides.pagination.init({ skip: 0, take: 100 });
+                          onSearch={(search) => {
+                            model.users.pagination.init({
+                              search,
+                              skip: 0,
+                              take: 100,
+                            });
                           }}
-                          isLoading={model.sides.pagination.preloader.isLoading}
+                          isLoading={model.users.pagination.preloader.isLoading}
                           label='Лідер загону'
-                          options={model.sides.pagination.data.map((side) => ({
-                            label: side.name,
-                            value: side.id,
-                          }))}
+                          options={model.users.options}
                           error={form.formState.errors.sideId?.message}
                         />
                       )}
@@ -236,7 +230,7 @@ const ManageSquadModal: FC<
                 <Button variant='outline' onClick={() => model.modal.close()}>
                   Скасувати
                 </Button>
-                <Button type='submit'>
+                <Button type='submit' disabled={!isValid}>
                   {model?.modal?.payload?.squad ? 'Зберегти' : 'Створити'}
                 </Button>
               </div>

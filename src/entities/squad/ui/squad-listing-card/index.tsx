@@ -1,17 +1,22 @@
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { ROUTES } from '@/shared/config/routes';
 import { Squad } from '@/shared/sdk/types';
+import { cn } from '@/shared/utils/cn';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FC } from 'react';
 
 const SquadListingCard: FC<{
   squad: Squad | null;
-}> = ({ squad }) => {
+  align?: 'left' | 'right'
+}> = ({ squad, align = 'left' }) => {
   if (!squad) return null;
 
   return (
-    <div className='flex flex-col gap-2'>
+    <div className={cn('flex flex-col gap-2', {
+      'items-start': align === 'left',
+      'items-end': align === 'right',
+    })}>
       <div className='flex items-center gap-2'>
         <Image
           src={squad.logoUrl || '/images/avatar.jpg'}

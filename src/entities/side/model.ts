@@ -8,6 +8,13 @@ export class SideModel {
     makeAutoObservable(this);
   }
 
+  get options() {
+    return this.pagination.data.map((side) => ({
+      label: side.name,
+      value: side.id,
+    }));
+  }
+
   pagination = new Pagination({ api: api.findSides });
 
   reset = () => {

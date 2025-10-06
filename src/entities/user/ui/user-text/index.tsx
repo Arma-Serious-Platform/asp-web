@@ -6,20 +6,23 @@ import dayjs from 'dayjs';
 
 export const UserNicknameText: FC<{
   user: User | null;
+  tag?: string;
+  sideType?: SideType;
   className?: string;
-}> = ({ user, className }) => {
+}> = ({ user, tag, sideType, className }) => {
   if (!user?.nickname) return '';
 
-  if (user?.squad?.name) {
+  if ((tag && sideType) || user?.squad?.name) {
+    const type = sideType || user?.squad?.side?.type;
     return (
       <span className={className}>
         <span
           className={classNames({
-            'text-blue-500': user.squad?.side?.type === SideType.BLUE,
-            'text-red-500': user.squad?.side?.type === SideType.RED,
-            'text-gray-500': user.squad?.side?.type === SideType.UNASSIGNED,
+            'text-blue-500': type === SideType.BLUE,
+            'text-red-500': type === SideType.RED,
+            'text-gray-500': type === SideType.UNASSIGNED,
           })}>
-          [{user.squad.name}]
+          [{tag || user.squad?.tag}]
         </span>
         <span>{user.nickname}</span>
       </span>

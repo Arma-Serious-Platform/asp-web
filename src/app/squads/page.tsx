@@ -26,18 +26,25 @@ const SquadsPage = async () => {
 
       <Suspense fallback={<LoaderIcon className='w-4 h-4 animate-spin' />}>
         <div className='flex flex-col'>
-          <div className='flex'>
-            <div className='flex flex-col gap-2'>
+          <div className='flex w-full'>
+            <div className='flex flex-col gap-2 w-full'>
+              <div className='text-blue-500'>BLUEFOR</div>
               {blueSquads.map((squad) => (
                 <SquadListingCard key={squad.id} squad={squad} />
               ))}
             </div>
-            <div className='flex flex-col gap-2'>
+            <div className='flex flex-col gap-2 w-full'>
+              <div className='text-red-500 text-right'>OPFOR</div>
               {redSquads.map((squad) => (
-                <SquadListingCard key={squad.id} squad={squad} />
+                <SquadListingCard key={squad.id} squad={squad} align='right' />
               ))}
             </div>
+          </div>
+          <div className='flex w-full justify-center items-center'>
             <div className='flex flex-col gap-2'>
+              {unassignedSquads.length > 0 && (
+                <div className='text-gray-500'>Нейтральні загони</div>
+              )}
               {unassignedSquads.map((squad) => (
                 <SquadListingCard key={squad.id} squad={squad} />
               ))}

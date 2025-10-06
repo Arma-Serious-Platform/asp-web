@@ -1,6 +1,7 @@
 import { Pagination } from '@/shared/model/pagination';
 import { api } from '@/shared/sdk';
 import { User, UserRole, UserStatus } from '@/shared/sdk/types';
+
 import { makeAutoObservable } from 'mobx';
 
 class UserModel {
@@ -9,6 +10,13 @@ class UserModel {
   }
 
   user: User | null = null;
+
+  get options() {
+    return this.pagination.data.map((user) => ({
+      label: user.nickname,
+      value: user.id,
+    }));
+  }
 
   get isAdmin() {
     return (
@@ -22,6 +30,10 @@ class UserModel {
   }
 
   pagination = new Pagination({ api: api.findUsers });
+
+  reset = () => {
+    this.pagination.reset();
+  };
 }
 
 export { UserModel };

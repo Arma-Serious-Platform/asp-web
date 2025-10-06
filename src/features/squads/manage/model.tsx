@@ -1,4 +1,5 @@
 import { SideModel } from '@/entities/side/model';
+import { UserModel } from '@/entities/user/model';
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
@@ -15,6 +16,8 @@ class ManageSquadModel {
 
   sides = new SideModel();
 
+  users = new UserModel();
+
   modal = new Visibility<{
     squad?: Squad;
     mode: 'manage' | 'delete';
@@ -22,6 +25,10 @@ class ManageSquadModel {
 
   init = async () => {
     await this.sides.pagination.loadAll();
+    await this.users.pagination.init({
+      take: 50,
+      skip: 0,
+    });
   };
 
   createSquad = async (
@@ -83,6 +90,7 @@ class ManageSquadModel {
 
   reset = () => {
     this.sides.reset();
+    this.users.reset();
   };
 }
 

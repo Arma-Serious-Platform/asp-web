@@ -7,8 +7,10 @@ import { Checkbox } from '../checkbox';
 import { Input } from '../input';
 import { cn } from '@/shared/utils/cn';
 import { Preloader } from '../preloader';
+import { useDebounce } from 'react-use';
+import { ChevronDownIcon } from 'lucide-react';
 
-type SelectOption = {
+export type SelectOption = {
   label: string;
   value: string;
 };
@@ -94,6 +96,8 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
                     .map((v) => v.label)
                     .join(', ')
                 : combinedOptions.find((v) => v.value === value)?.label}
+
+              <ChevronDownIcon className='size-4 ml-auto' />
             </div>
             {error && <p className='mt-1 text-red-500 text-sm'>{error}</p>}
           </div>
@@ -110,11 +114,16 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
         )}
         <Preloader isLoading={isLoading || false}>
           <div className='flex flex-col w-full'>
+            {!combinedOptions.length && (
+              <div className='p-8 h-8 mx-auto flex items-center justify-between text-sm'>
+                {!isLoading && 'Результатів не знайдено'}
+              </div>
+            )}
             {combinedOptions.map((option) => (
               <div
                 key={option.value}
                 onClick={() => onSelect(option)}
-                className='cursor-pointer hover:bg-primary/15 px-2 py-1 text-sm'>
+                className='cursor-pointer hover:bg-primary/15 px-2 py-1.5 text-sm'>
                 {multiple ? (
                   <div className='flex items-center gap-2'>
                     <Checkbox checked={value.some((v) => v === option.value)} />
