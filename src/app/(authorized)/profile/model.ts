@@ -1,4 +1,5 @@
 import { session } from "@/entities/session/model";
+import { ChangeAvatarModel } from "@/features/user/change-avatar/model";
 
 import { makeAutoObservable } from "mobx";
 
@@ -12,6 +13,8 @@ class ProfileModel {
 
     await session.fetchMe();
   }
+
+  avatar = new ChangeAvatarModel();
 
   get user() {
     return session.user.user;

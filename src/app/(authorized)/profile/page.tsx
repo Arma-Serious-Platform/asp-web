@@ -22,6 +22,7 @@ import { View } from '@/features/view';
 import { parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from '@/entities/user/ui/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
+import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 
 const ProfilePage = observer(() => {
   const router = useRouter();
@@ -43,14 +44,23 @@ const ProfilePage = observer(() => {
   return (
     <Layout>
       <Hero />
+      <ChangeAvatarModal model={profile.avatar} />
       <div className='max-w-5xl bg-card/80 w-full mx-auto my-4'>
         <div className='flex items-center gap-2'>
           <div className='flex flex-col gap-2'>
             <div className='flex gap-2'>
               <div className='flex flex-col shrink-0'>
-                <div className='flex items-center gap-2'>
+                <div className='relative flex items-center gap-2 group'>
+                  <div className='absolute top-0 left-0 w-full h-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                  <Button
+                    onClick={() => profile.avatar.modal.open()}
+                    size='lg'
+                    variant='outline'
+                    className='absolute flex items-center justify-center z-10 top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                    Змінити
+                  </Button>
                   <Image
-                    src={profile.user?.avatarUrl || '/images/avatar.jpg'}
+                    src={profile.user?.avatar?.url || '/images/avatar.jpg'}
                     width={256}
                     height={256}
                     alt='avatar'

@@ -106,7 +106,10 @@ export type User = {
   role: UserRole;
   resetPasswordToken: string | null;
   resetPasswordTokenExpiresAt: Date | null;
-  avatarUrl: string | null;
+  avatar: {
+    name: string;
+    url: string;
+  } | null;
   bannedUntil: Date | null;
   missions: [];
   side: Side | null;

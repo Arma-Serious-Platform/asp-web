@@ -22,6 +22,7 @@ import Image from 'next/image';
 
 import { FC, useEffect, useState } from 'react';
 import { UserRole } from '@/shared/sdk/types';
+import { cn } from '@/shared/utils/cn';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -101,8 +102,11 @@ export const Header: FC<HeaderProps> = observer(
                   <Popover
                     className='flex flex-col gap-1 w-fit p-0 border-none min-w-40'
                     trigger={
-                      <Button className='gap-3 !border-none bg-transparent hover:bg-transparent'>
-                        <Avatar size='sm' />
+                      <Button
+                        className={cn(
+                          'gap-3 border-none bg-transparent hover:bg-transparent'
+                        )}>
+                        <Avatar size='sm' src={session.user?.user?.avatar?.url} />
                         {session.user?.user?.nickname}
                       </Button>
                     }>

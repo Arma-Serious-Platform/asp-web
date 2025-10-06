@@ -101,6 +101,20 @@ class ApiModel {
     });
   };
 
+  changeAvatar = async (avatar: File) => {
+    const formData = new FormData();
+    formData.append('avatar', avatar);
+
+    return await this.instance({
+      method: 'POST',
+      url: '/users/change-avatar',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  };
+
   banUser = async (dto: BanUserDto) => {
     return await this.instance.post(`/users/ban/${dto.userId}`, dto);
   };
