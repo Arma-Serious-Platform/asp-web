@@ -19,7 +19,9 @@ import {
   UpdateServerDto,
   User,
 } from './types';
-import { getCookie } from 'cookies-next';
+import { deleteCookie, getCookie } from 'cookies-next';
+import { redirect } from 'next/navigation';
+import { ROUTES } from '../config/routes';
 
 class ApiModel {
   /* Servers */
@@ -40,6 +42,26 @@ class ApiModel {
       }
 
       return config;
+    });
+
+    this.instance.interceptors.response.use(async (response) => {
+      // TODO: call refresh token
+      const isClient = typeof window !== 'undefined';
+
+      if (response.status === 401) {
+        if (isClient) {
+          deleteCookie('token');
+          deleteCookie('refreshToken');
+
+          window.location.href = ROUTES.auth.login;
+        } else {
+          deleteCookie('token');
+          deleteCookie('refreshToken');
+          // redirect(ROUTES.auth.login);
+        }
+      }
+
+      return response;
     });
   }
 
