@@ -8,7 +8,14 @@ import {
   DialogTrigger,
 } from '@/shared/ui/organisms/dialog';
 import { Observer, observer } from 'mobx-react-lite';
-import { FC, PropsWithChildren, useEffect } from 'react';
+import {
+  FC,
+  PropsWithChildren,
+  RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ManageSquadModel } from './model';
 import { Input } from '@/shared/ui/atoms/input';
 import { CreateSquadDto, Squad } from '@/shared/sdk/types';
@@ -17,6 +24,12 @@ import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Select } from '@/shared/ui/atoms/select';
+import {
+  CropperRef,
+  FixedCropper,
+  FixedCropperRef,
+  ImageRestriction,
+} from 'react-advanced-cropper';
 
 const ManageSquadModal: FC<
   PropsWithChildren<{
@@ -36,6 +49,7 @@ const ManageSquadModal: FC<
     onDeleteSuccess,
   }) => {
     const form = useForm<CreateSquadDto>({
+      mode: 'onChange',
       resolver: yupResolver(
         yup.object().shape({
           name: yup
@@ -79,7 +93,12 @@ const ManageSquadModal: FC<
       },
     });
 
+    const imageRef = useRef<HTMLInputElement>(null);
+    const cropperRef = useRef<CropperRef>(null);
     const isEdit = Boolean(model.modal.payload?.squad?.id);
+    const [file, setFile] = useState<File | null>(null);
+    const [image, setImage] = useState('');
+
     const { tag, sideId } = form.watch();
     const { isValid } = form.formState;
 
@@ -96,6 +115,14 @@ const ManageSquadModal: FC<
         model.createSquad(data, onCreateSuccess);
       }
     };
+
+    useEffect(() => {
+      if (file) {
+        setImage(URL.createObjectURL(file));
+      } else {
+        setImage('');
+      }
+    }, [file]);
 
     useEffect(() => {
       if (model.modal.isOpen) {
@@ -118,6 +145,8 @@ const ManageSquadModal: FC<
       if (!model.modal.isOpen) {
         form.reset();
         model.reset();
+        setFile(null);
+        setImage('');
       }
     }, [model.modal.isOpen]);
 
@@ -136,8 +165,52 @@ const ManageSquadModal: FC<
             </DialogHeader>
 
             <form
-              className='flex flex-col gap-2'
+              className='flex flex-col gap-2 overflow-hidden'
               onSubmit={form.handleSubmit(onSubmit)}>
+              <div className='flex flex-col gap-2 '>
+                <input
+                  ref={imageRef}
+                  className='hidden'
+                  type='file'
+                  accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
+                  disabled={model.loader.isLoading}
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                />
+
+                {Boolean(image) && (
+                  <FixedCropper
+                    ref={cropperRef as RefObject<FixedCropperRef>}
+                    className='h-64'
+                    src={image}
+                    imageRestriction={ImageRestriction.stencil}
+                    stencilProps={{
+                      handlers: false,
+                      lines: true,
+                      movable: false,
+                      resizable: false,
+                    }}
+                    defaultSize={{
+                      height: 256,
+                      width: 256,
+                    }}
+                    stencilSize={{
+                      height: 256,
+                      width: 256,
+                    }}
+                  />
+                )}
+
+                {!image && <div className='size-64 mx-auto bg-black/80' />}
+                <Button
+                  type='button'
+                  className='w-64 mx-auto'
+                  variant={file ? 'outline' : 'default'}
+                  disabled={model.loader.isLoading}
+                  onClick={() => imageRef.current?.click()}>
+                  {file ? 'Змінити лого' : 'Обрати лого'}
+                </Button>
+              </div>
+
               <div className='flex flex-col gap-2'>
                 <Controller
                   control={form.control}

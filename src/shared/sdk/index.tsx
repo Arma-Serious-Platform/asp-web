@@ -150,7 +150,20 @@ class ApiModel {
   /* Squads */
 
   createSquad = async (dto: CreateSquadDto) => {
-    return await this.instance.post<Squad>('/squads', dto);
+    const formData = new FormData();
+    if (dto.logo) {
+      formData.append('logo', dto.logo);
+    }
+    formData.append('name', dto.name);
+    formData.append('tag', dto.tag);
+    formData.append('description', dto.description);
+    formData.append('leaderId', dto.leaderId);
+    formData.append('sideId', dto.sideId);
+    return await this.instance.post<Squad>('/squads', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   };
 
   updateSquad = async ({ id, ...dto }: UpdateSquadDto) => {

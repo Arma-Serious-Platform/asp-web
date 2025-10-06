@@ -40,11 +40,11 @@ const SquadsPage = async () => {
               ))}
             </div>
           </div>
-          <div className='flex w-full justify-center items-center'>
-            <div className='flex flex-col gap-2'>
-              {unassignedSquads.length > 0 && (
-                <div className='text-gray-500'>Нейтральні загони</div>
-              )}
+          <div className='flex flex-col w-full justify-center items-center'>
+            {unassignedSquads.length > 0 && (
+              <div className='text-neutral-500 text-lg mb-4'>Незалежні загони</div>
+            )}
+            <div className='flex gap-2 flex-wrap'>
               {unassignedSquads.map((squad) => (
                 <SquadListingCard key={squad.id} squad={squad} />
               ))}

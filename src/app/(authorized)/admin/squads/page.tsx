@@ -32,7 +32,7 @@ const AdminPage = observer(() => {
           onDeleteSuccess={() => {
             squadsPageModel.squads.init();
           }}
-          // existedServers={sidesModel.sides.pagination.data}
+          existedSquads={squadsPageModel.squads.pagination.data}
         />
         <AdminSidebar className='mb-4' />
         <div className='mb-2 flex justify-between items-center'>

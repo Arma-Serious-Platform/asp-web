@@ -78,7 +78,12 @@ export const Header: FC<HeaderProps> = observer(
           <div className='flex items-center justify-between mr-auto gap-7'>
             <Link href={ROUTES.home}>Почати грати</Link>
             <Link href={ROUTES.rules}>Правила</Link>
-            <Link href={ROUTES.schedule}>Розклад</Link>
+            <a
+              href='https://docs.google.com/spreadsheets/d/1WAqlUvOtcD-SQr2ebIzxh0ZJgXq1_7IpKHT6u-duSec/edit?gid=525821223#gid=525821223'
+              target='_blank'
+              rel='noopener noreferrer'>
+              Розклад
+            </a>
             <Link href={ROUTES.squads}>Загони</Link>
             <a
               href='https://replays.vtg.in.ua'

@@ -8,8 +8,6 @@ import {
   FixedCropperRef,
 } from 'react-advanced-cropper';
 
-import 'react-advanced-cropper/dist/style.css';
-
 import { ChangeAvatarModel } from './model';
 import {
   Dialog,
@@ -58,6 +56,7 @@ const ChangeAvatarModal = observer(({ model }: ChangeAvatarModalProps) => {
                 className='hidden'
                 type='file'
                 disabled={model.loader.isLoading}
+                accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
 
@@ -73,13 +72,17 @@ const ChangeAvatarModal = observer(({ model }: ChangeAvatarModalProps) => {
                   ref={cropperRef as RefObject<FixedCropperRef>}
                   className='h-64'
                   src={image}
+                  imageRestriction={ImageRestriction.stencil}
                   stencilProps={{
                     handlers: false,
                     lines: true,
                     movable: false,
                     resizable: false,
                   }}
-                  imageRestriction={ImageRestriction.stencil}
+                  defaultSize={{
+                    height: 256,
+                    width: 256,
+                  }}
                   stencilSize={{
                     height: 256,
                     width: 256,
