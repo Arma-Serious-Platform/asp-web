@@ -86,7 +86,7 @@ export const Header: FC<HeaderProps> = observer(
               rel='noopener noreferrer'>
               Розклад
             </a>
-            <Link href={ROUTES.squads}>Загони</Link>
+            {!env.isLanding && <Link href={ROUTES.squads}>Загони</Link>}
             <a
               href='https://replays.vtg.in.ua'
               target='_blank'
