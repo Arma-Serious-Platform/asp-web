@@ -24,12 +24,13 @@ import {
 import { deleteCookie, getCookie } from 'cookies-next';
 
 import { ROUTES } from '../config/routes';
+import { env } from '../config/env';
 
 class ApiModel {
   /* Servers */
 
   instance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: env.apiUrl,
     headers: {
       'Content-Type': 'application/json',
     },

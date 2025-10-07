@@ -24,6 +24,8 @@ import { FC, useEffect, useState } from 'react';
 import { UserRole } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 import { hasAccessToAdminPanel } from '@/entities/user/lib';
+import { env } from '@/shared/config/env';
+import { Social } from '@/features/social/ui';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -100,15 +102,17 @@ export const Header: FC<HeaderProps> = observer(
           </View.Condition>
           <View.Condition if={!session.preloader.isLoading}>
             <div className='flex items-center justify-between gap-7 mx-4'>
+              <Social size={24} />
               <ScheduleInfo className='mr-4 hidden lg:flex' />
-              {(!session.isAuthorized || !session.user?.user) && (
-                <>
-                  <Link href={ROUTES.auth.login}>Увійти</Link>
-                  <Link href={ROUTES.auth.signup}>Реєстрація</Link>
-                </>
-              )}
+              {(!session.isAuthorized || !session.user?.user) &&
+                !env.isLanding && (
+                  <>
+                    <Link href={ROUTES.auth.login}>Увійти</Link>
+                    <Link href={ROUTES.auth.signup}>Реєстрація</Link>
+                  </>
+                )}
 
-              {session.isAuthorized && session.user?.user && (
+              {session.isAuthorized && session.user?.user && !env.isLanding && (
                 <>
                   <Popover
                     className='flex flex-col gap-1 w-fit p-0 border-none min-w-40'

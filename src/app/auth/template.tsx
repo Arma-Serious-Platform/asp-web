@@ -1,3 +1,4 @@
+import { env } from '@/shared/config/env';
 import { ROUTES } from '@/shared/config/routes';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -7,6 +8,10 @@ export default async function AuthTemplate({
 }: {
   children: React.ReactNode;
 }) {
+  if (env.isLanding) {
+    return redirect(ROUTES.home);
+  }
+
   const cookie = await cookies();
   const token = cookie.get('token')?.value;
 
