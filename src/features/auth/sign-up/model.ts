@@ -7,7 +7,7 @@ class SignUpModel {
     makeAutoObservable(this);
   }
 
-  successEmail = 'agentos345game@gmail.com';
+  successEmail = '';
 
   signUp = async (dto: SignUpDto) => {
     await api.singUp(dto);
