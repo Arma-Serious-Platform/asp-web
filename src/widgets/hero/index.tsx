@@ -21,7 +21,9 @@ const LogoAndTitle: FC<{
       <div className='absolute inset-0 bg-black opacity-90 z-10' />
     )}
     <div className='z-10'>
-      <Link href='/' className='w-fit block mx-auto hover:scale-105 transition-transform'>
+      <Link
+        href='/'
+        className='w-fit block mx-auto hover:scale-105 transition-transform'>
         <Image
           className='mx-auto'
           priority
@@ -80,11 +82,16 @@ export const Hero: FC<{
       <div className='absolute inset-0 bg-black opacity-75 z-10'></div>
       <div className='absolute inset-0 z-10 text-white text-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         <LogoAndTitle size='lg' />
-        <Button
-          size='lg'
-          className='uppercase hover:scale-104 transition-transform'>
-          Почати грати
-        </Button>
+        <a
+          href='https://discord.gg/DcWXHAR5XV'
+          target='_blank'
+          rel='noopener noreferrer'>
+          <Button
+            size='lg'
+            className='uppercase hover:scale-104 transition-transform'>
+            Почати грати
+          </Button>
+        </a>
         <ServerInfo className='mx-auto mt-12 min-w-[200px]' />
       </div>
     </div>
