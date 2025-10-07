@@ -8,6 +8,7 @@ import { cookies } from 'next/headers';
 import { api } from '@/shared/sdk';
 import { User } from '@/shared/sdk/types';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { AxiosError } from 'axios';
 
 const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
@@ -37,9 +38,7 @@ export default async function RootLayout({
       const { data } = await api.getMe();
 
       user = data;
-    } catch (error) {
-      console.log(error?.response?.data?.message);
-    }
+    } catch {}
   }
 
   return (
