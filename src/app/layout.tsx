@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     countryName: 'Ukraine',
     images: [
       {
-        url: '/images/preview.jpg',
+        url: 'https://vtg.in.ua/images/preview.jpg',
         width: 1200,
         height: 630,
         alt: 'Virtual Tactical Games',
