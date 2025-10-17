@@ -15,11 +15,11 @@ const robotoCondensed = Roboto_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: 'Virtual Tactical Games | Українська Arma III спільнота',
-  description: 'Українська Arma 3 TvT спільнота | Серйозні ігрові події',
+  title: 'Virtual Tactical Games | Українська Arma 3 спільнота',
+  description: 'Серйозні TvT ігри кожної п\'ятниці та неділі о 19:30 по Києву',
   openGraph: {
-    title: 'Virtual Tactical Games | Українська Arma III спільнота',
-    description: 'Українська Arma 3 TvT спільнота | Серйозні ігрові події',
+    title: 'Virtual Tactical Games | Українська Arma 3 спільнота',
+    description: 'Серйозні TvT ігри кожної п\'ятниці та неділі о 19:30 по Києву',
     type: 'website',
     url: 'https://vtg.in.ua',
     siteName: 'Virtual Tactical Games',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     countryName: 'Ukraine',
     images: [
       {
-        url: 'https://vtg.in.ua/images/preview.jpg',
+        url: `https://vtg.in.ua/images/preview.jpg?v=2`,
         width: 1200,
         height: 630,
         alt: 'Virtual Tactical Games',
