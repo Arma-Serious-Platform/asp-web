@@ -8,7 +8,6 @@ import { cookies } from 'next/headers';
 import { api } from '@/shared/sdk';
 import { User } from '@/shared/sdk/types';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { AxiosError } from 'axios';
 
 const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
@@ -17,7 +16,24 @@ const robotoCondensed = Roboto_Condensed({
 
 export const metadata: Metadata = {
   title: 'Virtual Tactical Games | Українська Arma III спільнота',
-  description: 'Українська Arma III спільнота',
+  description: 'Українська Arma 3 TvT спільнота | Серйозні ігрові події',
+  openGraph: {
+    title: 'Virtual Tactical Games | Українська Arma III спільнота',
+    description: 'Українська Arma 3 TvT спільнота | Серйозні ігрові події',
+    type: 'website',
+    url: 'https://vtg.in.ua',
+    siteName: 'Virtual Tactical Games',
+    locale: 'uk_UA',
+    countryName: 'Ukraine',
+    images: [
+      {
+        url: '/images/preview.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Virtual Tactical Games',
+      },
+    ],
+  },
 };
 
 export default async function RootLayout({
