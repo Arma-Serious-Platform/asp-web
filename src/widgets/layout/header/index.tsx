@@ -23,7 +23,7 @@ import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
 
 import { FC, useEffect, useState } from 'react';
-import { UserRole } from '@/shared/sdk/types';
+
 import { cn } from '@/shared/utils/cn';
 import { hasAccessToAdminPanel } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
@@ -33,18 +33,40 @@ export type HeaderProps = {
   enableScrollVisibility?: boolean;
 };
 
-const MainLinks: FC = () => (
+const MainLinks: FC<{
+  className?: string;
+  activeClassName?: string;
+}> = ({ className, activeClassName }) => (
   <>
-    <Link href={ROUTES.home}>Почати грати</Link>
-    <Link href={ROUTES.rules}>Правила</Link>
+    <Link
+      className={className}
+      activeClassName={activeClassName}
+      href={ROUTES.home}>
+      Почати грати
+    </Link>
+    <Link
+      className={className}
+      activeClassName={activeClassName}
+      href={ROUTES.rules}>
+      Правила
+    </Link>
     <a
+      className={className}
       href='https://docs.google.com/spreadsheets/d/1WAqlUvOtcD-SQr2ebIzxh0ZJgXq1_7IpKHT6u-duSec/edit?gid=525821223#gid=525821223'
       target='_blank'
       rel='noopener noreferrer'>
       Розклад
     </a>
-    {!env.isLanding && <Link href={ROUTES.squads}>Загони</Link>}
+    {!env.isLanding && (
+      <Link
+        className={className}
+        activeClassName={activeClassName}
+        href={ROUTES.squads}>
+        Загони
+      </Link>
+    )}
     <a
+      className={className}
       href='https://replays.vtg.in.ua'
       target='_blank'
       rel='noopener noreferrer'>
@@ -53,62 +75,79 @@ const MainLinks: FC = () => (
   </>
 );
 
-const AuthLinks: FC<{ className?: string }> = observer(({ className }) => {
-  return (
-    <>
-      {(!session.isAuthorized || !session.user?.user) && !env.isLanding && (
-        <>
-          <Link href={ROUTES.auth.login}>Увійти</Link>
-          <Link href={ROUTES.auth.signup}>Реєстрація</Link>
-        </>
-      )}
+const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
+  observer(({ className, activeClassName }) => {
+    return (
+      <>
+        {(!session.isAuthorized || !session.user?.user) && !env.isLanding && (
+          <>
+            <Link
+              className={className}
+              activeClassName={activeClassName}
+              href={ROUTES.auth.login}>
+              Увійти
+            </Link>
+            <Link
+              className={className}
+              activeClassName={activeClassName}
+              href={ROUTES.auth.signup}>
+              Реєстрація
+            </Link>
+          </>
+        )}
 
-      {session.isAuthorized && session.user?.user && !env.isLanding && (
-        <>
-          <Popover
-            className='flex flex-col gap-1 w-fit p-0 border-none min-w-40'
-            trigger={
-              <Button
-                className={cn(
-                  'gap-3 border-none bg-transparent hover:bg-transparent'
-                )}>
-                <Avatar size='sm' src={session.user?.user?.avatar?.url} />
-                {session.user?.user?.nickname}
-              </Button>
-            }>
-            <NextLink href={`${ROUTES.user.profile}?tab=profile`}>
-              <Button align='left' className='w-full' size='sm'>
-                <UserIcon className='size-4' />
-                Профіль
-              </Button>
-            </NextLink>
-            <View.Condition
-              if={hasAccessToAdminPanel(session.user?.user?.role)}>
-              <NextLink href={ROUTES.admin.users}>
+        {session.isAuthorized && session.user?.user && !env.isLanding && (
+          <>
+            <Popover
+              className='flex flex-col gap-1 w-fit p-0 border-none min-w-40'
+              trigger={
+                <Button
+                  className={cn(
+                    'gap-3 border-none bg-transparent hover:bg-transparent'
+                  )}>
+                  <Avatar size='sm' src={session.user?.user?.avatar?.url} />
+                  {session.user?.user?.nickname}
+                </Button>
+              }>
+              <NextLink
+                className={className}
+                href={`${ROUTES.user.profile}?tab=profile`}>
                 <Button align='left' className='w-full' size='sm'>
-                  <ShieldUserIcon className='size-4' />
-                  Адміністрування
+                  <UserIcon className='size-4' />
+                  Профіль
                 </Button>
               </NextLink>
-            </View.Condition>
-            <NextLink
-              href={ROUTES.auth.login}
-              onClick={(e) => {
-                e.preventDefault();
+              <View.Condition
+                if={hasAccessToAdminPanel(session.user?.user?.role)}>
+                <NextLink className={className} href={ROUTES.admin.users}>
+                  <Button align='left' className='w-full' size='sm'>
+                    <ShieldUserIcon className='size-4' />
+                    Адміністрування
+                  </Button>
+                </NextLink>
+              </View.Condition>
+              <NextLink
+                className={className}
+                href={ROUTES.auth.login}
+                onClick={(e) => {
+                  e.preventDefault();
 
-                session.logout();
-              }}>
-              <Button align='left' className='w-full' size='sm'>
-                <LogOutIcon className='size-4' />
-                Вийти
-              </Button>
-            </NextLink>
-          </Popover>
-        </>
-      )}
-    </>
-  );
-});
+                  session.logout();
+                }}>
+                <Button
+                  align='left'
+                  className={cn('w-full', className)}
+                  size='sm'>
+                  <LogOutIcon className='size-4' />
+                  Вийти
+                </Button>
+              </NextLink>
+            </Popover>
+          </>
+        )}
+      </>
+    );
+  });
 
 const MobileMenu: FC<{
   isOpen: boolean;
@@ -142,6 +181,20 @@ const MobileMenu: FC<{
           <XIcon className='w-6 h-6' onClick={onClose} />
         </div>
       </div>
+
+      <div className='flex flex-col'>
+        <MainLinks
+          className='block px-4 py-2'
+          activeClassName='bg-primary !text-white '
+        />
+        <div className='mt-8'>
+          <AuthLinks
+            className='block px-4 py-2'
+            activeClassName='bg-primary !text-white'
+          />
+        </div>
+      </div>
+      <Social className='mt-auto mx-auto mb-8 gap-20' size={24} />
     </div>
   );
 };
