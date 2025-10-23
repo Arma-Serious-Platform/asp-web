@@ -12,7 +12,7 @@ const Layout: FC<
 > = ({ wrapperClassName, className, children, headerProps }) => (
   <div
     className={classNames(
-      'flex flex-col justify-center min-h-screen w-full',
+      'relative flex flex-col justify-center min-h-screen w-full',
       wrapperClassName
     )}>
     <Header {...headerProps} />
