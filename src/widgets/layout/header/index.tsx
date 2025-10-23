@@ -177,23 +177,27 @@ const MobileMenu: FC<{
             alt='logo'
           />
         </Link>
+
         <div className='absolute top-4 right-4'>
           <XIcon className='w-6 h-6' onClick={onClose} />
         </div>
       </div>
+
+      <ScheduleInfo className='my-2 mx-auto' />
 
       <div className='flex flex-col'>
         <MainLinks
           className='block px-4 py-2'
           activeClassName='bg-primary !text-white '
         />
-        <div className='mt-8'>
+        <div className='mt-10 flex gap-2 w-full justify-between px-4'>
           <AuthLinks
-            className='block px-4 py-2'
+            className='block px-4 py-2 mx-auto bg-primary text-center w-full'
             activeClassName='bg-primary !text-white'
           />
         </div>
       </div>
+
       <Social className='mt-auto mx-auto mb-8 gap-20' size={24} />
     </div>
   );

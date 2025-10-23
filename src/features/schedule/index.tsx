@@ -1,4 +1,5 @@
-import classNames from 'classnames';
+import { cn } from '@/shared/utils/cn';
+
 import { CalendarIcon, Clock4Icon } from 'lucide-react';
 import { FC } from 'react';
 
@@ -7,7 +8,7 @@ export const ScheduleInfo: FC<{
 }> = ({ className }) => {
   return (
     <div
-      className={classNames(
+      className={cn(
         'border border-primary px-2 py-1 flex gap-2 items-center ml-4',
         className
       )}>
