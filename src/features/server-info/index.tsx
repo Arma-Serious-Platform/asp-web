@@ -27,7 +27,7 @@ export const ServerInfo: FC<{
     return (
       <div
         className={classNames(
-          'w-[338px] h-[102px] border border-primary p-2.5 flex items-center justify-center animate-pulse',
+          'w-fit h-fit border border-primary p-2.5 flex items-center justify-center animate-pulse',
           className
         )}>
         <LoaderIcon className='animate-spin' />
@@ -38,12 +38,15 @@ export const ServerInfo: FC<{
   return (
     <div
       className={classNames(
-        'border border-primary p-2.5 flex flex-col gap-1 w-full max-w-[350px] min-w-[338px] min-h-[102px]',
+        'border border-primary p-2.5 flex flex-col gap-1 min-h-[102px] w-fit',
         className
       )}>
       <div className='flex gap-2 items-center'>
         <ServerIcon className='size-4' />
-        <span>{server?.name}</span> |{' '}
+        <span className='text-ellipsis overflow-hidden whitespace-nowrap'>
+          {server?.name}
+        </span>{' '}
+        |{' '}
         <span className='text-primary'>
           {server?.ip}:{server?.port}
         </span>

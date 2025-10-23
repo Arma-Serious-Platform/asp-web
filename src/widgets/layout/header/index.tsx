@@ -162,8 +162,7 @@ const MobileMenu: FC<{
       className={cn(
         'absolute top-0 left-0 w-screen h-screen bg-neutral-900 z-50 transition-all duration-300 flex flex-col',
         {
-          'left-0': isOpen,
-          'left-full': !isOpen,
+          hidden: !isOpen,
         }
       )}>
       <div className='mx-auto'>
@@ -236,6 +235,7 @@ export const Header: FC<HeaderProps> = observer(
             '!fixed': enableScrollVisibility,
             'bg-transparent': !isScrolled && enableScrollVisibility,
             'bg-card/75 backdrop-blur-xs': isScrolled && enableScrollVisibility,
+            'overflow-hidden': !isMobileMenuOpen,
           }
         )}>
         <MobileMenu

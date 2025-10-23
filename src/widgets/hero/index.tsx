@@ -3,7 +3,7 @@ import { ServerInfo } from '@/features/server-info';
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
 import classNames from 'classnames';
-import Image from 'next/image';
+
 import { FC } from 'react';
 
 const LogoAndTitle: FC<{
@@ -13,7 +13,7 @@ const LogoAndTitle: FC<{
     className={classNames(
       'relative flex flex-col items-center justify-center',
       {
-        'bg-[url("/images/hero.jpg")] bg-no-repeat bg-center bg-cover w-full shadow-2xl':
+        'bg-[url("/images/hero.jpg")] bg-no-repeat bg-center bg-cover w-full shadow-2xl bg-fixed':
           size === 'md',
       }
     )}>
@@ -23,23 +23,20 @@ const LogoAndTitle: FC<{
     <div className='z-10'>
       <Link
         href='/'
-        className='w-fit block mx-auto hover:scale-105 transition-transform'>
-        <Image
-          className='mx-auto'
-          priority
+        className='w-fit block mx-auto hover:scale-105 transition-transform max-w-64 max-md:max-w-36'>
+        <img
+          className='mx-auto w-full'
           src='/images/logo.webp'
-          width={size === 'lg' ? 256 : 128}
-          height={size === 'lg' ? 256 : 128}
           alt='VTG logo'
         />
       </Link>
       <h1 className='font-bold mb-4 text-center'>
-        <span className='tracking-widest font-extrabold text-center text-4xl'>
+        <span className='tracking-widest font-extrabold text-center text-4xl max-md:text-2xl'>
           VIRTUAL TACTICAL GAMES
         </span>
         <br />
         <span
-          className={classNames('font-light text-center', {
+          className={classNames('font-light text-center max-md:text-xl', {
             'text-2xl': size === 'lg',
             'text-xl': size === 'md',
           })}>
