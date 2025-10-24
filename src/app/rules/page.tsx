@@ -5,7 +5,7 @@ import { Layout } from '@/widgets/layout';
 import { FC, PropsWithChildren } from 'react';
 
 const RuleCategory: FC<PropsWithChildren> = ({ children }) => (
-  <div className='flex flex-col gap-4 bg-card/80 py-4'>{children}</div>
+  <div className='flex flex-col gap-4 bg-card/80 py-4 rounded-sm'>{children}</div>
 );
 const RuleTitle: FC<PropsWithChildren<{ id?: string }>> = ({
   children,
@@ -77,7 +77,7 @@ const RuleMenu = () => {
   ];
 
   return (
-    <div className='flex flex-col bg-card/80 min-w-1/4 h-fit sticky top-20 shadow-2xl max-lg:hidden'>
+    <div className='flex flex-col bg-card/80 min-w-1/4 h-fit sticky top-20 shadow-2xl max-lg:hidden rounded-sm'>
       <h2 className='text-lg mt-4 mb-1 font-bold text-center'>Розділи</h2>
       <div className='flex flex-col'>
         {ruleCategories.map((category) => (
