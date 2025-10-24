@@ -38,7 +38,7 @@ export const ServerInfo: FC<{
   return (
     <div
       className={classNames(
-        'border border-primary p-2.5 flex flex-col gap-1 min-h-[102px] w-fit',
+        'border border-primary p-2.5 flex flex-col gap-1 min-h-[102px] w-fit rounded-sm',
         className
       )}>
       <div className='flex gap-2 items-center'>
