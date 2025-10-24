@@ -86,7 +86,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className='mt-10'>
+        <div className='mt-10 container mx-auto'>
           <h2 className='text-3xl font-bold mx-auto max-lg:text-center'>
             Встановлення Task Force Radio
           </h2>
