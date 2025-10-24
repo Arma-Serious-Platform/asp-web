@@ -79,10 +79,7 @@ export const Hero: FC<{
       <div className='absolute inset-0 bg-black opacity-75 z-10'></div>
       <div className='absolute inset-0 z-10 text-white text-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         <LogoAndTitle size='lg' />
-        <a
-          href='https://discord.gg/DcWXHAR5XV'
-          target='_blank'
-          rel='noopener noreferrer'>
+        <a href='#installation-guide'>
           <Button
             size='lg'
             className='uppercase hover:scale-104 transition-transform'>
