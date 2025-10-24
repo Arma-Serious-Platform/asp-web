@@ -73,6 +73,7 @@ const InstallationGuide: FC<{
       ),
     },
   ];
+
   return (
     <div className={cn('flex flex-col gap-10', className)}>
       {steps.map((step, index) => (
@@ -124,7 +125,7 @@ const InstallationGuideLinks: FC<{
     },
   ];
 
-  const copyLinks: [{ title: string; copy: string }] = [
+  const copyLinks: { title: string; copy: string }[] = [
     {
       title: 'VTG Core [Resilio Sync]',
       copy: 'BAS6RWNNWSIBGMQYHXGTEKCOSMY3RFC4B',
@@ -150,9 +151,10 @@ const InstallationGuideLinks: FC<{
           <a
             key={link.title}
             href={link.href}
+            className='w-fit'
             target='_blank'
             rel='noopener noreferrer'>
-            <Button>{link.title}</Button>
+            <Button size='sm'>{link.title}</Button>
           </a>
         ))}
       </div>
@@ -169,4 +171,80 @@ const InstallationGuideLinks: FC<{
   );
 };
 
-export { InstallationGuide, InstallationGuideLinks };
+const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
+  const steps: { title: string; description: React.ReactNode }[] = [
+    {
+      title: 'Завантажте TeamSpeak 3',
+      description: (
+        <p>
+          Перейдіть на офіційний сайт{' '}
+          <a
+            href='https://teamspeak.com/en/downloads/#ts3client'
+            className='text-primary hover:underline'
+            target='_blank'
+            rel='noopener noreferrer'>
+            TeamSpeak 3
+          </a>{' '}
+          для завантаження та встановлення програми.
+        </p>
+      ),
+    },
+    {
+      title: 'Встановіть плагін Task Force Radio',
+      description: (
+        <div className='flex flex-col gap-2'>
+          <p>
+            Після завантаження TeamSpeak 3 обов'язково встановіть плагін, який
+            прикріплено нижче.
+            <br />
+            Для цього відкрийте файл за допомогою TeamSpeak 3 та виконайте
+            встановлення.
+          </p>
+          <a
+            download
+            href='/files/task_force_radio.ts3_plugin'
+            className='w-fit'>
+            <Button size='sm'>Завантажити плагін рації</Button>
+          </a>
+        </div>
+      ),
+    },
+    {
+      title: 'Вимкніть плагін Overwolf',
+      description: (
+        <p>
+          Вимкніть або видаліть плагін Overwolf у TeamSpeak 3. Використання
+          цього плагіну заборонено правилами проекту!
+        </p>
+      ),
+    },
+    {
+      title: 'Підключення до серверу TeamSpeak 3',
+      description: (
+        <p>
+          При підключенні до серверу проекту в TeamSpeak 3, використовуйте
+          нікнейм, який відповідає вашому нікнейму в Discord. <br /><br />
+          <b>TeamSpeak IP:</b> <span className='text-primary'>vtgarma3</span>
+        </p>
+      ),
+    },
+  ];
+
+  return (
+    <div className={cn('flex flex-col gap-4', className)}>
+      {steps.map((step, index) => (
+        <div key={step.title} className='flex gap-4'>
+          <div className='bg-primary rounded-full size-10 flex items-center justify-center text-2xl font-bold shrink-0'>
+            {index + 1}
+          </div>
+          <div>
+            <h3 className='text-2xl font-bold'>{step.title}</h3>
+            <div>{step.description}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export { InstallationGuide, TeamSpeakGuide, InstallationGuideLinks };

@@ -9,7 +9,7 @@ const CodeCopy: FC<{
   string: string;
   className?: string;
   successMessage?: string;
-}> = ({ string, className, successMessage = 'Код скопійовано' }) => {
+}> = ({ string, className, successMessage = 'Скопійовано' }) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(string);
 

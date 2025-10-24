@@ -1,6 +1,7 @@
 import {
   InstallationGuide,
   InstallationGuideLinks,
+  TeamSpeakGuide,
 } from '@/features/guide/installation-guide/ui';
 import { Hero } from '@/widgets/hero';
 import { Layout } from '@/widgets/layout';
@@ -66,7 +67,7 @@ export default function Home() {
           <div className='min-lg:w-2/3 max-lg:w-full'>
             <h2
               id='installation-guide'
-              className='text-4xl font-bold mx-auto max-lg:text-center'>
+              className='text-3xl font-bold mx-auto max-lg:text-center'>
               Встановлення збірки
             </h2>
 
@@ -78,11 +79,18 @@ export default function Home() {
           <div className='max-lg:mt-8'>
             <h2
               id='installation-guide'
-              className='text-4xl font-bold mx-auto max-lg:text-center'>
+              className='text-3xl font-bold mx-auto max-lg:text-center'>
               Посилання на моди та ключі
             </h2>
             <InstallationGuideLinks className='mt-8 w-full max-lg:mx-auto' />
           </div>
+        </div>
+
+        <div className='mt-10'>
+          <h2 className='text-3xl font-bold mx-auto max-lg:text-center'>
+            Встановлення Task Force Radio
+          </h2>
+          <TeamSpeakGuide className='mt-8 w-full max-lg:mx-auto' />
         </div>
       </div>
     </Layout>
