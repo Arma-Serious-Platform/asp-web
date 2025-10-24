@@ -9,6 +9,11 @@ const socials = [
     alt: 'Discord',
   },
   {
+    href: 'https://www.tiktok.com/@virtual_tactical_games',
+    src: '/images/social/tiktok.svg',
+    alt: 'TikTok',
+  },
+  {
     href: 'https://www.youtube.com/@vtgarmaua',
     src: '/images/social/youtube.svg',
     alt: 'YouTube',

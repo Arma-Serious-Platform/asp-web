@@ -197,7 +197,7 @@ const MobileMenu: FC<{
         </div>
       </div>
 
-      <Social className='mt-auto mx-auto mb-8 gap-20' size={24} />
+      <Social className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4' size={24} />
     </div>
   );
 };
