@@ -8,6 +8,8 @@ import { cookies } from 'next/headers';
 import { api } from '@/shared/sdk';
 import { User } from '@/shared/sdk/types';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { AxiosError } from 'axios';
+import { getCachedUser } from '@/entities/user/server/fetch';
 
 const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
@@ -16,10 +18,10 @@ const robotoCondensed = Roboto_Condensed({
 
 export const metadata: Metadata = {
   title: 'Virtual Tactical Games | Українська Arma 3 спільнота',
-  description: 'Серйозні TvT ігри кожної п\'ятниці та неділі о 19:30 по Києву',
+  description: "Серйозні TvT ігри кожної п'ятниці та неділі о 19:30 по Києву",
   openGraph: {
     title: 'Virtual Tactical Games | Українська Arma 3 спільнота',
-    description: 'Серйозні TvT ігри кожної п\'ятниці та неділі о 19:30 по Києву',
+    description: "Серйозні TvT ігри кожної п'ятниці та неділі о 19:30 по Києву",
     type: 'website',
     url: 'https://vtg.in.ua',
     siteName: 'Virtual Tactical Games',
@@ -51,10 +53,10 @@ export default async function RootLayout({
     try {
       api.instance.defaults.headers.Authorization = `Bearer ${token}`;
 
-      const { data } = await api.getMe();
-
-      user = data;
-    } catch {}
+      user = await getCachedUser();
+    } catch {
+      user = null;
+    }
   }
 
   return (

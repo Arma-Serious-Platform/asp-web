@@ -28,6 +28,7 @@ import { cn } from '@/shared/utils/cn';
 import { hasAccessToAdminPanel } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
+import { useRouter } from 'next/navigation';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -77,6 +78,8 @@ const MainLinks: FC<{
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
   observer(({ className, activeClassName }) => {
+    const router = useRouter();
+
     return (
       <>
         {(!session.isAuthorized || !session.user?.user) && !env.isLanding && (
@@ -133,6 +136,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                   e.preventDefault();
 
                   session.logout();
+                  router.push(ROUTES.auth.login);
                 }}>
                 <Button
                   align='left'
@@ -197,7 +201,10 @@ const MobileMenu: FC<{
         </div>
       </div>
 
-      <Social className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4' size={24} />
+      <Social
+        className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4'
+        size={24}
+      />
     </div>
   );
 };

@@ -43,6 +43,8 @@ const LoginForm: FC<{
     try {
       await model.login(data);
 
+      router.refresh();
+
       router.push(`${ROUTES.user.profile}?tab=profile`);
     } catch (error) {
       if (error?.response?.data?.message === 'Invalid credentials') {

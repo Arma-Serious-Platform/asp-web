@@ -21,7 +21,7 @@ import {
   UpdateSquadDto,
   User,
 } from './types';
-import { deleteCookie, getCookie } from 'cookies-next';
+import { deleteCookie, getCookie, setCookie } from 'cookies-next';
 
 import { ROUTES } from '../config/routes';
 import { env } from '../config/env';
@@ -47,25 +47,32 @@ class ApiModel {
       return config;
     });
 
-    this.instance.interceptors.response.use(async (response) => {
-      // TODO: call refresh token
-      const isClient = typeof window !== 'undefined';
+    this.instance.interceptors.response.use(
+      (res) => res,
+      async (error) => {
+        const { config, response } = error;
+        if (
+          (response?.status === 401 || response?.status === 403) &&
+          !config._retry
+        ) {
+          config._retry = true;
+          const refreshToken = await getCookie('refreshToken');
 
-      if (response.status === 401) {
-        if (isClient) {
-          deleteCookie('token');
-          deleteCookie('refreshToken');
+          if (!refreshToken) throw error;
 
-          window.location.href = ROUTES.auth.login;
-        } else {
-          deleteCookie('token');
-          deleteCookie('refreshToken');
-          // redirect(ROUTES.auth.login);
+          const { data } = await this.refreshToken();
+
+          if (refreshToken) {
+            config.headers.Authorization = `Bearer ${data.token}`;
+            setCookie('token', data.token);
+            setCookie('refreshToken', data.refreshToken);
+            return api.instance(config);
+          }
         }
-      }
 
-      return response;
-    });
+        return Promise.reject(error);
+      }
+    );
   }
 
   /* Servers */
@@ -100,6 +107,10 @@ class ApiModel {
 
   login = async (dto: LoginDto) => {
     return await this.instance.post<LoginResponse>('/users/login', dto);
+  };
+
+  refreshToken = async () => {
+    return this.instance.post<LoginResponse>('/users/refresh-token');
   };
 
   changePassword = async (dto: ChangePasswordDto) => {

@@ -23,7 +23,7 @@ const LogoAndTitle: FC<{
     <div className='z-10'>
       <Link
         href='/'
-        className='w-fit block mx-auto hover:scale-105 transition-transform max-w-64 max-md:max-w-36'>
+        className='w-fit block mx-auto hover:scale-105 transition-transform max-w-40 max-md:max-w-36'>
         <img
           className='mx-auto w-full'
           src='/images/logo.webp'
@@ -31,7 +31,7 @@ const LogoAndTitle: FC<{
         />
       </Link>
       <h1 className='font-bold mb-4 text-center'>
-        <span className='tracking-widest font-extrabold text-center text-4xl max-md:text-2xl'>
+        <span className='tracking-widest font-extrabold text-center text-3xl max-md:text-2xl'>
           VIRTUAL TACTICAL GAMES
         </span>
         <br />

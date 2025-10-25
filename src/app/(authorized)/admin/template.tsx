@@ -1,21 +1,19 @@
+import { hasAccessToAdminPanel } from '@/entities/user/lib';
 import { getCachedUser } from '@/entities/user/server/fetch';
-import { env } from '@/shared/config/env';
 import { ROUTES } from '@/shared/config/routes';
 
 import { redirect } from 'next/navigation';
 
-export default async function AuthTemplate({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  if (env.isLanding) {
-    return redirect(ROUTES.home);
-  }
-
   const user = await getCachedUser();
 
-  if (!user) return children;
+  if (!user) return redirect(ROUTES.auth.login);
 
-  return redirect(`${ROUTES.user.profile}?tab=profile`);
+  if (!hasAccessToAdminPanel(user?.role)) return redirect(ROUTES.home);
+
+  return children;
 }
