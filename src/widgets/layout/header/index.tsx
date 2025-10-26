@@ -80,6 +80,14 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
   observer(({ className, activeClassName }) => {
     const router = useRouter();
 
+    if (session.preloader.isLoading) {
+      return (
+        <div className='flex items-center justify-between gap-7 mx-4'>
+          <Loader2Icon className='w-4 h-4 animate-spin' />
+        </div>
+      );
+    }
+
     return (
       <>
         {(!session.isAuthorized || !session.user?.user) && !env.isLanding && (
@@ -271,13 +279,13 @@ export const Header: FC<HeaderProps> = observer(
                 <Loader2Icon className='w-4 h-4 animate-spin' />
               </div>
             </View.Condition>
-            <View.Condition if={!session.preloader.isLoading}>
-              <div className='flex items-center justify-between gap-7 mx-4'>
-                <Social size={24} />
-                <ScheduleInfo className='mr-4 hidden lg:flex' />
+            <div className='flex items-center justify-between gap-7 mx-4'>
+              <Social size={24} />
+              <ScheduleInfo className='mr-4 hidden lg:flex' />
+              <View.Condition if={!session.preloader.isLoading}>
                 <AuthLinks />
-              </div>
-            </View.Condition>
+              </View.Condition>
+            </div>
           </div>
           <div className='flex items-center justify-center min-lg:hidden'>
             <MenuIcon

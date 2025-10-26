@@ -5,6 +5,7 @@ import { LoginResponse, User, UserRole } from '@/shared/sdk/types';
 import { deleteCookie, setCookie } from 'cookies-next';
 import { Preloader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
+import { getCookie } from 'cookies-next/client';
 
 export class SessionModel {
   constructor() {
@@ -13,7 +14,7 @@ export class SessionModel {
 
   user = new UserModel();
 
-  preloader = new Preloader();
+  preloader = new Preloader(true);
 
   isAuthorized = false;
 
@@ -28,31 +29,42 @@ export class SessionModel {
     );
   }
 
-  boot = async (dto: LoginResponse | null) => {
-    if (dto) {
-      this.authorize({ ...dto });
-    } else {
+  boot = async () => {
+    const token = getCookie('token');
+    const refreshToken = getCookie('refreshToken');
+
+    try {
+      if (token && refreshToken) {
+        await this.fetchMe();
+
+        this.authorize();
+      }
+    } catch {
+    } finally {
       this.preloader.stop();
     }
   };
 
-  fetchMe = async (user?: User) => {
+  fetchMe = async () => {
     try {
-      if (user) {
-        this.user.user = user;
+      const { data } = await api.getMe();
 
-        return;
-      } else {
-        const { data } = await api.getMe();
-
-        this.user.user = data;
+      this.user.user = data;
+      if (!this.isAuthorized) {
+        this.isAuthorized = true;
       }
     } catch (error) {
       console.error(error);
     }
   };
 
-  authorize = async (dto: LoginResponse) => {
+  authorize = async (dto?: LoginResponse) => {
+    if (!dto) {
+      this.isAuthorized = true;
+
+      return;
+    }
+
     this.isAuthorized = true;
     this.user.user = dto.user;
     this.setTokens(dto.token, dto.refreshToken);
@@ -63,7 +75,6 @@ export class SessionModel {
     deleteCookie('refreshToken');
     this.isAuthorized = false;
     this.user.user = null;
-
   };
 }
 

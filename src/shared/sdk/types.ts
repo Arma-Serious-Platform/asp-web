@@ -169,6 +169,10 @@ export type LoginDto = {
   password: string;
 };
 
+export type RefreshTokenDto = {
+  refreshToken: string;
+}
+
 export type LoginResponse = {
   user: User;
   token: string;

@@ -1,9 +1,7 @@
-import { makeAutoObservable, reaction } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 
 class Preloader {
   private loaders = 0;
-
-  isLoading = false;
 
   constructor(autostart = false) {
     makeAutoObservable(this);
@@ -11,13 +9,10 @@ class Preloader {
     if (autostart) {
       this.start();
     }
+  }
 
-    reaction(
-      () => this.loaders,
-      () => {
-        this.isLoading = this.loaders > 0;
-      }
-    );
+  get isLoading() {
+    return this.loaders > 0;
   }
 
   start = () => {

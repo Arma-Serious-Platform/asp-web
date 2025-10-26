@@ -4,12 +4,8 @@ import { Toaster } from 'react-hot-toast';
 
 import './globals.css';
 import { SessionProvider } from '@/entities/session/provider';
-import { cookies } from 'next/headers';
-import { api } from '@/shared/sdk';
-import { User } from '@/shared/sdk/types';
+
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { AxiosError } from 'axios';
-import { getCachedUser, getUser } from '@/entities/user/server/fetch';
 
 const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
@@ -38,27 +34,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookie = await cookies();
-  const token = cookie.get('token')?.value;
-  const refreshToken = cookie.get('refreshToken')?.value;
-
-  let user: User | null = null;
-
-  if (token) {
-    try {
-      api.instance.defaults.headers.Authorization = `Bearer ${token}`;
-
-      user = await getUser();
-    } catch {
-      user = null;
-    }
-  }
-
   return (
     <html lang='en'>
       <head>
@@ -103,14 +83,7 @@ export default async function RootLayout({
           }}
         />
         <NuqsAdapter>
-          <SessionProvider
-            initialData={
-              user
-                ? { user, token: token || '', refreshToken: refreshToken || '' }
-                : null
-            }>
-            {children}
-          </SessionProvider>
+          <SessionProvider>{children}</SessionProvider>
         </NuqsAdapter>
       </body>
     </html>

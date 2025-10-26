@@ -13,6 +13,7 @@ import {
   LoginDto,
   LoginResponse,
   PaginatedResponse,
+  RefreshTokenDto,
   Server,
   Side,
   SignUpDto,
@@ -23,8 +24,8 @@ import {
 } from './types';
 import { deleteCookie, getCookie, setCookie } from 'cookies-next';
 
-import { ROUTES } from '../config/routes';
 import { env } from '../config/env';
+import { setTokens } from '../actions/cookies/set-tokens';
 
 class ApiModel {
   /* Servers */
@@ -56,17 +57,35 @@ class ApiModel {
           !config._retry
         ) {
           config._retry = true;
-          const refreshToken = await getCookie('refreshToken');
+          const refreshToken =
+            typeof window === 'undefined'
+              ? await (await import('next/headers'))
+                  .cookies()
+                  .then((cookie) => cookie.get('refreshToken')?.value)
+              : await getCookie('refreshToken');
 
           if (!refreshToken) throw error;
 
-          const { data } = await this.refreshToken();
+          const { data } = await this.refreshToken({ refreshToken });
 
-          if (refreshToken) {
+          if (data?.token && data?.refreshToken) {
             config.headers.Authorization = `Bearer ${data.token}`;
-            setCookie('token', data.token);
-            setCookie('refreshToken', data.refreshToken);
-            return api.instance(config);
+
+            if (typeof window === 'undefined') {
+              try {
+                setTokens({
+                  token: data.token,
+                  refreshToken: data.refreshToken,
+                });
+              } catch (error) {
+                console.error(error);
+              }
+            } else {
+              await setCookie('token', data.token);
+              await setCookie('refreshToken', data.refreshToken);
+            }
+
+            return this.instance(config);
           }
         }
 
@@ -109,8 +128,8 @@ class ApiModel {
     return await this.instance.post<LoginResponse>('/users/login', dto);
   };
 
-  refreshToken = async () => {
-    return this.instance.post<LoginResponse>('/users/refresh-token');
+  refreshToken = async (dto: RefreshTokenDto) => {
+    return await this.instance.post<LoginResponse>('/users/refresh-token', dto);
   };
 
   changePassword = async (dto: ChangePasswordDto) => {
