@@ -1,7 +1,6 @@
 import { api } from '@/shared/sdk';
-import { cache } from 'react';
 
-export const getCachedUser = cache(async () => {
+export const getUser = async () => {
   try {
     const { data: user } = await api.getMe();
 
@@ -9,4 +8,4 @@ export const getCachedUser = cache(async () => {
   } catch {
     return null;
   }
-});
+};

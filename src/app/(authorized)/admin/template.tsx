@@ -1,19 +1,19 @@
-import { hasAccessToAdminPanel } from '@/entities/user/lib';
-import { getCachedUser } from '@/entities/user/server/fetch';
+'use client';
+import { session } from '@/entities/session/model';
+
 import { ROUTES } from '@/shared/config/routes';
+import { observer } from 'mobx-react-lite';
 
 import { redirect } from 'next/navigation';
 
-export default async function AdminLayout({
+export default observer(function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCachedUser();
+  if (!session.isAuthorized) return redirect(ROUTES.auth.login);
 
-  if (!user) return redirect(ROUTES.auth.login);
-
-  if (!hasAccessToAdminPanel(user?.role)) return redirect(ROUTES.home);
+  if (!session.isHasAdminPanelAccess) return redirect(ROUTES.home);
 
   return children;
-}
+});

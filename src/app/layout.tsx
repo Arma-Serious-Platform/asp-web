@@ -9,7 +9,7 @@ import { api } from '@/shared/sdk';
 import { User } from '@/shared/sdk/types';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { AxiosError } from 'axios';
-import { getCachedUser } from '@/entities/user/server/fetch';
+import { getCachedUser, getUser } from '@/entities/user/server/fetch';
 
 const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
@@ -53,7 +53,7 @@ export default async function RootLayout({
     try {
       api.instance.defaults.headers.Authorization = `Bearer ${token}`;
 
-      user = await getCachedUser();
+      user = await getUser();
     } catch {
       user = null;
     }

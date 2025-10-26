@@ -1,10 +1,13 @@
-import { getCachedUser } from '@/entities/user/server/fetch';
+'use client';
+
+import { session } from '@/entities/session/model';
 import { env } from '@/shared/config/env';
 import { ROUTES } from '@/shared/config/routes';
+import { observer } from 'mobx-react-lite';
 
 import { redirect } from 'next/navigation';
 
-export default async function AuthTemplate({
+export default observer(function AuthTemplate({
   children,
 }: {
   children: React.ReactNode;
@@ -13,9 +16,7 @@ export default async function AuthTemplate({
     return redirect(ROUTES.home);
   }
 
-  const user = await getCachedUser();
-
-  if (!user) return children;
+  if (!session.isAuthorized) return children;
 
   return redirect(`${ROUTES.user.profile}?tab=profile`);
-}
+});
