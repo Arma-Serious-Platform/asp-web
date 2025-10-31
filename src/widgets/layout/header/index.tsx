@@ -29,6 +29,7 @@ import { hasAccessToAdminPanel } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
 import { useRouter } from 'next/navigation';
+import { headerModel } from './model';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -161,20 +162,19 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
     );
   });
 
-const MobileMenu: FC<{
-  isOpen: boolean;
-  onClose: () => void;
-}> = ({ isOpen, onClose }) => {
+export const MobileMenu = observer(() => {
   useEffect(() => {
-    window.document.body.style.overflow = isOpen ? 'hidden' : 'auto';
-  }, [isOpen]);
+    window.document.body.style.overflow = headerModel.mobileMenu.isOpen
+      ? 'hidden'
+      : 'auto';
+  }, [headerModel.mobileMenu.isOpen]);
 
   return (
     <div
       className={cn(
         'absolute top-0 left-0 w-screen h-screen bg-neutral-900 z-50 transition-all duration-300 flex flex-col',
         {
-          hidden: !isOpen,
+          'translate-x-full': !headerModel.mobileMenu.isOpen,
         }
       )}>
       <div className='mx-auto'>
@@ -190,7 +190,7 @@ const MobileMenu: FC<{
         </Link>
 
         <div className='absolute top-4 right-4'>
-          <XIcon className='w-6 h-6' onClick={onClose} />
+          <XIcon className='w-6 h-6' onClick={headerModel.mobileMenu.close} />
         </div>
       </div>
 
@@ -215,12 +215,11 @@ const MobileMenu: FC<{
       />
     </div>
   );
-};
+});
 
 export const Header: FC<HeaderProps> = observer(
   ({ enableScrollVisibility = false }) => {
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
       if (!enableScrollVisibility) return;
@@ -250,13 +249,9 @@ export const Header: FC<HeaderProps> = observer(
             '!fixed': enableScrollVisibility,
             'bg-transparent': !isScrolled && enableScrollVisibility,
             'bg-card/75 backdrop-blur-xs': isScrolled && enableScrollVisibility,
-            'overflow-hidden': !isMobileMenuOpen,
+            'overflow-hidden': !headerModel.mobileMenu.isOpen,
           }
         )}>
-        <MobileMenu
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-        />
         <div className='container max-lg:mx-4 flex items-center justify-between'>
           <Link href={ROUTES.home}>
             <Image
@@ -290,7 +285,7 @@ export const Header: FC<HeaderProps> = observer(
           <div className='flex items-center justify-center min-lg:hidden'>
             <MenuIcon
               className='w-6 h-6'
-              onClick={() => setIsMobileMenuOpen(true)}
+              onClick={() => headerModel.mobileMenu.open()}
             />
           </div>
         </div>
