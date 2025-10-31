@@ -245,7 +245,7 @@ export const Header: FC<HeaderProps> = observer(
     return (
       <header
         className={classNames(
-          'w-full h-16 sticky top-0 z-20 mx-auto flex items-center justify-center transition-colors duration-300 bg-card',
+          'w-full h-16 sticky top-0 z-30 mx-auto flex items-center justify-center transition-colors duration-300 bg-card',
           {
             '!fixed': enableScrollVisibility,
             'bg-transparent': !isScrolled && enableScrollVisibility,

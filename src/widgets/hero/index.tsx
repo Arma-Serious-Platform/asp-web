@@ -77,7 +77,7 @@ export const Hero: FC<{
         loop
       />
       <div className='absolute inset-0 bg-black opacity-75 z-10'></div>
-      <div className='absolute inset-0 z-10 text-white text-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+      <div className='z-20 text-white mx-auto w-full flex flex-col items-center'>
         <LogoAndTitle size='lg' />
         <a href='#installation-guide'>
           <Button
