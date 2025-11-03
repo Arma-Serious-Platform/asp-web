@@ -13,6 +13,7 @@ import {
   LoginDto,
   LoginResponse,
   PaginatedResponse,
+  RefreshTokenDto,
   Server,
   Side,
   SignUpDto,
@@ -21,10 +22,10 @@ import {
   UpdateSquadDto,
   User,
 } from './types';
-import { deleteCookie, getCookie } from 'cookies-next';
+import { deleteCookie, getCookie, setCookie } from 'cookies-next';
 
-import { ROUTES } from '../config/routes';
 import { env } from '../config/env';
+import { setTokens } from '../actions/cookies/set-tokens';
 
 class ApiModel {
   /* Servers */
@@ -47,25 +48,50 @@ class ApiModel {
       return config;
     });
 
-    this.instance.interceptors.response.use(async (response) => {
-      // TODO: call refresh token
-      const isClient = typeof window !== 'undefined';
+    this.instance.interceptors.response.use(
+      (res) => res,
+      async (error) => {
+        const { config, response } = error;
+        if (
+          (response?.status === 401 || response?.status === 403) &&
+          !config._retry
+        ) {
+          config._retry = true;
+          const refreshToken =
+            typeof window === 'undefined'
+              ? await (await import('next/headers'))
+                  .cookies()
+                  .then((cookie) => cookie.get('refreshToken')?.value)
+              : await getCookie('refreshToken');
 
-      if (response.status === 401) {
-        if (isClient) {
-          deleteCookie('token');
-          deleteCookie('refreshToken');
+          if (!refreshToken) throw error;
 
-          window.location.href = ROUTES.auth.login;
-        } else {
-          deleteCookie('token');
-          deleteCookie('refreshToken');
-          // redirect(ROUTES.auth.login);
+          const { data } = await this.refreshToken({ refreshToken });
+
+          if (data?.token && data?.refreshToken) {
+            config.headers.Authorization = `Bearer ${data.token}`;
+
+            if (typeof window === 'undefined') {
+              try {
+                setTokens({
+                  token: data.token,
+                  refreshToken: data.refreshToken,
+                });
+              } catch (error) {
+                console.error(error);
+              }
+            } else {
+              await setCookie('token', data.token);
+              await setCookie('refreshToken', data.refreshToken);
+            }
+
+            return this.instance(config);
+          }
         }
-      }
 
-      return response;
-    });
+        return Promise.reject(error);
+      }
+    );
   }
 
   /* Servers */
@@ -100,6 +126,10 @@ class ApiModel {
 
   login = async (dto: LoginDto) => {
     return await this.instance.post<LoginResponse>('/users/login', dto);
+  };
+
+  refreshToken = async (dto: RefreshTokenDto) => {
+    return await this.instance.post<LoginResponse>('/users/refresh-token', dto);
   };
 
   changePassword = async (dto: ChangePasswordDto) => {

@@ -4,9 +4,7 @@ import { Toaster } from 'react-hot-toast';
 
 import './globals.css';
 import { SessionProvider } from '@/entities/session/provider';
-import { cookies } from 'next/headers';
-import { api } from '@/shared/sdk';
-import { User } from '@/shared/sdk/types';
+
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 const robotoCondensed = Roboto_Condensed({
@@ -16,10 +14,10 @@ const robotoCondensed = Roboto_Condensed({
 
 export const metadata: Metadata = {
   title: 'Virtual Tactical Games | Українська Arma 3 спільнота',
-  description: 'Серйозні TvT ігри кожної п\'ятниці та неділі о 19:30 по Києву',
+  description: "Серйозні TvT ігри кожної п'ятниці та неділі о 19:30 по Києву",
   openGraph: {
     title: 'Virtual Tactical Games | Українська Arma 3 спільнота',
-    description: 'Серйозні TvT ігри кожної п\'ятниці та неділі о 19:30 по Києву',
+    description: "Серйозні TvT ігри кожної п'ятниці та неділі о 19:30 по Києву",
     type: 'website',
     url: 'https://vtg.in.ua',
     siteName: 'Virtual Tactical Games',
@@ -36,27 +34,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookie = await cookies();
-  const token = cookie.get('token')?.value;
-  const refreshToken = cookie.get('refreshToken')?.value;
-
-  let user: User | null = null;
-
-  if (token) {
-    try {
-      api.instance.defaults.headers.Authorization = `Bearer ${token}`;
-
-      const { data } = await api.getMe();
-
-      user = data;
-    } catch {}
-  }
-
   return (
     <html lang='en'>
       <head>
@@ -101,14 +83,7 @@ export default async function RootLayout({
           }}
         />
         <NuqsAdapter>
-          <SessionProvider
-            initialData={
-              user
-                ? { user, token: token || '', refreshToken: refreshToken || '' }
-                : null
-            }>
-            {children}
-          </SessionProvider>
+          <SessionProvider>{children}</SessionProvider>
         </NuqsAdapter>
       </body>
     </html>

@@ -28,6 +28,8 @@ import { cn } from '@/shared/utils/cn';
 import { hasAccessToAdminPanel } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
+import { useRouter } from 'next/navigation';
+import { headerModel } from './model';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -77,6 +79,16 @@ const MainLinks: FC<{
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
   observer(({ className, activeClassName }) => {
+    const router = useRouter();
+
+    if (session.preloader.isLoading) {
+      return (
+        <div className='flex items-center justify-between gap-7 mx-4'>
+          <Loader2Icon className='w-4 h-4 animate-spin' />
+        </div>
+      );
+    }
+
     return (
       <>
         {(!session.isAuthorized || !session.user?.user) && !env.isLanding && (
@@ -133,6 +145,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                   e.preventDefault();
 
                   session.logout();
+                  router.push(ROUTES.auth.login);
                 }}>
                 <Button
                   align='left'
@@ -149,20 +162,19 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
     );
   });
 
-const MobileMenu: FC<{
-  isOpen: boolean;
-  onClose: () => void;
-}> = ({ isOpen, onClose }) => {
+export const MobileMenu = observer(() => {
   useEffect(() => {
-    window.document.body.style.overflow = isOpen ? 'hidden' : 'auto';
-  }, [isOpen]);
+    window.document.body.style.overflow = headerModel.mobileMenu.isOpen
+      ? 'hidden'
+      : 'auto';
+  }, [headerModel.mobileMenu.isOpen]);
 
   return (
     <div
       className={cn(
         'absolute top-0 left-0 w-screen h-screen bg-neutral-900 z-50 transition-all duration-300 flex flex-col',
         {
-          hidden: !isOpen,
+          'translate-x-full': !headerModel.mobileMenu.isOpen,
         }
       )}>
       <div className='mx-auto'>
@@ -178,7 +190,7 @@ const MobileMenu: FC<{
         </Link>
 
         <div className='absolute top-4 right-4'>
-          <XIcon className='w-6 h-6' onClick={onClose} />
+          <XIcon className='w-6 h-6' onClick={headerModel.mobileMenu.close} />
         </div>
       </div>
 
@@ -197,15 +209,17 @@ const MobileMenu: FC<{
         </div>
       </div>
 
-      <Social className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4' size={24} />
+      <Social
+        className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4'
+        size={24}
+      />
     </div>
   );
-};
+});
 
 export const Header: FC<HeaderProps> = observer(
   ({ enableScrollVisibility = false }) => {
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
       if (!enableScrollVisibility) return;
@@ -230,18 +244,14 @@ export const Header: FC<HeaderProps> = observer(
     return (
       <header
         className={classNames(
-          'w-full h-16 sticky top-0 z-20 mx-auto flex items-center justify-center transition-colors duration-300 bg-card',
+          'w-full h-16 sticky top-0 z-30 mx-auto flex items-center justify-center transition-colors duration-300 bg-card',
           {
             '!fixed': enableScrollVisibility,
             'bg-transparent': !isScrolled && enableScrollVisibility,
             'bg-card/75 backdrop-blur-xs': isScrolled && enableScrollVisibility,
-            'overflow-hidden': !isMobileMenuOpen,
+            'overflow-hidden': !headerModel.mobileMenu.isOpen,
           }
         )}>
-        <MobileMenu
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-        />
         <div className='container max-lg:mx-4 flex items-center justify-between'>
           <Link href={ROUTES.home}>
             <Image
@@ -264,18 +274,18 @@ export const Header: FC<HeaderProps> = observer(
                 <Loader2Icon className='w-4 h-4 animate-spin' />
               </div>
             </View.Condition>
-            <View.Condition if={!session.preloader.isLoading}>
-              <div className='flex items-center justify-between gap-7 mx-4'>
-                <Social size={24} />
-                <ScheduleInfo className='mr-4 hidden lg:flex' />
+            <div className='flex items-center justify-between gap-7 mx-4'>
+              <Social size={24} />
+              <ScheduleInfo className='mr-4 hidden lg:flex' />
+              <View.Condition if={!session.preloader.isLoading}>
                 <AuthLinks />
-              </div>
-            </View.Condition>
+              </View.Condition>
+            </div>
           </div>
           <div className='flex items-center justify-center min-lg:hidden'>
             <MenuIcon
               className='w-6 h-6'
-              onClick={() => setIsMobileMenuOpen(true)}
+              onClick={() => headerModel.mobileMenu.open()}
             />
           </div>
         </div>

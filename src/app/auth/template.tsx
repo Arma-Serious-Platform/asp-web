@@ -1,9 +1,13 @@
+'use client';
+
+import { session } from '@/entities/session/model';
 import { env } from '@/shared/config/env';
 import { ROUTES } from '@/shared/config/routes';
-import { cookies } from 'next/headers';
+import { observer } from 'mobx-react-lite';
+
 import { redirect } from 'next/navigation';
 
-export default async function AuthTemplate({
+export default observer(function AuthTemplate({
   children,
 }: {
   children: React.ReactNode;
@@ -12,12 +16,7 @@ export default async function AuthTemplate({
     return redirect(ROUTES.home);
   }
 
-  const cookie = await cookies();
-  const token = cookie.get('token')?.value;
-
-  if (!token) {
-    return children;
-  }
+  if (!session.isAuthorized) return children;
 
   return redirect(`${ROUTES.user.profile}?tab=profile`);
-}
+});

@@ -1,22 +1,24 @@
-import { hasAccessToAdminPanel } from '@/entities/user/lib';
+'use client';
+import { session } from '@/entities/session/model';
 import { ROUTES } from '@/shared/config/routes';
-import { api } from '@/shared/sdk';
-import { cookies } from 'next/headers';
+import { LoaderIcon } from 'lucide-react';
+import { observer } from 'mobx-react-lite';
+
 import { redirect } from 'next/navigation';
 
-export default async function AuthTemplate({
+export default observer(function AuthTemplate({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookie = await cookies();
-  const token = cookie.get('token')?.value;
+  if (session.preloader.isLoading)
+    return (
+      <div className='flex items-center justify-center h-screen'>
+        <LoaderIcon className='size-10 animate-spin' />
+      </div>
+    );
 
-  const user = await api.getMe();
-
-  if (!token) return redirect(ROUTES.auth.login);
-
-  if (!hasAccessToAdminPanel(user.data?.role)) return redirect(ROUTES.home);
+  if (!session.isAuthorized) return redirect(ROUTES.home);
 
   return children;
-}
+});
