@@ -18,7 +18,7 @@ import {
 } from 'react';
 import { ManageSquadModel } from './model';
 import { Input } from '@/shared/ui/atoms/input';
-import { CreateSquadDto, Squad } from '@/shared/sdk/types';
+import { CreateSquadDto, Squad, UpdateSquadDto } from '@/shared/sdk/types';
 
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -104,13 +104,39 @@ const ManageSquadModal: FC<
 
     const onSubmit = async (data: CreateSquadDto) => {
       if (isEdit) {
-        model.updateSquad(
-          {
-            ...data,
-            id: model.modal.payload?.squad?.id || '',
-          },
-          onUpdateSuccess
-        );
+        const dto: UpdateSquadDto = {
+          id: model.modal.payload?.squad?.id || '',
+        };
+
+        if (data.activeCount !== model.modal.payload?.squad?.activeCount) {
+          dto.activeCount = data.activeCount;
+        }
+
+        if (data.name !== model.modal.payload?.squad?.name) {
+          dto.name = data.name;
+        }
+
+        if (data.tag !== model.modal.payload?.squad?.tag) {
+          dto.tag = data.tag;
+        }
+
+        if (data.description !== model.modal.payload?.squad?.description) {
+          dto.description = data.description;
+        }
+
+        if (data.leaderId !== model.modal.payload?.squad?.leader?.id) {
+          dto.leaderId = data.leaderId;
+        }
+
+        if (data.sideId !== model.modal.payload?.squad?.side?.id) {
+          dto.sideId = data.sideId;
+        }
+
+        if (file) {
+          dto.logo = file;
+        }
+
+        model.updateSquad(dto, onUpdateSuccess);
       } else {
         model.createSquad(
           { ...data, logo: file || undefined },
@@ -137,8 +163,8 @@ const ManageSquadModal: FC<
           'description',
           model.modal.payload?.squad?.description || ''
         );
-        form.setValue('leaderId', model.modal.payload?.squad?.leaderId || '');
-        form.setValue('sideId', model.modal.payload?.squad?.sideId || '');
+        form.setValue('leaderId', model.modal.payload?.squad?.leader?.id || '');
+        form.setValue('sideId', model.modal.payload?.squad?.side?.id || '');
         form.setValue(
           'activeCount',
           model.modal.payload?.squad?.activeCount || 0

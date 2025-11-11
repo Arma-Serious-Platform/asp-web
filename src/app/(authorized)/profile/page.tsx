@@ -97,7 +97,10 @@ const ProfilePage = observer(() => {
                   <div className='flex flex-col gap-4'>
                     <div className='flex items-center gap-2'>
                       <UserIcon className='size-6' />
-                      <UserNicknameText user={profile.user} />
+                      <UserNicknameText
+                        user={profile.user}
+                        sideType={profile?.user?.squad?.side?.type}
+                      />
                     </div>
                     <div className='flex items-center  gap-2'>
                       <ShieldUserIcon className='size-6' />

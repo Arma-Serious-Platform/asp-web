@@ -198,7 +198,22 @@ class ApiModel {
   };
 
   updateSquad = async ({ id, ...dto }: UpdateSquadDto) => {
-    return await this.instance.patch<Squad>(`/squads/${id}`, dto);
+    const formData = new FormData();
+
+    Object.entries(dto).forEach(([key, value]) => {
+      if (value) {
+        formData.append(
+          key,
+          typeof value === 'number' ? value.toString() : value
+        );
+      }
+    });
+
+    return await this.instance.patch<Squad>(`/squads/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   };
 
   deleteSquad = async (squadId: string) => {

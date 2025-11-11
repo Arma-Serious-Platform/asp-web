@@ -30,6 +30,7 @@ import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
 import { useRouter } from 'next/navigation';
 import { headerModel } from './model';
+import { UserNicknameText } from '@/entities/user/ui/user-text';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -118,7 +119,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                     'gap-3 border-none bg-transparent hover:bg-transparent'
                   )}>
                   <Avatar size='sm' src={session.user?.user?.avatar?.url} />
-                  {session.user?.user?.nickname}
+                  <UserNicknameText user={session.user?.user} />
                 </Button>
               }>
               <NextLink
