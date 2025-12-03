@@ -173,7 +173,7 @@ export const MobileMenu = observer(() => {
   return (
     <div
       className={cn(
-        'absolute top-0 left-0 w-screen h-screen bg-neutral-900 z-50 transition-all duration-300 flex flex-col',
+        'fixed top-0 left-0 w-screen h-screen bg-neutral-900 z-50 transition-all duration-300 flex flex-col',
         {
           'translate-x-full': !headerModel.mobileMenu.isOpen,
         }
