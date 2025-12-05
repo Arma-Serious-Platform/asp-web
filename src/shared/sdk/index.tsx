@@ -30,6 +30,9 @@ import { setTokens } from '../actions/cookies/set-tokens';
 class ApiModel {
   /* Servers */
 
+  private isRefreshing = false;
+  private refreshFailed = false;
+
   instance = axios.create({
     baseURL: env.apiUrl,
     headers: {
@@ -54,9 +57,16 @@ class ApiModel {
         const { config, response } = error;
         if (
           (response?.status === 401 || response?.status === 403) &&
-          !config._retry
+          !config._retry &&
+          !this.refreshFailed
         ) {
           config._retry = true;
+
+          // Prevent concurrent refresh attempts
+          if (this.isRefreshing) {
+            return Promise.reject(error);
+          }
+
           const refreshToken =
             typeof window === 'undefined'
               ? await (await import('next/headers'))
@@ -64,28 +74,48 @@ class ApiModel {
                   .then((cookie) => cookie.get('refreshToken')?.value)
               : await getCookie('refreshToken');
 
-          if (!refreshToken) throw error;
+          if (!refreshToken) {
+            this.refreshFailed = true;
+            throw error;
+          }
 
-          const { data } = await this.refreshToken({ refreshToken });
+          this.isRefreshing = true;
 
-          if (data?.token && data?.refreshToken) {
-            config.headers.Authorization = `Bearer ${data.token}`;
+          try {
+            const { data } = await this.refreshToken({ refreshToken });
 
-            if (typeof window === 'undefined') {
-              try {
-                setTokens({
-                  token: data.token,
-                  refreshToken: data.refreshToken,
-                });
-              } catch (error) {
-                console.error(error);
+            if (data?.token && data?.refreshToken) {
+              config.headers.Authorization = `Bearer ${data.token}`;
+
+              if (typeof window === 'undefined') {
+                try {
+                  setTokens({
+                    token: data.token,
+                    refreshToken: data.refreshToken,
+                  });
+                } catch (error) {
+                  console.error(error);
+                }
+              } else {
+                await setCookie('token', data.token);
+                await setCookie('refreshToken', data.refreshToken);
               }
-            } else {
-              await setCookie('token', data.token);
-              await setCookie('refreshToken', data.refreshToken);
+
+              this.isRefreshing = false;
+              this.refreshFailed = false;
+              return this.instance(config);
+            }
+          } catch {
+            this.refreshFailed = true;
+            this.isRefreshing = false;
+
+            // Clear invalid tokens
+            if (typeof window !== 'undefined') {
+              await deleteCookie('token');
+              await deleteCookie('refreshToken');
             }
 
-            return this.instance(config);
+            return Promise.reject(error);
           }
         }
 

@@ -44,7 +44,7 @@ const ProfilePage = observer(() => {
   return (
     <Layout>
       <Hero />
-      <ChangeAvatarModal model={profile.avatar} />
+      <ChangeAvatarModal model={profile.avatar} autoInputClick />
       <div className='max-w-5xl bg-card/80 w-full mx-auto my-4'>
         <div className='flex items-center gap-2'>
           <div className='flex flex-col gap-2'>
@@ -60,6 +60,7 @@ const ProfilePage = observer(() => {
                     Змінити
                   </Button>
                   <Image
+                    className='rounded-lg'
                     src={profile.user?.avatar?.url || '/images/avatar.jpg'}
                     width={256}
                     height={256}

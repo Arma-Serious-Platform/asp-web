@@ -23,9 +23,10 @@ import { Preloader } from '@/shared/ui/atoms/preloader';
 
 type ChangeAvatarModalProps = {
   model: ChangeAvatarModel;
+  autoInputClick?: boolean;
 };
 
-const ChangeAvatarModal = observer(({ model }: ChangeAvatarModalProps) => {
+const ChangeAvatarModal = observer(({ model, autoInputClick = false }: ChangeAvatarModalProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const cropperRef = useRef<CropperRef>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -38,6 +39,12 @@ const ChangeAvatarModal = observer(({ model }: ChangeAvatarModalProps) => {
       setImage('');
     }
   }, [file]);
+
+  useEffect(() => {
+    if (autoInputClick && model.modal.isOpen) {
+      inputRef.current?.click();
+    }
+  }, [autoInputClick, model.modal.isOpen])
 
   return (
     <Dialog open={model.modal.isOpen} onOpenChange={model.modal.switch}>
