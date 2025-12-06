@@ -83,7 +83,7 @@ const ForgotPasswordConfirmForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
-              placeholder='Пароль'
+              label='Пароль'
               type='password'
               error={form.formState.errors.password?.message}
             />
@@ -96,7 +96,7 @@ const ForgotPasswordConfirmForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
-              placeholder='Повторіть пароль'
+              label='Повторіть пароль'
               type='password'
               error={form.formState.errors.confirmPassword?.message}
             />

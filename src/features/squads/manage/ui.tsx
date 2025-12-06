@@ -30,6 +30,8 @@ import {
   FixedCropperRef,
   ImageRestriction,
 } from 'react-advanced-cropper';
+import Image from 'next/image';
+import { Preloader } from '@/shared/ui/atoms/preloader';
 
 const ManageSquadModal: FC<
   PropsWithChildren<{
@@ -179,6 +181,8 @@ const ManageSquadModal: FC<
       }
     }, [model.modal.isOpen]);
 
+    const oldLogo = model.modal.payload?.squad?.logo?.url || '';
+
     return (
       <>
         <Dialog
@@ -193,150 +197,170 @@ const ManageSquadModal: FC<
               </DialogTitle>
             </DialogHeader>
 
-            <form
-              className='flex flex-col gap-2 overflow-hidden'
-              onSubmit={form.handleSubmit(onSubmit)}>
-              <div className='flex flex-col gap-2 '>
-                <input
-                  ref={imageRef}
-                  className='hidden'
-                  type='file'
-                  accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
-                  disabled={model.loader.isLoading}
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                />
-
-                {Boolean(image) && (
-                  <FixedCropper
-                    ref={cropperRef as RefObject<FixedCropperRef>}
-                    className='h-64'
-                    src={image}
-                    imageRestriction={ImageRestriction.stencil}
-                    stencilProps={{
-                      handlers: false,
-                      lines: true,
-                      movable: false,
-                      resizable: false,
-                    }}
-                    defaultSize={{
-                      height: 256,
-                      width: 256,
-                    }}
-                    stencilSize={{
-                      height: 256,
-                      width: 256,
-                    }}
+            <Preloader
+              isLoading={
+                model.loader.isLoading ||
+                model.users.pagination.preloader.isLoading ||
+                model.sides.pagination.preloader.isLoading
+              }>
+              <form
+                className='flex flex-col gap-2 overflow-hidden'
+                onSubmit={form.handleSubmit(onSubmit)}>
+                <div className='flex flex-col gap-2 '>
+                  <input
+                    ref={imageRef}
+                    className='hidden'
+                    type='file'
+                    accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
+                    disabled={model.loader.isLoading}
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
                   />
-                )}
 
-                {!image && <div className='size-64 mx-auto bg-black/80' />}
-                <Button
-                  type='button'
-                  className='w-64 mx-auto'
-                  variant={file ? 'outline' : 'default'}
-                  disabled={model.loader.isLoading}
-                  onClick={() => imageRef.current?.click()}>
-                  {file ? 'Змінити лого' : 'Обрати лого'}
-                </Button>
-              </div>
-
-              <div className='flex flex-col gap-2'>
-                <Controller
-                  control={form.control}
-                  name='name'
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      placeholder='Назва загону'
-                      error={form.formState.errors.name?.message}
+                  {Boolean(image) && (
+                    <FixedCropper
+                      ref={cropperRef as RefObject<FixedCropperRef>}
+                      className='h-64 rounded-sm'
+                      src={image}
+                      imageRestriction={ImageRestriction.stencil}
+                      stencilProps={{
+                        handlers: false,
+                        lines: true,
+                        movable: false,
+                        resizable: false,
+                      }}
+                      defaultSize={{
+                        height: 256,
+                        width: 256,
+                      }}
+                      stencilSize={{
+                        height: 256,
+                        width: 256,
+                      }}
                     />
                   )}
-                />
 
-                <Controller
-                  control={form.control}
-                  name='tag'
-                  render={({ field }) => (
-                    <div className='flex flex-col gap-1'>
+                  {oldLogo && (
+                    <Image
+                      className='size-64 mx-auto object-cover rounded-sm'
+                      src={oldLogo}
+                      alt='Old logo'
+                      width={256}
+                      height={256}
+                    />
+                  )}
+
+                  {!image && !oldLogo && (
+                    <div className='size-64 mx-auto bg-black/80 rounded-sm' />
+                  )}
+                  <Button
+                    type='button'
+                    className='w-64 mx-auto'
+                    variant={file ? 'outline' : 'default'}
+                    disabled={model.loader.isLoading}
+                    onClick={() => imageRef.current?.click()}>
+                    {file || oldLogo ? 'Змінити лого' : 'Обрати лого'}
+                  </Button>
+                </div>
+
+                <div className='flex flex-col gap-4'>
+                  <Controller
+                    control={form.control}
+                    name='name'
+                    render={({ field }) => (
                       <Input
                         {...field}
-                        placeholder='Тег загону'
-                        error={form.formState.errors.tag?.message}
+                        label='Назва загону'
+                        error={form.formState.errors.name?.message}
                       />
-                      {tag && (
+                    )}
+                  />
+
+                  <Controller
+                    control={form.control}
+                    name='tag'
+                    render={({ field }) => (
+                      <div className='flex flex-col gap-1'>
+                        <Input
+                          {...field}
+                          label='Тег загону'
+                          error={form.formState.errors.tag?.message}
+                        />
+
                         <span className='text-sm text-neutral-500'>
                           Тег буде виглядати так: [{tag}]
                         </span>
-                      )}
-                    </div>
-                  )}
-                />
+                      </div>
+                    )}
+                  />
 
-                <Controller
-                  control={form.control}
-                  name='description'
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      placeholder='Опис загону'
-                      error={form.formState.errors.description?.message}
-                    />
-                  )}
-                />
+                  <Controller
+                    control={form.control}
+                    name='description'
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        label='Опис загону'
+                        error={form.formState.errors.description?.message}
+                      />
+                    )}
+                  />
 
-                <Controller
-                  control={form.control}
-                  name='sideId'
-                  render={({ field }) => (
-                    <Observer>
-                      {() => (
-                        <Select
-                          {...field}
-                          label='Сторона загону'
-                          options={model.sides.options}
-                          error={form.formState.errors.sideId?.message}
-                        />
-                      )}
-                    </Observer>
-                  )}
-                />
+                  <Controller
+                    control={form.control}
+                    name='sideId'
+                    render={({ field }) => (
+                      <Observer>
+                        {() => (
+                          <Select
+                            {...field}
+                            label='Сторона загону'
+                            options={model.sides.options}
+                            error={form.formState.errors.sideId?.message}
+                          />
+                        )}
+                      </Observer>
+                    )}
+                  />
 
-                <Controller
-                  control={form.control}
-                  name='leaderId'
-                  disabled={!sideId}
-                  render={({ field }) => (
-                    <Observer>
-                      {() => (
-                        <Select
-                          {...field}
-                          onSearch={(search) => {
-                            model.users.pagination.init({
-                              search,
-                              skip: 0,
-                              take: 100,
-                            });
-                          }}
-                          isLoading={model.users.pagination.preloader.isLoading}
-                          label='Лідер загону'
-                          options={model.users.options}
-                          error={form.formState.errors.sideId?.message}
-                        />
-                      )}
-                    </Observer>
-                  )}
-                />
-              </div>
+                  <Controller
+                    control={form.control}
+                    name='leaderId'
+                    disabled={!sideId}
+                    render={({ field }) => (
+                      <Observer>
+                        {() => (
+                          <Select
+                            {...field}
+                            onSearch={(search) => {
+                              model.users.pagination.init({
+                                search,
+                                skip: 0,
+                                take: 100,
+                              });
+                            }}
+                            isLoading={
+                              model.users.pagination.preloader.isLoading
+                            }
+                            label='Лідер загону'
+                            options={model.users.options}
+                            error={form.formState.errors.sideId?.message}
+                          />
+                        )}
+                      </Observer>
+                    )}
+                  />
+                </div>
 
-              <div className='flex justify-between mt-4'>
-                <Button variant='outline' onClick={() => model.modal.close()}>
-                  Скасувати
-                </Button>
-                <Button type='submit' disabled={!isValid}>
-                  {model?.modal?.payload?.squad ? 'Зберегти' : 'Створити'}
-                </Button>
-              </div>
-            </form>
+                <div className='flex justify-between mt-4'>
+                  <Button variant='outline' onClick={() => model.modal.close()}>
+                    Скасувати
+                  </Button>
+                  <Button type='submit' disabled={!isValid}>
+                    {model?.modal?.payload?.squad ? 'Зберегти' : 'Створити'}
+                  </Button>
+                </div>
+              </form>
+            </Preloader>
           </DialogContent>
         </Dialog>
 

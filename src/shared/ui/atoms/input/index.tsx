@@ -3,13 +3,13 @@ import { cn } from '@/shared/utils/cn';
 import { SearchIcon, X } from 'lucide-react';
 
 import { formatNumericValue } from '@/shared/utils/string';
-import classNames from 'classnames';
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   searchIcon?: boolean;
   closeIcon?: boolean;
   error?: string;
+  label?: string;
   mapSetValue?: (value: string) => string;
 }
 
@@ -68,6 +68,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       closeIcon,
       error,
       mapSetValue,
+      label,
       ...props
     },
     ref
@@ -88,6 +89,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       setValue(propValue || '');
     }, [propValue]);
 
+    const [isFocused, setIsFocused] = React.useState(props.autoFocus || false);
+
     return (
       <div className='relative w-full'>
         {searchIcon && (
@@ -99,13 +102,29 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
         )}
 
+        {label && (
+          <label
+            className={cn(
+              'absolute left-2 -translate-y-1/2 text-muted-foreground transition-transform text-foreground top-0 bg-primary px-2 text-xs rounded-lg'
+            )}>
+            {label}
+          </label>
+        )}
         <input
           ref={ref}
           type={type}
           value={value}
           onChange={handleChange}
+          onFocus={(e) => {
+            setIsFocused(true);
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            props.onBlur?.(e);
+          }}
           className={cn(
-            'flex h-9 w-full focus:border border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80',
+            'rounded-sm outline-none focus:outline-none flex h-9 w-full border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80',
             {
               'pl-9': searchIcon,
             },
@@ -131,7 +150,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </button>
         )}
 
-        {error && <p className='mt-1 text-red-500 text-sm'>{error}</p>}
+        {error && (
+          <p className='absolute -translate-y-1/2 top-0 right-2 text-destructive bg-red-950 text-xs text-right px-2 rounded-lg'>
+            {error}
+          </p>
+        )}
       </div>
     );
   }

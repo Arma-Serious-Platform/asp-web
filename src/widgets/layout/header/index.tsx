@@ -116,7 +116,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
               trigger={
                 <Button
                   className={cn(
-                    'gap-3 border-none bg-transparent hover:bg-transparent'
+                    'gap-3 border-none bg-transparent hover:bg-primary/50 min-w-40'
                   )}>
                   <Avatar size='sm' src={session.user?.user?.avatar?.url} />
                   <UserNicknameText user={session.user?.user} />
@@ -146,7 +146,6 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                   e.preventDefault();
 
                   session.logout();
-                  router.push(ROUTES.auth.login);
                 }}>
                 <Button
                   align='left'
@@ -169,6 +168,10 @@ export const MobileMenu = observer(() => {
       ? 'hidden'
       : 'auto';
   }, [headerModel.mobileMenu.isOpen]);
+
+  useEffect(() => {
+    return () => headerModel.mobileMenu.close();
+  }, []);
 
   return (
     <div
@@ -195,7 +198,7 @@ export const MobileMenu = observer(() => {
         </div>
       </div>
 
-      <ScheduleInfo className='my-2 mx-auto' />
+      <ScheduleInfo className='my-2 mx-auto' version='full' />
 
       <div className='flex flex-col'>
         <MainLinks
@@ -210,10 +213,7 @@ export const MobileMenu = observer(() => {
         </div>
       </div>
 
-      <Social
-        className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4'
-        size={24}
-      />
+      <Social className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4' />
     </div>
   );
 });
@@ -276,8 +276,12 @@ export const Header: FC<HeaderProps> = observer(
               </div>
             </View.Condition>
             <div className='flex items-center justify-between gap-7 mx-4'>
-              <Social size={24} />
-              <ScheduleInfo className='mr-4 hidden lg:flex' />
+              <Social iconClassName='size-4' />
+              <ScheduleInfo className='mr-4 hidden min-xl:flex' />
+              <ScheduleInfo
+                className='my-2 mx-auto hidden max-xl:flex'
+                version='short'
+              />
               <View.Condition if={!session.preloader.isLoading}>
                 <AuthLinks />
               </View.Condition>

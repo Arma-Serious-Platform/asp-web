@@ -83,13 +83,17 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
         children ? (
           children
         ) : (
-          <div className='flex flex-col w-full'>
+          <div className='relative flex flex-col w-full'>
+            {label && (
+              <div className='bg-primary px-2 text-xs rounded-lg text-muted-foreground/50 absolute left-2 top-0 -translate-y-1/2'>
+                {label}
+              </div>
+            )}
             <div
               className={cn(
-                'cursor-pointer flex items-center text-muted-foreground/50 h-9 w-full focus:border border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80 hover:bg-primary/15',
+                'cursor-pointer flex items-center text-muted-foreground/50 h-9 w-full focus:border border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80 hover:bg-primary/15 rounded-sm',
                 { 'text-muted-foreground/50': !value || !value.length }
               )}>
-              {!value?.length && label}
               {multiple
                 ? combinedOptions
                     .filter((v) => value?.includes(v.value))
@@ -99,7 +103,11 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
 
               <ChevronDownIcon className='size-4 ml-auto' />
             </div>
-            {error && <p className='mt-1 text-red-500 text-sm'>{error}</p>}
+            {error && (
+              <p className='absolute -translate-y-1/2 top-0 right-2 text-destructive bg-red-950 text-xs text-right px-2 rounded-lg'>
+                {error}
+              </p>
+            )}
           </div>
         )
       }>
@@ -109,6 +117,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
             className='border-t-0 border-b-1 border-x-0 outline-0'
             placeholder='Пошук'
             searchIcon
+            error={error}
             onChange={(e) => onSearch(e.target.value)}
           />
         )}

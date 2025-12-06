@@ -53,14 +53,14 @@ const ChangePassword: FC<{
       onSubmit={form.handleSubmit(onSubmit)}>
       <Input
         {...form.register('oldPassword')}
-        placeholder='Старий пароль'
+        label='Старий пароль'
         type='password'
         error={form.formState.errors.oldPassword?.message}
         disabled={isSubmitting}
       />
       <Input
         {...form.register('newPassword')}
-        placeholder='Новий пароль'
+        label='Новий пароль'
         type='password'
         error={form.formState.errors.newPassword?.message}
         disabled={isSubmitting}
