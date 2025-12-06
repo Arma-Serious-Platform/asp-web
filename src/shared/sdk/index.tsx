@@ -154,8 +154,11 @@ class ApiModel {
     return await this.instance.post('/users/sign-up/confirm', { token });
   };
 
-  login = async (dto: LoginDto) => {
-    return await this.instance.post<LoginResponse>('/users/login', dto);
+  login = async ({ email, password }: LoginDto) => {
+    return await this.instance.post<LoginResponse>('/users/login', {
+      emailOrNickname: email,
+      password,
+    });
   };
 
   refreshToken = async (dto: RefreshTokenDto) => {

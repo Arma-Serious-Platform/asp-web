@@ -21,7 +21,7 @@ const SquadsPage = async () => {
   );
 
   return (
-    <Layout className='w-full bg-card/80 mx-auto my-4 p-4 max-w-4xl'>
+    <Layout className='w-full mx-auto my-4 p-4 max-w-4xl paper'>
       <h1 className='text-lg font-bold text-center'>Загони проекту</h1>
 
       <Suspense fallback={<LoaderIcon className='w-4 h-4 animate-spin' />}>

@@ -21,7 +21,6 @@ const LoginForm: FC<{
   const schema = yup.object().shape({
     email: yup
       .string()
-      .email('Неправильний формат email')
       .required("Обов'язкове поле"),
     password: yup.string().required("Обов'язкове поле"),
   });
@@ -71,7 +70,7 @@ const LoginForm: FC<{
             <Input
               {...field}
               autoFocus
-              label='Email'
+              label='Нікнейм або email'
               error={form.formState.errors.email?.message}
             />
           )}
