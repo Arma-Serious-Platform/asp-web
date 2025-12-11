@@ -1,4 +1,8 @@
-import { UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
+import {
+  UserNicknameText,
+  UserRoleText,
+  UserStatusText,
+} from '@/entities/user/ui/user-text';
 
 import { ROUTES } from '@/shared/config/routes';
 import { User, UserStatus } from '@/shared/sdk/types';
@@ -20,7 +24,10 @@ export const columns: ColumnDef<User>[] = [
       return (
         <div>
           <Link href={ROUTES.user.users.id(row.original.id)}>
-            {row.original.nickname}
+            <UserNicknameText
+              user={row.original}
+              sideType={row.original.squad?.side?.type}
+            />
           </Link>
         </div>
       );

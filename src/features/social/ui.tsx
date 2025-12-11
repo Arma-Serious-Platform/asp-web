@@ -27,8 +27,8 @@ const socials = [
 
 const Social: FC<{
   className?: string;
-  size?: number;
-}> = ({ className, size = 24 }) => {
+  iconClassName?: string;
+}> = ({ className, iconClassName = 'size-6' }) => {
   return (
     <div className={cn('flex gap-6', className)}>
       {socials.map((social) => (
@@ -38,7 +38,13 @@ const Social: FC<{
           target='_blank'
           rel='noopener noreferrer'
           className='hover:scale-110 transition-transform'>
-          <Image src={social.src} alt={social.alt} width={size} height={size} />
+          <Image
+            src={social.src}
+            alt={social.alt}
+            width={24}
+            height={24}
+            className={iconClassName}
+          />
         </a>
       ))}
     </div>

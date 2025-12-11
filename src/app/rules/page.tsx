@@ -5,7 +5,7 @@ import { Layout } from '@/widgets/layout';
 import { FC, PropsWithChildren } from 'react';
 
 const RuleCategory: FC<PropsWithChildren> = ({ children }) => (
-  <div className='flex flex-col gap-4 bg-card/80 py-4 rounded-sm'>{children}</div>
+  <div className='flex flex-col gap-4 py-4 paper'>{children}</div>
 );
 const RuleTitle: FC<PropsWithChildren<{ id?: string }>> = ({
   children,
@@ -77,7 +77,7 @@ const RuleMenu = () => {
   ];
 
   return (
-    <div className='flex flex-col bg-card/80 min-w-1/4 h-fit sticky top-20 shadow-2xl max-lg:hidden rounded-sm'>
+    <div className='flex flex-col min-w-1/4 h-fit sticky top-20 shadow-2xl max-lg:hidden paper'>
       <h2 className='text-lg mt-4 mb-1 font-bold text-center'>Розділи</h2>
       <div className='flex flex-col'>
         {ruleCategories.map((category) => (
@@ -100,7 +100,7 @@ const RulesPage = () => {
       <h1 className='text-2xl font-bold text-center my-4'>Правила проекту</h1>
       <div className=' max-md:p-0 max-md:m-0 min-lg:container mx-auto flex gap-4'>
         <RuleMenu />
-        <div className='w-full mx-auto mb-1'>
+        <div className='w-full mx-auto mb-1 flex flex-col gap-8'>
           <RuleCategory>
             <RuleTitle id='1'>
               📜 Правила спілкування на ігрових ресурсах проєкту "ARMA 3 VTG"

@@ -23,94 +23,121 @@ import { Preloader } from '@/shared/ui/atoms/preloader';
 
 type ChangeAvatarModalProps = {
   model: ChangeAvatarModel;
+  autoInputClick?: boolean;
 };
 
-const ChangeAvatarModal = observer(({ model }: ChangeAvatarModalProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const cropperRef = useRef<CropperRef>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [image, setImage] = useState('');
+const ChangeAvatarModal = observer(
+  ({ model, autoInputClick = false }: ChangeAvatarModalProps) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const cropperRef = useRef<CropperRef>(null);
+    const [file, setFile] = useState<File | null>(null);
+    const [image, setImage] = useState('');
 
-  useEffect(() => {
-    if (file) {
-      setImage(URL.createObjectURL(file));
-    } else {
-      setImage('');
-    }
-  }, [file]);
+    useEffect(() => {
+      if (file) {
+        setImage(URL.createObjectURL(file));
+      } else {
+        setImage('');
+      }
+    }, [file]);
 
-  return (
-    <Dialog open={model.modal.isOpen} onOpenChange={model.modal.switch}>
-      <DialogOverlay />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className='text-lg font-bold'>
-            Змінити аватар
-          </DialogTitle>
-        </DialogHeader>
-        <div className='overflow-hidden'>
-          <Preloader isLoading={model.loader.isLoading}>
-            <div className='flex flex-col gap-2'>
-              <input
-                ref={inputRef}
-                className='hidden'
-                type='file'
-                disabled={model.loader.isLoading}
-                accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
+    useEffect(() => {
+      if (autoInputClick && model.modal.isOpen) {
+        // Use requestAnimationFrame to ensure DOM is ready after dialog opens
+        // Double RAF ensures the portal content is fully rendered
+        let rafId: number | undefined;
+        const frame1 = requestAnimationFrame(() => {
+          rafId = requestAnimationFrame(() => {
+            if (inputRef.current) {
+              inputRef.current.click();
+            }
+          });
+        });
 
-              <Button
-                variant={file ? 'outline' : 'default'}
-                disabled={model.loader.isLoading}
-                onClick={() => inputRef.current?.click()}>
-                {file ? 'Змінити файл' : 'Обрати файл'}
-              </Button>
+        return () => {
+          cancelAnimationFrame(frame1);
+          if (rafId !== undefined) {
+            cancelAnimationFrame(rafId);
+          }
+        };
+      }
+    }, [autoInputClick, model.modal.isOpen]);
 
-              {image && (
-                <FixedCropper
-                  ref={cropperRef as RefObject<FixedCropperRef>}
-                  className='h-64'
-                  src={image}
-                  imageRestriction={ImageRestriction.stencil}
-                  stencilProps={{
-                    handlers: false,
-                    lines: true,
-                    movable: false,
-                    resizable: false,
-                  }}
-                  defaultSize={{
-                    height: 256,
-                    width: 256,
-                  }}
-                  stencilSize={{
-                    height: 256,
-                    width: 256,
-                  }}
-                />
-              )}
-
-              {image && (
-                <Button
+    return (
+      <Dialog open={model.modal.isOpen} onOpenChange={model.modal.switch}>
+        <DialogOverlay />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className='text-lg font-bold'>
+              Змінити аватар
+            </DialogTitle>
+          </DialogHeader>
+          <div className='overflow-hidden'>
+            <Preloader isLoading={model.loader.isLoading}>
+              <div className='flex flex-col gap-2'>
+                <input
+                  ref={inputRef}
+                  className='hidden'
+                  type='file'
                   disabled={model.loader.isLoading}
-                  onClick={async () => {
-                    const base64 = cropperRef.current?.getCanvas()?.toDataURL();
+                  accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                />
 
-                    if (!base64) return;
-
-                    const file = await base64ToFile(base64, 'avatar');
-
-                    model.changeAvatar(file);
-                  }}>
-                  Зберегти
+                <Button
+                  variant={file ? 'outline' : 'default'}
+                  disabled={model.loader.isLoading}
+                  onClick={() => inputRef.current?.click()}>
+                  {file ? 'Змінити файл' : 'Обрати файл'}
                 </Button>
-              )}
-            </div>
-          </Preloader>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-});
+
+                {image && (
+                  <FixedCropper
+                    ref={cropperRef as RefObject<FixedCropperRef>}
+                    className='h-64'
+                    src={image}
+                    imageRestriction={ImageRestriction.stencil}
+                    stencilProps={{
+                      handlers: false,
+                      lines: true,
+                      movable: false,
+                      resizable: false,
+                    }}
+                    defaultSize={{
+                      height: 256,
+                      width: 256,
+                    }}
+                    stencilSize={{
+                      height: 256,
+                      width: 256,
+                    }}
+                  />
+                )}
+
+                {image && (
+                  <Button
+                    disabled={model.loader.isLoading}
+                    onClick={async () => {
+                      const base64 = cropperRef.current
+                        ?.getCanvas()
+                        ?.toDataURL();
+
+                      if (!base64) return;
+
+                      const file = await base64ToFile(base64, 'avatar');
+
+                      model.changeAvatar(file);
+                    }}>
+                    Зберегти
+                  </Button>
+                )}
+              </div>
+            </Preloader>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+);
 
 export { ChangeAvatarModal };

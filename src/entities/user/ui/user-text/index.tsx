@@ -14,6 +14,7 @@ export const UserNicknameText: FC<{
 
   if ((tag && sideType) || user?.squad?.name) {
     const type = sideType || user?.squad?.side?.type;
+
     return (
       <span className={className}>
         <span

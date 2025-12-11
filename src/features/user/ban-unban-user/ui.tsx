@@ -45,7 +45,7 @@ const BanUnbanUserModal: FC<
         <div className='flex flex-col gap-2'>
           {isBanAction && (
             <Input
-              placeholder='Час блокування'
+              label='Час блокування'
               type='datetime-local'
               onChange={(e) => setBanTime(e.target.value)}
             />

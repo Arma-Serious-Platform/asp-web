@@ -21,7 +21,6 @@ const LoginForm: FC<{
   const schema = yup.object().shape({
     email: yup
       .string()
-      .email('Неправильний формат email')
       .required("Обов'язкове поле"),
     password: yup.string().required("Обов'язкове поле"),
   });
@@ -56,7 +55,7 @@ const LoginForm: FC<{
   return (
     <div
       className={classNames(
-        'max-w-lg flex flex-col border border-primary bg-card p-4',
+        'max-w-lg flex flex-col border border-primary bg-card p-4 rounded-sm',
         className
       )}>
       <h2 className='text-2xl font-bold mb-4 text-center'>Увійти</h2>
@@ -70,7 +69,8 @@ const LoginForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
-              placeholder='Email'
+              autoFocus
+              label='Нікнейм або email'
               error={form.formState.errors.email?.message}
             />
           )}
@@ -83,7 +83,7 @@ const LoginForm: FC<{
             <Input
               {...field}
               type='password'
-              placeholder='Пароль'
+              label='Пароль'
               error={form.formState.errors.password?.message}
             />
           )}

@@ -26,6 +26,21 @@ const ForgotPasswordConfirmForm: FC<{
   const schema = yup.object().shape({
     password: yup
       .string()
+      .test('password', 'Пароль повинен містити хоча б одну цифру', (value) => {
+        return /\d/.test(value || '');
+      })
+      .test('password', 'Пароль повинен містити хоча б одну букву', (value) => {
+        return /[a-zA-Z]/.test(value || '');
+      })
+      .test('password', 'Пароль повинен містити хоча б один спеціальний символ', (value) => {
+        return /[!@#$%^&*]/.test(value || '');
+      })
+      .test('password', 'Пароль повинен містити хоча б одну велику букву', (value) => {
+        return /[A-Z]/.test(value || '');
+      })
+      .test('password', 'Пароль повинен містити хоча б одну маленьку букву', (value) => {
+        return /[a-z]/.test(value || '');
+      })
       .min(8, 'Пароль повинен бути не менше 8 символів')
       .required("Обов'язкове поле"),
     confirmPassword: yup
@@ -83,7 +98,7 @@ const ForgotPasswordConfirmForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
-              placeholder='Пароль'
+              label='Пароль'
               type='password'
               error={form.formState.errors.password?.message}
             />
@@ -96,7 +111,7 @@ const ForgotPasswordConfirmForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
-              placeholder='Повторіть пароль'
+              label='Повторіть пароль'
               type='password'
               error={form.formState.errors.confirmPassword?.message}
             />

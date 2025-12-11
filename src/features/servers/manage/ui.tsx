@@ -125,7 +125,7 @@ const ManageServerModal: FC<
                     <Input
                       {...field}
                       autoFocus
-                      placeholder='Назва сервера'
+                      label='Назва сервера'
                       error={form.formState.errors.name?.message}
                     />
                   )}
@@ -136,7 +136,7 @@ const ManageServerModal: FC<
                   render={({ field }) => (
                     <Input
                       {...field}
-                      placeholder='IP сервера'
+                      label='IP сервера'
                       error={form.formState.errors.ip?.message}
                     />
                   )}
@@ -148,7 +148,7 @@ const ManageServerModal: FC<
                   render={({ field }) => (
                     <NumericInput
                       {...field}
-                      placeholder='Порт сервера'
+                      label='Порт сервера'
                       maxLength={4}
                       error={form.formState.errors.port?.message}
                     />

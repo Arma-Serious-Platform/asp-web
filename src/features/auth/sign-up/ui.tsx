@@ -13,6 +13,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { signUpModel, SignUpModel } from './model';
 import * as yup from 'yup';
 
+type FormData = SignUpDto & {
+  rePassword: string;
+};
+
 const SignUpForm: FC<{
   className?: string;
   model?: SignUpModel;
@@ -27,23 +31,34 @@ const SignUpForm: FC<{
       .email('Неправильний формат email')
       .required("Обов'язкове поле"),
     password: yup.string().required("Обов'язкове поле"),
+    rePassword: yup
+      .string()
+      .required("Обов'язкове поле")
+      .test('re-password', 'Паролі не співпадають', (value, context) => {
+        return value === context.parent.password;
+      }),
   });
 
-  const form = useForm<SignUpDto>({
+  const form = useForm<FormData>({
     mode: 'onTouched',
     defaultValues: {
       nickname: '',
       email: '',
       password: '',
+      rePassword: '',
     },
     resolver: yupResolver(schema),
   });
 
   const { isValid, isSubmitting } = form.formState;
 
-  const onSubmit = async (data: SignUpDto) => {
+  const onSubmit = async (data: FormData) => {
     try {
-      await model.signUp(data);
+      await model.signUp({
+        email: data.email,
+        nickname: data.nickname,
+        password: data.password,
+      });
       model.setSuccessEmail(data.email);
     } catch (error) {
       if (error?.response?.data?.message === 'User already exists') {
@@ -68,11 +83,16 @@ const SignUpForm: FC<{
         </p>
 
         <div className='flex flex-col gap-2 text-sm text-center'>
-          <p className='text-neutral-400'>Якщо ви не знайдете лист, перевірте папку &quot;Спам&quot;.</p>
+          <p className='text-neutral-400'>
+            Якщо ви не знайдете лист, перевірте папку &quot;Спам&quot;.
+          </p>
         </div>
 
         {model.successEmail.endsWith('@gmail.com') && (
-          <Link className='text-center mt-2' href={`https://mail.google.com/mail`} target='_blank'>
+          <Link
+            className='text-center mt-2'
+            href={`https://mail.google.com/mail`}
+            target='_blank'>
             <Button className='uppercase' size='lg'>
               Відкрити Gmail
             </Button>
@@ -85,7 +105,7 @@ const SignUpForm: FC<{
   return (
     <div
       className={classNames(
-        'max-w-lg flex flex-col border border-primary bg-card p-4',
+        'max-w-lg flex flex-col border border-primary bg-card p-4 rounded-sm',
         className
       )}>
       <h2 className='text-2xl font-bold mb-4 text-center'>Створити аккаунт</h2>
@@ -99,7 +119,8 @@ const SignUpForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
-              placeholder='Позивний'
+              label='Позивний'
+              autoFocus
               error={form.formState.errors.nickname?.message}
             />
           )}
@@ -110,7 +131,7 @@ const SignUpForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
-              placeholder='Email'
+              label='Email'
               error={form.formState.errors.email?.message}
             />
           )}
@@ -123,8 +144,21 @@ const SignUpForm: FC<{
             <Input
               {...field}
               type='password'
-              placeholder='Пароль'
+              label='Пароль'
               error={form.formState.errors.password?.message}
+            />
+          )}
+        />
+
+        <Controller
+          control={form.control}
+          name='rePassword'
+          render={({ field }) => (
+            <Input
+              {...field}
+              type='password'
+              label='Повторіть пароль'
+              error={form.formState.errors.rePassword?.message}
             />
           )}
         />

@@ -9,6 +9,14 @@
   --color-destructive: #ff0000;
 }
 
+@utility paper {
+  background-color: var(--color-card);
+  border-color: var(--color-primary);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--radius-sm)
+}
+
 * {
   scroll-behavior: smooth;
   box-sizing: border-box;

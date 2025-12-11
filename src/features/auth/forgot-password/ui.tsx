@@ -87,7 +87,7 @@ const ForgotPasswordForm: FC<{
             render={({ field }) => (
               <Input
                 {...field}
-                placeholder='Email'
+                label='Email'
                 error={form.formState.errors.email?.message}
               />
             )}
