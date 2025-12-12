@@ -12,6 +12,14 @@ RUN yarn install --frozen-lockfile
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+# Accept build arguments for NEXT_PUBLIC_ variables
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_LANDING
+
+# Set as environment variables for the build
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_LANDING=$NEXT_PUBLIC_LANDING
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
