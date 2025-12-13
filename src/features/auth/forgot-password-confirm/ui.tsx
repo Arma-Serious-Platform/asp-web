@@ -91,13 +91,14 @@ const ForgotPasswordConfirmForm: FC<{
       )}>
       <h2 className='text-2xl font-bold mb-4 text-center'>Зміна паролю</h2>
 
-      <div className='flex flex-col gap-4'>
+      <div className='flex flex-col gap-4 min-w-96'>
         <Controller
           control={form.control}
           name='password'
           render={({ field }) => (
             <Input
               {...field}
+              className='w-full'
               label='Пароль'
               type='password'
               error={form.formState.errors.password?.message}
@@ -111,6 +112,7 @@ const ForgotPasswordConfirmForm: FC<{
           render={({ field }) => (
             <Input
               {...field}
+              className='w-full'
               label='Повторіть пароль'
               type='password'
               error={form.formState.errors.confirmPassword?.message}

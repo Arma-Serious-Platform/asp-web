@@ -1,22 +1,45 @@
 import { SideType, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
-import { FC } from 'react';
+import { FC, PropsWithChildren } from 'react';
 import { getUserRoleText, getUserStatusText } from '../../lib';
 import dayjs from 'dayjs';
+import Link from 'next/link';
+import { ROUTES } from '@/shared/config/routes';
+import { cn } from '@/shared/utils/cn';
+
+const UserProfileLink: FC<
+  PropsWithChildren<{
+    link?: boolean;
+    className?: string;
+    user: User;
+  }> &
+    PropsWithChildren
+> = ({ link = true, className, user, children }) => {
+  if (!link) return <span className={className}>{children}</span>;
+
+  return (
+    <Link
+      className={cn('inline', className)}
+      href={ROUTES.user.users.id(user.nickname)}>
+      {children}
+    </Link>
+  );
+};
 
 export const UserNicknameText: FC<{
   user: User | null;
   tag?: string;
   sideType?: SideType;
   className?: string;
-}> = ({ user, tag, sideType, className }) => {
+  link?: boolean;
+}> = ({ user, tag, sideType, className, link = true }) => {
   if (!user?.nickname) return '';
 
   if ((tag && sideType) || user?.squad?.name) {
     const type = sideType || user?.squad?.side?.type;
 
     return (
-      <span className={className}>
+      <UserProfileLink link={link} className={className} user={user}>
         <span
           className={classNames({
             'text-blue-500': type === SideType.BLUE,
@@ -26,11 +49,15 @@ export const UserNicknameText: FC<{
           [{tag || user.squad?.tag}]
         </span>
         <span>{user.nickname}</span>
-      </span>
+      </UserProfileLink>
     );
   }
 
-  return <span className={className}>{user.nickname}</span>;
+  return (
+    <UserProfileLink link={link} className={className} user={user}>
+      {user.nickname}
+    </UserProfileLink>
+  );
 };
 
 export const UserRoleText: FC<{

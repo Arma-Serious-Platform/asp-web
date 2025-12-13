@@ -136,6 +136,10 @@ export type Squad = {
   side: Side;
   invites: SquadInvitation[];
   members: User[];
+  _count: {
+    members: number;
+    invites: number;
+  };
 };
 
 export type SquadInvitation = {

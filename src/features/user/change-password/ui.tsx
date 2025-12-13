@@ -13,11 +13,11 @@ const ChangePassword: FC<{
   model?: ChangePasswordModel;
 }> = ({ user, model = changePassword }) => {
   const schema = yup.object().shape({
-    oldPassword: yup.string().required('Старий пароль є обов&apos;язковим'),
+    oldPassword: yup.string().required('Старий пароль є обов\'язковим'),
     newPassword: yup
       .string()
       .min(8, 'Новий пароль повинен містити 8 символів')
-      .required('Новий пароль є обов&apos;язковим'),
+      .required('Новий пароль є обов\'язковим'),
   });
 
   const form = useForm<ChangePasswordDto>({
@@ -49,7 +49,7 @@ const ChangePassword: FC<{
 
   return (
     <form
-      className='flex flex-col gap-4'
+      className='flex flex-col gap-4 min-w-96'
       onSubmit={form.handleSubmit(onSubmit)}>
       <Input
         {...form.register('oldPassword')}

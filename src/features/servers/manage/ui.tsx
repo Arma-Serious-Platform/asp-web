@@ -43,7 +43,6 @@ const ManageServerModal: FC<
             .required("Назва є обов'язковою")
             .when('$existedServers', {
               is: (existedServers: Server[], value: string) => {
-                console.log(existedServers, value);
                 return existedServers.some((server) => server.name === value);
               },
               then: (schema) => {

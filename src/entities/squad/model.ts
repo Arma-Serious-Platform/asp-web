@@ -2,7 +2,7 @@ import { Pagination } from '@/shared/model/pagination';
 import { api } from '@/shared/sdk';
 import { SideType } from '@/shared/sdk/types';
 
-import { get, makeAutoObservable } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 
 class SquadModel {
   constructor() {

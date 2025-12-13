@@ -119,7 +119,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                     'gap-3 border-none bg-transparent hover:bg-primary/50 min-w-40'
                   )}>
                   <Avatar size='sm' src={session.user?.user?.avatar?.url} />
-                  <UserNicknameText user={session.user?.user} />
+                  <UserNicknameText user={session.user?.user} link={false} />
                 </Button>
               }>
               <NextLink
