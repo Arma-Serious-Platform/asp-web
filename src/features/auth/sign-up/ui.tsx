@@ -62,7 +62,7 @@ const SignUpForm: FC<{
       model.setSuccessEmail(data.email);
     } catch (error) {
       if (error?.response?.data?.message === 'User already exists') {
-        form.setError('password', { message: 'Такий користувач вже існує' });
+        form.setError('nickname', { message: 'Такий користувач вже існує' });
       }
     }
   };

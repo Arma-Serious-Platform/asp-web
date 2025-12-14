@@ -15,7 +15,14 @@ export const Avatar: FC<{
         size === 'md' && 'w-10 h-10',
         size === 'sm' && 'w-8 h-8'
       )}>
-      <Image src={src} alt={alt} className='size-auto' width={40} height={40} />
+      <img
+        src={src}
+        alt={alt}
+        className='size-auto'
+        width={40}
+        height={40}
+        loading='lazy'
+      />
     </div>
   );
 };

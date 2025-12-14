@@ -97,7 +97,7 @@ const RulesPage = () => {
   return (
     <Layout className='w-full mx-auto '>
       <Hero />
-      <h1 className='text-2xl font-bold text-center my-4'>Правила проекту</h1>
+      <h1 className='text-2xl font-bold my-4 container mx-auto text-left'>Правила проекту</h1>
       <div className=' max-md:p-0 max-md:m-0 min-lg:container mx-auto flex gap-4'>
         <RuleMenu />
         <div className='w-full mx-auto mb-1 flex flex-col gap-8'>

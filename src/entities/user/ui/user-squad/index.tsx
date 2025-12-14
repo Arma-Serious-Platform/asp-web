@@ -15,8 +15,8 @@ export const UserSquad: FC<{
   if (!squad)
     return (
       <div className='flex flex-col gap-2 justify-center'>
-        Ви одинак. Якщо бажаєте приєднатися до конкретного загону, оберіть загін
-        зі списку та поспілкуйтеся з командиром.
+        Ви одинак.<br />Якщо бажаєте приєднатися до загону, оберіть загін зі списку
+        та поспілкуйтеся з командиром.
         <Link href={ROUTES.squads} className='w-fit mx-auto'>
           <Button>Загони проекту</Button>
         </Link>

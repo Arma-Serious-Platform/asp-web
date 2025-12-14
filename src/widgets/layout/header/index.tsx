@@ -270,11 +270,6 @@ export const Header: FC<HeaderProps> = observer(
               <MainLinks />
             </div>
 
-            <View.Condition if={session.preloader.isLoading}>
-              <div className='flex items-center justify-between gap-7 mx-4'>
-                <Loader2Icon className='w-4 h-4 animate-spin' />
-              </div>
-            </View.Condition>
             <div className='flex items-center justify-between gap-7 mx-4'>
               <Social iconClassName='size-4' />
               <ScheduleInfo className='mr-4 hidden min-xl:flex' />
@@ -282,6 +277,11 @@ export const Header: FC<HeaderProps> = observer(
                 className='my-2 mx-auto hidden max-xl:flex'
                 version='short'
               />
+              <View.Condition if={session.preloader.isLoading}>
+                <div className='flex items-center justify-between gap-7 mx-4'>
+                  <Loader2Icon className='w-4 h-4 animate-spin' />
+                </div>
+              </View.Condition>
               <View.Condition if={!session.preloader.isLoading}>
                 <AuthLinks />
               </View.Condition>
