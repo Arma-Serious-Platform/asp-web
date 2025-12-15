@@ -1,13 +1,16 @@
 import { Social } from '@/features/social/ui';
 
 export const Footer = () => (
-  <footer className='mt-auto flex justify-center items-center bg-card min-h-24'>
-    <div className='w-full flex justify-between items-center container max-lg:flex-col max-lg:gap-4 max-lg:pb-4'>
-      <div />
-      <div className='min-lg:ml-[168px]'>
-        Virtual Tactical Games. Всі права захищені.
+  <footer className='mt-auto flex items-center justify-center border-t border-white/10 bg-black/80 py-4'>
+    <div className='container flex w-full items-center justify-between gap-4 px-4 text-xs text-zinc-300 max-lg:flex-col max-lg:text-center'>
+      <div className='flex flex-col gap-1'>
+        <span className='text-[10px] font-semibold uppercase tracking-[0.26em] text-zinc-500'>
+          Virtual Tactical Games
+        </span>
+        <span className='text-xs text-zinc-300'>Всі права захищені.</span>
       </div>
-      <Social />
+
+      <Social className='flex items-center justify-center gap-6' />
     </div>
   </footer>
 );

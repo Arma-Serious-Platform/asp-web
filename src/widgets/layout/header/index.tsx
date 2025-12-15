@@ -176,44 +176,74 @@ export const MobileMenu = observer(() => {
   return (
     <div
       className={cn(
-        'fixed top-0 left-0 w-screen h-screen bg-neutral-900 z-50 transition-all duration-300 flex flex-col',
+        'fixed top-0 left-0 z-50 flex h-screen w-screen flex-col bg-gradient-to-b from-black/95 via-neutral-950/98 to-black/95 transition-transform duration-300',
         {
           'translate-x-full': !headerModel.mobileMenu.isOpen,
         }
       )}>
-      <div className='mx-auto'>
-        <Link href={ROUTES.home}>
-          <Image
-            className='mr-4 hover:scale-110 transition-all duration-700'
-            priority
-            src='/images/logo.webp'
-            width={100}
-            height={100}
-            alt='logo'
-          />
-        </Link>
+      <div className='relative mx-auto flex w-full max-w-xl flex-col px-4 pt-4'>
+        <div className='flex items-center justify-between'>
+          <Link href={ROUTES.home} onClick={headerModel.mobileMenu.close}>
+            <Image
+              className='mr-2 transition-transform duration-300 hover:scale-105'
+              priority
+              src='/images/logo.webp'
+              width={72}
+              height={72}
+              alt='logo'
+            />
+          </Link>
+          <button
+            type='button'
+            aria-label='Закрити меню'
+            className='inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-black/60 text-zinc-200 shadow-md transition-colors hover:bg-white/10'
+            onClick={headerModel.mobileMenu.close}>
+            <XIcon className='h-5 w-5' />
+          </button>
+        </div>
 
-        <div className='absolute top-4 right-4'>
-          <XIcon className='w-6 h-6' onClick={headerModel.mobileMenu.close} />
+        <div className='mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-xs text-zinc-200'>
+          <span className='font-semibold uppercase tracking-[0.24em] text-zinc-400'>
+            Розклад ігор
+          </span>
+          <ScheduleInfo className='ml-3' version='short' />
+        </div>
+
+        <div className='mt-5 flex-1 overflow-y-auto pb-6'>
+          <nav className='paper rounded-xl border px-4 py-4 shadow-xl'>
+            <div className='border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400'>
+              Навігація
+            </div>
+            <div className='mt-2 flex flex-col'>
+              <MainLinks
+                className='block px-2 py-2 text-sm font-medium text-zinc-100 hover:bg-white/5 rounded-md'
+                activeClassName='bg-primary text-white rounded-md'
+              />
+            </div>
+          </nav>
+
+          <div className='mt-5'>
+            <div className='paper rounded-xl border px-4 py-4 shadow-xl'>
+              <div className='border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400'>
+                Обліковий запис
+              </div>
+              <div className='mt-3 flex flex-col gap-2'>
+                <AuthLinks
+                  className='block w-full rounded-md px-3 py-2 text-sm font-medium text-zinc-100 hover:bg-primary/80 hover:text-white text-center'
+                  activeClassName='bg-primary text-white rounded-md'
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className='mt-6 flex flex-col items-center gap-3'>
+            <div className='text-[11px] font-semibold uppercase tracking-[0.26em] text-zinc-500'>
+              Ми в соцмережах
+            </div>
+            <Social className='mx-auto mb-2 flex w-full justify-center gap-8' />
+          </div>
         </div>
       </div>
-
-      <ScheduleInfo className='my-2 mx-auto' version='full' />
-
-      <div className='flex flex-col'>
-        <MainLinks
-          className='block px-4 py-2'
-          activeClassName='bg-primary !text-white '
-        />
-        <div className='mt-10 flex gap-2 w-full justify-between px-4'>
-          <AuthLinks
-            className='block px-4 py-2 mx-auto bg-primary text-center w-full'
-            activeClassName='bg-primary !text-white'
-          />
-        </div>
-      </div>
-
-      <Social className='mt-10 mx-auto mb-8 justify-center gap-10 w-full px-4' />
     </div>
   );
 });
