@@ -1,6 +1,7 @@
 import { Button } from '@/shared/ui/atoms/button';
 import { CodeCopy } from '@/shared/ui/organisms/code-copy';
 import { cn } from '@/shared/utils/cn';
+import { DownloadIcon } from 'lucide-react';
 
 import { FC } from 'react';
 
@@ -204,7 +205,9 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
             download
             href='/files/task_force_radio.ts3_plugin'
             className='w-fit'>
-            <Button size='sm'>Завантажити плагін рації</Button>
+            <Button size='sm'>
+              <DownloadIcon className='size-4' /> Завантажити плагін рації
+            </Button>
           </a>
         </div>
       ),
@@ -223,7 +226,8 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
       description: (
         <p>
           При підключенні до серверу проекту в TeamSpeak 3, використовуйте
-          нікнейм, який відповідає вашому нікнейму в Discord. <br /><br />
+          нікнейм, який відповідає вашому нікнейму в Discord. <br />
+          <br />
           <b>TeamSpeak IP:</b> <span className='text-primary'>vtgarma3</span>
         </p>
       ),

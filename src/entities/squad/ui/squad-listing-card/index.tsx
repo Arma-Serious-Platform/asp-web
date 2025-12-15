@@ -23,6 +23,12 @@ const SquadListingCard: FC<{
       <div className='absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500/40 via-cyan-500/20 to-purple-500/40 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-60' />
 
       <div className='relative flex w-full items-stretch gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/0 to-black/50 p-3 shadow-lg shadow-black/40 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:bg-black/70'>
+        <div className='absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-neutral-700/80 bg-black/80 px-2.5 py-1 text-[11px] font-medium text-zinc-100'>
+          <UsersRoundIcon className='size-3 text-zinc-400' />
+          <span className='text-xs font-medium'>
+            Гравців: {squad?._count?.members ?? 0}
+          </span>
+        </div>
         <div className='flex flex-col items-center gap-2'>
           <div className='overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-md shadow-black/50'>
             <Image
@@ -66,24 +72,14 @@ const SquadListingCard: FC<{
             </div>
 
             <div className='flex flex-col gap-2 items-end'>
-              <div className='flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-100'>
-                <UsersRoundIcon className='size-3.5 text-emerald-300' />
-                <span className='uppercase tracking-[0.18em] text-zinc-400'>
-                  Учасників
-                </span>
-                <span className='text-sm font-semibold text-white'>
-                  {squad?._count?.members ?? 0}
-                </span>
-              </div>
-
               <Link
                 href={`${ROUTES.squads}/${squad.id}`}
-                className='block items-center gap-1.5 text-[11px] font-medium'>
+                className='block text-[11px] font-medium'>
                 <Button
                   size='sm'
-                  variant='outline'
-                  className='tracking-widest uppercase text-xs'>
-                  Переглянути
+                  variant='secondary'
+                  className='min-w-[150px] justify-center rounded-sm border border-neutral-600 bg-neutral-800/95 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-100 hover:bg-neutral-700 hover:border-neutral-400'>
+                  Переглянути загін
                 </Button>
               </Link>
             </div>
