@@ -45,7 +45,7 @@ const ProfilePage = observer(() => {
     <Layout>
       <Hero />
       <ChangeAvatarModal model={profile.avatar} autoInputClick />
-      <div className='max-w-5xl bg-card/80 w-full mx-auto my-4'>
+      <div className='paper max-w-5xl w-full mx-auto my-4'>
         <div className='flex items-center gap-2'>
           <div className='flex flex-col gap-2'>
             <div className='flex gap-2'>

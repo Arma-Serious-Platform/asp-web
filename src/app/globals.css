@@ -10,11 +10,13 @@
 }
 
 @utility paper {
-  background-color: var(--color-card);
-  border-color: var(--color-primary);
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.4);
   border-width: 1px;
   border-style: solid;
-  border-radius: var(--radius-sm)
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur-sm));
 }
 
 * {

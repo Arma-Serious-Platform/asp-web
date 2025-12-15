@@ -55,7 +55,7 @@ export const Hero: FC<{
     return (
       <div
         className={classNames(
-          'w-full flex justify-center items-center',
+          'w-full flex justify-center items-center paper rounded-none',
           className
         )}>
         <LogoAndTitle />
