@@ -310,9 +310,9 @@ export const Header: FC<HeaderProps> = observer(
 
             <div className='mx-4 flex items-center justify-between gap-7'>
               <Social iconClassName='size-4' />
-              <ScheduleInfo className='mr-4 hidden min-xl:flex' />
+              <ScheduleInfo className='mr-4 hidden min-2xl:flex' />
               <ScheduleInfo
-                className='my-2 mx-auto hidden max-xl:flex'
+                className='my-2 mx-auto hidden max-2xl:flex'
                 version='short'
               />
               <View.Condition if={session.preloader.isLoading}>
