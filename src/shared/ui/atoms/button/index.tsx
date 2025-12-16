@@ -5,20 +5,21 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/shared/utils/cn';
 
 const buttonVariants = cva(
-  "inline-flex items-center gap-2 whitespace-nowrap font-semibold tracking-wider transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer rounded-lg",
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer',
   {
     variants: {
       variant: {
         default:
-          'bg-lime-700 text-primary-foreground shadow-xs hover:bg-primary/90 border border-transparent hover:border-white',
+          'bg-lime-700 border-lime-600 text-white hover:bg-lime-600 hover:border-lime-500 active:bg-lime-700/90',
         destructive:
           'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:
-          'border bg-background shadow-xs hover:bg-accent dark:bg-input/30 dark:border-input hover:bg-primary',
+          'bg-transparent border-lime-700 text-lime-300 hover:bg-lime-700/10 hover:text-lime-200 dark:border-lime-600',
         secondary:
-          'bg-neutral-700 text-secondary-foreground shadow-xs hover:bg-black',
-        ghost: 'hover:bg-accent border border-transparent hover:border-white',
-        link: 'text-primary underline-offset-4 hover:underline',
+          'bg-neutral-800 border-neutral-600 text-zinc-100 hover:bg-neutral-700 hover:border-neutral-500',
+        ghost:
+          'border-transparent bg-transparent text-zinc-200 hover:bg-white/5 hover:border-white/10',
+        link: 'border-transparent bg-transparent text-lime-400 underline-offset-4 hover:underline',
       },
       align: {
         left: 'justify-start',

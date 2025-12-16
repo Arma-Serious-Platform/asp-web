@@ -112,7 +112,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
         {session.isAuthorized && session.user?.user && !env.isLanding && (
           <>
             <Popover
-              className='flex min-w-44 flex-col gap-1 p-0'
+              className='flex flex-col gap-1 p-0 max-w-44'
               trigger={
                 <Button
                   className={cn(

@@ -105,7 +105,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             className={cn(
-              'absolute left-2 -translate-y-1/2 text-muted-foreground transition-transform text-foreground top-0 bg-primary px-2 text-xs rounded-lg'
+              'absolute left-2 top-0 -translate-y-1/2 rounded-md border border-white/10 bg-neutral-800 px-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-100 shadow-sm'
             )}>
             {label}
           </label>
@@ -124,7 +124,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             props.onBlur?.(e);
           }}
           className={cn(
-            'rounded-lg outline-none focus:outline-none flex h-9 w-full border border-primary px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45 text-muted-foreground bg-accent/80',
+            'flex h-9 w-full rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40 disabled:cursor-not-allowed disabled:opacity-45',
             {
               'pl-9': searchIcon,
             },
