@@ -105,7 +105,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             className={cn(
-              'absolute left-2 top-0 -translate-y-1/2 rounded-md border border-white/10 bg-neutral-800 px-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-100 shadow-sm'
+              'absolute left-2 top-0 -translate-y-1/2 rounded-md border border-white/10 bg-neutral-800 px-2 text-xs font-medium text-zinc-100 shadow-sm'
             )}>
             {label}
           </label>
