@@ -52,7 +52,6 @@ const RuleContent: FC<
 };
 
 const RuleMenu = () => {
-
   return (
     <div className='paper sticky top-24 flex h-fit min-w-[260px] flex-col gap-2 rounded-xl border px-3 py-4 shadow-xl max-lg:hidden'>
       <h2 className='mb-1 text-center text-sm font-semibold uppercase tracking-[0.22em] text-zinc-300'>
@@ -78,13 +77,14 @@ const RulesPage = () => {
       <Hero />
       <div className='container mx-auto mt-6 w-full px-4'>
         <div className='mb-4 flex flex-col gap-2'>
-          <SectionLabel>Документація проєкту</SectionLabel>
           <h1 className='text-3xl font-bold leading-tight tracking-tight text-white'>
             Правила проєкту VTG
           </h1>
           <p className='max-w-2xl text-sm text-zinc-300'>
             Нижче наведені основні регламенти поведінки, ігрового процесу та
-            організації спільноти. Незнання правил не звільняє від відповідальності.
+            організації спільноти.
+            <br />
+            Незнання правил не звільняє від відповідальності.
           </p>
         </div>
       </div>
