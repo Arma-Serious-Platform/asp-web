@@ -112,35 +112,38 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
         {session.isAuthorized && session.user?.user && !env.isLanding && (
           <>
             <Popover
-              className='flex flex-col gap-1 w-fit p-0 border-none min-w-40'
+              className='flex min-w-44 flex-col gap-1 p-0'
               trigger={
                 <Button
                   className={cn(
-                    'gap-3 border-none bg-transparent hover:bg-primary/50 min-w-40'
+                    'min-w-44 gap-3 border-none bg-transparent hover:bg-primary/50'
                   )}>
                   <Avatar size='sm' src={session.user?.user?.avatar?.url} />
                   <UserNicknameText user={session.user?.user} link={false} />
                 </Button>
               }>
-              <NextLink
-                className={className}
-                href={`${ROUTES.user.profile}?tab=profile`}>
-                <Button align='left' className='w-full' size='sm'>
+              <NextLink href={`${ROUTES.user.profile}?tab=profile`}>
+                <Button
+                  align='left'
+                  size='sm'
+                  className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5'>
                   <UserIcon className='size-4' />
-                  Профіль
+                  <span>Профіль</span>
                 </Button>
               </NextLink>
               <View.Condition
                 if={hasAccessToAdminPanel(session.user?.user?.role)}>
-                <NextLink className={className} href={ROUTES.admin.users}>
-                  <Button align='left' className='w-full' size='sm'>
+                <NextLink href={ROUTES.admin.users}>
+                  <Button
+                    align='left'
+                    size='sm'
+                    className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5'>
                     <ShieldUserIcon className='size-4' />
-                    Адміністрування
+                    <span>Адміністрування</span>
                   </Button>
                 </NextLink>
               </View.Condition>
               <NextLink
-                className={className}
                 href={ROUTES.auth.login}
                 onClick={(e) => {
                   e.preventDefault();
@@ -149,10 +152,10 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                 }}>
                 <Button
                   align='left'
-                  className={cn('w-full', className)}
-                  size='sm'>
+                  size='sm'
+                  className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-red-300 hover:bg-red-600/20 hover:text-red-200'>
                   <LogOutIcon className='size-4' />
-                  Вийти
+                  <span>Вийти</span>
                 </Button>
               </NextLink>
             </Popover>
