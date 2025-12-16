@@ -27,7 +27,7 @@ export const ServerInfo: FC<{
     return (
       <div
         className={classNames(
-          'w-fit h-fit border border-primary p-2.5 flex items-center justify-center animate-pulse',
+          'w-fit h-fit paper p-2.5 flex items-center justify-center animate-pulse',
           className
         )}>
         <LoaderIcon className='animate-spin' />
@@ -38,7 +38,7 @@ export const ServerInfo: FC<{
   return (
     <div
       className={classNames(
-        'border border-primary p-2.5 flex flex-col gap-1 min-h-[102px] w-fit rounded-sm',
+        'paper p-2.5 flex flex-col gap-1 h-fit w-fit rounded-sm',
         className
       )}>
       <div className='flex gap-2 items-center'>

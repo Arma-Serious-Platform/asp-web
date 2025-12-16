@@ -10,7 +10,7 @@ export const ScheduleInfo: FC<{
   return (
     <div
       className={cn(
-        'border border-primary px-2 py-1 flex gap-2 items-center ml-4 rounded-sm',
+        'paper px-2 py-1 flex gap-2 items-center ml-4 rounded-lg',
         className
       )}>
       <div className='flex gap-2 items-center'>

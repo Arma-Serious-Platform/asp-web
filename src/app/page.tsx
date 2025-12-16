@@ -14,7 +14,7 @@ export default function Home() {
         <div className='container mx-auto flex w-full flex-col gap-10 px-4 pb-6 pt-10 lg:flex-row lg:items-stretch lg:gap-12'>
           <section
             id='about'
-            className='paper relative flex w-full flex-col gap-6 rounded-xl border px-6 py-6 shadow-xl lg:w-2/3'
+            className='paper relative flex w-full flex-col gap-6 rounded-xl px-6 py-6 shadow-xl lg:w-2/3'
           >
             <div className='pointer-events-none absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-emerald-500/5' />
             <header className='flex flex-col gap-2 max-lg:text-center'>

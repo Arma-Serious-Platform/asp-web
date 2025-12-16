@@ -54,7 +54,7 @@ const ForgotPasswordForm: FC<{
   return (
     <div
       className={classNames(
-        'max-w-lg flex flex-col border border-primary bg-card p-4',
+        'max-w-lg flex flex-col paper p-4',
         className
       )}>
       <h2 className='text-2xl font-bold mb-4 text-center'>Відновити пароль</h2>
