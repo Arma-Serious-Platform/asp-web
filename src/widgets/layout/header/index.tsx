@@ -225,19 +225,21 @@ export const MobileMenu = observer(() => {
             </div>
           </nav>
 
-          <div className='mt-5'>
-            <div className='paper rounded-xl border px-4 py-4 shadow-xl'>
-              <div className='border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400'>
-                Обліковий запис
-              </div>
-              <div className='mt-3 flex flex-col gap-2'>
-                <AuthLinks
-                  className='block w-full rounded-md px-3 py-2 text-sm font-medium text-zinc-100 hover:bg-primary/80 hover:text-white text-center'
-                  activeClassName='bg-primary text-white rounded-md'
-                />
+          <View.Condition if={!env.isLanding}>
+            <div className='mt-5'>
+              <div className='paper rounded-xl border px-4 py-4 shadow-xl'>
+                <div className='border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400'>
+                  Обліковий запис
+                </div>
+                <div className='mt-3 flex flex-col gap-2'>
+                  <AuthLinks
+                    className='block w-full rounded-md px-3 py-2 text-sm font-medium text-zinc-100 hover:bg-primary/80 hover:text-white text-center'
+                    activeClassName='bg-primary text-white rounded-md'
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </View.Condition>
 
           <div className='mt-6 flex flex-col items-center gap-3'>
             <div className='text-[11px] font-semibold uppercase tracking-[0.26em] text-zinc-500'>
