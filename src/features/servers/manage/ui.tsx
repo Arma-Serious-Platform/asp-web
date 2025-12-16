@@ -116,7 +116,7 @@ const ManageServerModal: FC<
             <form
               className='flex flex-col gap-2'
               onSubmit={form.handleSubmit(onSubmit)}>
-              <div className='flex flex-col gap-2'>
+              <div className='flex flex-col gap-6'>
                 <Controller
                   control={form.control}
                   name='name'

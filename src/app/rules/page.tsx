@@ -3,15 +3,20 @@ import { Hero } from '@/widgets/hero';
 import { Layout } from '@/widgets/layout';
 
 import { FC, PropsWithChildren } from 'react';
+import { SectionLabel } from '@/shared/ui/moleculas/section-label';
 
 const RuleCategory: FC<PropsWithChildren> = ({ children }) => (
-  <div className='flex flex-col gap-4 py-4 paper'>{children}</div>
+  <div className='paper flex flex-col gap-4 rounded-xl border px-4 py-5 shadow-xl'>
+    {children}
+  </div>
 );
 const RuleTitle: FC<PropsWithChildren<{ id?: string }>> = ({
   children,
   id,
 }) => (
-  <h3 className='text-lg text-center font-bold px-4' id={id}>
+  <h3
+    className='border-b border-white/10 pb-3 text-center text-lg font-semibold tracking-tight text-white'
+    id={id}>
     {children}
   </h3>
 );
@@ -24,14 +29,19 @@ const RuleContent: FC<
 
   return (
     <div
-      className={cn('pl-4 text-neutral-400', {
-        'pl-8': dotCount === 2,
-        'pl-12': dotCount === 3,
-      })}
+      className={cn(
+        'pl-4 text-sm leading-relaxed text-zinc-300 [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5',
+        {
+          'pl-8': dotCount === 2,
+          'pl-12': dotCount === 3,
+        }
+      )}
       id={id}>
       {id && (
-        <a href={`#${id}`} className=' text-green-500'>
-          {id}.{' '}
+        <a
+          href={`#${id}`}
+          className='mr-1 font-mono text-xs font-semibold text-lime-400'>
+          {id}{' '}
         </a>
       )}
       {children}
@@ -77,12 +87,14 @@ const RuleMenu = () => {
   ];
 
   return (
-    <div className='flex flex-col min-w-1/4 h-fit sticky top-20 shadow-2xl max-lg:hidden paper'>
-      <h2 className='text-lg mt-4 mb-1 font-bold text-center'>Розділи</h2>
-      <div className='flex flex-col'>
+    <div className='paper sticky top-24 flex h-fit min-w-[260px] flex-col gap-2 rounded-xl border px-3 py-4 shadow-xl max-lg:hidden'>
+      <h2 className='mb-1 text-center text-sm font-semibold uppercase tracking-[0.22em] text-zinc-300'>
+        Розділи
+      </h2>
+      <div className='flex flex-col text-sm'>
         {ruleCategories.map((category) => (
           <a
-            className='block p-4 hover:bg-primary/10'
+            className='rounded-md px-3 py-2 text-left text-zinc-300 transition-colors hover:bg-white/5 hover:text-white'
             href={category.hash}
             key={category.title}>
             {category.title}
@@ -97,12 +109,22 @@ const RulesPage = () => {
   return (
     <Layout className='w-full mx-auto'>
       <Hero />
-      <h1 className='text-3xl font-bold my-4 container mx-auto text-left'>
-        Правила проекту
-      </h1>
-      <div className='max-md:p-0 max-md:m-0 min-lg:container mx-auto flex gap-4'>
+      <div className='container mx-auto mt-6 w-full px-4'>
+        <div className='mb-4 flex flex-col gap-2'>
+          <SectionLabel>Документація проєкту</SectionLabel>
+          <h1 className='text-3xl font-bold leading-tight tracking-tight text-white'>
+            Правила проєкту VTG
+          </h1>
+          <p className='max-w-2xl text-sm text-zinc-300'>
+            Нижче наведені основні регламенти поведінки, ігрового процесу та
+            організації спільноти. Незнання правил не звільняє від відповідальності.
+          </p>
+        </div>
+      </div>
+
+      <div className='max-md:m-0 max-md:p-0 container mx-auto flex gap-4 px-4 pb-6'>
         <RuleMenu />
-        <div className='w-full mx-auto mb-1 flex flex-col gap-8'>
+        <div className='mb-1 flex w-full flex-col gap-6'>
           <RuleCategory>
             <RuleTitle id='1'>
               📜 Правила спілкування на ігрових ресурсах проєкту "ARMA 3 VTG"
