@@ -4,6 +4,8 @@ import { Layout } from '@/widgets/layout';
 
 import { FC, PropsWithChildren } from 'react';
 import { SectionLabel } from '@/shared/ui/moleculas/section-label';
+import { RULE_CATEGORIES } from './config';
+import { RulesMobileMenu } from './rules-mobile-menu';
 
 const RuleCategory: FC<PropsWithChildren> = ({ children }) => (
   <div className='paper flex flex-col gap-4 rounded-xl border px-4 py-5 shadow-xl'>
@@ -50,41 +52,6 @@ const RuleContent: FC<
 };
 
 const RuleMenu = () => {
-  const ruleCategories = [
-    {
-      hash: '#1',
-      title: '📜 Правила спілкування на ігрових ресурсах проєкту "ARMA 3 VTG"',
-    },
-    {
-      hash: '#2',
-      title: '📜 Ієрархія зайняття слотів формату VTG та mVTG',
-    },
-    {
-      hash: '#3',
-      title: '📜  Правила Nick-Name’y',
-    },
-    {
-      hash: '#4',
-      title: '📜 Система покарань проєкту',
-    },
-    {
-      hash: '#5',
-      title: '📜 Аксесуари у профілі',
-    },
-    {
-      hash: '#6',
-      title: '📜 Ігрові правила',
-    },
-    {
-      hash: '#7',
-      title: '📜 Категорії чатів та оффтоп',
-    },
-    {
-      hash: '#8',
-      title:
-        '📜 Правила командирів сторін та зайняття слотів для ротаційних загонів',
-    },
-  ];
 
   return (
     <div className='paper sticky top-24 flex h-fit min-w-[260px] flex-col gap-2 rounded-xl border px-3 py-4 shadow-xl max-lg:hidden'>
@@ -92,7 +59,7 @@ const RuleMenu = () => {
         Розділи
       </h2>
       <div className='flex flex-col text-sm'>
-        {ruleCategories.map((category) => (
+        {RULE_CATEGORIES.map((category) => (
           <a
             className='rounded-md px-3 py-2 text-left text-zinc-300 transition-colors hover:bg-white/5 hover:text-white'
             href={category.hash}
@@ -121,6 +88,9 @@ const RulesPage = () => {
           </p>
         </div>
       </div>
+
+      {/* Mobile rules navigation */}
+      <RulesMobileMenu />
 
       <div className='max-md:m-0 max-md:p-0 container mx-auto flex gap-4 px-4 pb-6'>
         <RuleMenu />
