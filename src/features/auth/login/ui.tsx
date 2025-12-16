@@ -13,15 +13,14 @@ import { Controller, useForm } from 'react-hook-form';
 import { loginModel, LoginModel } from './model';
 import * as yup from 'yup';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 const LoginForm: FC<{
   className?: string;
   model?: LoginModel;
 }> = ({ className, model = loginModel }) => {
   const schema = yup.object().shape({
-    email: yup
-      .string()
-      .required("Обов'язкове поле"),
+    email: yup.string().required("Обов'язкове поле"),
     password: yup.string().required("Обов'язкове поле"),
   });
 
@@ -49,15 +48,25 @@ const LoginForm: FC<{
       if (error?.response?.data?.message === 'Invalid credentials') {
         form.setError('password', { message: 'Неправильний email або пароль' });
       }
+
+      if (
+        error?.response?.data?.message ===
+        'Activation token expired. Check your email for a new token'
+      ) {
+        toast.error(
+          <div className='text-center'>
+            Аккаунт ще не активовано. На пошту надіслано посилання для активації
+          </div>,
+          {
+            duration: 5000,
+          }
+        );
+      }
     }
   };
 
   return (
-    <div
-      className={classNames(
-        'max-w-lg flex flex-col paper p-4',
-        className
-      )}>
+    <div className={classNames('max-w-lg flex flex-col paper p-4', className)}>
       <h2 className='text-2xl font-bold mb-4 text-center'>Увійти</h2>
 
       <form
