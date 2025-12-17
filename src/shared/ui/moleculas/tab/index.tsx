@@ -23,7 +23,7 @@ export const Tab: FC<TabProps> = ({
         'px-4 py-2 text-sm font-medium transition-colors border-b-2 relative z-10 cursor-pointer',
         {
           'bg-lime-700 text-white border-lime-600': isActive,
-          'bg-neutral-800 text-white border-transparent hover:bg-neutral-700':
+          'bg-black/40 text-white border-transparent hover:bg-black/50':
             !isActive,
         }
       )}>

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { WeekendGame } from '@/features/weekend/model';
 import { Button } from '@/shared/ui/atoms/button';
+import { Card } from '@/shared/ui/atoms/card';
 import {
   EyeIcon,
   DownloadIcon,
@@ -61,7 +62,7 @@ export const MissionImagePanel: FC<{
       </div>
 
       {/* Author Card */}
-      <div className='paper rounded-lg p-3 border border-white/10'>
+      <Card className='p-3'>
         <div className='flex items-center gap-3'>
           <UserIcon className='size-4 text-lime-500' />
           <div className='flex items-center gap-2'>
@@ -71,10 +72,10 @@ export const MissionImagePanel: FC<{
             <span className='text-white text-sm'>{game.author.name}</span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Description Card */}
-      <div className='paper rounded-lg p-4 border border-white/10'>
+      <Card>
         <div className='flex items-center gap-2 mb-3'>
           <InfoIcon className='size-4 text-lime-500' />
           <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
@@ -84,7 +85,7 @@ export const MissionImagePanel: FC<{
         <p className='text-sm text-zinc-200 leading-relaxed'>
           {game.description}
         </p>
-      </div>
+      </Card>
     </div>
   );
 };

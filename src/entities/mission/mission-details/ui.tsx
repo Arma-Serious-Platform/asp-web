@@ -6,6 +6,7 @@ import {
   CalendarIcon,
   ShieldIcon,
 } from 'lucide-react';
+import { Card } from '@/shared/ui/atoms/card';
 import classNames from 'classnames';
 
 export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
@@ -29,7 +30,7 @@ export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
       </div>
 
       {/* Combatants Card */}
-      <div className='paper rounded-lg p-4 border border-white/10'>
+      <Card>
         <div className='flex items-center gap-2 mb-3'>
           <ShieldIcon className='size-4 text-lime-500' />
           <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
@@ -95,10 +96,10 @@ export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
             </span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Units Card */}
-      <div className='paper rounded-lg p-4 border border-white/10'>
+      <Card>
         <div className='flex items-center gap-2 mb-4'>
           <CarIcon className='size-4 text-lime-500' />
           <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
@@ -176,7 +177,7 @@ export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
             ))}
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
