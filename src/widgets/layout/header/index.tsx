@@ -84,7 +84,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
 
     if (session.preloader.isLoading) {
       return (
-        <div className='flex items-center justify-between gap-7 mx-4'>
+        <div className='flex items-center justify-center w-44 h-4'>
           <Loader2Icon className='w-4 h-4 animate-spin' />
         </div>
       );
@@ -315,17 +315,11 @@ export const Header: FC<HeaderProps> = observer(
                 className='my-2 mx-auto hidden max-2xl:flex'
                 version='short'
               />
-              <View.Condition if={session.preloader.isLoading}>
-                <div className='flex items-center justify-between gap-7 mx-4'>
-                  <Loader2Icon className='w-4 h-4 animate-spin' />
-                </div>
-              </View.Condition>
-              <View.Condition if={!session.preloader.isLoading}>
-                <AuthLinks
-                  className='rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-primary/90 hover:text-white'
-                  activeClassName='bg-primary/90 text-white rounded-md'
-                />
-              </View.Condition>
+
+              <AuthLinks
+                className='rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-primary/90 hover:text-white'
+                activeClassName='bg-primary/90 text-white rounded-md'
+              />
             </div>
           </div>
           <div className='flex items-center justify-center min-lg:hidden'>
