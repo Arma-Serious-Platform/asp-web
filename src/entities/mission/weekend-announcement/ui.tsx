@@ -13,13 +13,17 @@ export const WeekendAnnouncement: FC<{
   const activeGame = announcement.games[activeGameIndex];
 
   return (
-    <div className='w-full paper'>
+    <div className='w-full mb-8'>
       {/* Top Announcement Bar */}
-      <div className='w-full py-2'>
+      <div className='w-full bg-gradient-to-r from-neutral-900/95 via-neutral-800/95 to-neutral-900/95 border-b border-lime-700/30 py-3 backdrop-blur-sm'>
         <div className='container mx-auto px-4'>
-          <p className='text-center text-sm text-white'>
-            Анонс ігор | {announcement.announcementDate}
-          </p>
+          <div className='flex items-center justify-center gap-2'>
+            <div className='h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent' />
+            <p className='text-sm font-semibold text-white whitespace-nowrap'>
+              Анонс ігор | {announcement.announcementDate}
+            </p>
+            <div className='h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent' />
+          </div>
         </div>
       </div>
 
@@ -31,14 +35,17 @@ export const WeekendAnnouncement: FC<{
       />
 
       {/* Main Content */}
-      <div className='w-full bg-gradient-to-br from-black/95 via-black/90 to-black/95 py-8'>
+      <div className='w-full bg-gradient-to-br from-black/98 via-black/95 to-black/98 py-8'>
         <div className='container mx-auto px-4'>
-          <div className='paper rounded-xl p-6 md:p-8'>
-            <div className='flex flex-col lg:flex-row gap-6 lg:gap-8'>
+          <div className='paper rounded-2xl p-6 md:p-8 shadow-2xl border-lime-700/20'>
+            {/* Subtle inner glow */}
+            <div className='pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-lime-700/5 via-transparent to-lime-700/5' />
+            
+            <div className='flex flex-col lg:flex-row gap-6 lg:gap-8 relative z-10'>
               {/* Left Panel - Image and Actions */}
               <MissionImagePanel game={activeGame} />
 
-              {/* Right Panel - Game Details */}
+              {/* Right Panel - Mission Details */}
               <div className='lg:w-3/5'>
                 <MissionDetails game={activeGame} />
               </div>
@@ -49,4 +56,3 @@ export const WeekendAnnouncement: FC<{
     </div>
   );
 };
-
