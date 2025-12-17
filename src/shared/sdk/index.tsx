@@ -20,6 +20,7 @@ import {
   Squad,
   UpdateServerDto,
   UpdateSquadDto,
+  UpdateUserDto,
   User,
 } from './types';
 import { deleteCookie, getCookie, setCookie } from 'cookies-next';
@@ -181,6 +182,10 @@ class ApiModel {
 
   getMe = async () => {
     return await this.instance.get<User>('/users/me');
+  };
+
+  updateMe = async (dto: UpdateUserDto) => {
+    return await this.instance.patch<User>('/users/me', dto);
   };
 
   findUsers = async (dto: FindUsersDto) => {

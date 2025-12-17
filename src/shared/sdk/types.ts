@@ -116,6 +116,18 @@ export type User = {
   leadingSquad: Squad | null;
   squadInvites: SquadInvitation[];
   squad: Squad | null;
+  telegramUrl?: string;
+  discordUrl?: string;
+  twitchUrl?: string;
+  youtubeUrl?: string;
+};
+
+export type UpdateUserDto = {
+  nickname?: string;
+  telegramUrl?: string;
+  discordUrl?: string;
+  twitchUrl?: string;
+  youtubeUrl?: string;
 };
 
 export type Squad = {

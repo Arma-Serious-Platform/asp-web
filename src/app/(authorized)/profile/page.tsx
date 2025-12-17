@@ -6,7 +6,15 @@ import { useEffect } from 'react';
 import { profile } from './model';
 import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
-import { ActivityIcon, LockKeyholeIcon, MailIcon, ShieldUserIcon, UserIcon, UsersIcon } from 'lucide-react';
+import {
+  ActivityIcon,
+  LockKeyholeIcon,
+  MailIcon,
+  SendIcon,
+  ShieldUserIcon,
+  UserIcon,
+  UsersIcon,
+} from 'lucide-react';
 
 import {
   UserNicknameText,
@@ -24,6 +32,7 @@ import { UserSquad } from '@/entities/user/ui/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
+import { ChangeSocials } from '@/features/user/change-socials';
 
 const ProfilePage = observer(() => {
   const router = useRouter();
@@ -128,13 +137,32 @@ const ProfilePage = observer(() => {
                   <InfoTile
                     icon={<ActivityIcon className='size-4' />}
                     title='Статус'
-                    description={<UserStatusText status={profile.user?.status} />}
+                    description={
+                      <UserStatusText status={profile.user?.status} />
+                    }
                   />
                   <InfoTile
                     className='sm:col-span-2'
                     icon={<MailIcon className='size-4' />}
                     title='Електронна пошта'
                     description={profile.user?.email}
+                  />
+                  <InfoTile
+                    className='sm:col-span-2'
+                    icon={<SendIcon className='size-4' />}
+                    title='Соціальні мережі'
+                    description={
+                      <ChangeSocials
+                        className='mt-1'
+                        user={profile.user}
+                        isLoading={profile.socialsLoader.isLoading}
+                        onChange={(changes) => {
+                          if (Object.keys(changes).length === 0) return;
+
+                          profile.updateUser(changes);
+                        }}
+                      />
+                    }
                   />
                 </div>
               </div>
