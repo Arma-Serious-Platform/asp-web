@@ -3,7 +3,7 @@ import { WeekendGame } from '@/features/weekend/model';
 import { Button } from '@/shared/ui/atoms/button';
 import { EyeIcon, DownloadIcon } from 'lucide-react';
 
-export const GameImagePanel: FC<{
+export const MissionImagePanel: FC<{
   game: WeekendGame;
   onView?: () => void;
   onDownload?: () => void;

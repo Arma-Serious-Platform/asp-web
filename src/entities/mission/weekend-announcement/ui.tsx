@@ -2,9 +2,9 @@
 
 import { FC, useState } from 'react';
 import { GameAnnouncement } from '@/features/weekend/model';
-import { GameTabs } from '../game-tabs/ui';
-import { GameImagePanel } from '../game-image-panel/ui';
-import { GameDetails } from '../game-details/ui';
+import { MissionTabs } from '../mission-tabs/ui';
+import { MissionImagePanel } from '../mission-image-panel/ui';
+import { MissionDetails } from '../mission-details/ui';
 
 export const WeekendAnnouncement: FC<{
   announcement: GameAnnouncement;
@@ -24,7 +24,7 @@ export const WeekendAnnouncement: FC<{
       </div>
 
       {/* Navigation Tabs */}
-      <GameTabs
+      <MissionTabs
         games={announcement.games}
         activeIndex={activeGameIndex}
         onGameChange={setActiveGameIndex}
@@ -36,11 +36,11 @@ export const WeekendAnnouncement: FC<{
           <div className='paper rounded-xl p-6 md:p-8'>
             <div className='flex flex-col lg:flex-row gap-6 lg:gap-8'>
               {/* Left Panel - Image and Actions */}
-              <GameImagePanel game={activeGame} />
+              <MissionImagePanel game={activeGame} />
 
               {/* Right Panel - Game Details */}
               <div className='lg:w-3/5'>
-                <GameDetails game={activeGame} />
+                <MissionDetails game={activeGame} />
               </div>
             </div>
           </div>

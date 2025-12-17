@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import classNames from 'classnames';
 
-export const GameDetails: FC<{ game: WeekendGame }> = ({ game }) => {
+export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
   const { side1, side2 } = game.combatants;
 
   return (

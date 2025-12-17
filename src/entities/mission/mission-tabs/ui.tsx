@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { WeekendGame } from '@/features/weekend/model';
 import { Tab } from '@/shared/ui/moleculas/tab';
 
-export const GameTabs: FC<{
+export const MissionTabs: FC<{
   games: WeekendGame[];
   activeIndex: number;
   onGameChange: (index: number) => void;
@@ -26,3 +26,4 @@ export const GameTabs: FC<{
     </div>
   );
 };
+
