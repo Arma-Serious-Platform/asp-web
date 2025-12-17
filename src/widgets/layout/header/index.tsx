@@ -53,13 +53,12 @@ const MainLinks: FC<{
       href={ROUTES.rules}>
       Правила
     </Link>
-    <a
+    <Link
       className={className}
-      href='https://docs.google.com/spreadsheets/d/1WAqlUvOtcD-SQr2ebIzxh0ZJgXq1_7IpKHT6u-duSec/edit?gid=525821223#gid=525821223'
-      target='_blank'
-      rel='noopener noreferrer'>
+      activeClassName={activeClassName}
+      href={ROUTES.schedule}>
       Розклад
-    </a>
+    </Link>
     {!env.isLanding && (
       <Link
         className={className}

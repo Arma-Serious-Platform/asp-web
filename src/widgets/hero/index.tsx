@@ -1,4 +1,5 @@
 import { ServerInfo } from '@/features/server-info';
+import { CompactWeekendSchedule } from '@/features/weekend/compact-weekend-schedule/ui';
 
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
@@ -53,12 +54,8 @@ export const Hero: FC<{
 }> = ({ className, variant = 'default' }) => {
   if (variant === 'default') {
     return (
-      <div
-        className={classNames(
-          'w-full flex justify-center items-center paper rounded-none',
-          className
-        )}>
-        <LogoAndTitle />
+      <div className={classNames('relative w-full', className)}>
+        <CompactWeekendSchedule />
       </div>
     );
   }
