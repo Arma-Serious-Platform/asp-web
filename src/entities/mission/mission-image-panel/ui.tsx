@@ -1,7 +1,13 @@
 import { FC } from 'react';
 import { WeekendGame } from '@/features/weekend/model';
 import { Button } from '@/shared/ui/atoms/button';
-import { EyeIcon, DownloadIcon, CalendarIcon } from 'lucide-react';
+import {
+  EyeIcon,
+  DownloadIcon,
+  CalendarIcon,
+  InfoIcon,
+  UserIcon,
+} from 'lucide-react';
 
 export const MissionImagePanel: FC<{
   game: WeekendGame;
@@ -17,7 +23,7 @@ export const MissionImagePanel: FC<{
           className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
         />
         <div className='absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent' />
-        
+
         {/* Image Overlay Info */}
         <div className='absolute bottom-0 left-0 right-0 p-4'>
           <div className='flex items-center gap-2 text-white'>
@@ -46,10 +52,38 @@ export const MissionImagePanel: FC<{
         <Button
           variant='outline'
           className='flex-1'
-          onClick={onDownload || (() => console.log('Download game:', game.id))}>
+          onClick={
+            onDownload || (() => console.log('Download game:', game.id))
+          }>
           <DownloadIcon className='size-4' />
           Завантажити
         </Button>
+      </div>
+
+      {/* Author Card */}
+      <div className='paper rounded-lg p-3 border border-white/10'>
+        <div className='flex items-center gap-3'>
+          <UserIcon className='size-4 text-lime-500' />
+          <div className='flex items-center gap-2'>
+            <span className='text-red-500 font-semibold text-sm'>
+              {game.author.tag}
+            </span>
+            <span className='text-white text-sm'>{game.author.name}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Description Card */}
+      <div className='paper rounded-lg p-4 border border-white/10'>
+        <div className='flex items-center gap-2 mb-3'>
+          <InfoIcon className='size-4 text-lime-500' />
+          <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
+            Опис сценарію
+          </span>
+        </div>
+        <p className='text-sm text-zinc-200 leading-relaxed'>
+          {game.description}
+        </p>
       </div>
     </div>
   );

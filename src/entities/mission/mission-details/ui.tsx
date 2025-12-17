@@ -3,8 +3,6 @@ import { WeekendGame } from '@/features/weekend/model';
 import {
   CarIcon,
   UsersIcon,
-  InfoIcon,
-  UserIcon,
   CalendarIcon,
   ShieldIcon,
 } from 'lucide-react';
@@ -176,32 +174,6 @@ export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
                 </span>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Description Card */}
-      <div className='paper rounded-lg p-4 border border-white/10'>
-        <div className='flex items-center gap-2 mb-3'>
-          <InfoIcon className='size-4 text-lime-500' />
-          <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
-            Опис сценарію
-          </span>
-        </div>
-        <p className='text-sm text-zinc-200 leading-relaxed'>
-          {game.description}
-        </p>
-      </div>
-
-      {/* Author Card */}
-      <div className='paper rounded-lg p-3 border border-white/10'>
-        <div className='flex items-center gap-3'>
-          <UserIcon className='size-4 text-lime-500' />
-          <div className='flex items-center gap-2'>
-            <span className='text-red-500 font-semibold text-sm'>
-              {game.author.tag}
-            </span>
-            <span className='text-white text-sm'>{game.author.name}</span>
           </div>
         </div>
       </div>
