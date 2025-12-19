@@ -243,6 +243,10 @@ export type FindSquadsDto = PaginatedRequest<{
   sideType?: SideType;
 }>;
 
+export type InviteToSquadDto = {
+  userId: string;
+};
+
 export type CreateSquadDto = {
   name: string;
   tag: string;

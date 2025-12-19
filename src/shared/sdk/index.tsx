@@ -10,6 +10,7 @@ import {
   FindSquadsDto,
   FindUsersDto,
   ForgotPasswordDto,
+  InviteToSquadDto,
   LoginDto,
   LoginResponse,
   PaginatedResponse,
@@ -18,6 +19,7 @@ import {
   Side,
   SignUpDto,
   Squad,
+  SquadInvitation,
   UpdateServerDto,
   UpdateSquadDto,
   UpdateUserDto,
@@ -262,6 +264,12 @@ class ApiModel {
     return await this.instance.get<PaginatedResponse<Squad>>('/squads', {
       params: dto,
     });
+  };
+
+  inviteToSquad = async (dto: InviteToSquadDto) => {
+    return await this.instance.post<SquadInvitation>(
+      `/squads/invite/${dto.userId}`
+    );
   };
 
   /* Sides */

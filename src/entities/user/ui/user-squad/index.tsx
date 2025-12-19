@@ -4,6 +4,8 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
 import Image from 'next/image';
 import { FC } from 'react';
+import { InviteToSquadModal } from '@/features/squads/invite-to-squad/ui';
+import { inviteToSquadModel } from '@/features/squads/invite-to-squad/model';
 
 export const UserSquad: FC<{
   user: User | null;
@@ -11,6 +13,7 @@ export const UserSquad: FC<{
   if (!user) return null;
 
   const squad = user.squad;
+
 
   if (!squad)
     return (
@@ -38,9 +41,6 @@ export const UserSquad: FC<{
 
         <div className='flex flex-1 flex-col justify-between gap-2'>
           <div className='flex flex-col gap-1'>
-            <span className='text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500'>
-              Мій загін
-            </span>
             <div className='text-xl font-semibold text-white'>{squad.name}</div>
             {squad.tag && (
               <div className='inline-flex w-fit items-center rounded-full border border-white/15 bg-black/60 px-3 py-0.5 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-200'>
@@ -49,11 +49,31 @@ export const UserSquad: FC<{
             )}
           </div>
 
-          <Link href={`${ROUTES.squads}/${squad.id}`} className='w-fit'>
-            <Button size='sm' variant='secondary' className='text-xs uppercase tracking-[0.14em]'>
-              До сторінки загону
-            </Button>
-          </Link>
+          {user.id === squad.leader?.id ? (
+            <>
+              <Button
+                size='sm'
+                variant='secondary'
+                className='text-xs uppercase tracking-[0.14em]'
+                onClick={() => {
+                  inviteToSquadModel.visibility.open({ squad });
+                }}>
+                Запросити нового учасника
+              </Button>
+              <InviteToSquadModal
+                model={inviteToSquadModel}
+                onInviteSuccess={() => {
+                  // Optionally refresh the user data or show success message
+                }}
+              />
+            </>
+          ) : (
+            <Link href={`${ROUTES.squads}/${squad.id}`} className='w-fit'>
+              <Button size='sm' variant='secondary' className='text-xs uppercase tracking-[0.14em]'>
+                Переглянути загін
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

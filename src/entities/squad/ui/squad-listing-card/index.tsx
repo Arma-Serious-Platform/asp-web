@@ -78,8 +78,8 @@ const SquadListingCard: FC<{
                 <Button
                   size='sm'
                   variant='secondary'
-                  className='min-w-[150px] justify-center rounded-sm border border-neutral-600 bg-neutral-800/95 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-100 hover:bg-neutral-700 hover:border-neutral-400'>
-                  Переглянути загін
+                  className='justify-center rounded-sm border border-neutral-600 bg-neutral-800/95 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-100 hover:bg-neutral-700 hover:border-neutral-400'>
+                  Переглянути
                 </Button>
               </Link>
             </div>

@@ -39,8 +39,11 @@ export type HeaderProps = {
 const MainLinks: FC<{
   className?: string;
   activeClassName?: string;
-}> = ({ className, activeClassName }) => (
+}> = observer(({ className, activeClassName }) => (
   <>
+    <Link className={className} href={ROUTES.headquarters}>
+      Штаб
+    </Link>
     <Link
       className={className}
       activeClassName={activeClassName}
@@ -75,7 +78,7 @@ const MainLinks: FC<{
       Реплеї
     </a>
   </>
-);
+));
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
   observer(({ className, activeClassName }) => {

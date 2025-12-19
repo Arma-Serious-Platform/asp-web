@@ -14,7 +14,7 @@ export default function SchedulePage() {
               Розклад ігор
             </h1>
             <p className='text-lg text-zinc-400 text-center'>
-              Анонси майбутніх ігрових подій та детальна інформація про сценарії
+              Анонси ігрових подій та детальна інформація про сценарії
             </p>
           </div>
 

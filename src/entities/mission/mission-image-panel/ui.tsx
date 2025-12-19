@@ -65,7 +65,7 @@ export const MissionImagePanel: FC<{
       <Card className='p-3'>
         <div className='flex items-center gap-3'>
           <UserIcon className='size-4 text-lime-500' />
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-0.5'>
             <span className='text-red-500 font-semibold text-sm'>
               {game.author.tag}
             </span>
