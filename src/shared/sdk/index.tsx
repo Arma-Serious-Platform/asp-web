@@ -289,9 +289,11 @@ class ApiModel {
   };
 
   kickFromSquad = async (userId: string) => {
-    return await this.instance.post<void>(
-      `/squads/kick/${userId}`
-    );
+    return await this.instance.post<void>(`/squads/kick/${userId}`);
+  };
+
+  leaveFromSquad = async (newLeaderId?: string) => {
+    return await this.instance.post<void>(`/squads/leave`, { newLeaderId });
   };
 
   /* Sides */

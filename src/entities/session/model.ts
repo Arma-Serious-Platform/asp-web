@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 
 import { UserModel } from '@/entities/user/model';
-import { LoginResponse, User, UserRole } from '@/shared/sdk/types';
+import { LoginResponse, SideType, User, UserRole } from '@/shared/sdk/types';
 import { deleteCookie, setCookie } from 'cookies-next';
 import { Preloader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
@@ -22,6 +22,10 @@ export class SessionModel {
     setCookie('token', token, { maxAge: 60 * 60 * 24 * 7 });
     setCookie('refreshToken', refreshToken, { maxAge: 60 * 60 * 24 * 30 });
   };
+
+  get canAccessHeadquarters() {
+    return this.user?.user?.squad && this.user?.user?.squad?.side?.type !== SideType.UNASSIGNED;
+  }
 
   get isHasAdminPanelAccess() {
     return [UserRole.OWNER, UserRole.TECH_ADMIN].includes(

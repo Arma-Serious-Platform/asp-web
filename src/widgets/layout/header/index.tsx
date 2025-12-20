@@ -17,6 +17,7 @@ import {
   MenuIcon,
   ShieldUserIcon,
   UserIcon,
+  UsersIcon,
   XIcon,
 } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
@@ -31,6 +32,7 @@ import { Social } from '@/features/social/ui';
 import { useRouter } from 'next/navigation';
 import { headerModel } from './model';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { SideType } from '@/shared/sdk/types';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -39,46 +41,52 @@ export type HeaderProps = {
 const MainLinks: FC<{
   className?: string;
   activeClassName?: string;
-}> = observer(({ className, activeClassName }) => (
-  <>
-    <Link className={className} href={ROUTES.headquarters}>
-      Штаб
-    </Link>
-    <Link
-      className={className}
-      activeClassName={activeClassName}
-      href={ROUTES.home}>
-      Почати грати
-    </Link>
-    <Link
-      className={className}
-      activeClassName={activeClassName}
-      href={ROUTES.rules}>
-      Правила
-    </Link>
-    <Link
-      className={className}
-      activeClassName={activeClassName}
-      href={ROUTES.schedule}>
-      Розклад
-    </Link>
-    {!env.isLanding && (
+}> = observer(({ className, activeClassName }) => {
+  return (
+    <>
+      {session.canAccessHeadquarters && (
+        <Link className={className} href={ROUTES.headquarters}>
+          Штаб
+        </Link>
+      )}
+      {!session.canAccessHeadquarters && (
+        <Link
+          className={className}
+          activeClassName={activeClassName}
+          href={ROUTES.home}>
+          Почати грати
+        </Link>
+      )}
       <Link
         className={className}
         activeClassName={activeClassName}
-        href={ROUTES.squads}>
-        Загони
+        href={ROUTES.rules}>
+        Правила
       </Link>
-    )}
-    <a
-      className={className}
-      href='https://replays.vtg.in.ua'
-      target='_blank'
-      rel='noopener noreferrer'>
-      Реплеї
-    </a>
-  </>
-));
+      <Link
+        className={className}
+        activeClassName={activeClassName}
+        href={ROUTES.schedule}>
+        Розклад
+      </Link>
+      {!env.isLanding && (
+        <Link
+          className={className}
+          activeClassName={activeClassName}
+          href={ROUTES.squads}>
+          Загони
+        </Link>
+      )}
+      <a
+        className={className}
+        href='https://replays.vtg.in.ua'
+        target='_blank'
+        rel='noopener noreferrer'>
+        Реплеї
+      </a>
+    </>
+  );
+});
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
   observer(({ className, activeClassName }) => {
@@ -131,6 +139,15 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                   className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5'>
                   <UserIcon className='size-4' />
                   <span>Профіль</span>
+                </Button>
+              </NextLink>
+              <NextLink href={`${ROUTES.user.profile}?tab=squad`}>
+                <Button
+                  align='left'
+                  size='sm'
+                  className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5'>
+                  <UsersIcon className='size-4' />
+                  <span>Мій загін</span>
                 </Button>
               </NextLink>
               <View.Condition

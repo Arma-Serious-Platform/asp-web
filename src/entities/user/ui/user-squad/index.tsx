@@ -13,6 +13,8 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { KickFromSquadModal } from '@/features/squads/kick-from-squad/ui';
 import { kickFromSquadModel } from '@/features/squads/kick-from-squad/model';
+import { LeaveFromSquadModal } from '@/features/squads/leave-from-squad/ui';
+import { leaveFromSquadModel } from '@/features/squads/leave-from-squad/model';
 
 export const UserSquad: FC<{
   user: User | null;
@@ -70,40 +72,51 @@ export const UserSquad: FC<{
             )}
           </div>
 
-          {user.id === squad.leader?.id ? (
-            <>
-              <Button
-                size='sm'
-                variant='secondary'
-                className='text-xs uppercase tracking-[0.14em] w-fit'
-                onClick={() => {
-                  inviteToSquadModel.visibility.open({ squad });
-                }}>
-                Запросити учасника
-              </Button>
-              <InviteToSquadModal
-                model={inviteToSquadModel}
-                onInviteSuccess={() => {
-                  // Optionally refresh the user data or show success message
-                }}
-              />
-            </>
-          ) : (
-            <Link href={`${ROUTES.squads}/${squad.id}`} className='w-fit'>
-              <Button
-                size='sm'
-                variant='secondary'
-                className='text-xs uppercase tracking-[0.14em]'>
-                Переглянути загін
-              </Button>
-            </Link>
-          )}
+          <div className='flex gap-2'>
+            {user.id === squad.leader?.id && (
+              <>
+                <Button
+                  size='sm'
+                  className='w-fit'
+                  onClick={() => {
+                    inviteToSquadModel.visibility.open({ squad });
+                  }}>
+                  Запросити учасника
+                </Button>
+                <InviteToSquadModal
+                  model={inviteToSquadModel}
+                  onInviteSuccess={() => {
+                    // Optionally refresh the user data or show success message
+                  }}
+                />
+              </>
+            )}
+            <Button
+              size='sm'
+              variant='destructive'
+              className='w-fit'
+              onClick={() => {
+                leaveFromSquadModel.visibility.open({
+                  squad,
+                  isLeader: user.id === squad.leader?.id,
+                });
+              }}>
+              Покинути загін
+            </Button>
+          </div>
         </div>
       </div>
 
       <KickFromSquadModal
         model={kickFromSquadModel}
         onKickSuccess={() => {
+          // Optionally refresh the user data or show success message
+        }}
+      />
+
+      <LeaveFromSquadModal
+        model={leaveFromSquadModel}
+        onLeaveSuccess={() => {
           // Optionally refresh the user data or show success message
         }}
       />
@@ -139,9 +152,9 @@ export const UserSquad: FC<{
 
                   {squad?.leader?.id === user.id && member.id !== user.id && (
                     <Button
+                      className='ml-auto'
                       size='sm'
-                      variant='secondary'
-                      className='text-xs uppercase tracking-[0.14em]'
+                      variant='destructive'
                       onClick={() => {
                         kickFromSquadModel.visibility.open({ user: member });
                       }}>
