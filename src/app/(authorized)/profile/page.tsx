@@ -28,7 +28,7 @@ import { useRouter } from 'next/navigation';
 
 import { View } from '@/features/view';
 import { parseAsStringEnum, useQueryState } from 'nuqs';
-import { UserSquad } from '@/entities/user/ui/user-squad';
+import { UserSquad } from '@/widgets/user/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
