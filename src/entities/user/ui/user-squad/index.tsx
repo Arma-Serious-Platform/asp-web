@@ -9,6 +9,10 @@ import { inviteToSquadModel } from '@/features/squads/invite-to-squad/model';
 import { View } from '@/features/view';
 import { SquadInviteList } from '@/features/squads/accept-or-reject-invite/ui';
 import { acceptOrRejectInviteModel } from '@/features/squads/accept-or-reject-invite/model';
+import { Avatar } from '@/shared/ui/organisms/avatar';
+import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { KickFromSquadModal } from '@/features/squads/kick-from-squad/ui';
+import { kickFromSquadModel } from '@/features/squads/kick-from-squad/model';
 
 export const UserSquad: FC<{
   user: User | null;
@@ -17,18 +21,16 @@ export const UserSquad: FC<{
 
   const squad = user.squad;
 
-  console.log(user);
-
-
   if (!squad)
     return (
       <div className='flex flex-col gap-2 justify-center'>
-        Ви одинак.<br />Якщо бажаєте приєднатися до загону, оберіть загін зі списку
-        та поспілкуйтеся з командиром.
+        Ви одинак.
+        <br />
+        Якщо бажаєте приєднатися до загону, оберіть загін зі списку та
+        поспілкуйтеся з командиром.
         <Link href={ROUTES.squads} className='w-fit mx-auto'>
           <Button>Загони проекту</Button>
         </Link>
-
         <View.Condition if={user.squadInvites?.length > 0}>
           <SquadInviteList
             invitations={user.squadInvites || []}
@@ -73,11 +75,11 @@ export const UserSquad: FC<{
               <Button
                 size='sm'
                 variant='secondary'
-                className='text-xs uppercase tracking-[0.14em]'
+                className='text-xs uppercase tracking-[0.14em] w-fit'
                 onClick={() => {
                   inviteToSquadModel.visibility.open({ squad });
                 }}>
-                Запросити нового учасника
+                Запросити учасника
               </Button>
               <InviteToSquadModal
                 model={inviteToSquadModel}
@@ -88,7 +90,10 @@ export const UserSquad: FC<{
             </>
           ) : (
             <Link href={`${ROUTES.squads}/${squad.id}`} className='w-fit'>
-              <Button size='sm' variant='secondary' className='text-xs uppercase tracking-[0.14em]'>
+              <Button
+                size='sm'
+                variant='secondary'
+                className='text-xs uppercase tracking-[0.14em]'>
                 Переглянути загін
               </Button>
             </Link>
@@ -96,22 +101,54 @@ export const UserSquad: FC<{
         </div>
       </div>
 
+      <KickFromSquadModal
+        model={kickFromSquadModel}
+        onKickSuccess={() => {
+          // Optionally refresh the user data or show success message
+        }}
+      />
+
       <div className='mt-2 flex flex-col gap-2'>
         <span className='text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500'>
           Склад загону
         </span>
         {Array.isArray(squad.members) && squad.members.length > 0 ? (
-          <ul className='flex flex-wrap gap-2 text-xs text-zinc-200'>
+          <ul className='flex flex-col gap-2'>
             {squad.members.map((member) => (
               <li
                 key={member.id}
-                className='rounded-full bg-black/70 px-3 py-1'>
-                {member.nickname ?? member.id}
-                {member.id === user.id && (
-                  <span className='ml-1 text-[10px] uppercase tracking-[0.16em] text-primary'>
-                    (ви)
-                  </span>
-                )}
+                className='flex items-center gap-3 rounded-lg border border-white/10 bg-black/40 p-2 hover:bg-black/60 transition-colors'>
+                <Avatar
+                  src={member.avatar?.url}
+                  alt={member.nickname || member.id}
+                  size='sm'
+                />
+                <div className='flex-1 flex items-center gap-2 min-w-0'>
+                  <UserNicknameText
+                    user={member}
+                    tag={squad.tag}
+                    sideType={squad.side?.type}
+                    className='text-sm text-zinc-200'
+                    link={true}
+                  />
+                  {member.id === user.id && (
+                    <span className='text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap'>
+                      (ви)
+                    </span>
+                  )}
+
+                  {squad?.leader?.id === user.id && member.id !== user.id && (
+                    <Button
+                      size='sm'
+                      variant='secondary'
+                      className='text-xs uppercase tracking-[0.14em]'
+                      onClick={() => {
+                        kickFromSquadModel.visibility.open({ user: member });
+                      }}>
+                      Вилучити
+                    </Button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

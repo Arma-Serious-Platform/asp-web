@@ -288,6 +288,12 @@ class ApiModel {
     );
   };
 
+  kickFromSquad = async (userId: string) => {
+    return await this.instance.post<void>(
+      `/squads/kick/${userId}`
+    );
+  };
+
   /* Sides */
 
   findSides = async (dto: FindSidesDto) => {
