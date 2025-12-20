@@ -272,6 +272,22 @@ class ApiModel {
     );
   };
 
+  squadInvitations = async () => {
+    return await this.instance.get<SquadInvitation[]>('/squads/invitations');
+  };
+
+  acceptSquadInvitation = async (invitationId: string) => {
+    return await this.instance.post<SquadInvitation>(
+      `/squads/invitations/accept/${invitationId}`
+    );
+  };
+
+  rejectSquadInvitation = async (invitationId: string) => {
+    return await this.instance.post<SquadInvitation>(
+      `/squads/invitations/reject/${invitationId}`
+    );
+  };
+
   /* Sides */
 
   findSides = async (dto: FindSidesDto) => {

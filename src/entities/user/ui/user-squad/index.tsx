@@ -6,6 +6,9 @@ import Image from 'next/image';
 import { FC } from 'react';
 import { InviteToSquadModal } from '@/features/squads/invite-to-squad/ui';
 import { inviteToSquadModel } from '@/features/squads/invite-to-squad/model';
+import { View } from '@/features/view';
+import { SquadInviteList } from '@/features/squads/accept-or-reject-invite/ui';
+import { acceptOrRejectInviteModel } from '@/features/squads/accept-or-reject-invite/model';
 
 export const UserSquad: FC<{
   user: User | null;
@@ -13,6 +16,8 @@ export const UserSquad: FC<{
   if (!user) return null;
 
   const squad = user.squad;
+
+  console.log(user);
 
 
   if (!squad)
@@ -23,6 +28,20 @@ export const UserSquad: FC<{
         <Link href={ROUTES.squads} className='w-fit mx-auto'>
           <Button>Загони проекту</Button>
         </Link>
+
+        <View.Condition if={user.squadInvites?.length > 0}>
+          <SquadInviteList
+            invitations={user.squadInvites || []}
+            model={acceptOrRejectInviteModel}
+            onAccept={(invitation) => {
+              // Optionally refresh the user data or show success message
+              // The user data should be refreshed to reflect the new squad membership
+            }}
+            onReject={(invitation) => {
+              // Optionally refresh the user data
+            }}
+          />
+        </View.Condition>
       </div>
     );
 
