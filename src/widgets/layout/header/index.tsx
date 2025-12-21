@@ -42,6 +42,8 @@ const MainLinks: FC<{
   className?: string;
   activeClassName?: string;
 }> = observer(({ className, activeClassName }) => {
+  const [showMore, setShowMore] = useState(false);
+
   return (
     <>
       {session.canAccessHeadquarters && (
@@ -67,7 +69,7 @@ const MainLinks: FC<{
         className={className}
         activeClassName={activeClassName}
         href={ROUTES.schedule}>
-        Розклад
+        Анонси
       </Link>
       {!env.isLanding && (
         <Link
@@ -84,6 +86,31 @@ const MainLinks: FC<{
         rel='noopener noreferrer'>
         Реплеї
       </a>
+      <View.Condition if={session.user?.user}>
+        <Popover
+          asChild
+          open={showMore}
+          className='w-full flex flex-col gap-2 min-w-44'
+          onChange={(open) => setShowMore(open)}
+          trigger={
+            <Button
+              variant='ghost'
+              className={cn(className, 'block')}
+              onClick={(e) => {
+                e.preventDefault();
+                setShowMore(!showMore);
+              }}>
+              Ще...
+            </Button>
+          }>
+          <Link
+            className={className}
+            activeClassName={activeClassName}
+            href={ROUTES.missions.root}>
+            Сценарії
+          </Link>
+        </Popover>
+      </View.Condition>
     </>
   );
 });
@@ -226,7 +253,7 @@ export const MobileMenu = observer(() => {
 
         <div className='mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-xs text-zinc-200'>
           <span className='font-semibold uppercase tracking-[0.24em] text-zinc-400'>
-            Розклад ігор
+            Анонси
           </span>
           <ScheduleInfo className='ml-3' version='short' />
         </div>

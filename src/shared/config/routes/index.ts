@@ -5,6 +5,10 @@ export const ROUTES = {
   schedule: '/schedule',
   squads: '/squads',
   replays: '/replays',
+  missions: {
+    root: '/missions',
+    id: (id: string) => `/missions/${id}`,
+  },
   auth: {
     login: '/auth/login',
     signup: '/auth/sign-up',

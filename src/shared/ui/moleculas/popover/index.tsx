@@ -50,9 +50,11 @@ const Popover: React.FC<{
   children: React.ReactNode;
   asChild?: boolean;
   trigger: React.ReactNode;
-}> = ({ children, trigger, className, asChild = true }) => {
+  open?: boolean;
+  onChange?: (open: boolean) => void;
+}> = ({ children, trigger, className, open, asChild = true, onChange }) => {
   return (
-    <PopoverRoot>
+    <PopoverRoot open={open} onOpenChange={onChange}>
       <PopoverTrigger asChild={asChild}>{trigger}</PopoverTrigger>
       <PopoverContent className={className}>{children}</PopoverContent>
     </PopoverRoot>

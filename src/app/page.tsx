@@ -36,7 +36,7 @@ export default function Home() {
 
               <div className='mt-4 rounded-lg border border-white/10 bg-black/60 px-4 py-4 text-sm text-zinc-200'>
                 <h3 className='text-lg font-semibold max-lg:text-center'>
-                  Розклад ігор VTG
+                  Анонси ігор VTG
                 </h3>
                 <p className='mt-2 max-lg:text-center'>
                   Ігри проходять по{' '}

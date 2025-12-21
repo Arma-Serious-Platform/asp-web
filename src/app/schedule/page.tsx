@@ -11,7 +11,7 @@ export default function SchedulePage() {
         <div className='container mx-auto px-4'>
           <div className='max-w-7xl mx-auto mb-8'>
             <h1 className='text-4xl md:text-5xl font-bold text-white mb-3 text-center'>
-              Розклад ігор
+              Анонси ігор
             </h1>
             <p className='text-lg text-zinc-400 text-center'>
               Анонси ігрових подій та детальна інформація про сценарії
