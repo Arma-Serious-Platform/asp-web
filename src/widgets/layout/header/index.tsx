@@ -107,7 +107,7 @@ const MainLinks: FC<{
             className={className}
             activeClassName={activeClassName}
             href={ROUTES.missions.root}>
-            Сценарії
+            Місії
           </Link>
         </Popover>
       </View.Condition>
