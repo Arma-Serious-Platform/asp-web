@@ -23,9 +23,9 @@ const statusColors: Record<MissionStatus, string> = {
 };
 
 export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
-  const totalSlots = mission.versions.length > 0
+  const totalSlots = mission?.versions?.length > 0
     ? Math.max(
-        ...mission.versions.map(
+        ...mission?.versions.map(
           (v) => v.attackSideSlots + v.defenseSideSlots
         )
       )
@@ -39,7 +39,7 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
           {mission.image?.url ? (
             <Image
               src={mission.image.url}
-              alt={mission.title}
+              alt={mission.name}
               fill
               className='object-cover transition-transform duration-300 group-hover:scale-105'
             />
@@ -66,7 +66,7 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
         <div className='flex flex-col gap-3'>
           <div>
             <h3 className='text-xl font-bold text-white mb-1 line-clamp-2'>
-              {mission.title}
+              {mission.name}
             </h3>
             <p className='text-sm text-zinc-400 line-clamp-2'>
               {mission.description}
@@ -85,9 +85,9 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
               <CalendarIcon className='size-4' />
               <span>{new Date(mission.createdAt).toLocaleDateString('uk-UA')}</span>
             </div>
-            {mission.versions.length > 0 && (
+            {mission?.versions?.length > 0 && (
               <span className='text-xs'>
-                {mission.versions.length} версій
+                {mission?.versions?.length} версій
               </span>
             )}
           </div>

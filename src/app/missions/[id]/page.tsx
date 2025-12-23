@@ -160,7 +160,7 @@ export default function MissionDetailsPage() {
             <div className='flex items-start justify-between gap-4'>
               <div>
                 <h1 className='text-3xl font-bold leading-tight tracking-tight text-white mb-2'>
-                  {mission.title}
+                  {mission?.name}
                 </h1>
                 <p className='text-zinc-400'>{mission.description}</p>
               </div>
@@ -179,7 +179,7 @@ export default function MissionDetailsPage() {
             <div className='relative w-full aspect-video overflow-hidden rounded-xl border border-white/10 mb-8'>
               <Image
                 src={mission.image.url}
-                alt={mission.title}
+                alt={mission?.name}
                 fill
                 className='object-cover'
               />
@@ -352,7 +352,7 @@ export default function MissionDetailsPage() {
               </Dialog>
             </div>
 
-            {mission.versions.length === 0 ? (
+            {mission?.versions?.length === 0 ? (
               <Card className='p-8 text-center'>
                 <p className='text-zinc-400 mb-4'>Версій поки немає</p>
                 <Button
@@ -364,7 +364,7 @@ export default function MissionDetailsPage() {
               </Card>
             ) : (
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                {mission.versions.map((version) => (
+                {mission?.versions?.map((version) => (
                   <Card key={version.id} className='p-4'>
                     <div className='flex flex-col gap-3'>
                       <div className='flex items-center justify-between'>

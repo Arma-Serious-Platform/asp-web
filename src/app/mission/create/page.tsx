@@ -17,7 +17,7 @@ import { LoaderIcon, UploadIcon } from 'lucide-react';
 import Image from 'next/image';
 
 const schema = yup.object().shape({
-  title: yup.string().required("Назва є обов'язковою"),
+  name: yup.string().required("Назва є обов'язковою"),
   description: yup.string().required("Опис є обов'язковим"),
 });
 
@@ -31,7 +31,7 @@ export default function CreateMissionPage() {
     mode: 'onChange',
     resolver: yupResolver(schema),
     defaultValues: {
-      title: '',
+      name: '',
       description: '',
     },
   });
@@ -116,13 +116,13 @@ export default function CreateMissionPage() {
               {/* Title */}
               <Controller
                 control={form.control}
-                name='title'
+                name='name'
                 render={({ field }) => (
                   <Input
                     {...field}
                     label='Назва місії'
                     autoFocus
-                    error={form.formState.errors.title?.message}
+                    error={form.formState.errors.name?.message}
                   />
                 )}
               />

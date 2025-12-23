@@ -281,14 +281,14 @@ export type FindMissionsDto = PaginatedRequest<{
 }>;
 
 export type CreateMissionDto = {
-  title: string;
+  name: string;
   description: string;
   image?: File;
 };
 
 export type Mission = {
   id: string;
-  title: string;
+  name: string;
   description: string;
   status: MissionStatus;
   imageId: string | null;

@@ -327,7 +327,7 @@ class ApiModel {
       formData.append('image', dto.image);
     }
 
-    formData.append('title', dto.title);
+    formData.append('name', dto.name);
     formData.append('description', dto.description);
 
     return await this.instance.post<Mission>('/missions', formData, {
