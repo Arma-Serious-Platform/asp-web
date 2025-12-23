@@ -354,7 +354,6 @@ class ApiModel {
     formData.append('defenseSideSlots', dto.defenseSideSlots.toString());
     formData.append('attackSideName', dto.attackSideName);
     formData.append('defenseSideName', dto.defenseSideName);
-    formData.append('rating', dto.rating?.toString() || '');
 
     dto.attackSideWeaponry?.forEach((weaponry) => {
       formData.append('attackSideWeaponry', weaponry.name);

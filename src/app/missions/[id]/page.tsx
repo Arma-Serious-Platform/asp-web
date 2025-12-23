@@ -4,11 +4,23 @@ import { Layout } from '@/widgets/layout';
 import { Card } from '@/shared/ui/atoms/card';
 import { Button } from '@/shared/ui/atoms/button';
 import { api } from '@/shared/sdk';
-import { Mission, MissionStatus, MissionGameSide, CreateMissionVersionDto } from '@/shared/sdk/types';
-import { useEffect, useState } from 'react';
+import {
+  Mission,
+  MissionStatus,
+  MissionGameSide,
+  CreateMissionVersionDto,
+} from '@/shared/sdk/types';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { PlusIcon, DownloadIcon, CalendarIcon, UsersIcon, LoaderIcon } from 'lucide-react';
+import {
+  PlusIcon,
+  DownloadIcon,
+  CalendarIcon,
+  UsersIcon,
+  LoaderIcon,
+  UploadIcon,
+} from 'lucide-react';
 import { ROUTES } from '@/shared/config/routes';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,9 +44,12 @@ const statusLabels: Record<MissionStatus, string> = {
 };
 
 const statusColors: Record<MissionStatus, string> = {
-  [MissionStatus.APPROVED]: 'bg-green-500/20 text-green-400 border-green-500/30',
-  [MissionStatus.PENDING_APPROVAL]: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  [MissionStatus.CHANGES_REQUESTED]: 'bg-red-500/20 text-red-400 border-red-500/30',
+  [MissionStatus.APPROVED]:
+    'bg-green-500/20 text-green-400 border-green-500/30',
+  [MissionStatus.PENDING_APPROVAL]:
+    'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  [MissionStatus.CHANGES_REQUESTED]:
+    'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
 const sideTypeOptions = [
@@ -44,14 +59,14 @@ const sideTypeOptions = [
 ];
 
 const versionSchema = yup.object().shape({
-  version: yup.string().required("Версія є обов'язковою"),
-  attackSideType: yup.string().required("Тип атакуючої сторони є обов'язковим"),
-  defenseSideType: yup.string().required("Тип оборонної сторони є обов'язковим"),
-  attackSideSlots: yup.number().required("Кількість слотів атакуючої сторони є обов'язковою").min(1),
-  defenseSideSlots: yup.number().required("Кількість слотів оборонної сторони є обов'язковою").min(1),
-  attackSideName: yup.string().required("Назва атакуючої сторони є обов'язковою"),
-  defenseSideName: yup.string().required("Назва оборонної сторони є обов'язковою"),
-  file: yup.mixed().required("Файл є обов'язковим"),
+  version: yup.string().required("Обов'язко"),
+  attackSideType: yup.string().required("Обов'язково"),
+  defenseSideType: yup.string().required("Обов'язково"),
+  attackSideSlots: yup.number().required("Обов'язково").min(1),
+  defenseSideSlots: yup.number().required("Обов'язково").min(1),
+  attackSideName: yup.string().required("Обов'язково"),
+  defenseSideName: yup.string().required("Обов'язково"),
+  file: yup.mixed().required("Обов'язково"),
 });
 
 export default function MissionDetailsPage() {
@@ -62,6 +77,8 @@ export default function MissionDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingVersion, setIsCreatingVersion] = useState(false);
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   const versionForm = useForm<CreateMissionVersionDto & { file: File | null }>({
     mode: 'onChange',
@@ -96,7 +113,9 @@ export default function MissionDetailsPage() {
     }
   }, [missionId]);
 
-  const handleCreateVersion = async (data: CreateMissionVersionDto & { file: File | null }) => {
+  const handleCreateVersion = async (
+    data: CreateMissionVersionDto & { file: File | null }
+  ) => {
     if (!data.file) return;
 
     try {
@@ -136,7 +155,9 @@ export default function MissionDetailsPage() {
         <div className='container mx-auto px-4 py-8'>
           <div className='flex flex-col items-center justify-center py-12'>
             <p className='text-zinc-400 mb-4'>Місію не знайдено</p>
-            <Button variant='outline' onClick={() => router.push(ROUTES.missions.root)}>
+            <Button
+              variant='outline'
+              onClick={() => router.push(ROUTES.missions.root)}>
               Повернутися до списку
             </Button>
           </div>
@@ -190,7 +211,9 @@ export default function MissionDetailsPage() {
           <div className='mb-8'>
             <div className='flex items-center justify-between mb-6'>
               <h2 className='text-2xl font-bold text-white'>Версії місії</h2>
-              <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>
+              <Dialog
+                open={isVersionDialogOpen}
+                onOpenChange={setIsVersionDialogOpen}>
                 <DialogOverlay />
                 <DialogTrigger asChild>
                   <Button variant='default'>
@@ -228,7 +251,10 @@ export default function MissionDetailsPage() {
                             options={sideTypeOptions}
                             value={field.value}
                             onChange={field.onChange}
-                            error={versionForm.formState.errors.attackSideType?.message}
+                            error={
+                              versionForm.formState.errors.attackSideType
+                                ?.message
+                            }
                           />
                         )}
                       />
@@ -241,7 +267,10 @@ export default function MissionDetailsPage() {
                             options={sideTypeOptions}
                             value={field.value}
                             onChange={field.onChange}
-                            error={versionForm.formState.errors.defenseSideType?.message}
+                            error={
+                              versionForm.formState.errors.defenseSideType
+                                ?.message
+                            }
                           />
                         )}
                       />
@@ -255,7 +284,10 @@ export default function MissionDetailsPage() {
                           <Input
                             {...field}
                             label='Назва атакуючої сторони'
-                            error={versionForm.formState.errors.attackSideName?.message}
+                            error={
+                              versionForm.formState.errors.attackSideName
+                                ?.message
+                            }
                           />
                         )}
                       />
@@ -266,7 +298,10 @@ export default function MissionDetailsPage() {
                           <Input
                             {...field}
                             label='Назва оборонної сторони'
-                            error={versionForm.formState.errors.defenseSideName?.message}
+                            error={
+                              versionForm.formState.errors.defenseSideName
+                                ?.message
+                            }
                           />
                         )}
                       />
@@ -282,8 +317,13 @@ export default function MissionDetailsPage() {
                             type='number'
                             label='Слоти атакуючої сторони'
                             value={field.value || ''}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            error={versionForm.formState.errors.attackSideSlots?.message}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 0)
+                            }
+                            error={
+                              versionForm.formState.errors.attackSideSlots
+                                ?.message
+                            }
                           />
                         )}
                       />
@@ -296,8 +336,13 @@ export default function MissionDetailsPage() {
                             type='number'
                             label='Слоти оборонної сторони'
                             value={field.value || ''}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            error={versionForm.formState.errors.defenseSideSlots?.message}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 0)
+                            }
+                            error={
+                              versionForm.formState.errors.defenseSideSlots
+                                ?.message
+                            }
                           />
                         )}
                       />
@@ -311,12 +356,24 @@ export default function MissionDetailsPage() {
                           <label className='text-sm font-semibold text-zinc-300'>
                             Файл місії
                           </label>
+                          <Button
+                            variant='outline'
+                            className='w-full'
+                            onClick={(e) => {
+                              e.preventDefault();
+                              fileRef.current?.click();
+                            }}>
+                            <UploadIcon className='size-4' />
+                            {value ? 'Змінити файл' : 'Обрати файл'}
+                          </Button>
                           <input
-                            {...field}
+                            ref={fileRef}
                             type='file'
                             accept='.pbo,.p3d'
-                            onChange={(e) => onChange(e.target.files?.[0] || null)}
-                            className='flex w-full rounded-md border border-neutral-700 bg-black/70 px-3 py-2 text-sm text-zinc-100'
+                            onChange={(e) =>
+                              onChange(e.target.files?.[0] || null)
+                            }
+                            className='invisible'
                           />
                           {versionForm.formState.errors.file && (
                             <p className='text-sm text-red-400'>
@@ -336,7 +393,9 @@ export default function MissionDetailsPage() {
                       </Button>
                       <Button
                         type='submit'
-                        disabled={isCreatingVersion || !versionForm.formState.isValid}>
+                        disabled={
+                          isCreatingVersion || !versionForm.formState.isValid
+                        }>
                         {isCreatingVersion ? (
                           <>
                             <LoaderIcon className='size-4 animate-spin' />
@@ -388,19 +447,23 @@ export default function MissionDetailsPage() {
                         <div className='flex items-center gap-2'>
                           <span className='text-zinc-400'>Оборона:</span>
                           <span className='text-white font-semibold'>
-                            {version.defenseSideName} ({version.defenseSideType})
+                            {version.defenseSideName} ({version.defenseSideType}
+                            )
                           </span>
                         </div>
                         <div className='flex items-center gap-2'>
                           <UsersIcon className='size-4 text-zinc-400' />
                           <span className='text-zinc-400'>
-                            {version.attackSideSlots + version.defenseSideSlots} слотів
+                            {version.attackSideSlots + version.defenseSideSlots}{' '}
+                            слотів
                           </span>
                         </div>
                         <div className='flex items-center gap-2'>
                           <CalendarIcon className='size-4 text-zinc-400' />
                           <span className='text-zinc-400'>
-                            {new Date(version.createdAt).toLocaleDateString('uk-UA')}
+                            {new Date(version.createdAt).toLocaleDateString(
+                              'uk-UA'
+                            )}
                           </span>
                         </div>
                       </div>
@@ -409,7 +472,9 @@ export default function MissionDetailsPage() {
                         <Button
                           variant='outline'
                           className='w-full'
-                          onClick={() => window.open(version.file?.url, '_blank')}>
+                          onClick={() =>
+                            window.open(version.file?.url, '_blank')
+                          }>
                           <DownloadIcon className='size-4' />
                           Завантажити
                         </Button>
@@ -425,4 +490,3 @@ export default function MissionDetailsPage() {
     </Layout>
   );
 }
-

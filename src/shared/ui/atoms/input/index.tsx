@@ -151,7 +151,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
 
         {error && (
-          <p className='absolute -translate-y-1/2 top-0 right-2 text-destructive bg-red-950 text-xs text-right px-2 rounded-lg'>
+          <p className='absolute -bottom-2 right-2 text-destructive bg-red-950 text-xs text-right px-2 rounded-lg'>
             {error}
           </p>
         )}
