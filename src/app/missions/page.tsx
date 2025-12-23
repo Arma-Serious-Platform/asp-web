@@ -41,7 +41,7 @@ const MissionsPage = observer(() => {
   ];
 
   return (
-    <Layout showHero={false}>
+    <Layout showHero={false} className='container paper mx-auto my-4'>
       <div className='container mx-auto px-4 py-8'>
         <div className='mb-8'>
           <h1 className='text-3xl font-bold leading-tight tracking-tight text-white mb-2'>
@@ -100,32 +100,22 @@ const MissionsPage = observer(() => {
           <div className='flex items-center justify-center py-12'>
             <div className='text-zinc-400'>Завантаження...</div>
           </div>
-        ) : missionModel.filteredMissions.length === 0 ? (
-          <div className='flex flex-col items-center justify-center py-12'>
-            <p className='text-zinc-400 mb-4'>Місії не знайдено</p>
-            <Link href='/mission/create'>
-              <Button variant='default'>
-                <PlusIcon className='size-4' />
-                Створити місію
-              </Button>
-            </Link>
-          </div>
         ) : (
           <>
+            {/* Create Mission Button */}
+            <div className='flex justify-end mb-4'>
+              <Link href='/mission/create'>
+                <Button variant='default' size='lg'>
+                  <PlusIcon className='size-4' />
+                  Додати місію
+                </Button>
+              </Link>
+            </div>
+
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
               {missionModel.filteredMissions.map((mission) => (
                 <MissionCard key={mission.id} mission={mission} />
               ))}
-            </div>
-
-            {/* Create Mission Button */}
-            <div className='flex justify-center'>
-              <Link href='/mission/create'>
-                <Button variant='default' size='lg'>
-                  <PlusIcon className='size-4' />
-                  Створити місію
-                </Button>
-              </Link>
             </div>
           </>
         )}
