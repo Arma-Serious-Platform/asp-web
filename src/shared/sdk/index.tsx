@@ -3,8 +3,11 @@ import {
   BanUserDto,
   ChangePasswordDto,
   ConfirmForgotPasswordDto,
+  CreateMissionDto,
+  CreateMissionVersionDto,
   CreateServerDto,
   CreateSquadDto,
+  FindMissionsDto,
   FindServersDto,
   FindSidesDto,
   FindSquadsDto,
@@ -13,6 +16,8 @@ import {
   InviteToSquadDto,
   LoginDto,
   LoginResponse,
+  Mission,
+  MissionVersion,
   PaginatedResponse,
   RefreshTokenDto,
   Server,
@@ -302,6 +307,67 @@ class ApiModel {
     return await this.instance.get<PaginatedResponse<Side>>('/sides', {
       params: dto,
     });
+  };
+
+  /* Missions */
+
+  findMissions = async (dto: FindMissionsDto) => {
+    return await this.instance.get<PaginatedResponse<Mission>>('/missions', {
+      params: dto,
+    });
+  };
+
+  findMissionById = async (missionId: string) => {
+    return await this.instance.get<Mission>(`/missions/${missionId}`);
+  };
+
+  createMission = async (dto: CreateMissionDto) => {
+    const formData = new FormData();
+    if (dto.image) {
+      formData.append('image', dto.image);
+    }
+
+    formData.append('title', dto.title);
+    formData.append('description', dto.description);
+
+    return await this.instance.post<Mission>('/missions', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  };
+
+  createMissionVersion = async (
+    missionId: string,
+    dto: CreateMissionVersionDto
+  ) => {
+    const formData = new FormData();
+    if (dto.file) {
+      formData.append('file', dto.file);
+    }
+
+    formData.append('version', dto.version);
+    formData.append('missionId', missionId);
+    formData.append('attackSideType', dto.attackSideType);
+    formData.append('defenseSideType', dto.defenseSideType);
+    formData.append('attackSideSlots', dto.attackSideSlots.toString());
+    formData.append('defenseSideSlots', dto.defenseSideSlots.toString());
+    formData.append('attackSideName', dto.attackSideName);
+    formData.append('defenseSideName', dto.defenseSideName);
+    formData.append('rating', dto.rating?.toString() || '');
+
+    dto.attackSideWeaponry?.forEach((weaponry) => {
+      formData.append('attackSideWeaponry', weaponry.name);
+    });
+    return await this.instance.post<MissionVersion>(
+      `/missions/${missionId}/versions`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
   };
 }
 

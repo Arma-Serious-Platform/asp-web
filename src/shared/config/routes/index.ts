@@ -7,6 +7,7 @@ export const ROUTES = {
   replays: '/replays',
   missions: {
     root: '/missions',
+    create: '/mission/create',
     id: (id: string) => `/missions/${id}`,
   },
   auth: {

@@ -2,7 +2,7 @@
 
 import { Layout } from '@/widgets/layout';
 import { dummyAnnouncements } from '@/features/weekend/model';
-import { WeekendAnnouncement } from '@/entities/mission/weekend-announcement/ui';
+import { WeekendAnnouncement } from '@/entities/weekend/weekend-announcement/ui';
 
 export default function SchedulePage() {
   return (

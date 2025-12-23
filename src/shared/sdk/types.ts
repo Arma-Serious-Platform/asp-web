@@ -1,3 +1,9 @@
+export enum MissionGameSide {
+  BLUE = 'BLUE',
+  RED = 'RED',
+  GREEN = 'GREEN',
+}
+
 export enum ServerStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
@@ -267,3 +273,83 @@ export type UpdateSquadDto = {
   activeCount?: number;
   logo?: File;
 };
+
+export type FindMissionsDto = PaginatedRequest<{
+  search?: string;
+  status?: MissionStatus;
+  authorId?: string;
+}>;
+
+export type CreateMissionDto = {
+  title: string;
+  description: string;
+  image?: File;
+};
+
+export type Mission = {
+  id: string;
+  title: string;
+  description: string;
+  status: MissionStatus;
+  imageId: string | null;
+  image?: {
+    id: string;
+    url: string;
+  }
+  versions: MissionVersion[];
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MissionVersion = {
+  id: string;
+  version: string;
+  missionId: string;
+  attackSideType: MissionGameSide;
+  defenseSideType: MissionGameSide;
+  attackSideSlots: number;
+  defenseSideSlots: number;
+  attackSideName: string;
+  defenseSideName: string;
+  fileId: string;
+  file?: {
+    id: string;
+    url: string;
+  }
+  rating?: number;
+  attackSideWeaponry?: MissionWeaponry[];
+  defenseSideWeaponry?: MissionWeaponry[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type MissionWeaponry = {
+  id: string;
+  name: string;
+  description?: string;
+  count: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateMissionWeaponryDto = {
+  name: string;
+  description?: string;
+  count: number;
+}
+
+export type CreateMissionVersionDto = {
+  version: string;
+  missionId: string;
+  attackSideType: MissionGameSide;
+  defenseSideType: MissionGameSide;
+  attackSideSlots: number;
+  defenseSideSlots: number;
+  attackSideName: string;
+  defenseSideName: string;
+  file: File;
+  rating?: number;
+  attackSideWeaponry?: CreateMissionWeaponryDto[];
+  defenseSideWeaponry?: CreateMissionWeaponryDto[];
+}

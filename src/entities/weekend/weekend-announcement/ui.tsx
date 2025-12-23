@@ -2,8 +2,8 @@
 
 import { FC, useState } from 'react';
 import { GameAnnouncement } from '@/features/weekend/model';
-import { MissionImagePanel } from '../mission-image-panel/ui';
-import { MissionDetails } from '../mission-details/ui';
+import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
+import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { Tab } from '@/shared/ui/moleculas/tab';
 
 export const WeekendAnnouncement: FC<{
@@ -59,3 +59,4 @@ export const WeekendAnnouncement: FC<{
     </div>
   );
 };
+
