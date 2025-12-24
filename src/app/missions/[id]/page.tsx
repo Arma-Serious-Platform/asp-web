@@ -27,7 +27,7 @@ import { ROUTES } from '@/shared/config/routes';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Input } from '@/shared/ui/atoms/input';
+import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Textarea } from '@/shared/ui/atoms/textarea';
 import { Select } from '@/shared/ui/atoms/select';
 import {
@@ -174,6 +174,61 @@ export default function MissionDetailsPage() {
     }
   }, [missionId]);
 
+  // Autofill version form from previous version when dialog opens
+  useEffect(() => {
+    if (isVersionDialogOpen && mission?.missionVersions?.length > 0) {
+      const previousVersion =
+        mission.missionVersions[mission.missionVersions.length - 1];
+
+      // Increment version number
+      const incrementVersion = (version: string): string => {
+        const match = version.match(/^v?(\d+)\.(\d+)$/i);
+        if (match) {
+          const major = parseInt(match[1]);
+          const minor = parseInt(match[2]);
+          return `v${major}.${minor + 1}`;
+        }
+        // If version format doesn't match, try to extract number and increment
+        const numMatch = version.match(/(\d+)/);
+        if (numMatch) {
+          const num = parseInt(numMatch[1]);
+          return `v${num + 1}.0`;
+        }
+        return `v${mission.missionVersions.length + 1}.0`;
+      };
+
+      const newVersion = incrementVersion(previousVersion.version);
+
+      versionForm.reset({
+        version: newVersion,
+        missionId: missionId,
+        attackSideType: previousVersion.attackSideType,
+        defenseSideType: previousVersion.defenseSideType,
+        attackSideSlots: previousVersion.attackSideSlots,
+        defenseSideSlots: previousVersion.defenseSideSlots,
+        attackSideName: previousVersion.attackSideName,
+        defenseSideName: previousVersion.defenseSideName,
+        file: null,
+      });
+    } else if (
+      isVersionDialogOpen &&
+      (!mission?.missionVersions || mission.missionVersions.length === 0)
+    ) {
+      // Reset to defaults if no previous versions
+      versionForm.reset({
+        version: 'v1.0',
+        missionId: missionId,
+        attackSideType: MissionGameSide.BLUE,
+        defenseSideType: MissionGameSide.RED,
+        attackSideSlots: 0,
+        defenseSideSlots: 0,
+        attackSideName: '',
+        defenseSideName: '',
+        file: null,
+      });
+    }
+  }, [isVersionDialogOpen, mission]);
+
   const handleCreateVersion = async (data: VersionFormData) => {
     if (!data.file) return;
 
@@ -191,17 +246,6 @@ export default function MissionDetailsPage() {
         file: data.file,
       });
       setIsVersionDialogOpen(false);
-      versionForm.reset({
-        version: '',
-        missionId: missionId,
-        attackSideType: MissionGameSide.BLUE,
-        defenseSideType: MissionGameSide.RED,
-        attackSideSlots: 0,
-        defenseSideSlots: 0,
-        attackSideName: '',
-        defenseSideName: '',
-        file: null,
-      });
       // Reload mission to get updated versions
       const response = await api.findMissionById(missionId);
       setMission(response.data);
@@ -225,7 +269,7 @@ export default function MissionDetailsPage() {
       if (data.description !== mission?.description) {
         dto.description = data.description;
       }
-      
+
       // Get cropped image if cropper is active
       if (imagePreview && cropperRef.current) {
         const base64 = cropperRef.current?.getCanvas()?.toDataURL();
@@ -342,481 +386,476 @@ export default function MissionDetailsPage() {
                       <EditIcon className='size-4' />
                     </Button>
                   </DialogTrigger>
-                        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
-                          <DialogHeader>
-                            <DialogTitle>Редагувати місію</DialogTitle>
-                          </DialogHeader>
-                          <form
-                            className='flex flex-col gap-4'
-                            onSubmit={missionForm.handleSubmit(
-                              handleUpdateMission
-                            )}>
-                            <div className='flex flex-col gap-4'>
-                              <input
-                                ref={imageRef}
-                                type='file'
-                                accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
-                                onChange={handleImageChange}
-                                className='hidden'
-                              />
-                              {imagePreview && (
-                                <FixedCropper
-                                  ref={cropperRef as RefObject<FixedCropperRef>}
-                                  className='h-64 rounded-lg'
-                                  src={imagePreview}
-                                  imageRestriction={ImageRestriction.stencil}
-                                  stencilProps={{
-                                    handlers: false,
-                                    lines: true,
-                                    movable: false,
-                                    resizable: false,
-                                  }}
-                                  defaultSize={{
-                                    height: 256,
-                                    width: 455,
-                                  }}
-                                  stencilSize={{
-                                    height: 256,
-                                    width: 455,
-                                  }}
-                                />
-                              )}
-                              {!imagePreview && mission.image?.url && (
-                                <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10'>
-                                  <Image
-                                    src={mission.image.url}
-                                    alt='Current image'
-                                    fill
-                                    className='object-cover'
-                                  />
-                                </div>
-                              )}
-                              {!imagePreview && !mission.image?.url && (
-                                <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center'>
-                                  <span className='text-zinc-500 text-sm'>
-                                    Немає зображення
-                                  </span>
-                                </div>
-                              )}
-                              <Button
-                                type='button'
-                                variant={imagePreview || mission.image?.url ? 'outline' : 'default'}
-                                className='w-full'
-                                onClick={() => {
-                                  imageRef.current?.click();
-                                  setImagePreview('');
-                                }}>
-                                <UploadIcon className='size-4' />
-                                {imagePreview || mission.image?.url
-                                  ? 'Обрати інше зображення'
-                                  : 'Обрати зображення'}
-                              </Button>
-                            </div>
-
-                            <Controller
-                              control={missionForm.control}
-                              name='name'
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  label='Назва місії'
-                                  error={missionForm.formState.errors.name?.message}
-                                />
-                              )}
+                  <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+                    <DialogHeader>
+                      <DialogTitle>Редагувати місію</DialogTitle>
+                    </DialogHeader>
+                    <form
+                      className='flex flex-col gap-4'
+                      onSubmit={missionForm.handleSubmit(handleUpdateMission)}>
+                      <div className='flex flex-col gap-4'>
+                        <input
+                          ref={imageRef}
+                          type='file'
+                          accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
+                          onChange={handleImageChange}
+                          className='hidden'
+                        />
+                        {imagePreview && (
+                          <FixedCropper
+                            ref={cropperRef as RefObject<FixedCropperRef>}
+                            className='h-64 rounded-lg'
+                            src={imagePreview}
+                            imageRestriction={ImageRestriction.stencil}
+                            stencilProps={{
+                              handlers: false,
+                              lines: true,
+                              movable: false,
+                              resizable: false,
+                            }}
+                            defaultSize={{
+                              height: 256,
+                              width: 455,
+                            }}
+                            stencilSize={{
+                              height: 256,
+                              width: 455,
+                            }}
+                          />
+                        )}
+                        {!imagePreview && mission.image?.url && (
+                          <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10'>
+                            <Image
+                              src={mission.image.url}
+                              alt='Current image'
+                              fill
+                              className='object-cover'
                             />
+                          </div>
+                        )}
+                        {!imagePreview && !mission.image?.url && (
+                          <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center'>
+                            <span className='text-zinc-500 text-sm'>
+                              Немає зображення
+                            </span>
+                          </div>
+                        )}
+                        <Button
+                          type='button'
+                          variant={
+                            imagePreview || mission.image?.url
+                              ? 'outline'
+                              : 'default'
+                          }
+                          className='w-full'
+                          onClick={() => {
+                            imageRef.current?.click();
+                            setImagePreview('');
+                          }}>
+                          <UploadIcon className='size-4' />
+                          {imagePreview || mission.image?.url
+                            ? 'Обрати інше зображення'
+                            : 'Обрати зображення'}
+                        </Button>
+                      </div>
 
-                            <Controller
-                              control={missionForm.control}
-                              name='description'
-                              render={({ field }) => (
-                                <Textarea
-                                  {...field}
-                                  label='Опис місії'
-                                  rows={6}
-                                  error={
-                                    missionForm.formState.errors.description
-                                      ?.message
-                                  }
-                                />
-                              )}
-                            />
+                      <Controller
+                        control={missionForm.control}
+                        name='name'
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Назва місії'
+                            error={missionForm.formState.errors.name?.message}
+                          />
+                        )}
+                      />
 
-                            <div className='flex justify-between pt-4'>
-                              <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => {
-                                  setIsEditDialogOpen(false);
-                                  setImagePreview('');
-                                  missionForm.reset({
-                                    name: mission.name,
-                                    description: mission.description,
-                                    image: null,
-                                  });
-                                }}>
-                                Скасувати
-                              </Button>
-                              <Button
-                                type='submit'
-                                disabled={
-                                  isUpdatingMission ||
-                                  !missionForm.formState.isValid
-                                }>
-                                {isUpdatingMission ? (
-                                  <>
-                                    <LoaderIcon className='size-4 animate-spin' />
-                                    Збереження...
-                                  </>
-                                ) : (
-                                  'Зберегти зміни'
-                                )}
-                              </Button>
-                            </div>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                </div>
+                      <Controller
+                        control={missionForm.control}
+                        name='description'
+                        render={({ field }) => (
+                          <Textarea
+                            {...field}
+                            label='Опис місії'
+                            rows={6}
+                            error={
+                              missionForm.formState.errors.description?.message
+                            }
+                          />
+                        )}
+                      />
+
+                      <div className='flex justify-between pt-4'>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          onClick={() => {
+                            setIsEditDialogOpen(false);
+                            setImagePreview('');
+                            missionForm.reset({
+                              name: mission.name,
+                              description: mission.description,
+                              image: null,
+                            });
+                          }}>
+                          Скасувати
+                        </Button>
+                        <Button
+                          type='submit'
+                          disabled={
+                            isUpdatingMission || !missionForm.formState.isValid
+                          }>
+                          {isUpdatingMission ? (
+                            <>
+                              <LoaderIcon className='size-4 animate-spin' />
+                              Збереження...
+                            </>
+                          ) : (
+                            'Зберегти зміни'
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
+          </div>
 
-            {/* Versions Section */}
+          {/* Versions Section */}
           <div className='border-t border-white/10 pt-6'>
             <div className='flex items-center justify-between mb-6'>
-                  <h2 className='text-2xl font-bold text-white'>Версії місії</h2>
-                  <Dialog
-                    open={isVersionDialogOpen}
-                    onOpenChange={setIsVersionDialogOpen}>
-                    <DialogOverlay />
-                    <DialogTrigger asChild>
-                      <Button variant='default'>
-                        <PlusIcon className='size-4' />
-                        Створити версію
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
-                      <DialogHeader>
-                        <DialogTitle>Створити нову версію</DialogTitle>
-                      </DialogHeader>
-                      <form
-                        className='flex flex-col gap-4'
-                        onSubmit={versionForm.handleSubmit(handleCreateVersion)}>
-                        <Controller
-                          control={versionForm.control}
-                          name='version'
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='Версія'
-                              placeholder='v1.0'
-                              error={versionForm.formState.errors.version?.message}
-                            />
-                          )}
+              <h2 className='text-2xl font-bold text-white'>Версії місії</h2>
+              <Dialog
+                open={isVersionDialogOpen}
+                onOpenChange={setIsVersionDialogOpen}>
+                <DialogOverlay />
+                <DialogTrigger asChild>
+                  <Button variant='default'>
+                    <PlusIcon className='size-4' />
+                    Створити версію
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+                  <DialogHeader>
+                    <DialogTitle>Створити нову версію</DialogTitle>
+                  </DialogHeader>
+                  <form
+                    className='flex flex-col gap-4'
+                    onSubmit={versionForm.handleSubmit(handleCreateVersion)}>
+                    <Controller
+                      control={versionForm.control}
+                      name='version'
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          label='Версія'
+                          placeholder='v1.0'
+                          error={versionForm.formState.errors.version?.message}
                         />
+                      )}
+                    />
 
-                        <div className='grid grid-cols-2 gap-4'>
-                          <Controller
-                            control={versionForm.control}
-                            name='attackSideType'
-                            render={({ field }) => (
-                              <Select
-                                label='Тип атакуючої сторони'
-                                options={sideTypeOptions}
-                                value={field.value}
-                                onChange={field.onChange}
-                                error={
-                                  versionForm.formState.errors.attackSideType
-                                    ?.message
-                                }
-                              />
-                            )}
+                    <div className='grid grid-cols-2 gap-4'>
+                      <Controller
+                        control={versionForm.control}
+                        name='attackSideType'
+                        render={({ field }) => (
+                          <Select
+                            label='Тип атакуючої сторони'
+                            options={sideTypeOptions}
+                            value={field.value}
+                            onChange={field.onChange}
+                            error={
+                              versionForm.formState.errors.attackSideType
+                                ?.message
+                            }
                           />
-                          <Controller
-                            control={versionForm.control}
-                            name='defenseSideType'
-                            render={({ field }) => (
-                              <Select
-                                label='Тип оборонної сторони'
-                                options={sideTypeOptions}
-                                value={field.value}
-                                onChange={field.onChange}
-                                error={
-                                  versionForm.formState.errors.defenseSideType
-                                    ?.message
-                                }
-                              />
-                            )}
+                        )}
+                      />
+                      <Controller
+                        control={versionForm.control}
+                        name='defenseSideType'
+                        render={({ field }) => (
+                          <Select
+                            label='Тип оборонної сторони'
+                            options={sideTypeOptions}
+                            value={field.value}
+                            onChange={field.onChange}
+                            error={
+                              versionForm.formState.errors.defenseSideType
+                                ?.message
+                            }
                           />
-                        </div>
+                        )}
+                      />
+                    </div>
 
-                        <div className='grid grid-cols-2 gap-4'>
-                          <Controller
-                            control={versionForm.control}
-                            name='attackSideName'
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='Назва атакуючої сторони'
-                                error={
-                                  versionForm.formState.errors.attackSideName
-                                    ?.message
-                                }
-                              />
-                            )}
+                    <div className='grid grid-cols-2 gap-4'>
+                      <Controller
+                        control={versionForm.control}
+                        name='attackSideName'
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Назва атакуючої сторони'
+                            error={
+                              versionForm.formState.errors.attackSideName
+                                ?.message
+                            }
                           />
-                          <Controller
-                            control={versionForm.control}
-                            name='defenseSideName'
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='Назва оборонної сторони'
-                                error={
-                                  versionForm.formState.errors.defenseSideName
-                                    ?.message
-                                }
-                              />
-                            )}
+                        )}
+                      />
+                      <Controller
+                        control={versionForm.control}
+                        name='defenseSideName'
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Назва оборонної сторони'
+                            error={
+                              versionForm.formState.errors.defenseSideName
+                                ?.message
+                            }
                           />
-                        </div>
+                        )}
+                      />
+                    </div>
 
-                        <div className='grid grid-cols-2 gap-4'>
-                          <Controller
-                            control={versionForm.control}
-                            name='attackSideSlots'
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                type='number'
-                                label='Слоти атакуючої сторони'
-                                value={field.value || ''}
-                                onChange={(e) =>
-                                  field.onChange(parseInt(e.target.value) || 0)
-                                }
-                                error={
-                                  versionForm.formState.errors.attackSideSlots
-                                    ?.message
-                                }
-                              />
-                            )}
+                    <div className='grid grid-cols-2 gap-4'>
+                      <Controller
+                        control={versionForm.control}
+                        name='attackSideSlots'
+                        render={({ field }) => (
+                          <NumericInput
+                            {...field}
+                            label='Слоти атакуючої сторони'
+                            value={field.value || ''}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 0)
+                            }
+                            error={
+                              versionForm.formState.errors.attackSideSlots
+                                ?.message
+                            }
                           />
-                          <Controller
-                            control={versionForm.control}
-                            name='defenseSideSlots'
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                type='number'
-                                label='Слоти оборонної сторони'
-                                value={field.value || ''}
-                                onChange={(e) =>
-                                  field.onChange(parseInt(e.target.value) || 0)
-                                }
-                                error={
-                                  versionForm.formState.errors.defenseSideSlots
-                                    ?.message
-                                }
-                              />
-                            )}
+                        )}
+                      />
+                      <Controller
+                        control={versionForm.control}
+                        name='defenseSideSlots'
+                        render={({ field }) => (
+                          <NumericInput
+                            {...field}
+                            label='Слоти оборонної сторони'
+                            value={field.value || ''}
+                            error={
+                              versionForm.formState.errors.defenseSideSlots
+                                ?.message
+                            }
                           />
-                        </div>
+                        )}
+                      />
+                    </div>
 
-                        <Controller
-                          control={versionForm.control}
-                          name='file'
-                          render={({ field: { onChange, value, ...field } }) => (
-                            <div className='flex flex-col gap-2'>
-                              <label className='text-sm font-semibold text-zinc-300'>
-                                Файл місії
-                              </label>
-                              <Button
-                                variant='outline'
-                                className='w-full'
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  fileRef.current?.click();
-                                }}>
-                                <UploadIcon className='size-4' />
-                                {value ? 'Змінити файл' : 'Обрати файл'}
-                              </Button>
-                              <input
-                                ref={fileRef}
-                                type='file'
-                                accept='.pbo,.p3d'
-                                onChange={(e) =>
-                                  onChange(e.target.files?.[0] || null)
-                                }
-                                className='invisible'
-                              />
-                              {versionForm.formState.errors.file && (
-                                <p className='text-sm text-red-400'>
-                                  {versionForm.formState.errors.file.message}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        />
-
-                        <div className='flex justify-between pt-4'>
+                    <Controller
+                      control={versionForm.control}
+                      name='file'
+                      render={({ field: { onChange, value, ...field } }) => (
+                        <div className='flex flex-col gap-2'>
+                          <label className='text-sm font-semibold text-zinc-300'>
+                            Файл місії
+                          </label>
                           <Button
-                            type='button'
                             variant='outline'
-                            onClick={() => setIsVersionDialogOpen(false)}>
-                            Скасувати
+                            className='w-full'
+                            onClick={(e) => {
+                              e.preventDefault();
+                              fileRef.current?.click();
+                            }}>
+                            <UploadIcon className='size-4' />
+                            {value ? 'Змінити файл' : 'Обрати файл'}
                           </Button>
-                          <Button
-                            type='submit'
-                            disabled={
-                              isCreatingVersion || !versionForm.formState.isValid
-                            }>
-                            {isCreatingVersion ? (
-                              <>
-                                <LoaderIcon className='size-4 animate-spin' />
-                                Створення...
-                              </>
-                            ) : (
-                              'Створити версію'
-                            )}
-                          </Button>
+                          <input
+                            ref={fileRef}
+                            type='file'
+                            accept='.pbo,.p3d'
+                            onChange={(e) =>
+                              onChange(e.target.files?.[0] || null)
+                            }
+                            className='invisible'
+                          />
+                          {versionForm.formState.errors.file && (
+                            <p className='text-sm text-red-400'>
+                              {versionForm.formState.errors.file.message}
+                            </p>
+                          )}
                         </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                      )}
+                    />
 
-                {mission?.missionVersions?.length === 0 ? (
-                  <div className='paper flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 text-center'>
-                    <p className='text-zinc-400'>Версій поки немає</p>
-                    <Button
-                      variant='default'
-                      onClick={() => setIsVersionDialogOpen(true)}>
-                      <PlusIcon className='size-4' />
-                      Створити першу версію
-                    </Button>
-                  </div>
-                ) : (
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                    {mission?.missionVersions?.map((version) => (
-                      <div
-                        key={version.id}
-                        className='paper flex flex-col gap-4 rounded-xl border p-5 shadow-lg transition-all duration-300 hover:border-lime-500/50'>
-                        <div className='flex flex-col gap-4'>
+                    <div className='flex justify-between pt-4'>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => setIsVersionDialogOpen(false)}>
+                        Скасувати
+                      </Button>
+                      <Button
+                        type='submit'
+                        disabled={
+                          isCreatingVersion || !versionForm.formState.isValid
+                        }>
+                        {isCreatingVersion ? (
+                          <>
+                            <LoaderIcon className='size-4 animate-spin' />
+                            Створення...
+                          </>
+                        ) : (
+                          'Створити версію'
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {mission?.missionVersions?.length === 0 ? (
+              <div className='paper flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 text-center'>
+                <p className='text-zinc-400'>Версій поки немає</p>
+                <Button
+                  variant='default'
+                  onClick={() => setIsVersionDialogOpen(true)}>
+                  <PlusIcon className='size-4' />
+                  Створити першу версію
+                </Button>
+              </div>
+            ) : (
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {mission?.missionVersions?.map((version) => (
+                  <div
+                    key={version.id}
+                    className='paper flex flex-col gap-4 rounded-xl border p-5 shadow-lg transition-all duration-300 hover:border-lime-500/50'>
+                    <div className='flex flex-col gap-4'>
+                      <div className='flex items-center justify-between'>
+                        <h3 className='text-lg font-bold text-white'>
+                          Версія {version.version}
+                        </h3>
+                        <div className='flex items-center gap-2'>
+                          {version.rating && (
+                            <span className='text-sm text-yellow-400'>
+                              ⭐ {version.rating}
+                            </span>
+                          )}
+                          <span
+                            className={cn(
+                              'px-2 py-0.5 rounded text-xs font-semibold border',
+                              statusColors[version.status]
+                            )}>
+                            {statusLabels[version.status]}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className='flex flex-col gap-3'>
+                        {/* Attack Side */}
+                        <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5'>
                           <div className='flex items-center justify-between'>
-                            <h3 className='text-lg font-bold text-white'>
-                              Версія {version.version}
-                            </h3>
-                            <div className='flex items-center gap-2'>
-                              {version.rating && (
-                                <span className='text-sm text-yellow-400'>
-                                  ⭐ {version.rating}
-                                </span>
-                              )}
+                            <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
+                              Атака
+                            </span>
+                            <span
+                              className={cn(
+                                'text-xs font-semibold',
+                                sideTypeColors[version.attackSideType]
+                              )}>
+                              {version.attackSideType}
+                            </span>
+                          </div>
+                          <div className='flex items-center justify-between'>
+                            <span
+                              className={cn(
+                                'font-semibold',
+                                sideTypeColors[version.attackSideType]
+                              )}>
+                              {version.attackSideName}
+                            </span>
+                            <div className='flex items-center gap-1.5'>
+                              <UsersIcon className='size-3.5 text-zinc-400' />
                               <span
                                 className={cn(
-                                  'px-2 py-0.5 rounded text-xs font-semibold border',
-                                  statusColors[version.status]
+                                  'text-sm font-medium',
+                                  sideTypeColors[version.attackSideType]
                                 )}>
-                                {statusLabels[version.status]}
+                                {version.attackSideSlots} слотів
                               </span>
                             </div>
                           </div>
+                        </div>
 
-                          <div className='flex flex-col gap-3'>
-                            {/* Attack Side */}
-                            <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5'>
-                              <div className='flex items-center justify-between'>
-                                <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
-                                  Атака
-                                </span>
-                                <span
-                                  className={cn(
-                                    'text-xs font-semibold',
-                                    sideTypeColors[version.attackSideType]
-                                  )}>
-                                  {version.attackSideType}
-                                </span>
-                              </div>
-                              <div className='flex items-center justify-between'>
-                                <span
-                                  className={cn(
-                                    'font-semibold',
-                                    sideTypeColors[version.attackSideType]
-                                  )}>
-                                  {version.attackSideName}
-                                </span>
-                                <div className='flex items-center gap-1.5'>
-                                  <UsersIcon className='size-3.5 text-zinc-400' />
-                                  <span
-                                    className={cn(
-                                      'text-sm font-medium',
-                                      sideTypeColors[version.attackSideType]
-                                    )}>
-                                    {version.attackSideSlots} слотів
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Defense Side */}
-                            <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5'>
-                              <div className='flex items-center justify-between'>
-                                <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
-                                  Оборона
-                                </span>
-                                <span
-                                  className={cn(
-                                    'text-xs font-semibold',
-                                    sideTypeColors[version.defenseSideType]
-                                  )}>
-                                  {version.defenseSideType}
-                                </span>
-                              </div>
-                              <div className='flex items-center justify-between'>
-                                <span
-                                  className={cn(
-                                    'font-semibold',
-                                    sideTypeColors[version.defenseSideType]
-                                  )}>
-                                  {version.defenseSideName}
-                                </span>
-                                <div className='flex items-center gap-1.5'>
-                                  <UsersIcon className='size-3.5 text-zinc-400' />
-                                  <span
-                                    className={cn(
-                                      'text-sm font-medium',
-                                      sideTypeColors[version.defenseSideType]
-                                    )}>
-                                    {version.defenseSideSlots} слотів
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className='flex items-center gap-2 text-xs text-zinc-400 pt-2 border-t border-white/5'>
-                            <CalendarIcon className='size-3.5' />
-                            <span>
-                              {new Date(version.createdAt).toLocaleDateString(
-                                'uk-UA'
-                              )}
+                        {/* Defense Side */}
+                        <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5'>
+                          <div className='flex items-center justify-between'>
+                            <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
+                              Оборона
+                            </span>
+                            <span
+                              className={cn(
+                                'text-xs font-semibold',
+                                sideTypeColors[version.defenseSideType]
+                              )}>
+                              {version.defenseSideType}
                             </span>
                           </div>
-
-                          {version.file?.url && (
-                            <Button
-                              variant='outline'
-                              className='w-full'
-                              onClick={() =>
-                                window.open(version.file?.url, '_blank')
-                              }>
-                              <DownloadIcon className='size-4' />
-                              Завантажити
-                            </Button>
-                          )}
+                          <div className='flex items-center justify-between'>
+                            <span
+                              className={cn(
+                                'font-semibold',
+                                sideTypeColors[version.defenseSideType]
+                              )}>
+                              {version.defenseSideName}
+                            </span>
+                            <div className='flex items-center gap-1.5'>
+                              <UsersIcon className='size-3.5 text-zinc-400' />
+                              <span
+                                className={cn(
+                                  'text-sm font-medium',
+                                  sideTypeColors[version.defenseSideType]
+                                )}>
+                                {version.defenseSideSlots} слотів
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    ))}
+
+                      <div className='flex items-center gap-2 text-xs text-zinc-400 pt-2 border-t border-white/5'>
+                        <CalendarIcon className='size-3.5' />
+                        <span>
+                          {new Date(version.createdAt).toLocaleDateString(
+                            'uk-UA'
+                          )}
+                        </span>
+                      </div>
+
+                      {version.file?.url && (
+                        <Button
+                          variant='outline'
+                          className='w-full'
+                          onClick={() =>
+                            window.open(version.file?.url, '_blank')
+                          }>
+                          <DownloadIcon className='size-4' />
+                          Завантажити
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                )}
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

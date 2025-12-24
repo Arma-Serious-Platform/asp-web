@@ -4,7 +4,7 @@ import { Layout } from '@/widgets/layout';
 import { MissionModel } from '@/entities/mission/model';
 import { MissionCard } from '@/entities/mission/ui/mission-card';
 import { Button } from '@/shared/ui/atoms/button';
-import { Input } from '@/shared/ui/atoms/input';
+import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { MissionStatus } from '@/shared/sdk/types';
 import { UserModel } from '@/entities/user/model';
@@ -71,7 +71,7 @@ const MissionsPage = observer(() => {
             onChange={(value) => missionModel.setAuthorIdFilter(value || null)}
             isLoading={!usersLoaded}
           />
-          <Input
+          <NumericInput
             type='number'
             label='Мін. слотів'
             placeholder='0'
@@ -82,7 +82,7 @@ const MissionsPage = observer(() => {
               )
             }
           />
-          <Input
+          <NumericInput
             type='number'
             label='Макс. слотів'
             placeholder='0'
