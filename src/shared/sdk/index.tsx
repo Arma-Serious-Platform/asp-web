@@ -25,6 +25,7 @@ import {
   SignUpDto,
   Squad,
   SquadInvitation,
+  UpdateMissionDto,
   UpdateServerDto,
   UpdateSquadDto,
   UpdateUserDto,
@@ -331,6 +332,26 @@ class ApiModel {
     formData.append('description', dto.description);
 
     return await this.instance.post<Mission>('/missions', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  };
+
+  updateMission = async ({ id, ...dto }: UpdateMissionDto) => {
+    const formData = new FormData();
+    if (dto.image) {
+      formData.append('image', dto.image);
+    }
+
+    if (dto.name) {
+      formData.append('name', dto.name);
+    }
+    if (dto.description) {
+      formData.append('description', dto.description);
+    }
+
+    return await this.instance.patch<Mission>(`/missions/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

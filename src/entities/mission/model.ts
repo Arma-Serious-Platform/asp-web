@@ -16,7 +16,7 @@ class MissionModel {
 
   get filteredMissions() {
     return this.pagination.data.filter((mission) => {
-      if (this.statusFilter && mission.status !== this.statusFilter) {
+      if (this.statusFilter && mission.missionVersions?.[0]?.status !== this.statusFilter) {
         return false;
       }
       if (this.authorIdFilter && mission.authorId !== this.authorIdFilter) {
@@ -24,7 +24,7 @@ class MissionModel {
       }
       if (this.minSlotsFilter !== null) {
         const maxSlots = Math.max(
-          ...mission.versions.map(
+          ...mission.missionVersions?.map(
             (v) => v.attackSideSlots + v.defenseSideSlots
           )
         );
@@ -34,7 +34,7 @@ class MissionModel {
       }
       if (this.maxSlotsFilter !== null) {
         const maxSlots = Math.max(
-          ...mission.versions.map(
+          ...mission.missionVersions?.map(
             (v) => v.attackSideSlots + v.defenseSideSlots
           )
         );

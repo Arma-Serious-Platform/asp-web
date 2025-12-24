@@ -286,17 +286,20 @@ export type CreateMissionDto = {
   image?: File;
 };
 
+export type UpdateMissionDto = {
+  id: string;
+} & Partial<CreateMissionDto>;
+
 export type Mission = {
   id: string;
   name: string;
   description: string;
-  status: MissionStatus;
   imageId: string | null;
   image?: {
     id: string;
     url: string;
   }
-  versions: MissionVersion[];
+  missionVersions: MissionVersion[];
   authorId: string;
   createdAt: string;
   updatedAt: string;
@@ -320,6 +323,7 @@ export type MissionVersion = {
   rating?: number;
   attackSideWeaponry?: MissionWeaponry[];
   defenseSideWeaponry?: MissionWeaponry[];
+  status: MissionStatus;
   createdAt: string;
   updatedAt: string;
 }

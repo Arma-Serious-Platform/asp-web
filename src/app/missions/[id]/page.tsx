@@ -38,8 +38,8 @@ import {
 import { cn } from '@/shared/utils/cn';
 
 const statusLabels: Record<MissionStatus, string> = {
-  [MissionStatus.APPROVED]: 'Схвалено',
-  [MissionStatus.PENDING_APPROVAL]: 'Очікує схвалення',
+  [MissionStatus.APPROVED]: 'Перевірено',
+  [MissionStatus.PENDING_APPROVAL]: 'Очікує перевірки',
   [MissionStatus.CHANGES_REQUESTED]: 'Потрібні зміни',
 };
 
@@ -58,16 +58,30 @@ const sideTypeOptions = [
   { label: 'GREEN', value: MissionGameSide.GREEN },
 ];
 
-const versionSchema = yup.object().shape({
-  version: yup.string().required("Обов'язко"),
-  attackSideType: yup.string().required("Обов'язково"),
-  defenseSideType: yup.string().required("Обов'язково"),
-  attackSideSlots: yup.number().required("Обов'язково").min(1),
-  defenseSideSlots: yup.number().required("Обов'язково").min(1),
-  attackSideName: yup.string().required("Обов'язково"),
-  defenseSideName: yup.string().required("Обов'язково"),
-  file: yup.mixed().required("Обов'язково"),
-});
+type VersionFormData = {
+  version: string;
+  missionId: string;
+  attackSideType: MissionGameSide;
+  defenseSideType: MissionGameSide;
+  attackSideSlots: number;
+  defenseSideSlots: number;
+  attackSideName: string;
+  defenseSideName: string;
+  file: File | null;
+};
+
+const createVersionSchema = (missionId: string) =>
+  yup.object().shape({
+    version: yup.string().required("Обов'язково"),
+    missionId: yup.string().required("Обов'язково").default(missionId),
+    attackSideType: yup.string().required("Обов'язково"),
+    defenseSideType: yup.string().required("Обов'язково"),
+    attackSideSlots: yup.number().required("Обов'язково").min(1),
+    defenseSideSlots: yup.number().required("Обов'язково").min(1),
+    attackSideName: yup.string().required("Обов'язково"),
+    defenseSideName: yup.string().required("Обов'язково"),
+    file: yup.mixed().required("Обов'язково"),
+  });
 
 export default function MissionDetailsPage() {
   const params = useParams();
@@ -80,11 +94,12 @@ export default function MissionDetailsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
 
-  const versionForm = useForm<CreateMissionVersionDto & { file: File | null }>({
+  const versionForm = useForm<VersionFormData>({
     mode: 'onChange',
-    resolver: yupResolver(versionSchema),
+    resolver: yupResolver(createVersionSchema(missionId)) as any,
     defaultValues: {
       version: '',
+      missionId: missionId,
       attackSideType: MissionGameSide.BLUE,
       defenseSideType: MissionGameSide.RED,
       attackSideSlots: 0,
@@ -113,20 +128,34 @@ export default function MissionDetailsPage() {
     }
   }, [missionId]);
 
-  const handleCreateVersion = async (
-    data: CreateMissionVersionDto & { file: File | null }
-  ) => {
+  const handleCreateVersion = async (data: VersionFormData) => {
     if (!data.file) return;
 
     try {
       setIsCreatingVersion(true);
       await api.createMissionVersion(missionId, {
-        ...data,
+        version: data.version,
+        missionId: missionId,
+        attackSideType: data.attackSideType as MissionGameSide,
+        defenseSideType: data.defenseSideType as MissionGameSide,
+        attackSideSlots: data.attackSideSlots,
+        defenseSideSlots: data.defenseSideSlots,
+        attackSideName: data.attackSideName,
+        defenseSideName: data.defenseSideName,
         file: data.file,
-        missionId,
       });
       setIsVersionDialogOpen(false);
-      versionForm.reset();
+      versionForm.reset({
+        version: '',
+        missionId: missionId,
+        attackSideType: MissionGameSide.BLUE,
+        defenseSideType: MissionGameSide.RED,
+        attackSideSlots: 0,
+        defenseSideSlots: 0,
+        attackSideName: '',
+        defenseSideName: '',
+        file: null,
+      });
       // Reload mission to get updated versions
       const response = await api.findMissionById(missionId);
       setMission(response.data);
@@ -178,20 +207,11 @@ export default function MissionDetailsPage() {
               className='mb-4'>
               ← Повернутися до списку
             </Button>
-            <div className='flex items-start justify-between gap-4'>
-              <div>
-                <h1 className='text-3xl font-bold leading-tight tracking-tight text-white mb-2'>
-                  {mission?.name}
-                </h1>
-                <p className='text-zinc-400'>{mission.description}</p>
-              </div>
-              <span
-                className={cn(
-                  'px-3 py-1 rounded text-sm font-semibold border',
-                  statusColors[mission.status]
-                )}>
-                {statusLabels[mission.status]}
-              </span>
+            <div>
+              <h1 className='text-3xl font-bold leading-tight tracking-tight text-white mb-2'>
+                {mission?.name}
+              </h1>
+              <p className='text-zinc-400'>{mission.description}</p>
             </div>
           </div>
 
@@ -423,18 +443,27 @@ export default function MissionDetailsPage() {
               </Card>
             ) : (
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                {mission?.versions?.map((version) => (
+                {mission?.missionVersions?.map((version) => (
                   <Card key={version.id} className='p-4'>
                     <div className='flex flex-col gap-3'>
                       <div className='flex items-center justify-between'>
                         <h3 className='text-lg font-bold text-white'>
                           Версія {version.version}
                         </h3>
-                        {version.rating && (
-                          <span className='text-sm text-yellow-400'>
-                            ⭐ {version.rating}
+                        <div className='flex items-center gap-2'>
+                          {version.rating && (
+                            <span className='text-sm text-yellow-400'>
+                              ⭐ {version.rating}
+                            </span>
+                          )}
+                          <span
+                            className={cn(
+                              'px-2 py-0.5 rounded text-xs font-semibold border',
+                              statusColors[version.status]
+                            )}>
+                            {statusLabels[version.status]}
                           </span>
-                        )}
+                        </div>
                       </div>
 
                       <div className='flex flex-col gap-2 text-sm'>
