@@ -10,11 +10,17 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { CreateMissionDto } from '@/shared/sdk/types';
 import { api } from '@/shared/sdk';
-import { useState } from 'react';
+import { useState, useRef, RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { LoaderIcon, UploadIcon } from 'lucide-react';
-import Image from 'next/image';
+import {
+  CropperRef,
+  FixedCropper,
+  ImageRestriction,
+  FixedCropperRef,
+} from 'react-advanced-cropper';
+import { base64ToFile } from '@/shared/utils/file';
 
 const schema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
@@ -24,8 +30,9 @@ const schema = yup.object().shape({
 export default function CreateMissionPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const imageRef = useRef<HTMLInputElement>(null);
+  const cropperRef = useRef<CropperRef>(null);
 
   const form = useForm<CreateMissionDto>({
     mode: 'onChange',
@@ -41,7 +48,6 @@ export default function CreateMissionPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
@@ -49,9 +55,18 @@ export default function CreateMissionPage() {
   const onSubmit = async (data: CreateMissionDto) => {
     try {
       setIsSubmitting(true);
+      
+      let imageFile: File | undefined = undefined;
+      if (imagePreview && cropperRef.current) {
+        const base64 = cropperRef.current?.getCanvas()?.toDataURL();
+        if (base64) {
+          imageFile = await base64ToFile(base64, 'mission-image');
+        }
+      }
+
       const response = await api.createMission({
         ...data,
-        image: imageFile || undefined,
+        image: imageFile,
       });
       router.push(ROUTES.missions.id(response.data.id));
     } catch (error) {
@@ -84,32 +99,55 @@ export default function CreateMissionPage() {
                   Зображення місії
                 </label>
                 <div className='flex flex-col gap-3'>
-                  {imagePreview && (
-                    <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10'>
-                      <Image
-                        src={imagePreview}
-                        alt='Preview'
-                        fill
-                        className='object-cover'
-                      />
-                    </div>
-                  )}
                   <input
+                    ref={imageRef}
                     type='file'
                     accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
                     onChange={handleImageChange}
                     className='hidden'
-                    id='image-upload'
                   />
-                  <label htmlFor='image-upload'>
-                    <Button
-                      type='button'
-                      variant={imageFile ? 'outline' : 'default'}
-                      className='w-full'>
-                      <UploadIcon className='size-4' />
-                      {imageFile ? 'Змінити зображення' : 'Обрати зображення'}
-                    </Button>
-                  </label>
+                  {imagePreview && (
+                    <FixedCropper
+                      ref={cropperRef as RefObject<FixedCropperRef>}
+                      className='h-64 rounded-lg'
+                      src={imagePreview}
+                      imageRestriction={ImageRestriction.stencil}
+                      stencilProps={{
+                        handlers: false,
+                        lines: true,
+                        movable: false,
+                        resizable: false,
+                      }}
+                      defaultSize={{
+                        height: 256,
+                        width: 455,
+                      }}
+                      stencilSize={{
+                        height: 256,
+                        width: 455,
+                      }}
+                    />
+                  )}
+                  {!imagePreview && (
+                    <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center'>
+                      <span className='text-zinc-500 text-sm'>
+                        Немає зображення
+                      </span>
+                    </div>
+                  )}
+                  <Button
+                    type='button'
+                    variant={imagePreview ? 'outline' : 'default'}
+                    className='w-full'
+                    onClick={() => {
+                      imageRef.current?.click();
+                      setImagePreview('');
+                    }}>
+                    <UploadIcon className='size-4' />
+                    {imagePreview
+                      ? 'Обрати інше зображення'
+                      : 'Обрати зображення'}
+                  </Button>
                 </div>
               </div>
 

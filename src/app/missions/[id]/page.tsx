@@ -11,7 +11,7 @@ import {
   CreateMissionVersionDto,
   UpdateMissionDto,
 } from '@/shared/sdk/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, RefObject } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -39,6 +39,13 @@ import {
   DialogTrigger,
 } from '@/shared/ui/organisms/dialog';
 import { cn } from '@/shared/utils/cn';
+import {
+  CropperRef,
+  FixedCropper,
+  ImageRestriction,
+  FixedCropperRef,
+} from 'react-advanced-cropper';
+import { base64ToFile } from '@/shared/utils/file';
 
 const statusLabels: Record<MissionStatus, string> = {
   [MissionStatus.APPROVED]: 'Перевірено',
@@ -115,6 +122,7 @@ export default function MissionDetailsPage() {
   const [isUpdatingMission, setIsUpdatingMission] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
+  const cropperRef = useRef<CropperRef>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
 
   const versionForm = useForm<VersionFormData>({
@@ -217,7 +225,14 @@ export default function MissionDetailsPage() {
       if (data.description !== mission?.description) {
         dto.description = data.description;
       }
-      if (data.image) {
+      
+      // Get cropped image if cropper is active
+      if (imagePreview && cropperRef.current) {
+        const base64 = cropperRef.current?.getCanvas()?.toDataURL();
+        if (base64) {
+          dto.image = await base64ToFile(base64, 'mission-image');
+        }
+      } else if (data.image) {
         dto.image = data.image;
       }
 
@@ -242,8 +257,8 @@ export default function MissionDetailsPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      missionForm.setValue('image', file);
       setImagePreview(URL.createObjectURL(file));
+      missionForm.setValue('image', null);
     }
   };
 
@@ -343,29 +358,59 @@ export default function MissionDetailsPage() {
                                 accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
                                 onChange={handleImageChange}
                                 className='hidden'
-                                id='mission-image-upload'
                               />
-                              {(imagePreview || mission.image?.url) && (
+                              {imagePreview && (
+                                <FixedCropper
+                                  ref={cropperRef as RefObject<FixedCropperRef>}
+                                  className='h-64 rounded-lg'
+                                  src={imagePreview}
+                                  imageRestriction={ImageRestriction.stencil}
+                                  stencilProps={{
+                                    handlers: false,
+                                    lines: true,
+                                    movable: false,
+                                    resizable: false,
+                                  }}
+                                  defaultSize={{
+                                    height: 256,
+                                    width: 455,
+                                  }}
+                                  stencilSize={{
+                                    height: 256,
+                                    width: 455,
+                                  }}
+                                />
+                              )}
+                              {!imagePreview && mission.image?.url && (
                                 <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10'>
                                   <Image
-                                    src={imagePreview || mission.image?.url || ''}
-                                    alt='Preview'
+                                    src={mission.image.url}
+                                    alt='Current image'
                                     fill
                                     className='object-cover'
                                   />
                                 </div>
                               )}
-                              <label htmlFor='mission-image-upload'>
-                                <Button
-                                  type='button'
-                                  variant='outline'
-                                  className='w-full'>
-                                  <UploadIcon className='size-4' />
-                                  {missionForm.watch('image')
-                                    ? 'Змінити зображення'
-                                    : 'Обрати зображення'}
-                                </Button>
-                              </label>
+                              {!imagePreview && !mission.image?.url && (
+                                <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center'>
+                                  <span className='text-zinc-500 text-sm'>
+                                    Немає зображення
+                                  </span>
+                                </div>
+                              )}
+                              <Button
+                                type='button'
+                                variant={imagePreview || mission.image?.url ? 'outline' : 'default'}
+                                className='w-full'
+                                onClick={() => {
+                                  imageRef.current?.click();
+                                  setImagePreview('');
+                                }}>
+                                <UploadIcon className='size-4' />
+                                {imagePreview || mission.image?.url
+                                  ? 'Обрати інше зображення'
+                                  : 'Обрати зображення'}
+                              </Button>
                             </div>
 
                             <Controller
