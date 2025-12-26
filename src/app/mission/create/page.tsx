@@ -21,6 +21,7 @@ import {
   FixedCropperRef,
 } from 'react-advanced-cropper';
 import { base64ToFile } from '@/shared/utils/file';
+import { Section } from '@/shared/ui/organisms/section';
 
 const schema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
@@ -55,7 +56,7 @@ export default function CreateMissionPage() {
   const onSubmit = async (data: CreateMissionDto) => {
     try {
       setIsSubmitting(true);
-      
+
       let imageFile: File | undefined = undefined;
       if (imagePreview && cropperRef.current) {
         const base64 = cropperRef.current?.getCanvas()?.toDataURL();
@@ -131,7 +132,7 @@ export default function CreateMissionPage() {
                   {!imagePreview && (
                     <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center'>
                       <span className='text-zinc-500 text-sm'>
-                        Немає зображення
+                        Рекомендовано 512x256
                       </span>
                     </div>
                   )}
@@ -179,6 +180,10 @@ export default function CreateMissionPage() {
                   />
                 )}
               />
+
+              <Section className='text-center p-2 text-sm text-muted'>
+                Після створення місії ви зможете додати її першу версію
+              </Section>
 
               {/* Actions */}
               <div className='flex justify-between gap-4 pt-4'>

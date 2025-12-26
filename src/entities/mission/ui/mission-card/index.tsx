@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
 import Link from 'next/link';
 import Image from 'next/image';
-import { EyeIcon, UsersIcon, LayersIcon } from 'lucide-react';
+import { EyeIcon, UsersIcon, LayersIcon, MilestoneIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 
 const statusLabels: Record<MissionStatus, string> = {
@@ -121,10 +121,9 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
                 </div>
               )}
               {mission?.missionVersions?.length > 0 && (
-                <div className='flex items-center gap-1.5'>
-                  <LayersIcon className='size-4' />
+                <div className='flex items-center gap-1.5 ml-auto'>
+                  <MilestoneIcon className='size-4' />
                   <span className='text-xs'>
-                    Версія:{' '}
                     {
                       mission?.missionVersions[
                         mission?.missionVersions.length - 1

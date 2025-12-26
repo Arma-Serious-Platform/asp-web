@@ -39,23 +39,25 @@ const Section: FC<SectionProps> = ({
             'paper flex w-full flex-col gap-5 rounded-xl px-6 py-6 shadow-xl',
             className
           )}>
-          <header className='flex flex-col gap-2 max-lg:text-center'>
-            {eyebrow && (
-              <span className='text-xs font-semibold uppercase tracking-[0.25em] text-zinc-400'>
-                {eyebrow}
-              </span>
-            )}
-            {title && (
-              <h2 className='text-3xl font-extrabold tracking-tight lg:text-4xl'>
-                {title}
-              </h2>
-            )}
-            {subtitle && (
-              <p className='text-sm text-zinc-300 max-lg:text-center'>
-                {subtitle}
-              </p>
-            )}
-          </header>
+          {(eyebrow || title || subtitle) && (
+            <header className='flex flex-col gap-2 max-lg:text-center'>
+              {eyebrow && (
+                <span className='text-xs font-semibold uppercase tracking-[0.25em] text-zinc-400'>
+                  {eyebrow}
+                </span>
+              )}
+              {title && (
+                <h2 className='text-3xl font-extrabold tracking-tight lg:text-4xl'>
+                  {title}
+                </h2>
+              )}
+              {subtitle && (
+                <p className='text-sm text-zinc-300 max-lg:text-center'>
+                  {subtitle}
+                </p>
+              )}
+            </header>
+          )}
 
           {children}
         </div>

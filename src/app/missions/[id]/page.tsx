@@ -349,7 +349,7 @@ export default function MissionDetailsPage() {
           {/* Header Section */}
           <div className='flex flex-col md:flex-row md:items-start gap-6'>
             {/* Mission Image */}
-            <div className='relative w-full md:w-96 aspect-video md:aspect-square overflow-hidden rounded-lg border border-white/10 flex-shrink-0'>
+            <div className='relative w-full md:w-64 aspect-video md:aspect-square overflow-hidden rounded-lg border border-white/10 flex-shrink-0'>
               {imagePreview || mission.image?.url ? (
                 <Image
                   src={imagePreview || mission.image?.url || ''}
@@ -373,7 +373,7 @@ export default function MissionDetailsPage() {
                   <h1 className='text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white mb-3'>
                     {mission?.name}
                   </h1>
-                  <p className='text-zinc-300 text-lg leading-relaxed'>
+                  <p className='text-zinc-300 leading-relaxed'>
                     {mission.description}
                   </p>
                 </div>

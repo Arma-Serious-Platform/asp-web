@@ -315,6 +315,7 @@ export type MissionVersion = {
   defenseSideSlots: number;
   attackSideName: string;
   defenseSideName: string;
+  changesDescription: string | null;
   fileId: string;
   file?: {
     id: string;
