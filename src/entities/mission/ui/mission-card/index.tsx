@@ -1,13 +1,13 @@
 'use client';
 
 import { FC } from 'react';
-import { Mission, MissionStatus } from '@/shared/sdk/types';
+import { Mission, MissionStatus, MissionGameSide } from '@/shared/sdk/types';
 import { Card } from '@/shared/ui/atoms/card';
 import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
 import Link from 'next/link';
 import Image from 'next/image';
-import { EyeIcon, CalendarIcon, UsersIcon } from 'lucide-react';
+import { EyeIcon, UsersIcon, LayersIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 
 const statusLabels: Record<MissionStatus, string> = {
@@ -17,18 +17,54 @@ const statusLabels: Record<MissionStatus, string> = {
 };
 
 const statusColors: Record<MissionStatus, string> = {
-  [MissionStatus.APPROVED]: 'bg-green-500/20 text-green-400 border-green-500/30',
-  [MissionStatus.PENDING_APPROVAL]: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  [MissionStatus.CHANGES_REQUESTED]: 'bg-red-500/20 text-red-400 border-red-500/30',
+  [MissionStatus.APPROVED]:
+    'bg-green-500/20 text-green-400 border-green-500/30',
+  [MissionStatus.PENDING_APPROVAL]:
+    'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  [MissionStatus.CHANGES_REQUESTED]:
+    'bg-red-500/20 text-red-400 border-red-500/30',
+};
+
+const sideTypeColors: Record<MissionGameSide, string> = {
+  [MissionGameSide.BLUE]: 'text-blue-400',
+  [MissionGameSide.RED]: 'text-red-400',
+  [MissionGameSide.GREEN]: 'text-green-400',
+};
+
+type SideInfoProps = {
+  label: string;
+  sideName: string;
+  sideType: MissionGameSide;
+  slots: number;
+};
+
+const SideInfo: FC<SideInfoProps> = ({ label, sideName, sideType, slots }) => {
+  return (
+    <div className='flex items-center justify-between text-xs'>
+      <div className='flex items-center gap-2'>
+        <span className='text-zinc-500'>{label}:</span>
+        <span className={cn('font-semibold', sideTypeColors[sideType])}>
+          {sideName}
+        </span>
+      </div>
+      <div className='flex items-center gap-1'>
+        <UsersIcon className='size-3 text-zinc-400' />
+        <span className={cn('text-xs font-medium', sideTypeColors[sideType])}>
+          {slots}
+        </span>
+      </div>
+    </div>
+  );
 };
 
 export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
-  const totalSlots = mission?.versions?.length > 0
-    ? Math.max(
-        ...mission?.versions.map(
-          (v) => v.attackSideSlots + v.defenseSideSlots
-        )
-      )
+  const lastVersion =
+    mission?.missionVersions && mission.missionVersions.length > 0
+      ? mission.missionVersions[mission.missionVersions.length - 1]
+      : null;
+
+  const totalSlots = lastVersion
+    ? lastVersion.attackSideSlots + lastVersion.defenseSideSlots
     : 0;
 
   return (
@@ -49,17 +85,19 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
             </div>
           )}
           <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent' />
-          
+
           {/* Status Badge */}
-          <div className='absolute top-3 right-3'>
-            <span
-              className={cn(
-                'px-2 py-1 rounded text-xs font-semibold border',
-                statusColors[mission.status]
-              )}>
-              {statusLabels[mission.status]}
-            </span>
-          </div>
+          {lastVersion?.status && (
+            <div className='absolute top-3 right-3'>
+              <span
+                className={cn(
+                  'px-2 py-1 rounded text-xs font-semibold border',
+                  statusColors[lastVersion.status]
+                )}>
+                {statusLabels[lastVersion.status]}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -74,21 +112,45 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
           </div>
 
           {/* Stats */}
-          <div className='flex items-center gap-4 text-sm text-zinc-400'>
-            {totalSlots > 0 && (
-              <div className='flex items-center gap-1.5'>
-                <UsersIcon className='size-4' />
-                <span>{totalSlots} слотів</span>
-              </div>
-            )}
-            <div className='flex items-center gap-1.5'>
-              <CalendarIcon className='size-4' />
-              <span>{new Date(mission.createdAt).toLocaleDateString('uk-UA')}</span>
+          <div className='flex flex-col gap-3'>
+            <div className='flex items-center gap-4 text-sm text-zinc-400'>
+              {totalSlots > 0 && (
+                <div className='flex items-center gap-1.5'>
+                  <UsersIcon className='size-4' />
+                  <span>{totalSlots} слотів</span>
+                </div>
+              )}
+              {mission?.missionVersions?.length > 0 && (
+                <div className='flex items-center gap-1.5'>
+                  <LayersIcon className='size-4' />
+                  <span className='text-xs'>
+                    Версія:{' '}
+                    {
+                      mission?.missionVersions[
+                        mission?.missionVersions.length - 1
+                      ]?.version
+                    }
+                  </span>
+                </div>
+              )}
             </div>
-            {mission?.versions?.length > 0 && (
-              <span className='text-xs'>
-                {mission?.versions?.length} версій
-              </span>
+
+            {/* Last Version Sides */}
+            {lastVersion && (
+              <div className='flex flex-col gap-2 pt-2 border-t border-white/5'>
+                <SideInfo
+                  label='Атака'
+                  sideName={lastVersion.attackSideName}
+                  sideType={lastVersion.attackSideType}
+                  slots={lastVersion.attackSideSlots}
+                />
+                <SideInfo
+                  label='Оборона'
+                  sideName={lastVersion.defenseSideName}
+                  sideType={lastVersion.defenseSideType}
+                  slots={lastVersion.defenseSideSlots}
+                />
+              </div>
             )}
           </div>
 
@@ -104,4 +166,3 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
     </Card>
   );
 };
-

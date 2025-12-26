@@ -72,7 +72,6 @@ const MissionsPage = observer(() => {
             isLoading={!usersLoaded}
           />
           <NumericInput
-            type='number'
             label='Мін. слотів'
             placeholder='0'
             value={missionModel.minSlotsFilter?.toString() || ''}
@@ -83,7 +82,6 @@ const MissionsPage = observer(() => {
             }
           />
           <NumericInput
-            type='number'
             label='Макс. слотів'
             placeholder='0'
             value={missionModel.maxSlotsFilter?.toString() || ''}
