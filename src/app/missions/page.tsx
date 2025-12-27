@@ -103,14 +103,14 @@ const MissionsPage = observer(() => {
             {/* Create Mission Button */}
             <div className='flex justify-end mb-4'>
               <Link href='/mission/create'>
-                <Button variant='default' size='lg'>
+                <Button variant='default'>
                   <PlusIcon className='size-4' />
                   Додати місію
                 </Button>
               </Link>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
+            <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8'>
               {missionModel.filteredMissions.map((mission) => (
                 <MissionCard key={mission.id} mission={mission} />
               ))}

@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { EyeIcon, UsersIcon, LayersIcon, MilestoneIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
+import { UserNicknameText } from '@/entities/user/ui/user-text';
 
 const statusLabels: Record<MissionStatus, string> = {
   [MissionStatus.APPROVED]: 'Схвалено',
@@ -106,9 +107,15 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
             <h3 className='text-xl font-bold text-white mb-1 line-clamp-2'>
               {mission.name}
             </h3>
-            <p className='text-sm text-zinc-400 line-clamp-2'>
+            <p className='text-sm text-zinc-400 line-clamp-2 mb-2'>
               {mission.description}
             </p>
+            {mission.author && (
+              <div className='text-xs text-zinc-500'>
+                <span className='text-zinc-500'>Автор: </span>
+                <UserNicknameText user={mission.author} className='text-zinc-400' />
+              </div>
+            )}
           </div>
 
           {/* Stats */}

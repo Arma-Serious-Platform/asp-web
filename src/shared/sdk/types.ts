@@ -117,7 +117,7 @@ export type User = {
     url: string;
   } | null;
   bannedUntil: Date | null;
-  missions: [];
+  missions: Mission[];
   side: Side | null;
   leadingSquad: Squad | null;
   squadInvites: SquadInvitation[];
@@ -299,6 +299,7 @@ export type Mission = {
     id: string;
     url: string;
   }
+  author: User;
   missionVersions: MissionVersion[];
   authorId: string;
   createdAt: string;
