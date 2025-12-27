@@ -8,7 +8,12 @@ import { ROUTES } from '@/shared/config/routes';
 import { User, UserStatus } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
-import { BanIcon, MoreHorizontalIcon, HandHeartIcon } from 'lucide-react';
+import {
+  BanIcon,
+  MoreHorizontalIcon,
+  HandHeartIcon,
+  SearchCodeIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usersModel } from './model';
 import { observer } from 'mobx-react-lite';
@@ -23,12 +28,11 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       return (
         <div>
-          <Link href={ROUTES.user.users.id(row.original.id)}>
-            <UserNicknameText
-              user={row.original}
-              sideType={row.original.squad?.side?.type}
-            />
-          </Link>
+          <UserNicknameText
+            link
+            user={row.original}
+            sideType={row.original.squad?.side?.type}
+          />
         </div>
       );
     },
@@ -39,7 +43,10 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       return (
         <div>
-          <UserRoleText role={row.original.role} />
+          <UserRoleText
+            role={row.original.role}
+            isMissionReviewer={row.original.isMissionReviewer}
+          />
         </div>
       );
     },
@@ -79,36 +86,73 @@ export const columns: ColumnDef<User>[] = [
                 <MoreHorizontalIcon className='w-4 h-4' />
               </Button>
             }>
-            <View.Condition if={row.original.status !== UserStatus.BANNED}>
-              <Button
-                size='sm'
-                className='w-full'
-                align='left'
-                variant='secondary'
-                onClick={() => {
-                  usersModel.banUnbanUserModel.visibility.open({
-                    user: row.original,
-                  });
-                }}>
-                <BanIcon className='w-4 h-4 text-red-500' />
-                Заблокувати
-              </Button>
-            </View.Condition>
-            <View.Condition if={row.original.status === UserStatus.BANNED}>
-              <Button
-                size='sm'
-                variant='secondary'
-                className='w-full'
-                align='left'
-                onClick={() => {
-                  usersModel.banUnbanUserModel.visibility.open({
-                    user: row.original,
-                  });
-                }}>
-                <HandHeartIcon className='w-4 h-4 text-green-500' />
-                Розблокувати
-              </Button>
-            </View.Condition>
+            <div className='flex flex-col w-fit gap-2'>
+              <View.Condition if={row.original.isMissionReviewer}>
+                <Button
+                  size='sm'
+                  className='w-fit'
+                  align='left'
+                  variant='secondary'
+                  onClick={() => {
+                    usersModel.changeIsReviewerModel.visibility.open({
+                      user: row.original,
+                      isMissionReviewer: false,
+                    });
+                  }}>
+                  <SearchCodeIcon className='w-4 h-4 text-amber-200' />
+                  Зняти з перевірки місій
+                </Button>
+              </View.Condition>
+
+              <View.Condition if={!row.original.isMissionReviewer}>
+                <Button
+                  size='sm'
+                  className='w-fit'
+                  align='left'
+                  variant='secondary'
+                  onClick={() => {
+                    usersModel.changeIsReviewerModel.visibility.open({
+                      user: row.original,
+                      isMissionReviewer: true,
+                    });
+                  }}>
+                  <SearchCodeIcon className='w-4 h-4 text-amber-200' />
+                  Зробити перевіряючим місій
+                </Button>
+              </View.Condition>
+
+              <View.Condition if={row.original.status !== UserStatus.BANNED}>
+                <Button
+                  size='sm'
+                  className='w-fi'
+                  align='left'
+                  variant='secondary'
+                  onClick={() => {
+                    usersModel.banUnbanUserModel.visibility.open({
+                      user: row.original,
+                    });
+                  }}>
+                  <BanIcon className='w-4 h-4 text-red-500' />
+                  Заблокувати
+                </Button>
+              </View.Condition>
+
+              <View.Condition if={row.original.status === UserStatus.BANNED}>
+                <Button
+                  size='sm'
+                  variant='secondary'
+                  className='w-full'
+                  align='left'
+                  onClick={() => {
+                    usersModel.banUnbanUserModel.visibility.open({
+                      user: row.original,
+                    });
+                  }}>
+                  <HandHeartIcon className='w-4 h-4 text-green-500' />
+                  Розблокувати
+                </Button>
+              </View.Condition>
+            </div>
           </Popover>
         </div>
       );

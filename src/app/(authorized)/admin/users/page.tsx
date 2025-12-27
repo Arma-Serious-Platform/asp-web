@@ -11,6 +11,7 @@ import { useDebounce } from 'react-use';
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
 import { BanUnbanUserModal } from '@/features/user/ban-unban-user/ui';
+import { ChangeIsReviewerModal } from '@/features/user/change-is-reviewer/ui';
 
 const AdminPage = observer(() => {
   const [search, setSearch] = useState('');
@@ -46,6 +47,12 @@ const AdminPage = observer(() => {
           }}
           onUnbanSuccess={(user) => {
             usersModel.afterUnbanUser(user);
+          }}
+        />
+        <ChangeIsReviewerModal
+          model={usersModel.changeIsReviewerModel}
+          onSuccess={(userId, isMissionReviewer) => {
+            usersModel.afterChangeIsReviewer(userId, isMissionReviewer);
           }}
         />
         <Input

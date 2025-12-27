@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Mission, MissionStatus, MissionGameSide } from '@/shared/sdk/types';
+import { Mission, MissionGameSide } from '@/shared/sdk/types';
 import { Card } from '@/shared/ui/atoms/card';
 import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
@@ -10,27 +10,11 @@ import Image from 'next/image';
 import { EyeIcon, UsersIcon, LayersIcon, MilestoneIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
-
-const statusLabels: Record<MissionStatus, string> = {
-  [MissionStatus.APPROVED]: 'Схвалено',
-  [MissionStatus.PENDING_APPROVAL]: 'Очікує схвалення',
-  [MissionStatus.CHANGES_REQUESTED]: 'Потрібні зміни',
-};
-
-const statusColors: Record<MissionStatus, string> = {
-  [MissionStatus.APPROVED]:
-    'bg-green-500/20 text-green-400 border-green-500/30',
-  [MissionStatus.PENDING_APPROVAL]:
-    'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  [MissionStatus.CHANGES_REQUESTED]:
-    'bg-red-500/20 text-red-400 border-red-500/30',
-};
-
-const sideTypeColors: Record<MissionGameSide, string> = {
-  [MissionGameSide.BLUE]: 'text-blue-400',
-  [MissionGameSide.RED]: 'text-red-400',
-  [MissionGameSide.GREEN]: 'text-green-400',
-};
+import {
+  statusLabels,
+  statusColors,
+  sideTypeColors,
+} from '@/entities/mission/lib';
 
 type SideInfoProps = {
   label: string;

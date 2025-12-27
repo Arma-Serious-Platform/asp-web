@@ -224,6 +224,13 @@ class ApiModel {
     return await this.instance.post(`/users/unban/${userId}`);
   };
 
+  changeIsMissionReviewer = async (userId: string, isMissionReviewer: boolean) => {
+    return await this.instance.post(`/users/change-is-mission-reviewer`, {
+      userId,
+      isMissionReviewer,
+    });
+  };
+
   /* Squads */
 
   createSquad = async (dto: CreateSquadDto) => {

@@ -1,7 +1,12 @@
 import { SideType, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC, PropsWithChildren } from 'react';
-import { getUserRoleText, getUserStatusText } from '../../lib';
+import {
+  getUserRoleColor,
+  getUserRoleText,
+  getUserStatusText,
+  hasAccessToAdminPanel,
+} from '../../lib';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
@@ -48,36 +53,33 @@ export const UserNicknameText: FC<{
           })}>
           [{tag || user.squad?.tag}]
         </span>
-        <span>{user.nickname}</span>
+        <span
+          className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>
+          {user.nickname}
+        </span>
       </UserProfileLink>
     );
   }
 
   return (
     <UserProfileLink link={link} className={className} user={user}>
-      {user.nickname}
+      <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>
+        {user.nickname}
+      </span>
     </UserProfileLink>
   );
 };
 
 export const UserRoleText: FC<{
   role?: UserRole;
+  isMissionReviewer?: boolean;
   className?: string;
-}> = ({ role, className }) => {
+}> = ({ role, isMissionReviewer, className }) => {
   if (!role) return null;
 
   return (
-    <span
-      className={classNames(
-        {
-          'text-red-700': role === UserRole.OWNER,
-          'text-red-600': role === UserRole.TECH_ADMIN,
-          'text-red-500': role === UserRole.GAME_ADMIN,
-          'text-neutral-400-500': role === UserRole.USER,
-        },
-        className
-      )}>
-      {getUserRoleText(role)}
+    <span className={cn(getUserRoleColor(role, isMissionReviewer), className)}>
+      {getUserRoleText(role, isMissionReviewer)}
     </span>
   );
 };

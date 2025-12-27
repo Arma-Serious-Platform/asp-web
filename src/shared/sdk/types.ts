@@ -110,6 +110,7 @@ export type User = {
   activationTokenExpiresAt: Date | null;
   status: UserStatus;
   role: UserRole;
+  isMissionReviewer: boolean;
   resetPasswordToken: string | null;
   resetPasswordTokenExpiresAt: Date | null;
   avatar: {

@@ -30,9 +30,9 @@ const MissionsPage = observer(() => {
 
   const statusOptions = [
     { label: 'Всі статуси', value: '' },
-    { label: 'Схвалено', value: MissionStatus.APPROVED },
-    { label: 'Очікує схвалення', value: MissionStatus.PENDING_APPROVAL },
-    { label: 'Потрібні зміни', value: MissionStatus.CHANGES_REQUESTED },
+    { label: 'Перевірено', value: MissionStatus.APPROVED },
+    { label: 'Очікує перевірки', value: MissionStatus.PENDING_APPROVAL },
+    { label: 'Потребує змін', value: MissionStatus.CHANGES_REQUESTED },
   ];
 
   const userOptions = [
@@ -45,7 +45,7 @@ const MissionsPage = observer(() => {
       <div className='container mx-auto px-4 py-8'>
         <div className='mb-8'>
           <h1 className='text-3xl font-bold leading-tight tracking-tight text-white mb-2'>
-            Місії
+            Сценарії
           </h1>
           <p className='text-zinc-400'>
             Перегляньте всі доступні місії та створіть нову
