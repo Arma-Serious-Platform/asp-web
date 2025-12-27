@@ -127,6 +127,9 @@ export type User = {
   discordUrl?: string;
   twitchUrl?: string;
   youtubeUrl?: string;
+  _count?: {
+    missions: number;
+  }
 };
 
 export type UpdateUserDto = {

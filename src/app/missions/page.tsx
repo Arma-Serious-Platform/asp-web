@@ -40,6 +40,21 @@ const MissionsPage = observer(() => {
     ...userModel.options,
   ];
 
+  useEffect(() => {
+    const newUrl = new URLSearchParams(window.location.search);
+    const authorName = newUrl.get('author');
+
+    if (authorName) {
+      const author = userModel.options.find(
+        (user) => user.label.toLowerCase() === authorName.toLowerCase()
+      );
+
+      if (author) {
+        missionModel.setAuthorIdFilter(author.value);
+      }
+    }
+  }, []);
+
   return (
     <Layout showHero={false} className='container paper mx-auto my-4'>
       <div className='container mx-auto px-4 py-8'>

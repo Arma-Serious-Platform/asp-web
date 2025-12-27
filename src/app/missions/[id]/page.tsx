@@ -11,7 +11,7 @@ import {
   CreateMissionVersionDto,
   UpdateMissionDto,
 } from '@/shared/sdk/types';
-import { useEffect, useRef, useState, RefObject } from 'react';
+import { useEffect, useRef, useState, RefObject, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -22,6 +22,8 @@ import {
   LoaderIcon,
   UploadIcon,
   EditIcon,
+  CheckCircleIcon,
+  BanIcon,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/config/routes';
 import { useForm, Controller } from 'react-hook-form';
@@ -51,6 +53,10 @@ import {
   statusColors,
   sideTypeColors,
 } from '@/entities/mission/lib';
+import { View } from '@/features/view';
+import { session } from '@/entities/session/model';
+import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
+import { MissionDetailsModel } from './model';
 
 const sideTypeOptions = [
   { label: 'BLUE', value: MissionGameSide.BLUE },
@@ -108,6 +114,7 @@ export default function MissionDetailsPage() {
   const imageRef = useRef<HTMLInputElement>(null);
   const cropperRef = useRef<CropperRef>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
 
   const versionForm = useForm<VersionFormData>({
     mode: 'onChange',
@@ -733,13 +740,56 @@ export default function MissionDetailsPage() {
                               ⭐ {version.rating}
                             </span>
                           )}
-                          <span
-                            className={cn(
-                              'px-2 py-0.5 rounded text-xs font-semibold border',
-                              statusColors[version.status]
-                            )}>
-                            {statusLabels[version.status]}
-                          </span>
+                          <View.Condition
+                            if={
+                              !session.user?.user?.isMissionReviewer ||
+                              version.status !== MissionStatus.PENDING_APPROVAL
+                            }>
+                            <span
+                              className={cn(
+                                'px-2 py-0.5 rounded text-xs font-semibold border',
+                                statusColors[version.status]
+                              )}>
+                              {statusLabels[version.status]}
+                            </span>
+                          </View.Condition>
+
+                          <View.Condition
+                            if={
+                              session.user?.user?.isMissionReviewer &&
+                              version.status === MissionStatus.PENDING_APPROVAL
+                            }>
+                            <Button
+                              variant='secondary'
+                              size='sm'
+                              onClick={() => {
+                                missionDetailsModel.changeMissionVersionStatusModel.visibility.open(
+                                  {
+                                    missionId,
+                                    version,
+                                    status: MissionStatus.APPROVED,
+                                  }
+                                );
+                              }}>
+                              <CheckCircleIcon className='size-4 text-green-500' />
+                              Перевірено
+                            </Button>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => {
+                                missionDetailsModel.changeMissionVersionStatusModel.visibility.open(
+                                  {
+                                    missionId,
+                                    version,
+                                    status: MissionStatus.CHANGES_REQUESTED,
+                                  }
+                                );
+                              }}>
+                              <BanIcon className='size-4 text-destructive' />
+                              Потребує змін
+                            </Button>
+                          </View.Condition>
                         </div>
                       </div>
 
@@ -843,6 +893,14 @@ export default function MissionDetailsPage() {
           </div>
         </div>
       </div>
+      <ChangeMissionVersionStatusModal
+        model={missionDetailsModel.changeMissionVersionStatusModel}
+        onSuccess={async (status) => {
+          // Reload mission to get updated versions
+          const response = await api.findMissionById(missionId);
+          setMission(response.data);
+        }}
+      />
     </Layout>
   );
 }

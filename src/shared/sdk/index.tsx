@@ -17,6 +17,7 @@ import {
   LoginDto,
   LoginResponse,
   Mission,
+  MissionStatus,
   MissionVersion,
   PaginatedResponse,
   RefreshTokenDto,
@@ -224,7 +225,10 @@ class ApiModel {
     return await this.instance.post(`/users/unban/${userId}`);
   };
 
-  changeIsMissionReviewer = async (userId: string, isMissionReviewer: boolean) => {
+  changeIsMissionReviewer = async (
+    userId: string,
+    isMissionReviewer: boolean
+  ) => {
     return await this.instance.post(`/users/change-is-mission-reviewer`, {
       userId,
       isMissionReviewer,
@@ -393,6 +397,19 @@ class ApiModel {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+      }
+    );
+  };
+
+  changeMissionVersionStatus = async (
+    missionId: string,
+    versionId: string,
+    status: MissionStatus
+  ) => {
+    return await this.instance.post(
+      `/missions/${missionId}/versions/${versionId}/change-status`,
+      {
+        status,
       }
     );
   };

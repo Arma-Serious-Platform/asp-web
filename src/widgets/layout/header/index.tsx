@@ -14,6 +14,7 @@ import classNames from 'classnames';
 import {
   Loader2Icon,
   LogOutIcon,
+  MapIcon,
   MenuIcon,
   ShieldUserIcon,
   UserIcon,
@@ -46,19 +47,19 @@ const MainLinks: FC<{
 
   return (
     <>
-      {session.canAccessHeadquarters && (
+      {/* {session.canAccessHeadquarters && (
         <Link className={className} href={ROUTES.headquarters}>
           Штаб
         </Link>
-      )}
-      {!session.canAccessHeadquarters && (
-        <Link
-          className={className}
-          activeClassName={activeClassName}
-          href={ROUTES.home}>
-          Почати грати
-        </Link>
-      )}
+      )} */}
+      {/* {!session.canAccessHeadquarters && ( */}
+      <Link
+        className={className}
+        activeClassName={activeClassName}
+        href={ROUTES.home}>
+        Грати
+      </Link>
+      {/* )} */}
       <Link
         className={className}
         activeClassName={activeClassName}
@@ -168,15 +169,30 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
                   <span>Профіль</span>
                 </Button>
               </NextLink>
-              <NextLink href={`${ROUTES.user.profile}?tab=squad`}>
-                <Button
-                  align='left'
-                  size='sm'
-                  className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5'>
-                  <UsersIcon className='size-4' />
-                  <span>Мій загін</span>
-                </Button>
-              </NextLink>
+              {session.user?.user?.squad && (
+                <NextLink href={`${ROUTES.user.profile}?tab=squad`}>
+                  <Button
+                    align='left'
+                    size='sm'
+                    className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5'>
+                    <UsersIcon className='size-4' />
+                    <span>Мій загін</span>
+                  </Button>
+                </NextLink>
+              )}
+              {Boolean(session.user?.user?._count?.missions) &&
+                session.user?.user?._count?.missions > 0 && (
+                  <NextLink
+                    href={`${ROUTES.missions.root}?author=${session.user?.user?.nickname}`}>
+                    <Button
+                      align='left'
+                      size='sm'
+                      className='flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5'>
+                      <MapIcon className='size-4' />
+                      <span>Мої місії</span>
+                    </Button>
+                  </NextLink>
+                )}
               <View.Condition
                 if={hasAccessToAdminPanel(session.user?.user?.role)}>
                 <NextLink href={ROUTES.admin.users}>
