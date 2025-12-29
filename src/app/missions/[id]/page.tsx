@@ -8,8 +8,8 @@ import {
   Mission,
   MissionStatus,
   MissionGameSide,
-  CreateMissionVersionDto,
   UpdateMissionDto,
+  MissionVersion,
 } from '@/shared/sdk/types';
 import { useEffect, useRef, useState, RefObject, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -29,9 +29,8 @@ import { ROUTES } from '@/shared/config/routes';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Input, NumericInput } from '@/shared/ui/atoms/input';
+import { Input } from '@/shared/ui/atoms/input';
 import { Textarea } from '@/shared/ui/atoms/textarea';
-import { Select } from '@/shared/ui/atoms/select';
 import {
   Dialog,
   DialogContent,
@@ -56,44 +55,15 @@ import {
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
+import { CreateUpdateMissionVersionModal } from '@/features/mission/create-update-version/ui';
 import { MissionDetailsModel } from './model';
-
-const sideTypeOptions = [
-  { label: 'BLUE', value: MissionGameSide.BLUE },
-  { label: 'RED', value: MissionGameSide.RED },
-  { label: 'GREEN', value: MissionGameSide.GREEN },
-];
-
-type VersionFormData = {
-  version: string;
-  missionId: string;
-  attackSideType: MissionGameSide;
-  defenseSideType: MissionGameSide;
-  attackSideSlots: number;
-  defenseSideSlots: number;
-  attackSideName: string;
-  defenseSideName: string;
-  file: File | null;
-};
+import dayjs from 'dayjs';
 
 type MissionFormData = {
   name: string;
   description: string;
   image: File | null;
 };
-
-const createVersionSchema = (missionId: string) =>
-  yup.object().shape({
-    version: yup.string().required("Обов'язково"),
-    missionId: yup.string().required("Обов'язково").default(missionId),
-    attackSideType: yup.string().required("Обов'язково"),
-    defenseSideType: yup.string().required("Обов'язково"),
-    attackSideSlots: yup.number().required("Обов'язково").min(1),
-    defenseSideSlots: yup.number().required("Обов'язково").min(1),
-    attackSideName: yup.string().required("Обов'язково"),
-    defenseSideName: yup.string().required("Обов'язково"),
-    file: yup.mixed().required("Обов'язково"),
-  });
 
 const missionSchema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
@@ -106,31 +76,12 @@ export default function MissionDetailsPage() {
   const missionId = params.id as string;
   const [mission, setMission] = useState<Mission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingVersion, setIsCreatingVersion] = useState(false);
-  const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdatingMission, setIsUpdatingMission] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const cropperRef = useRef<CropperRef>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
-
-  const versionForm = useForm<VersionFormData>({
-    mode: 'onChange',
-    resolver: yupResolver(createVersionSchema(missionId)) as any,
-    defaultValues: {
-      version: '',
-      missionId: missionId,
-      attackSideType: MissionGameSide.BLUE,
-      defenseSideType: MissionGameSide.RED,
-      attackSideSlots: 0,
-      defenseSideSlots: 0,
-      attackSideName: '',
-      defenseSideName: '',
-      file: null,
-    },
-  });
 
   const missionForm = useForm<MissionFormData>({
     mode: 'onChange',
@@ -165,86 +116,27 @@ export default function MissionDetailsPage() {
     }
   }, [missionId]);
 
-  // Autofill version form from previous version when dialog opens
-  useEffect(() => {
-    if (isVersionDialogOpen && mission?.missionVersions?.length > 0) {
-      const previousVersion =
-        mission.missionVersions[mission.missionVersions.length - 1];
+  const handleCreateVersion = () => {
+    if (!mission) return;
+    missionDetailsModel.createUpdateMissionVersionModel.visibility.open({
+      missionId,
+      mission,
+    });
+  };
 
-      // Increment version number
-      const incrementVersion = (version: string): string => {
-        const match = version.match(/^v?(\d+)\.(\d+)$/i);
-        if (match) {
-          const major = parseInt(match[1]);
-          const minor = parseInt(match[2]);
-          return `v${major}.${minor + 1}`;
-        }
-        // If version format doesn't match, try to extract number and increment
-        const numMatch = version.match(/(\d+)/);
-        if (numMatch) {
-          const num = parseInt(numMatch[1]);
-          return `v${num + 1}.0`;
-        }
-        return `v${mission.missionVersions.length + 1}.0`;
-      };
+  const handleEditVersion = (version: MissionVersion) => {
+    if (!mission) return;
+    missionDetailsModel.createUpdateMissionVersionModel.visibility.open({
+      missionId,
+      mission,
+      version,
+    });
+  };
 
-      const newVersion = incrementVersion(previousVersion.version);
-
-      versionForm.reset({
-        version: newVersion,
-        missionId: missionId,
-        attackSideType: previousVersion.attackSideType,
-        defenseSideType: previousVersion.defenseSideType,
-        attackSideSlots: previousVersion.attackSideSlots,
-        defenseSideSlots: previousVersion.defenseSideSlots,
-        attackSideName: previousVersion.attackSideName,
-        defenseSideName: previousVersion.defenseSideName,
-        file: null,
-      });
-    } else if (
-      isVersionDialogOpen &&
-      (!mission?.missionVersions || mission.missionVersions.length === 0)
-    ) {
-      // Reset to defaults if no previous versions
-      versionForm.reset({
-        version: 'v1.0',
-        missionId: missionId,
-        attackSideType: MissionGameSide.BLUE,
-        defenseSideType: MissionGameSide.RED,
-        attackSideSlots: 0,
-        defenseSideSlots: 0,
-        attackSideName: '',
-        defenseSideName: '',
-        file: null,
-      });
-    }
-  }, [isVersionDialogOpen, mission]);
-
-  const handleCreateVersion = async (data: VersionFormData) => {
-    if (!data.file) return;
-
-    try {
-      setIsCreatingVersion(true);
-      await api.createMissionVersion(missionId, {
-        version: data.version,
-        missionId: missionId,
-        attackSideType: data.attackSideType as MissionGameSide,
-        defenseSideType: data.defenseSideType as MissionGameSide,
-        attackSideSlots: data.attackSideSlots,
-        defenseSideSlots: data.defenseSideSlots,
-        attackSideName: data.attackSideName,
-        defenseSideName: data.defenseSideName,
-        file: data.file,
-      });
-      setIsVersionDialogOpen(false);
-      // Reload mission to get updated versions
-      const response = await api.findMissionById(missionId);
-      setMission(response.data);
-    } catch (error) {
-      console.error('Failed to create version:', error);
-    } finally {
-      setIsCreatingVersion(false);
-    }
+  const handleVersionSaved = async () => {
+    // Reload mission to get updated versions
+    const response = await api.findMissionById(missionId);
+    setMission(response.data);
   };
 
   const handleUpdateMission = async (data: MissionFormData) => {
@@ -518,207 +410,16 @@ export default function MissionDetailsPage() {
           <div className='border-t border-white/10 pt-6'>
             <div className='flex items-center justify-between mb-6'>
               <h2 className='text-2xl font-bold text-white'>Версії місії</h2>
-              <Dialog
-                open={isVersionDialogOpen}
-                onOpenChange={setIsVersionDialogOpen}>
-                <DialogOverlay />
-                <DialogTrigger asChild>
-                  <Button variant='default'>
-                    <PlusIcon className='size-4' />
-                    Створити версію
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
-                  <DialogHeader>
-                    <DialogTitle>Створити нову версію</DialogTitle>
-                  </DialogHeader>
-                  <form
-                    className='flex flex-col gap-4'
-                    onSubmit={versionForm.handleSubmit(handleCreateVersion)}>
-                    <Controller
-                      control={versionForm.control}
-                      name='version'
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          label='Версія'
-                          placeholder='v1.0'
-                          error={versionForm.formState.errors.version?.message}
-                        />
-                      )}
-                    />
-
-                    <div className='grid grid-cols-2 gap-4'>
-                      <Controller
-                        control={versionForm.control}
-                        name='attackSideType'
-                        render={({ field }) => (
-                          <Select
-                            label='Тип атакуючої сторони'
-                            options={sideTypeOptions}
-                            value={field.value}
-                            onChange={field.onChange}
-                            error={
-                              versionForm.formState.errors.attackSideType
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                      <Controller
-                        control={versionForm.control}
-                        name='defenseSideType'
-                        render={({ field }) => (
-                          <Select
-                            label='Тип оборонної сторони'
-                            options={sideTypeOptions}
-                            value={field.value}
-                            onChange={field.onChange}
-                            error={
-                              versionForm.formState.errors.defenseSideType
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-4'>
-                      <Controller
-                        control={versionForm.control}
-                        name='attackSideName'
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Назва атакуючої сторони'
-                            error={
-                              versionForm.formState.errors.attackSideName
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                      <Controller
-                        control={versionForm.control}
-                        name='defenseSideName'
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Назва оборонної сторони'
-                            error={
-                              versionForm.formState.errors.defenseSideName
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-4'>
-                      <Controller
-                        control={versionForm.control}
-                        name='attackSideSlots'
-                        render={({ field }) => (
-                          <NumericInput
-                            {...field}
-                            label='Слоти атакуючої сторони'
-                            value={field.value || ''}
-                            onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 0)
-                            }
-                            error={
-                              versionForm.formState.errors.attackSideSlots
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                      <Controller
-                        control={versionForm.control}
-                        name='defenseSideSlots'
-                        render={({ field }) => (
-                          <NumericInput
-                            {...field}
-                            label='Слоти оборонної сторони'
-                            value={field.value || ''}
-                            error={
-                              versionForm.formState.errors.defenseSideSlots
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                    </div>
-
-                    <Controller
-                      control={versionForm.control}
-                      name='file'
-                      render={({ field: { onChange, value, ...field } }) => (
-                        <div className='flex flex-col gap-2'>
-                          <label className='text-sm font-semibold text-zinc-300'>
-                            Файл місії
-                          </label>
-                          <Button
-                            variant='outline'
-                            className='w-full'
-                            onClick={(e) => {
-                              e.preventDefault();
-                              fileRef.current?.click();
-                            }}>
-                            <UploadIcon className='size-4' />
-                            {value ? 'Змінити файл' : 'Обрати файл'}
-                          </Button>
-                          <input
-                            ref={fileRef}
-                            type='file'
-                            accept='.pbo,.p3d'
-                            onChange={(e) =>
-                              onChange(e.target.files?.[0] || null)
-                            }
-                            className='invisible'
-                          />
-                          {versionForm.formState.errors.file && (
-                            <p className='text-sm text-red-400'>
-                              {versionForm.formState.errors.file.message}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    />
-
-                    <div className='flex justify-between pt-4'>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        onClick={() => setIsVersionDialogOpen(false)}>
-                        Скасувати
-                      </Button>
-                      <Button
-                        type='submit'
-                        disabled={
-                          isCreatingVersion || !versionForm.formState.isValid
-                        }>
-                        {isCreatingVersion ? (
-                          <>
-                            <LoaderIcon className='size-4 animate-spin' />
-                            Створення...
-                          </>
-                        ) : (
-                          'Створити версію'
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
+              <Button variant='default' onClick={handleCreateVersion}>
+                <PlusIcon className='size-4' />
+                Створити версію
+              </Button>
             </div>
 
             {mission?.missionVersions?.length === 0 ? (
               <div className='paper flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 text-center'>
                 <p className='text-zinc-400'>Версій поки немає</p>
-                <Button
-                  variant='default'
-                  onClick={() => setIsVersionDialogOpen(true)}>
+                <Button variant='default' onClick={handleCreateVersion}>
                   <PlusIcon className='size-4' />
                   Створити першу версію
                 </Button>
@@ -867,24 +568,33 @@ export default function MissionDetailsPage() {
 
                       <div className='flex items-center gap-2 text-xs text-zinc-400 pt-2 border-t border-white/5'>
                         <CalendarIcon className='size-3.5' />
+                        Останні зміни:{' '}
                         <span>
-                          {new Date(version.createdAt).toLocaleDateString(
-                            'uk-UA'
-                          )}
+                          {dayjs(version.updatedAt).format('DD.MM.YYYY HH:mm')}
                         </span>
                       </div>
 
-                      {version.file?.url && (
+                      <div className='flex gap-2'>
+                        {version.file?.url && (
+                          <Button
+                            variant='outline'
+                            className='flex-1'
+                            onClick={() =>
+                              window.open(version.file?.url, '_blank')
+                            }>
+                            <DownloadIcon className='size-4' />
+                            Завантажити
+                          </Button>
+                        )}
                         <Button
                           variant='outline'
-                          className='w-full'
-                          onClick={() =>
-                            window.open(version.file?.url, '_blank')
-                          }>
-                          <DownloadIcon className='size-4' />
-                          Завантажити
+                          size={version.file?.url ? 'default' : 'default'}
+                          className={version.file?.url ? '' : 'w-full'}
+                          onClick={() => handleEditVersion(version)}>
+                          <EditIcon className='size-4' />
+                          {version.file?.url ? '' : 'Редагувати'}
                         </Button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -900,6 +610,10 @@ export default function MissionDetailsPage() {
           const response = await api.findMissionById(missionId);
           setMission(response.data);
         }}
+      />
+      <CreateUpdateMissionVersionModal
+        model={missionDetailsModel.createUpdateMissionVersionModel}
+        onSuccess={handleVersionSaved}
       />
     </Layout>
   );

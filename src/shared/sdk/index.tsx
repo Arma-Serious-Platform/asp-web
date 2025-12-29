@@ -27,6 +27,7 @@ import {
   Squad,
   SquadInvitation,
   UpdateMissionDto,
+  UpdateMissionVersionDto,
   UpdateServerDto,
   UpdateSquadDto,
   UpdateUserDto,
@@ -387,11 +388,86 @@ class ApiModel {
     formData.append('attackSideName', dto.attackSideName);
     formData.append('defenseSideName', dto.defenseSideName);
 
-    dto.attackSideWeaponry?.forEach((weaponry) => {
-      formData.append('attackSideWeaponry', weaponry.name);
-    });
+    if (dto.weaponry && dto.weaponry.length > 0) {
+      dto.weaponry.forEach((weaponry, index) => {
+        formData.append(`weaponry[${index}][name]`, weaponry.name);
+        formData.append(`weaponry[${index}][count]`, weaponry.count.toString());
+        formData.append(`weaponry[${index}][type]`, weaponry.type);
+        if (weaponry.description) {
+          formData.append(`weaponry[${index}][description]`, weaponry.description);
+        }
+      });
+    }
+
+    if (dto.rating !== undefined) {
+      formData.append('rating', dto.rating.toString());
+    }
+
     return await this.instance.post<MissionVersion>(
       `/missions/${missionId}/versions`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+  };
+
+  updateMissionVersion = async (
+    missionId: string,
+    versionId: string,
+    dto: UpdateMissionVersionDto
+  ) => {
+    const formData = new FormData();
+    if (dto.file) {
+      formData.append('file', dto.file);
+    }
+
+    if (dto.version) {
+      formData.append('version', dto.version);
+    }
+    if (dto.attackSideType) {
+      formData.append('attackSideType', dto.attackSideType);
+    }
+    if (dto.defenseSideType) {
+      formData.append('defenseSideType', dto.defenseSideType);
+    }
+    if (dto.attackSideSlots !== undefined) {
+      formData.append('attackSideSlots', dto.attackSideSlots.toString());
+    }
+    if (dto.defenseSideSlots !== undefined) {
+      formData.append('defenseSideSlots', dto.defenseSideSlots.toString());
+    }
+    if (dto.attackSideName) {
+      formData.append('attackSideName', dto.attackSideName);
+    }
+    if (dto.defenseSideName) {
+      formData.append('defenseSideName', dto.defenseSideName);
+    }
+
+    if (dto.weaponry !== undefined) {
+      if (dto.weaponry.length > 0) {
+        dto.weaponry.forEach((weaponry, index) => {
+          formData.append(`weaponry[${index}][name]`, weaponry.name);
+          formData.append(`weaponry[${index}][count]`, weaponry.count.toString());
+          formData.append(`weaponry[${index}][type]`, weaponry.type);
+          if (weaponry.description) {
+            formData.append(`weaponry[${index}][description]`, weaponry.description);
+          }
+        });
+      } else {
+        // Empty array means clear all weaponry
+        formData.append('weaponry', '[]');
+      }
+    }
+
+    if (dto.rating !== undefined) {
+      formData.append('rating', dto.rating.toString());
+    }
+
+    return await this.instance.patch<MissionVersion>(
+      `/missions/${missionId}/versions/${versionId}`,
       formData,
       {
         headers: {

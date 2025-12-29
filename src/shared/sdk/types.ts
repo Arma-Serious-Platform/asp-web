@@ -327,8 +327,7 @@ export type MissionVersion = {
     url: string;
   }
   rating?: number;
-  attackSideWeaponry?: MissionWeaponry[];
-  defenseSideWeaponry?: MissionWeaponry[];
+  weaponry?: MissionWeaponry[];
   status: MissionStatus;
   createdAt: string;
   updatedAt: string;
@@ -339,6 +338,7 @@ export type MissionWeaponry = {
   name: string;
   description?: string;
   count: number;
+  type: MissionGameSide;
   createdAt: string;
   updatedAt: string;
 }
@@ -347,6 +347,7 @@ export type CreateMissionWeaponryDto = {
   name: string;
   description?: string;
   count: number;
+  type: MissionGameSide;
 }
 
 export type CreateMissionVersionDto = {
@@ -360,6 +361,18 @@ export type CreateMissionVersionDto = {
   defenseSideName: string;
   file: File;
   rating?: number;
-  attackSideWeaponry?: CreateMissionWeaponryDto[];
-  defenseSideWeaponry?: CreateMissionWeaponryDto[];
+  weaponry?: CreateMissionWeaponryDto[];
+}
+
+export type UpdateMissionVersionDto = {
+  version?: string;
+  attackSideType?: MissionGameSide;
+  defenseSideType?: MissionGameSide;
+  attackSideSlots?: number;
+  defenseSideSlots?: number;
+  attackSideName?: string;
+  defenseSideName?: string;
+  file?: File;
+  rating?: number;
+  weaponry?: CreateMissionWeaponryDto[];
 }
