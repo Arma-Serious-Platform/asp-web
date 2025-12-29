@@ -63,18 +63,6 @@ const createVersionSchema = (missionId: string) =>
   });
 
 const incrementVersion = (version: string, totalVersions: number): string => {
-  const match = version.match(/^v?(\d+)\.(\d+)$/i);
-  if (match) {
-    const major = parseInt(match[1]);
-    const minor = parseInt(match[2]);
-    return `v${major}.${minor + 1}`;
-  }
-  // If version format doesn't match, try to extract number and increment
-  const numMatch = version.match(/(\d+)/);
-  if (numMatch) {
-    const num = parseInt(numMatch[1]);
-    return `v${num + 1}.0`;
-  }
   return `v${totalVersions + 1}.0`;
 };
 
