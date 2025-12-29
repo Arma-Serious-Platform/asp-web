@@ -247,7 +247,7 @@ const CreateUpdateMissionVersionModal: FC<{
       open={model.visibility.isOpen}
       onOpenChange={model.visibility.switch}>
       <DialogOverlay />
-      <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+      <DialogContent className='min-w-[95vw] max-w-none max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>
             {editingVersion ? 'Редагувати версію' : 'Створити нову версію'}
@@ -269,100 +269,163 @@ const CreateUpdateMissionVersionModal: FC<{
             )}
           />
 
-          <div className='grid grid-cols-2 gap-4'>
-            <Controller
-              control={versionForm.control}
-              name='attackSideType'
-              render={({ field }) => (
-                <Select
-                  label='Тип атакуючої сторони'
-                  options={sideTypeOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={versionForm.formState.errors.attackSideType?.message}
-                />
-              )}
-            />
-            <Controller
-              control={versionForm.control}
-              name='defenseSideType'
-              render={({ field }) => (
-                <Select
-                  label='Тип оборонної сторони'
-                  options={sideTypeOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={versionForm.formState.errors.defenseSideType?.message}
-                />
-              )}
-            />
-          </div>
+          {/* Sides and Weaponry in 2 columns */}
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            {/* Attack Side Column */}
+            <div className='flex flex-col gap-4'>
+              <h3 className='text-lg font-semibold text-white'>
+                Атакуюча сторона
+              </h3>
+              <Controller
+                control={versionForm.control}
+                name='attackSideType'
+                render={({ field }) => (
+                  <Select
+                    label='Тип атакуючої сторони'
+                    options={sideTypeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={versionForm.formState.errors.attackSideType?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={versionForm.control}
+                name='attackSideName'
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='Назва атакуючої сторони'
+                    error={versionForm.formState.errors.attackSideName?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={versionForm.control}
+                name='attackSideSlots'
+                render={({ field }) => (
+                  <NumericInput
+                    {...field}
+                    label='Слоти атакуючої сторони'
+                    value={field.value || ''}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value) || 0)
+                    }
+                    error={versionForm.formState.errors.attackSideSlots?.message}
+                  />
+                )}
+              />
 
-          <div className='grid grid-cols-2 gap-4'>
-            <Controller
-              control={versionForm.control}
-              name='attackSideName'
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Назва атакуючої сторони'
-                  error={versionForm.formState.errors.attackSideName?.message}
-                />
-              )}
-            />
-            <Controller
-              control={versionForm.control}
-              name='defenseSideName'
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Назва оборонної сторони'
-                  error={versionForm.formState.errors.defenseSideName?.message}
-                />
-              )}
-            />
-          </div>
-
-          <div className='grid grid-cols-2 gap-4'>
-            <Controller
-              control={versionForm.control}
-              name='attackSideSlots'
-              render={({ field }) => (
-                <NumericInput
-                  {...field}
-                  label='Слоти атакуючої сторони'
-                  value={field.value || ''}
-                  onChange={(e) =>
-                    field.onChange(parseInt(e.target.value) || 0)
-                  }
-                  error={versionForm.formState.errors.attackSideSlots?.message}
-                />
-              )}
-            />
-            <Controller
-              control={versionForm.control}
-              name='defenseSideSlots'
-              render={({ field }) => (
-                <NumericInput
-                  {...field}
-                  label='Слоти оборонної сторони'
-                  value={field.value || ''}
-                  error={versionForm.formState.errors.defenseSideSlots?.message}
-                />
-              )}
-            />
-          </div>
-
-          {/* Weaponry Management */}
-          <div className='flex flex-col gap-4'>
-            <h3 className='text-lg font-semibold text-white'>Озброєння</h3>
-
-            {/* Attack Side Weaponry */}
-            <div className='flex flex-col gap-3'>
-              <div className='flex items-center justify-between'>
-                <h4 className='text-sm font-semibold text-zinc-300'>
-                  Атакуюча сторона ({versionForm.watch('attackSideType')})
-                </h4>
+              {/* Attack Side Weaponry */}
+              <div className='flex flex-col gap-3 mt-2'>
+                <div className='flex items-center justify-between'>
+                  <h4 className='text-sm font-semibold text-zinc-300'>
+                    Озброєння ({versionForm.watch('attackSideType')})
+                  </h4>
+                  
+                </div>
+                {versionForm.watch('attackWeaponry').map((weaponry, index) => (
+                  <div
+                    key={index}
+                    className='flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40'>
+                    <div className='flex items-start gap-2'>
+                      <div className='flex-1 flex flex-col gap-2'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+                          <Controller
+                            control={versionForm.control}
+                            name={`attackWeaponry.${index}.name`}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='Назва'
+                                placeholder='Назва озброєння'
+                                error={
+                                  versionForm.formState.errors.attackWeaponry?.[
+                                    index
+                                  ]?.name?.message
+                                }
+                              />
+                            )}
+                          />
+                          <Controller
+                            control={versionForm.control}
+                            name={`attackWeaponry.${index}.description`}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='Опис (необовʼязково)'
+                                placeholder='Опис озброєння'
+                              />
+                            )}
+                          />
+                        </div>
+                        <div className='flex flex-col sm:flex-row items-start sm:items-center gap-2'>
+                          <Controller
+                            control={versionForm.control}
+                            name={`attackWeaponry.${index}.count`}
+                            render={({ field }) => (
+                              <div className='flex flex-col gap-1'>
+                                <label className='text-xs font-semibold text-zinc-400'>
+                                  Кількість
+                                </label>
+                                <div className='flex items-center gap-2'>
+                                  <Button
+                                    type='button'
+                                    variant='outline'
+                                    size='sm'
+                                    className='h-9 w-9 p-0'
+                                    onClick={() => {
+                                      const current = field.value || 1;
+                                      field.onChange(Math.max(1, current - 1));
+                                    }}>
+                                    <MinusIcon className='size-3' />
+                                  </Button>
+                                  <NumericInput
+                                    {...field}
+                                    value={field.value || ''}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        parseInt(e.target.value) || 1
+                                      )
+                                    }
+                                    className='w-20'
+                                    min={1}
+                                  />
+                                  <Button
+                                    type='button'
+                                    variant='outline'
+                                    size='sm'
+                                    className='h-9 w-9 p-0'
+                                    onClick={() => {
+                                      const current = field.value || 1;
+                                      field.onChange(current + 1);
+                                    }}>
+                                    <PlusIcon className='size-3' />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          />
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='sm'
+                            className='h-9 w-9 p-0 mt-5 ml-auto'
+                            onClick={() => {
+                              const current =
+                                versionForm.getValues('attackWeaponry');
+                              versionForm.setValue(
+                                'attackWeaponry',
+                                current.filter((_, i) => i !== index)
+                              );
+                            }}>
+                            <TrashIcon className='size-4 text-red-400' />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
                 <Button
                   type='button'
                   variant='outline'
@@ -383,116 +446,159 @@ const CreateUpdateMissionVersionModal: FC<{
                   Додати
                 </Button>
               </div>
-              {versionForm.watch('attackWeaponry').map((weaponry, index) => (
-                <div
-                  key={index}
-                  className='flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40'>
-                  <div className='flex items-start gap-2'>
-                    <div className='flex-1 flex flex-col gap-2'>
-                      <div className='flex flex-col gap-4'>
-                        <Controller
-                          control={versionForm.control}
-                          name={`attackWeaponry.${index}.name`}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='Назва'
-                              placeholder='Назва озброєння'
-                              error={
-                                versionForm.formState.errors.attackWeaponry?.[
-                                  index
-                                ]?.name?.message
-                              }
-                            />
-                          )}
-                        />
-                        <Controller
-                          control={versionForm.control}
-                          name={`attackWeaponry.${index}.description`}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='Опис (необовʼязково)'
-                              placeholder='Опис озброєння'
-                            />
-                          )}
-                        />
-                      </div>
-                      <div className='flex items-center gap-2'>
-                        <Controller
-                          control={versionForm.control}
-                          name={`attackWeaponry.${index}.count`}
-                          render={({ field }) => (
-                            <div className='flex-1 flex flex-col gap-1'>
-                              <label className='text-xs font-semibold text-zinc-400'>
-                                Кількість
-                              </label>
-                              <div className='flex items-center gap-2'>
-                                <Button
-                                  type='button'
-                                  variant='outline'
-                                  size='sm'
-                                  className='h-9 w-9 p-0'
-                                  onClick={() => {
-                                    const current = field.value || 1;
-                                    field.onChange(Math.max(1, current - 1));
-                                  }}>
-                                  <MinusIcon className='size-3' />
-                                </Button>
-                                <NumericInput
-                                  {...field}
-                                  value={field.value || ''}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      parseInt(e.target.value) || 1
-                                    )
-                                  }
-                                  className='flex-1'
-                                  min={1}
-                                />
-                                <Button
-                                  type='button'
-                                  variant='outline'
-                                  size='sm'
-                                  className='h-9 w-9 p-0'
-                                  onClick={() => {
-                                    const current = field.value || 1;
-                                    field.onChange(current + 1);
-                                  }}>
-                                  <PlusIcon className='size-3' />
-                                </Button>
+            </div>
+
+            {/* Defense Side Column */}
+            <div className='flex flex-col gap-4'>
+              <h3 className='text-lg font-semibold text-white'>
+                Оборонна сторона
+              </h3>
+              <Controller
+                control={versionForm.control}
+                name='defenseSideType'
+                render={({ field }) => (
+                  <Select
+                    label='Тип оборонної сторони'
+                    options={sideTypeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={versionForm.formState.errors.defenseSideType?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={versionForm.control}
+                name='defenseSideName'
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='Назва оборонної сторони'
+                    error={versionForm.formState.errors.defenseSideName?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={versionForm.control}
+                name='defenseSideSlots'
+                render={({ field }) => (
+                  <NumericInput
+                    {...field}
+                    label='Слоти оборонної сторони'
+                    value={field.value || ''}
+                    error={versionForm.formState.errors.defenseSideSlots?.message}
+                  />
+                )}
+              />
+
+              {/* Defense Side Weaponry */}
+              <div className='flex flex-col gap-3 mt-2'>
+                <div className='flex items-center justify-between'>
+                  <h4 className='text-sm font-semibold text-zinc-300'>
+                    Озброєння ({versionForm.watch('defenseSideType')})
+                  </h4>
+                </div>
+                {versionForm.watch('defenseWeaponry').map((weaponry, index) => (
+                  <div
+                    key={index}
+                    className='flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40'>
+                    <div className='flex items-start gap-2'>
+                      <div className='flex-1 flex flex-col gap-2'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+                          <Controller
+                            control={versionForm.control}
+                            name={`defenseWeaponry.${index}.name`}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='Назва'
+                                placeholder='Назва озброєння'
+                                error={
+                                  versionForm.formState.errors.defenseWeaponry?.[
+                                    index
+                                  ]?.name?.message
+                                }
+                              />
+                            )}
+                          />
+                          <Controller
+                            control={versionForm.control}
+                            name={`defenseWeaponry.${index}.description`}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='Опис (необовʼязково)'
+                                placeholder='Опис озброєння'
+                              />
+                            )}
+                          />
+                        </div>
+                        <div className='flex flex-col sm:flex-row items-start sm:items-center gap-2'>
+                          <Controller
+                            control={versionForm.control}
+                            name={`defenseWeaponry.${index}.count`}
+                            render={({ field }) => (
+                              <div className='flex flex-col gap-1'>
+                                <label className='text-xs font-semibold text-zinc-400'>
+                                  Кількість
+                                </label>
+                                <div className='flex items-center gap-2'>
+                                  <Button
+                                    type='button'
+                                    variant='outline'
+                                    size='sm'
+                                    className='h-9 w-9 p-0'
+                                    onClick={() => {
+                                      const current = field.value || 1;
+                                      field.onChange(Math.max(1, current - 1));
+                                    }}>
+                                    <MinusIcon className='size-3' />
+                                  </Button>
+                                  <NumericInput
+                                    {...field}
+                                    value={field.value || ''}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        parseInt(e.target.value) || 1
+                                      )
+                                    }
+                                    className='w-20'
+                                    min={1}
+                                  />
+                                  <Button
+                                    type='button'
+                                    variant='outline'
+                                    size='sm'
+                                    className='h-9 w-9 p-0'
+                                    onClick={() => {
+                                      const current = field.value || 1;
+                                      field.onChange(current + 1);
+                                    }}>
+                                    <PlusIcon className='size-3' />
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        />
-                        <Button
-                          type='button'
-                          variant='ghost'
-                          size='sm'
-                          className='h-9 w-9 p-0 mt-5'
-                          onClick={() => {
-                            const current =
-                              versionForm.getValues('attackWeaponry');
-                            versionForm.setValue(
-                              'attackWeaponry',
-                              current.filter((_, i) => i !== index)
-                            );
-                          }}>
-                          <TrashIcon className='size-4 text-red-400' />
-                        </Button>
+                            )}
+                          />
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='sm'
+                            className='h-9 w-9 p-0 mt-5 ml-auto'
+                            onClick={() => {
+                              const current =
+                                versionForm.getValues('defenseWeaponry');
+                              versionForm.setValue(
+                                'defenseWeaponry',
+                                current.filter((_, i) => i !== index)
+                              );
+                            }}>
+                            <TrashIcon className='size-4 text-red-400' />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Defense Side Weaponry */}
-            <div className='flex flex-col gap-3'>
-              <div className='flex items-center justify-between'>
-                <h4 className='text-sm font-semibold text-zinc-300'>
-                  Оборонна сторона ({versionForm.watch('defenseSideType')})
-                </h4>
+                ))}
                 <Button
                   type='button'
                   variant='outline'
@@ -513,107 +619,6 @@ const CreateUpdateMissionVersionModal: FC<{
                   Додати
                 </Button>
               </div>
-              {versionForm.watch('defenseWeaponry').map((weaponry, index) => (
-                <div
-                  key={index}
-                  className='flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40'>
-                  <div className='flex items-start gap-2'>
-                    <div className='flex-1 flex flex-col gap-2'>
-                      <Controller
-                        control={versionForm.control}
-                        name={`defenseWeaponry.${index}.name`}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Назва'
-                            placeholder='Назва озброєння'
-                            error={
-                              versionForm.formState.errors.defenseWeaponry?.[
-                                index
-                              ]?.name?.message
-                            }
-                          />
-                        )}
-                      />
-                      <Controller
-                        control={versionForm.control}
-                        name={`defenseWeaponry.${index}.description`}
-                        render={({ field }) => (
-                          <Textarea
-                            {...field}
-                            label='Опис (необовʼязково)'
-                            rows={2}
-                            placeholder='Опис озброєння'
-                          />
-                        )}
-                      />
-                      <div className='flex items-center gap-2'>
-                        <Controller
-                          control={versionForm.control}
-                          name={`defenseWeaponry.${index}.count`}
-                          render={({ field }) => (
-                            <div className='flex-1 flex flex-col gap-1'>
-                              <label className='text-xs font-semibold text-zinc-400'>
-                                Кількість
-                              </label>
-                              <div className='flex items-center gap-2'>
-                                <Button
-                                  type='button'
-                                  variant='outline'
-                                  size='sm'
-                                  className='h-9 w-9 p-0'
-                                  onClick={() => {
-                                    const current = field.value || 1;
-                                    field.onChange(Math.max(1, current - 1));
-                                  }}>
-                                  <MinusIcon className='size-3' />
-                                </Button>
-                                <NumericInput
-                                  {...field}
-                                  value={field.value || ''}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      parseInt(e.target.value) || 1
-                                    )
-                                  }
-                                  className='flex-1'
-                                  min={1}
-                                />
-                                <Button
-                                  type='button'
-                                  variant='outline'
-                                  size='sm'
-                                  className='h-9 w-9 p-0'
-                                  onClick={() => {
-                                    const current = field.value || 1;
-                                    field.onChange(current + 1);
-                                  }}>
-                                  <PlusIcon className='size-3' />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                        />
-                        <Button
-                          type='button'
-                          variant='ghost'
-                          size='sm'
-                          className='h-9 w-9 p-0 mt-5'
-                          onClick={() => {
-                            const current =
-                              versionForm.getValues('defenseWeaponry');
-                            versionForm.setValue(
-                              'defenseWeaponry',
-                              current.filter((_, i) => i !== index)
-                            );
-                          }}>
-                          <TrashIcon className='size-4 text-red-400' />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 
