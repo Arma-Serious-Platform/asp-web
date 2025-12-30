@@ -9,12 +9,14 @@ import {
   EditIcon,
   CheckCircleIcon,
   BanIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
 } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import dayjs from 'dayjs';
 
 type MissionVersionCardProps = {
@@ -34,6 +36,9 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   onEdit,
   onChangeStatus,
 }) => {
+  const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(false);
+  const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
+  
   const attackWeaponry = (version.weaponry || []).filter(
     (w) => w.type === version.attackSideType
   );
@@ -42,8 +47,8 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   );
 
   return (
-    <div className='paper flex flex-col gap-4 rounded-xl border p-5 shadow-lg transition-all duration-300 hover:border-lime-500/50'>
-      <div className='flex flex-col gap-4'>
+    <div className='paper flex flex-col gap-4 rounded-xl border p-5 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative'>
+      <div className='flex flex-col gap-4 pb-16'>
         <div className='flex items-center justify-between'>
           <h3 className='text-lg font-bold text-white'>Версія {version.version}</h3>
           <div className='flex items-center gap-2'>
@@ -99,9 +104,9 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </div>
         </div>
 
-        <div className='flex flex-col gap-3'>
+        <div className='flex flex-col sm:flex-row gap-3'>
           {/* Attack Side */}
-          <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5'>
+          <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5 flex-1'>
             <div className='flex items-center justify-between'>
               <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
                 Атака
@@ -135,42 +140,54 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
             </div>
             {attackWeaponry.length > 0 && (
               <div className='mt-2 pt-2 border-t border-white/5'>
-                <span
-                  className={cn(
-                    'text-xs font-semibold',
-                    sideTypeColors[version.attackSideType]
-                  )}>
-                  Озброєння ({attackWeaponry.length})
-                </span>
-                <div className='mt-1.5 flex flex-col gap-1'>
-                  {attackWeaponry.map((weaponry, index) => (
-                    <div
-                      key={weaponry.id || index}
-                      className='p-1.5 rounded bg-black/40 border border-white/5'>
-                      <div className='flex items-start justify-between gap-2'>
-                        <div className='flex-1'>
-                          <div className='font-medium text-sm text-white'>
-                            {weaponry.name}
-                          </div>
-                          {weaponry.description && (
-                            <div className='text-xs text-zinc-400 mt-0.5'>
-                              {weaponry.description}
+                <button
+                  type='button'
+                  onClick={() => setIsAttackWeaponryOpen(!isAttackWeaponryOpen)}
+                  className='flex items-center justify-between w-full hover:opacity-80 transition-opacity'>
+                  <span
+                    className={cn(
+                      'text-xs font-semibold',
+                      sideTypeColors[version.attackSideType]
+                    )}>
+                    Озброєння ({attackWeaponry.length})
+                  </span>
+                  {isAttackWeaponryOpen ? (
+                    <ChevronUpIcon className='size-4 text-zinc-400' />
+                  ) : (
+                    <ChevronDownIcon className='size-4 text-zinc-400' />
+                  )}
+                </button>
+                {isAttackWeaponryOpen && (
+                  <div className='mt-1.5 flex flex-col gap-1'>
+                    {attackWeaponry.map((weaponry, index) => (
+                      <div
+                        key={weaponry.id || index}
+                        className='p-1.5 rounded bg-black/40 border border-white/5'>
+                        <div className='flex items-start justify-between gap-2'>
+                          <div className='flex-1'>
+                            <div className='font-medium text-sm text-white'>
+                              {weaponry.name}
                             </div>
-                          )}
+                            {weaponry.description && (
+                              <div className='text-xs text-zinc-400 mt-0.5'>
+                                {weaponry.description}
+                              </div>
+                            )}
+                          </div>
+                          <span className='text-sm font-semibold text-zinc-300'>
+                            x{weaponry.count}
+                          </span>
                         </div>
-                        <span className='text-sm font-semibold text-zinc-300'>
-                          x{weaponry.count}
-                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* Defense Side */}
-          <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5'>
+          <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5 flex-1'>
             <div className='flex items-center justify-between'>
               <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
                 Оборона
@@ -204,36 +221,48 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
             </div>
             {defenseWeaponry.length > 0 && (
               <div className='mt-2 pt-2 border-t border-white/5'>
-                <span
-                  className={cn(
-                    'text-xs font-semibold',
-                    sideTypeColors[version.defenseSideType]
-                  )}>
-                  Озброєння ({defenseWeaponry.length})
-                </span>
-                <div className='mt-1.5 flex flex-col gap-1'>
-                  {defenseWeaponry.map((weaponry, index) => (
-                    <div
-                      key={weaponry.id || index}
-                      className='p-1.5 rounded bg-black/40 border border-white/5'>
-                      <div className='flex items-start justify-between gap-2'>
-                        <div className='flex-1'>
-                          <div className='font-medium text-sm text-white'>
-                            {weaponry.name}
-                          </div>
-                          {weaponry.description && (
-                            <div className='text-xs text-zinc-400 mt-0.5'>
-                              {weaponry.description}
+                <button
+                  type='button'
+                  onClick={() => setIsDefenseWeaponryOpen(!isDefenseWeaponryOpen)}
+                  className='flex items-center justify-between w-full hover:opacity-80 transition-opacity'>
+                  <span
+                    className={cn(
+                      'text-xs font-semibold',
+                      sideTypeColors[version.defenseSideType]
+                    )}>
+                    Озброєння ({defenseWeaponry.length})
+                  </span>
+                  {isDefenseWeaponryOpen ? (
+                    <ChevronUpIcon className='size-4 text-zinc-400' />
+                  ) : (
+                    <ChevronDownIcon className='size-4 text-zinc-400' />
+                  )}
+                </button>
+                {isDefenseWeaponryOpen && (
+                  <div className='mt-1.5 flex flex-col gap-1'>
+                    {defenseWeaponry.map((weaponry, index) => (
+                      <div
+                        key={weaponry.id || index}
+                        className='p-1.5 rounded bg-black/40 border border-white/5'>
+                        <div className='flex items-start justify-between gap-2'>
+                          <div className='flex-1'>
+                            <div className='font-medium text-sm text-white'>
+                              {weaponry.name}
                             </div>
-                          )}
+                            {weaponry.description && (
+                              <div className='text-xs text-zinc-400 mt-0.5'>
+                                {weaponry.description}
+                              </div>
+                            )}
+                          </div>
+                          <span className='text-sm font-semibold text-zinc-300'>
+                            x{weaponry.count}
+                          </span>
                         </div>
-                        <span className='text-sm font-semibold text-zinc-300'>
-                          x{weaponry.count}
-                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -244,26 +273,27 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           Останні зміни:{' '}
           <span>{dayjs(version.updatedAt).format('DD.MM.YYYY HH:mm')}</span>
         </div>
+      </div>
 
-        <div className='flex gap-2'>
-          {version.file?.url && (
-            <Button
-              variant='outline'
-              className='flex-1'
-              onClick={() => window.open(version.file?.url, '_blank')}>
-              <DownloadIcon className='size-4' />
-              Завантажити
-            </Button>
-          )}
+      {/* Fixed Bottom Actions */}
+      <div className='absolute bottom-0 left-0 right-0 p-5 pt-0 flex gap-2 bg-gradient-to-t from-black/95 via-black/90 to-transparent'>
+        {version.file?.url && (
           <Button
             variant='outline'
-            size={version.file?.url ? 'default' : 'default'}
-            className={version.file?.url ? '' : 'w-full'}
-            onClick={() => onEdit(version)}>
-            <EditIcon className='size-4' />
-            {version.file?.url ? '' : 'Редагувати'}
+            className='flex-1'
+            onClick={() => window.open(version.file?.url, '_blank')}>
+            <DownloadIcon className='size-4' />
+            Завантажити
           </Button>
-        </div>
+        )}
+        <Button
+          variant='outline'
+          size={version.file?.url ? 'default' : 'default'}
+          className={version.file?.url ? '' : 'w-full'}
+          onClick={() => onEdit(version)}>
+          <EditIcon className='size-4' />
+          {version.file?.url ? '' : 'Редагувати'}
+        </Button>
       </div>
     </div>
   );

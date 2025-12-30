@@ -167,6 +167,32 @@ export default function MissionDetailsPage() {
             </div>
           </div>
 
+          {/* Last Version Details */}
+          {mission?.missionVersions &&
+            mission.missionVersions.length > 0 && (
+              <div className='border-t border-white/10 pt-6'>
+                <h2 className='text-xl font-bold text-white mb-4'>
+                  Остання версія:{' '}
+                  {
+                    mission.missionVersions[mission.missionVersions.length - 1]
+                      .version
+                  }
+                </h2>
+                <MissionVersionCard
+                  version={
+                    mission.missionVersions?.[0]
+                  }
+                  missionId={missionId}
+                  onEdit={handleEditVersion}
+                  onChangeStatus={(params) => {
+                    missionDetailsModel.changeMissionVersionStatusModel.visibility.open(
+                      params
+                    );
+                  }}
+                />
+              </div>
+            )}
+
           {/* Versions Section */}
           <div className='border-t border-white/10 pt-6'>
             <div className='flex items-center justify-between mb-6'>
