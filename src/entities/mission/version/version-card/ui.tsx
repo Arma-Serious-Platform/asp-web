@@ -49,12 +49,15 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   return (
     <div className='paper flex flex-col gap-4 rounded-xl border p-5 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative'>
       <div className='flex flex-col gap-4 pb-16'>
+        {/* Header */}
         <div className='flex items-center justify-between'>
-          <h3 className='text-lg font-bold text-white'>Версія {version.version}</h3>
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-3'>
+            <h3 className='text-lg font-bold text-white'>Версія {version.version}</h3>
             {version.rating && (
               <span className='text-sm text-yellow-400'>⭐ {version.rating}</span>
             )}
+          </div>
+          <div className='flex items-center gap-2'>
             <View.Condition
               if={
                 !session.user?.user?.isMissionReviewer ||
@@ -104,51 +107,41 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </div>
         </div>
 
+        {/* Sides */}
         <div className='flex flex-col sm:flex-row gap-3'>
           {/* Attack Side */}
-          <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5 flex-1'>
-            <div className='flex items-center justify-between'>
+          <div className='flex flex-col gap-3 p-4 rounded-lg bg-black/40 border border-white/5 flex-1 transition-colors hover:border-white/10'>
+            <div className='flex flex-col gap-2'>
               <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
                 Атака
               </span>
-              <span
-                className={cn(
-                  'text-xs font-semibold',
-                  sideTypeColors[version.attackSideType]
-                )}>
-                {version.attackSideType}
-              </span>
-            </div>
-            <div className='flex items-center justify-between'>
-              <span
-                className={cn(
-                  'font-semibold',
-                  sideTypeColors[version.attackSideType]
-                )}>
-                {version.attackSideName}
-              </span>
-              <div className='flex items-center gap-1.5'>
-                <UsersIcon className='size-3.5 text-zinc-400' />
+              <div className='flex items-center justify-between'>
                 <span
                   className={cn(
-                    'text-sm font-medium',
+                    'text-lg font-bold',
                     sideTypeColors[version.attackSideType]
                   )}>
-                  {version.attackSideSlots} слотів
+                  {version.attackSideName}
                 </span>
+                <div className='flex items-center gap-1.5'>
+                  <UsersIcon className='size-4 text-zinc-400' />
+                  <span
+                    className={cn(
+                      'text-sm font-semibold',
+                      sideTypeColors[version.attackSideType]
+                    )}>
+                    {version.attackSideSlots}
+                  </span>
+                </div>
               </div>
             </div>
             {attackWeaponry.length > 0 && (
-              <div className='mt-2 pt-2 border-t border-white/5'>
+              <div className='pt-2 border-t border-white/5'>
                 <button
                   type='button'
                   onClick={() => setIsAttackWeaponryOpen(!isAttackWeaponryOpen)}
                   className='flex items-center justify-between w-full hover:opacity-80 transition-opacity'>
-                  <span
-                    className={cn(
-                      'text-xs font-semibold',
-                      sideTypeColors[version.attackSideType]
-                    )}>
+                  <span className='text-xs font-medium text-zinc-400'>
                     Озброєння ({attackWeaponry.length})
                   </span>
                   {isAttackWeaponryOpen ? (
@@ -158,11 +151,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                   )}
                 </button>
                 {isAttackWeaponryOpen && (
-                  <div className='mt-1.5 flex flex-col gap-1'>
+                  <div className='mt-2 flex flex-col gap-1.5'>
                     {attackWeaponry.map((weaponry, index) => (
                       <div
                         key={weaponry.id || index}
-                        className='p-1.5 rounded bg-black/40 border border-white/5'>
+                        className='p-2 rounded bg-black/60 border border-white/5'>
                         <div className='flex items-start justify-between gap-2'>
                           <div className='flex-1'>
                             <div className='font-medium text-sm text-white'>
@@ -187,49 +180,38 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </div>
 
           {/* Defense Side */}
-          <div className='flex flex-col gap-1.5 p-3 rounded-lg bg-black/40 border border-white/5 flex-1'>
-            <div className='flex items-center justify-between'>
+          <div className='flex flex-col gap-3 p-4 rounded-lg bg-black/40 border border-white/5 flex-1 transition-colors hover:border-white/10'>
+            <div className='flex flex-col gap-2'>
               <span className='text-xs font-semibold uppercase tracking-wide text-zinc-400'>
                 Оборона
               </span>
-              <span
-                className={cn(
-                  'text-xs font-semibold',
-                  sideTypeColors[version.defenseSideType]
-                )}>
-                {version.defenseSideType}
-              </span>
-            </div>
-            <div className='flex items-center justify-between'>
-              <span
-                className={cn(
-                  'font-semibold',
-                  sideTypeColors[version.defenseSideType]
-                )}>
-                {version.defenseSideName}
-              </span>
-              <div className='flex items-center gap-1.5'>
-                <UsersIcon className='size-3.5 text-zinc-400' />
+              <div className='flex items-center justify-between'>
                 <span
                   className={cn(
-                    'text-sm font-medium',
+                    'text-lg font-bold',
                     sideTypeColors[version.defenseSideType]
                   )}>
-                  {version.defenseSideSlots} слотів
+                  {version.defenseSideName}
                 </span>
+                <div className='flex items-center gap-1.5'>
+                  <UsersIcon className='size-4 text-zinc-400' />
+                  <span
+                    className={cn(
+                      'text-sm font-semibold',
+                      sideTypeColors[version.defenseSideType]
+                    )}>
+                    {version.defenseSideSlots}
+                  </span>
+                </div>
               </div>
             </div>
             {defenseWeaponry.length > 0 && (
-              <div className='mt-2 pt-2 border-t border-white/5'>
+              <div className='pt-2 border-t border-white/5'>
                 <button
                   type='button'
                   onClick={() => setIsDefenseWeaponryOpen(!isDefenseWeaponryOpen)}
                   className='flex items-center justify-between w-full hover:opacity-80 transition-opacity'>
-                  <span
-                    className={cn(
-                      'text-xs font-semibold',
-                      sideTypeColors[version.defenseSideType]
-                    )}>
+                  <span className='text-xs font-medium text-zinc-400'>
                     Озброєння ({defenseWeaponry.length})
                   </span>
                   {isDefenseWeaponryOpen ? (
@@ -239,11 +221,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                   )}
                 </button>
                 {isDefenseWeaponryOpen && (
-                  <div className='mt-1.5 flex flex-col gap-1'>
+                  <div className='mt-2 flex flex-col gap-1.5'>
                     {defenseWeaponry.map((weaponry, index) => (
                       <div
                         key={weaponry.id || index}
-                        className='p-1.5 rounded bg-black/40 border border-white/5'>
+                        className='p-2 rounded bg-black/60 border border-white/5'>
                         <div className='flex items-start justify-between gap-2'>
                           <div className='flex-1'>
                             <div className='font-medium text-sm text-white'>
@@ -268,10 +250,10 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </div>
         </div>
 
+        {/* Footer */}
         <div className='flex items-center gap-2 text-xs text-zinc-400 pt-2 border-t border-white/5'>
           <CalendarIcon className='size-3.5' />
-          Останні зміни:{' '}
-          <span>{dayjs(version.updatedAt).format('DD.MM.YYYY HH:mm')}</span>
+          <span>Останні зміни: {dayjs(version.updatedAt).format('DD.MM.YYYY HH:mm')}</span>
         </div>
       </div>
 

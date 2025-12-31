@@ -3,19 +3,11 @@
 import { Layout } from '@/widgets/layout';
 import { Button } from '@/shared/ui/atoms/button';
 import { api } from '@/shared/sdk';
-import {
-  Mission,
-  MissionStatus,
-  MissionVersion,
-} from '@/shared/sdk/types';
+import { Mission, MissionStatus, MissionVersion } from '@/shared/sdk/types';
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import {
-  PlusIcon,
-  LoaderIcon,
-  EditIcon,
-} from 'lucide-react';
+import { PlusIcon, LoaderIcon, EditIcon } from 'lucide-react';
 import { ROUTES } from '@/shared/config/routes';
 import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
 import { CreateUpdateMissionVersionModal } from '@/features/mission/create-update-version/ui';
@@ -168,30 +160,25 @@ export default function MissionDetailsPage() {
           </div>
 
           {/* Last Version Details */}
-          {mission?.missionVersions &&
-            mission.missionVersions.length > 0 && (
-              <div className='border-t border-white/10 pt-6'>
+          {mission?.missionVersions && mission.missionVersions.length > 0 && (
+            <div className='border-t border-white/10 pt-6'>
+              {mission.missionVersions?.[0]?.version && (
                 <h2 className='text-xl font-bold text-white mb-4'>
-                  Остання версія:{' '}
-                  {
-                    mission.missionVersions[mission.missionVersions.length - 1]
-                      .version
-                  }
+                  Остання версія: {mission.missionVersions?.[0]?.version}
                 </h2>
-                <MissionVersionCard
-                  version={
-                    mission.missionVersions?.[0]
-                  }
-                  missionId={missionId}
-                  onEdit={handleEditVersion}
-                  onChangeStatus={(params) => {
-                    missionDetailsModel.changeMissionVersionStatusModel.visibility.open(
-                      params
-                    );
-                  }}
-                />
-              </div>
-            )}
+              )}
+              <MissionVersionCard
+                version={mission.missionVersions?.[0]}
+                missionId={missionId}
+                onEdit={handleEditVersion}
+                onChangeStatus={(params) => {
+                  missionDetailsModel.changeMissionVersionStatusModel.visibility.open(
+                    params
+                  );
+                }}
+              />
+            </div>
+          )}
 
           {/* Versions Section */}
           <div className='border-t border-white/10 pt-6'>
