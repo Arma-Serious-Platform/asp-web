@@ -9,15 +9,21 @@ import {
   EditIcon,
   CheckCircleIcon,
   BanIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
 } from 'lucide-react';
-import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
-import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
+import {
+  MissionVersion,
+  MissionStatus,
+} from '@/shared/sdk/types';
+import {
+  statusLabels,
+  statusColors,
+  sideTypeColors,
+} from '@/entities/mission/lib';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { FC, useState } from 'react';
 import dayjs from 'dayjs';
+import { WeaponrySection } from './weaponry-section';
 
 type MissionVersionCardProps = {
   version: MissionVersion;
@@ -38,7 +44,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
 }) => {
   const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(false);
   const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
-  
+
   const attackWeaponry = (version.weaponry || []).filter(
     (w) => w.type === version.attackSideType
   );
@@ -52,9 +58,13 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
         {/* Header */}
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-3'>
-            <h3 className='text-lg font-bold text-white'>Версія {version.version}</h3>
+            <h3 className='text-lg font-bold text-white'>
+              Версія {version.version}
+            </h3>
             {version.rating && (
-              <span className='text-sm text-yellow-400'>⭐ {version.rating}</span>
+              <span className='text-sm text-yellow-400'>
+                ⭐ {version.rating}
+              </span>
             )}
           </div>
           <div className='flex items-center gap-2'>
@@ -135,48 +145,12 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 </div>
               </div>
             </div>
-            {attackWeaponry.length > 0 && (
-              <div className='pt-2 border-t border-white/5'>
-                <button
-                  type='button'
-                  onClick={() => setIsAttackWeaponryOpen(!isAttackWeaponryOpen)}
-                  className='flex items-center justify-between w-full hover:opacity-80 transition-opacity'>
-                  <span className='text-xs font-medium text-zinc-400'>
-                    Озброєння ({attackWeaponry.length})
-                  </span>
-                  {isAttackWeaponryOpen ? (
-                    <ChevronUpIcon className='size-4 text-zinc-400' />
-                  ) : (
-                    <ChevronDownIcon className='size-4 text-zinc-400' />
-                  )}
-                </button>
-                {isAttackWeaponryOpen && (
-                  <div className='mt-2 flex flex-col gap-1.5'>
-                    {attackWeaponry.map((weaponry, index) => (
-                      <div
-                        key={weaponry.id || index}
-                        className='p-2 rounded bg-black/60 border border-white/5'>
-                        <div className='flex items-start justify-between gap-2'>
-                          <div className='flex-1'>
-                            <div className='font-medium text-sm text-white'>
-                              {weaponry.name}
-                            </div>
-                            {weaponry.description && (
-                              <div className='text-xs text-zinc-400 mt-0.5'>
-                                {weaponry.description}
-                              </div>
-                            )}
-                          </div>
-                          <span className='text-sm font-semibold text-zinc-300'>
-                            x{weaponry.count}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            <WeaponrySection
+              weaponry={attackWeaponry}
+              isOpen={isAttackWeaponryOpen}
+              setIsOpen={setIsAttackWeaponryOpen}
+              sideType={version.attackSideType}
+            />
           </div>
 
           {/* Defense Side */}
@@ -205,55 +179,21 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 </div>
               </div>
             </div>
-            {defenseWeaponry.length > 0 && (
-              <div className='pt-2 border-t border-white/5'>
-                <button
-                  type='button'
-                  onClick={() => setIsDefenseWeaponryOpen(!isDefenseWeaponryOpen)}
-                  className='flex items-center justify-between w-full hover:opacity-80 transition-opacity'>
-                  <span className='text-xs font-medium text-zinc-400'>
-                    Озброєння ({defenseWeaponry.length})
-                  </span>
-                  {isDefenseWeaponryOpen ? (
-                    <ChevronUpIcon className='size-4 text-zinc-400' />
-                  ) : (
-                    <ChevronDownIcon className='size-4 text-zinc-400' />
-                  )}
-                </button>
-                {isDefenseWeaponryOpen && (
-                  <div className='mt-2 flex flex-col gap-1.5'>
-                    {defenseWeaponry.map((weaponry, index) => (
-                      <div
-                        key={weaponry.id || index}
-                        className='p-2 rounded bg-black/60 border border-white/5'>
-                        <div className='flex items-start justify-between gap-2'>
-                          <div className='flex-1'>
-                            <div className='font-medium text-sm text-white'>
-                              {weaponry.name}
-                            </div>
-                            {weaponry.description && (
-                              <div className='text-xs text-zinc-400 mt-0.5'>
-                                {weaponry.description}
-                              </div>
-                            )}
-                          </div>
-                          <span className='text-sm font-semibold text-zinc-300'>
-                            x{weaponry.count}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            <WeaponrySection
+              weaponry={defenseWeaponry}
+              isOpen={isDefenseWeaponryOpen}
+              setIsOpen={setIsDefenseWeaponryOpen}
+              sideType={version.defenseSideType}
+            />
           </div>
         </div>
 
         {/* Footer */}
         <div className='flex items-center gap-2 text-xs text-zinc-400 pt-2 border-t border-white/5'>
           <CalendarIcon className='size-3.5' />
-          <span>Останні зміни: {dayjs(version.updatedAt).format('DD.MM.YYYY HH:mm')}</span>
+          <span>
+            Останні зміни: {dayjs(version.updatedAt).format('DD.MM.YYYY HH:mm')}
+          </span>
         </div>
       </div>
 
@@ -280,4 +220,3 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
     </div>
   );
 };
-

@@ -66,7 +66,7 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: 'steamUUID',
     header: () => <div>STEAM UUID</div>,
     cell: ({ row }) => {
-      return <div>{row.original.id}</div>;
+      return <div>{row.original.steamId || ''}</div>;
     },
   },
   {
