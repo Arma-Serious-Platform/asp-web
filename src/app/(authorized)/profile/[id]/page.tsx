@@ -6,34 +6,38 @@ import { useEffect, useMemo } from 'react';
 import { Hero } from '@/widgets/hero';
 import { session } from '@/entities/session/model';
 import { ROUTES } from '@/shared/config/routes';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { UserProfile } from '@/widgets/users/profile/ui';
+import { UserProfileModel } from '@/widgets/users/profile/model';
 
-import { model } from './model';
-
-const ProfilePage = observer(() => {
+const UserProfilePage = observer(() => {
   const router = useRouter();
+  const params = useParams();
+  const model = useMemo(() => new UserProfileModel(), []);
+  const userIdOrNickname = params?.id as string;
 
   useEffect(() => {
     if (!session.isAuthorized) {
       router.push(ROUTES.auth.login);
       return;
     }
-  }, [session.isAuthorized, router]);
 
-  if (!session.isAuthorized) {
+    if (userIdOrNickname) {
+      model.init(userIdOrNickname);
+    }
+  }, [userIdOrNickname, model, router]);
+
+  if (!session.isAuthorized || !userIdOrNickname) {
     return null;
   }
 
   return (
     <Layout>
       <Hero />
-      <UserProfile
-        userIdOrNickname={session.user.user.id}
-        model={model.profile}
-      />
+      <UserProfile userIdOrNickname={userIdOrNickname} model={model} />
     </Layout>
   );
 });
 
-export default ProfilePage;
+export default UserProfilePage;
+

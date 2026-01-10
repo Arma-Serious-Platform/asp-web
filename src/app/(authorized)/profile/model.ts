@@ -3,6 +3,7 @@ import { ChangeAvatarModel } from "@/features/user/change-avatar/model";
 import { Loader } from "@/shared/model/loader";
 import { api } from "@/shared/sdk";
 import { UpdateUserDto } from "@/shared/sdk/types";
+import { UserProfileModel } from "@/widgets/users/profile/model";
 
 import { makeAutoObservable } from "mobx";
 import toast from "react-hot-toast";
@@ -22,6 +23,8 @@ class ProfileModel {
 
   avatar = new ChangeAvatarModel();
 
+  profile = new UserProfileModel();
+
   get user() {
     return session.user.user;
   }
@@ -39,6 +42,6 @@ class ProfileModel {
   }
 }
 
-export const profile = new ProfileModel();
+export const model = new ProfileModel();
 
 

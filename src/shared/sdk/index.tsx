@@ -194,6 +194,10 @@ class ApiModel {
     return await this.instance.get<User>('/users/me');
   };
 
+  getUserByIdOrNickname = async (userIdOrNickname: string) => {
+    return await this.instance.get<User>(`/users/${userIdOrNickname}`);
+  };
+
   updateMe = async (dto: UpdateUserDto) => {
     return await this.instance.patch<User>('/users/me', dto);
   };
