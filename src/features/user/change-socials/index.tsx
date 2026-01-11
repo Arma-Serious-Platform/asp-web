@@ -16,6 +16,7 @@ type ChangeSocialsProps = {
   user: User | null;
   className?: string;
   isLoading?: boolean;
+  readonly?: boolean;
   onChange: (
     changes: Partial<Pick<UpdateUserDto, SocialKeys>>
   ) => Promise<void> | void;
@@ -25,6 +26,7 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({
   user,
   className,
   isLoading,
+  readonly = false,
   onChange,
 }) => {
   const [isEdit, setIsEdit] = useState(false);
@@ -141,7 +143,7 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({
           )}
         </div>
 
-        {!isEdit && (
+        {!isEdit && !readonly && (
           <Button
             type='button'
             size='icon'

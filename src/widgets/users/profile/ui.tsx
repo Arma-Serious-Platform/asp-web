@@ -6,12 +6,10 @@ import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
 import {
   ActivityIcon,
-  LockKeyholeIcon,
   MailIcon,
   SendIcon,
   ShieldUserIcon,
   UserIcon,
-  UsersIcon,
 } from 'lucide-react';
 
 import {
@@ -28,6 +26,8 @@ import { InfoTile } from '@/shared/ui/moleculas/info-tile';
 import { ChangeSocials } from '@/features/user/change-socials';
 import { UserProfileModel } from './model';
 import { Preloader } from '@/shared/ui/atoms/preloader';
+import { ProfileSidebar } from './sidebar/ui';
+import { ProfileTab } from './lib';
 
 type UserProfileProps = {
   model: UserProfileModel;
@@ -38,7 +38,11 @@ const UserProfile = observer(
   ({ userIdOrNickname, model }: UserProfileProps) => {
     const [tab, setTab] = useQueryState(
       'tab',
-      parseAsStringEnum(['profile', 'squad', 'security'])
+      parseAsStringEnum([
+        ProfileTab.PROFILE,
+        ProfileTab.SQUAD,
+        ProfileTab.SECURITY,
+      ]).withDefault(ProfileTab.PROFILE)
     );
 
     useEffect(() => {
@@ -47,9 +51,11 @@ const UserProfile = observer(
 
     return (
       <>
-        <ChangeAvatarModal model={model.avatar} autoInputClick />
+        {model.isOwnProfile && (
+          <ChangeAvatarModal model={model.avatar} autoInputClick />
+        )}
 
-        <div className='container mx-auto my-6 w-full px-4'>
+        <div className='container relative mx-auto my-6 w-full px-4'>
           <Preloader isLoading={model.loader.isLoading}>
             <div className='paper mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:flex-row lg:px-7 lg:py-6'>
               {/* Left column: avatar + tabs */}
@@ -74,41 +80,11 @@ const UserProfile = observer(
                   )}
                 </div>
 
-                <div className='flex flex-col gap-1 rounded-md border border-white/10 bg-black/60 p-1 text-xs'>
-                  <div className='px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-zinc-500'>
-                    Профіль
-                  </div>
-                  <div className='flex flex-col gap-1'>
-                    <Button
-                      size='sm'
-                      onClick={() => setTab('profile')}
-                      variant={tab === 'profile' ? 'default' : 'ghost'}
-                      className='flex w-full items-center justify-start gap-2 text-xs'>
-                      <UserIcon className='size-4' />
-                      <span>Основна інформація</span>
-                    </Button>
-                    {model.isOwnProfile && (
-                      <>
-                        <Button
-                          size='sm'
-                          onClick={() => setTab('squad')}
-                          variant={tab === 'squad' ? 'default' : 'ghost'}
-                          className='flex w-full items-center justify-start gap-2 text-xs'>
-                          <UsersIcon className='size-4' />
-                          <span>Мій загін</span>
-                        </Button>
-                        <Button
-                          size='sm'
-                          onClick={() => setTab('security')}
-                          variant={tab === 'security' ? 'default' : 'ghost'}
-                          className='flex w-full items-center justify-start gap-2 text-xs'>
-                          <LockKeyholeIcon className='size-4' />
-                          <span>Безпека</span>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <ProfileSidebar
+                  tab={tab}
+                  setTab={setTab}
+                  isOwnProfile={model.isOwnProfile}
+                />
               </div>
 
               {/* Right column: tab content */}
@@ -123,6 +99,7 @@ const UserProfile = observer(
                         <UserIcon className='size-5 text-primary' />
                         <UserNicknameText
                           user={model.user}
+                          tag={model?.user?.squad?.tag}
                           sideType={model?.user?.squad?.side?.type}
                         />
                       </div>
@@ -141,6 +118,7 @@ const UserProfile = observer(
                           <UserStatusText status={model.user?.status} />
                         }
                       />
+
                       {model.isOwnProfile && (
                         <InfoTile
                           className='sm:col-span-2'
@@ -149,25 +127,25 @@ const UserProfile = observer(
                           description={model.user?.email}
                         />
                       )}
-                      {model.isOwnProfile && (
-                        <InfoTile
-                          className='sm:col-span-2'
-                          icon={<SendIcon className='size-4' />}
-                          title='Соціальні мережі'
-                          description={
-                            <ChangeSocials
-                              className='mt-1'
-                              user={model.user}
-                              isLoading={model.socialsLoader.isLoading}
-                              onChange={(changes) => {
-                                if (Object.keys(changes).length === 0) return;
 
-                                model.updateUser(changes);
-                              }}
-                            />
-                          }
-                        />
-                      )}
+                      <InfoTile
+                        className='sm:col-span-2'
+                        icon={<SendIcon className='size-4' />}
+                        title='Соціальні мережі'
+                        description={
+                          <ChangeSocials
+                            className='mt-1'
+                            user={model.user}
+                            isLoading={model.socialsLoader.isLoading}
+                            readonly={!model.isOwnProfile}
+                            onChange={(changes) => {
+                              if (Object.keys(changes).length === 0) return;
+
+                              model.updateUser(changes);
+                            }}
+                          />
+                        }
+                      />
                     </div>
                   </div>
                 </View.Condition>
