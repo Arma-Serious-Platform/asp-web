@@ -28,10 +28,7 @@ const ProfilePage = observer(() => {
   return (
     <Layout>
       <Hero />
-      <UserProfile
-        userIdOrNickname={session.user.user.id}
-        model={model.profile}
-      />
+      <UserProfile model={model.profile} />
     </Layout>
   );
 });

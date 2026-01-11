@@ -9,11 +9,11 @@ import { ROUTES } from '@/shared/config/routes';
 import { useRouter, useParams } from 'next/navigation';
 import { UserProfile } from '@/widgets/users/profile/ui';
 import { UserProfileModel } from '@/widgets/users/profile/model';
+import { model } from './model';
 
 const UserProfilePage = observer(() => {
   const router = useRouter();
   const params = useParams();
-  const model = useMemo(() => new UserProfileModel(), []);
   const userIdOrNickname = params?.id as string;
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const UserProfilePage = observer(() => {
     }
 
     if (userIdOrNickname) {
-      model.init(userIdOrNickname);
+      model.userProfile.init(userIdOrNickname);
     }
   }, [userIdOrNickname, model, router]);
 
@@ -34,7 +34,7 @@ const UserProfilePage = observer(() => {
   return (
     <Layout>
       <Hero />
-      <UserProfile userIdOrNickname={userIdOrNickname} model={model} />
+      <UserProfile userIdOrNickname={userIdOrNickname} model={model.userProfile} />
     </Layout>
   );
 });

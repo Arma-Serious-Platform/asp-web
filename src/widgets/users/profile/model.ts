@@ -7,24 +7,35 @@ import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
 class UserProfileModel {
-  constructor() {
+  constructor(isOwnProfile = true) {
     makeAutoObservable(this);
+
+    this.isOwnProfile = isOwnProfile;
   }
 
-  user: User | null = null;
+  isOwnProfile: boolean;
+
+  otherUser: User | null = null;
   loader = new Loader();
   socialsLoader = new Loader();
   avatar = new ChangeAvatarModel();
 
-  get isOwnProfile() {
-    return this.user?.id === session.user.user?.id;
+  get user() {
+    return this.isOwnProfile ? session.user.user : this.otherUser;
   }
 
-  init = async (userIdOrNickname: string) => {
+  init = async (userIdOrNickname?: string) => {
     try {
       this.loader.start();
-      const { data } = await api.getUserByIdOrNickname(userIdOrNickname);
-      this.user = data;
+
+      if (this.isOwnProfile) {
+        await session.fetchMe();
+
+        return;
+      }
+
+      const {data: otherUserData} =  await api.getUserByIdOrNickname(userIdOrNickname || '')
+      this.otherUser = otherUserData;
     } catch (error) {
       console.error(error);
       toast.error('Не вдалося завантажити профіль користувача');
