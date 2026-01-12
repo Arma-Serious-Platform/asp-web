@@ -53,7 +53,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   );
 
   return (
-    <div className='paper flex flex-col gap-4 rounded-xl border p-5 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative'>
+    <div className='paper flex flex-col gap-4 rounded-xl border p-4 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative'>
       <div className='flex flex-col gap-4 pb-16'>
         {/* Header */}
         <div className='flex items-center justify-between'>

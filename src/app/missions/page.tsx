@@ -10,20 +10,26 @@ import { MissionStatus } from '@/shared/sdk/types';
 import { UserModel } from '@/entities/user/model';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
-import { PlusIcon } from 'lucide-react';
+import { FilterIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
-
-const missionModel = new MissionModel();
-const userModel = new UserModel();
+import { model } from './model';
+import toast from 'react-hot-toast';
 
 const MissionsPage = observer(() => {
   const [usersLoaded, setUsersLoaded] = useState(false);
 
   useEffect(() => {
     const init = async () => {
-      await missionModel.init();
-      await userModel.pagination.loadAll();
-      setUsersLoaded(true);
+      try {
+        await model.missionModel.init();
+        await model.userModel.pagination.loadAll();
+        setUsersLoaded(true);
+      } catch (error) {
+        console.error(error);
+        toast.error('Не вдалося завантажити місії');
+      } finally {
+        setUsersLoaded(true);
+      }
     };
     init();
   }, []);
@@ -37,7 +43,7 @@ const MissionsPage = observer(() => {
 
   const userOptions = [
     { label: 'Всі користувачі', value: '' },
-    ...userModel.options,
+    ...model.userModel.options,
   ];
 
   useEffect(() => {
@@ -45,12 +51,12 @@ const MissionsPage = observer(() => {
     const authorName = newUrl.get('author');
 
     if (authorName) {
-      const author = userModel.options.find(
+      const author = model.userModel.options.find(
         (user) => user.label.toLowerCase() === authorName.toLowerCase()
       );
 
       if (author) {
-        missionModel.setAuthorIdFilter(author.value);
+        model.missionModel.setAuthorIdFilter(author.value);
       }
     }
   }, []);
@@ -68,48 +74,55 @@ const MissionsPage = observer(() => {
         </div>
 
         {/* Filters */}
-        <div className='mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-          <Select
-            label='Статус'
-            options={statusOptions}
-            value={missionModel.statusFilter || ''}
-            onChange={(value) =>
-              missionModel.setStatusFilter(
-                value ? (value as MissionStatus) : null
-              )
-            }
-          />
-          <Select
-            label='Автор'
-            options={userOptions}
-            value={missionModel.authorIdFilter || ''}
-            onChange={(value) => missionModel.setAuthorIdFilter(value || null)}
-            isLoading={!usersLoaded}
-          />
-          <NumericInput
-            label='Мін. слотів'
-            placeholder='0'
-            value={missionModel.minSlotsFilter?.toString() || ''}
-            onChange={(e) =>
-              missionModel.setMinSlotsFilter(
-                e.target.value ? parseInt(e.target.value) : null
-              )
-            }
-          />
-          <NumericInput
-            label='Макс. слотів'
-            placeholder='0'
-            value={missionModel.maxSlotsFilter?.toString() || ''}
-            onChange={(e) =>
-              missionModel.setMaxSlotsFilter(
-                e.target.value ? parseInt(e.target.value) : null
-              )
-            }
-          />
+        <div className='flex gap-2'>
+          <div className='w-ful mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+            <Select
+              label='Статус'
+              options={statusOptions}
+              value={model.missionModel.statusFilter || ''}
+              onChange={(value) =>
+                model.missionModel.setStatusFilter(
+                  value ? (value as MissionStatus) : null
+                )
+              }
+            />
+            <Select
+              label='Автор'
+              options={userOptions}
+              value={model.missionModel.authorIdFilter || ''}
+              onChange={(value) =>
+                model.missionModel.setAuthorIdFilter(value || null)
+              }
+              isLoading={!usersLoaded}
+            />
+            <NumericInput
+              label='Мін. слотів'
+              placeholder='0'
+              value={model.missionModel.minSlotsFilter?.toString() || ''}
+              onChange={(e) =>
+                model.missionModel.setMinSlotsFilter(
+                  e.target.value ? parseInt(e.target.value) : null
+                )
+              }
+            />
+            <NumericInput
+              label='Макс. слотів'
+              placeholder='0'
+              value={model.missionModel.maxSlotsFilter?.toString() || ''}
+              onChange={(e) =>
+                model.missionModel.setMaxSlotsFilter(
+                  e.target.value ? parseInt(e.target.value) : null
+                )
+              }
+            />
+          </div>
+          <Button variant='outline' className=''>
+            Застосувати
+          </Button>
         </div>
 
         {/* Missions Grid */}
-        {missionModel.pagination.preloader.isLoading ? (
+        {model.missionModel.pagination.preloader.isLoading ? (
           <div className='flex items-center justify-center py-12'>
             <div className='text-zinc-400'>Завантаження...</div>
           </div>
@@ -126,7 +139,7 @@ const MissionsPage = observer(() => {
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8'>
-              {missionModel.filteredMissions.map((mission) => (
+              {model.missionModel.filteredMissions.map((mission) => (
                 <MissionCard key={mission.id} mission={mission} />
               ))}
             </div>

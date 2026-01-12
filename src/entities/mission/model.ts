@@ -69,6 +69,7 @@ class MissionModel {
 
   init = async () => {
     await this.pagination.loadAll();
+
     return this.pagination.data;
   };
 
