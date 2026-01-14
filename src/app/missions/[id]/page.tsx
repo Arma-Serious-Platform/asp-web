@@ -116,6 +116,11 @@ export default function MissionDetailsPage() {
           ← Повернутися до списку
         </Button>
 
+        <UpdateMissionModal
+          model={missionDetailsModel.updateMissionModel}
+          onSuccess={handleMissionSaved}
+        />
+
         <div className='paper mx-auto flex w-full max-w-7xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:px-7 lg:py-6'>
           {/* Header Section */}
           <div className='flex flex-col md:flex-row md:items-start gap-6'>
@@ -148,13 +153,14 @@ export default function MissionDetailsPage() {
                     {mission.description}
                   </p>
                 </div>
-                <UpdateMissionModal
-                  model={missionDetailsModel.updateMissionModel}
-                  onSuccess={handleMissionSaved}>
-                  <Button variant='outline' size='icon'>
-                    <EditIcon className='size-4' />
-                  </Button>
-                </UpdateMissionModal>
+
+                <Button
+                  onClick={handleMissionUpdate}
+                  variant='outline'
+                  className='flex items-center gap-2 hover:bg-white/10 transition-colors'>
+                  <EditIcon className='size-4' />
+                  <span className='hidden sm:inline'>Редагувати</span>
+                </Button>
               </div>
             </div>
           </div>

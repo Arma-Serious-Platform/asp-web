@@ -48,22 +48,25 @@ export const WeaponrySection: FC<WeaponrySectionProps> = ({
                 <div className='flex-1'>
                   <div
                     className={cn('font-medium text-sm', {
-                      'text-destructive':
-                        sideTypeColors[sideType] === MissionGameSide.RED,
-                      'text-green-500':
-                        sideTypeColors[sideType] === MissionGameSide.GREEN,
-                      'text-blue-500':
-                        sideTypeColors[sideType] === MissionGameSide.BLUE,
+                      'text-destructive': sideType === MissionGameSide.RED,
+                      'text-green-400': sideType === MissionGameSide.GREEN,
+                      'text-blue-400': sideType === MissionGameSide.BLUE,
                     })}>
                     {weaponryItem.name}
+                    {weaponryItem.description && (
+                      <span className='text-xs text-zinc-400 mt-0.5'>
+                        {' '}
+                        ({weaponryItem.description})
+                      </span>
+                    )}
                   </div>
-                  {weaponryItem.description && (
-                    <div className='text-xs text-zinc-400 mt-0.5'>
-                      {weaponryItem.description}
-                    </div>
-                  )}
                 </div>
-                <span className='text-sm font-semibold text-zinc-300'>
+                <span
+                  className={cn('text-sm font-semibold text-zinc-300', {
+                    'text-destructive': sideType === MissionGameSide.RED,
+                    'text-green-400': sideType === MissionGameSide.GREEN,
+                    'text-blue-400': sideType === MissionGameSide.BLUE,
+                  })}>
                   x{weaponryItem.count}
                 </span>
               </div>
@@ -74,4 +77,3 @@ export const WeaponrySection: FC<WeaponrySectionProps> = ({
     </div>
   );
 };
-
