@@ -27,6 +27,8 @@ const UserProfilePage = observer(() => {
     }
   }, [userIdOrNickname, model, router]);
 
+  useEffect(())
+
   if (!session.isAuthorized || !userIdOrNickname) {
     return null;
   }

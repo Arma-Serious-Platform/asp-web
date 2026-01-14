@@ -24,8 +24,8 @@ const UserProfileLink: FC<
 
   return (
     <Link
-      className={cn('inline', className)}
-      href={ROUTES.user.users.id(user.nickname)}>
+      className={cn('inline hover:underline', className)}
+      href={ROUTES.user.profileById(user.nickname)}>
       {children}
     </Link>
   );

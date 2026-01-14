@@ -19,9 +19,7 @@ export const ROUTES = {
   },
   user: {
     profile: '/profile',
-    users: {
-      id: (id: string) => `/users/${id}`,
-    },
+    profileById: (id: string) => `/profile/${id}`,
   },
   admin: {
     root: '/admin',
