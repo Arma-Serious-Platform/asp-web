@@ -6,9 +6,9 @@ import { useEffect, useMemo } from 'react';
 import { Hero } from '@/widgets/hero';
 import { session } from '@/entities/session/model';
 import { ROUTES } from '@/shared/config/routes';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, redirect } from 'next/navigation';
 import { UserProfile } from '@/widgets/users/profile/ui';
-import { UserProfileModel } from '@/widgets/users/profile/model';
+
 import { model } from './model';
 
 const UserProfilePage = observer(() => {
@@ -27,19 +27,26 @@ const UserProfilePage = observer(() => {
     }
   }, [userIdOrNickname, model, router]);
 
-  useEffect(())
-
   if (!session.isAuthorized || !userIdOrNickname) {
     return null;
+  }
+
+  if (
+    userIdOrNickname === session?.user?.user?.id ||
+    model.userProfile.user?.id === session.user?.user?.id
+  ) {
+    return redirect(`${ROUTES.user.profile}?tab=profile`);
   }
 
   return (
     <Layout>
       <Hero />
-      <UserProfile userIdOrNickname={userIdOrNickname} model={model.userProfile} />
+      <UserProfile
+        userIdOrNickname={userIdOrNickname}
+        model={model.userProfile}
+      />
     </Layout>
   );
 });
 
 export default UserProfilePage;
-
