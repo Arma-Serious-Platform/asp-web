@@ -111,7 +111,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
           </div>
         )
       }>
-      <div className='flex flex-col w-full'>
+      <div className='flex flex-col w-full max-h-[calc(100vh-40rem)] overflow-y-auto'>
         {onSearch && (
           <Input
             className='border-t-0 border-b-1 border-x-0 outline-0'

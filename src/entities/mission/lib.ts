@@ -21,3 +21,10 @@ export const sideTypeColors: Record<MissionGameSide, string> = {
   [MissionGameSide.GREEN]: 'text-green-400',
 };
 
+
+export const statusOptions = [
+  { label: 'Всі статуси', value: '' },
+  { label: 'Перевірено', value: MissionStatus.APPROVED },
+  { label: 'Очікує перевірки', value: MissionStatus.PENDING_APPROVAL },
+  { label: 'Потребує змін', value: MissionStatus.CHANGES_REQUESTED },
+];

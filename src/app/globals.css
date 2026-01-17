@@ -39,3 +39,16 @@ a:hover {
 a:active {
   color: var(--color-text-primary);
 }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+}

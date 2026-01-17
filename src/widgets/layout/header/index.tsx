@@ -183,7 +183,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> =
               {Boolean(session.user?.user?._count?.missions) &&
                 session.user?.user?._count?.missions > 0 && (
                   <NextLink
-                    href={`${ROUTES.missions.root}?author=${session.user?.user?.nickname}`}>
+                    href={`${ROUTES.missions.root}?authorId=${session.user?.user?.id}`}>
                     <Button
                       align='left'
                       size='sm'

@@ -283,9 +283,13 @@ export type FindMissionsDto = PaginatedRequest<{
   search?: string;
   status?: MissionStatus;
   authorId?: string;
+  islandId?: string;
+  minSlots?: number;
+  maxSlots?: number;
 }>;
 
 export type CreateMissionDto = {
+  islandId: string;
   name: string;
   description: string;
   image?: File;
@@ -294,6 +298,14 @@ export type CreateMissionDto = {
 export type UpdateMissionDto = {
   id: string;
 } & Partial<CreateMissionDto>;
+
+export type Island = {
+  id: string;
+  name: string;
+  code: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export type Mission = {
   id: string;
@@ -304,6 +316,7 @@ export type Mission = {
     id: string;
     url: string;
   }
+  island: Island;
   author: User;
   missionVersions: MissionVersion[];
   authorId: string;

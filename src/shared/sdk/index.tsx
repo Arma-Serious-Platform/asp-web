@@ -14,6 +14,7 @@ import {
   FindUsersDto,
   ForgotPasswordDto,
   InviteToSquadDto,
+  Island,
   LoginDto,
   LoginResponse,
   Mission,
@@ -327,6 +328,10 @@ class ApiModel {
   };
 
   /* Missions */
+
+  findIslands = async () => {
+    return await this.instance.get<Island[]>('/missions/islands');
+  };
 
   findMissions = async (dto: FindMissionsDto) => {
     return await this.instance.get<PaginatedResponse<Mission>>('/missions', {

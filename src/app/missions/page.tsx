@@ -14,51 +14,35 @@ import { FilterIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { model } from './model';
 import toast from 'react-hot-toast';
+import {
+  parseAsInteger,
+  parseAsString,
+  parseAsStringEnum,
+  useQueryState,
+  useQueryStates,
+} from 'nuqs';
+import { statusOptions } from '@/entities/mission/lib';
 
 const MissionsPage = observer(() => {
-  const [usersLoaded, setUsersLoaded] = useState(false);
+  const [filters, setFilters] = useQueryStates({
+    search: parseAsString,
+    status: parseAsStringEnum(Object.values(MissionStatus)),
+    islandId: parseAsString,
+    authorId: parseAsString,
+    minSlots: parseAsInteger,
+    maxSlots: parseAsInteger,
+  });
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        await model.missionModel.init();
-        await model.userModel.pagination.loadAll();
-        setUsersLoaded(true);
-      } catch (error) {
-        console.error(error);
-        toast.error('Не вдалося завантажити місії');
-      } finally {
-        setUsersLoaded(true);
-      }
-    };
-    init();
-  }, []);
-
-  const statusOptions = [
-    { label: 'Всі статуси', value: '' },
-    { label: 'Перевірено', value: MissionStatus.APPROVED },
-    { label: 'Очікує перевірки', value: MissionStatus.PENDING_APPROVAL },
-    { label: 'Потребує змін', value: MissionStatus.CHANGES_REQUESTED },
-  ];
-
-  const userOptions = [
-    { label: 'Всі користувачі', value: '' },
-    ...model.userModel.options,
-  ];
-
-  useEffect(() => {
-    const newUrl = new URLSearchParams(window.location.search);
-    const authorName = newUrl.get('author');
-
-    if (authorName) {
-      const author = model.userModel.options.find(
-        (user) => user.label.toLowerCase() === authorName.toLowerCase()
-      );
-
-      if (author) {
-        model.missionModel.setAuthorIdFilter(author.value);
-      }
-    }
+    model.init({
+      authorId: filters.authorId || undefined,
+      status: filters.status || undefined,
+      islandId: filters.islandId || undefined,
+      search: filters.search || undefined,
+      minSlots: filters.minSlots || undefined,
+      maxSlots: filters.maxSlots || undefined,
+      take: 25,
+    });
   }, []);
 
   return (
@@ -76,48 +60,89 @@ const MissionsPage = observer(() => {
         {/* Filters */}
         <div className='flex gap-2'>
           <div className='w-ful mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+            <Input
+              label='Пошук'
+              value={filters.search || ''}
+              onChange={(e) =>
+                setFilters({ ...filters, search: e.target.value })
+              }
+              searchIcon
+            />
             <Select
               label='Статус'
               options={statusOptions}
-              value={model.missionModel.statusFilter || ''}
+              value={filters.status || ''}
               onChange={(value) =>
-                model.missionModel.setStatusFilter(
-                  value ? (value as MissionStatus) : null
-                )
+                setFilters({
+                  ...filters,
+                  status: value ? (value as MissionStatus) : null,
+                })
               }
             />
             <Select
               label='Автор'
-              options={userOptions}
-              value={model.missionModel.authorIdFilter || ''}
+              options={model.userModel.options}
+              value={filters.authorId || ''}
               onChange={(value) =>
-                model.missionModel.setAuthorIdFilter(value || null)
+                setFilters({ ...filters, authorId: value || null })
               }
-              isLoading={!usersLoaded}
+            />
+            <Select
+              label='Острів'
+              multiple={false}
+              options={model.missionModel.islandsOptions}
+              value={filters.islandId || ''}
+              onChange={(value) =>
+                setFilters({ ...filters, islandId: value || null })
+              }
             />
             <NumericInput
               label='Мін. слотів'
               placeholder='0'
-              value={model.missionModel.minSlotsFilter?.toString() || ''}
+              value={filters.minSlots?.toString() || ''}
               onChange={(e) =>
-                model.missionModel.setMinSlotsFilter(
-                  e.target.value ? parseInt(e.target.value) : null
-                )
+                setFilters({
+                  ...filters,
+                  minSlots: e.target.value ? parseInt(e.target.value) : null,
+                })
               }
             />
             <NumericInput
               label='Макс. слотів'
               placeholder='0'
-              value={model.missionModel.maxSlotsFilter?.toString() || ''}
+              value={filters.maxSlots?.toString() || ''}
               onChange={(e) =>
-                model.missionModel.setMaxSlotsFilter(
-                  e.target.value ? parseInt(e.target.value) : null
-                )
+                setFilters({
+                  ...filters,
+                  maxSlots: e.target.value ? parseInt(e.target.value) : null,
+                })
               }
             />
           </div>
-          <Button variant='outline' className=''>
+          <Button
+            variant='outline'
+            disabled={model.missionModel.pagination.preloader.isLoading}
+            onClick={() => {
+              model.missionModel.pagination.init(filters);
+            }}>
             Застосувати
+          </Button>
+          <Button
+            variant='ghost'
+            disabled={model.missionModel.pagination.preloader.isLoading}
+            onClick={() => {
+              setFilters({
+                search: '',
+                status: null,
+                islandId: null,
+                authorId: null,
+                minSlots: null,
+                maxSlots: null,
+              });
+
+              model.missionModel.pagination.init(filters);
+            }}>
+            Скинути
           </Button>
         </div>
 
@@ -139,11 +164,21 @@ const MissionsPage = observer(() => {
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8'>
-              {model.missionModel.filteredMissions.map((mission) => (
+              {model.missionModel.pagination.data.map((mission) => (
                 <MissionCard key={mission.id} mission={mission} />
               ))}
             </div>
           </>
+        )}
+
+        {model.missionModel.pagination.canLoadMore && (
+          <Button
+            variant='outline'
+            className='w-fit mx-auto'
+            onClick={() => model.missionModel.pagination.loadMore()}>
+            Показати більше: {model.missionModel.pagination.data.length} з{' '}
+            {model.missionModel.pagination.total}
+          </Button>
         )}
       </div>
     </Layout>

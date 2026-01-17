@@ -121,11 +121,11 @@ export default function CreateMissionPage() {
                       }}
                       defaultSize={{
                         height: 256,
-                        width: 455,
+                        width: 512,
                       }}
                       stencilSize={{
                         height: 256,
-                        width: 455,
+                        width: 512,
                       }}
                     />
                   )}
