@@ -130,7 +130,7 @@ export type User = {
   youtubeUrl?: string;
   _count?: {
     missions: number;
-  }
+  };
 };
 
 export type UpdateUserDto = {
@@ -198,7 +198,7 @@ export type LoginDto = {
 
 export type RefreshTokenDto = {
   refreshToken: string;
-}
+};
 
 export type LoginResponse = {
   user: User;
@@ -305,7 +305,7 @@ export type Island = {
   code: string;
   createdAt: string;
   updatedAt: string;
-}
+};
 
 export type Mission = {
   id: string;
@@ -315,7 +315,7 @@ export type Mission = {
   image?: {
     id: string;
     url: string;
-  }
+  };
   island: Island;
   author: User;
   missionVersions: MissionVersion[];
@@ -339,13 +339,13 @@ export type MissionVersion = {
   file?: {
     id: string;
     url: string;
-  }
+  };
   rating?: number;
   weaponry?: MissionWeaponry[];
   status: MissionStatus;
   createdAt: string;
   updatedAt: string;
-}
+};
 
 export type MissionWeaponry = {
   id: string;
@@ -355,14 +355,14 @@ export type MissionWeaponry = {
   type: MissionGameSide;
   createdAt: string;
   updatedAt: string;
-}
+};
 
 export type CreateMissionWeaponryDto = {
   name: string;
   description?: string;
   count: number;
   type: MissionGameSide;
-}
+};
 
 export type CreateMissionVersionDto = {
   version: string;
@@ -376,7 +376,7 @@ export type CreateMissionVersionDto = {
   file: File;
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
-}
+};
 
 export type UpdateMissionVersionDto = {
   version?: string;
@@ -389,4 +389,4 @@ export type UpdateMissionVersionDto = {
   file?: File;
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
-}
+};

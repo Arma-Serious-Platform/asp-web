@@ -7,11 +7,7 @@ import { observer } from 'mobx-react-lite';
 
 import { redirect } from 'next/navigation';
 
-export default observer(function AuthTemplate({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default observer(function AuthTemplate({ children }: { children: React.ReactNode }) {
   if (env.isLanding) {
     return redirect(ROUTES.home);
   }

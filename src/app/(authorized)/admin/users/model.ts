@@ -1,4 +1,3 @@
-
 import { BanUnbanUserModel } from '@/features/user/ban-unban-user/model';
 import { ChangeIsReviewerModel } from '@/features/user/change-is-reviewer/model';
 import { Pagination } from '@/shared/model/pagination';
@@ -19,7 +18,7 @@ export class UsersModel {
   changeIsReviewerModel = new ChangeIsReviewerModel();
 
   afterBanUser = (user: User) => {
-    const foundUser = this.pagination.data.map((u) => {
+    const foundUser = this.pagination.data.map(u => {
       if (u.id === user.id) {
         u.status = UserStatus.BANNED;
       }
@@ -31,7 +30,7 @@ export class UsersModel {
   };
 
   afterUnbanUser = (user: User) => {
-    const foundUser = this.pagination.data.map((u) => {
+    const foundUser = this.pagination.data.map(u => {
       if (u.id === user.id) {
         u.status = UserStatus.ACTIVE;
         u.bannedUntil = null;
@@ -44,7 +43,7 @@ export class UsersModel {
   };
 
   afterChangeIsReviewer = (userId: string, isMissionReviewer: boolean) => {
-    const foundUser = this.pagination.data.map((u) => {
+    const foundUser = this.pagination.data.map(u => {
       if (u.id === userId) {
         u.isMissionReviewer = isMissionReviewer;
       }

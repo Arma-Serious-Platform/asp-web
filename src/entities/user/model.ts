@@ -12,17 +12,14 @@ class UserModel {
   user: User | null = null;
 
   get options() {
-    return this.pagination.data.map((user) => ({
+    return this.pagination.data.map(user => ({
       label: user.nickname,
       value: user.id,
     }));
   }
 
   get isAdmin() {
-    return (
-      this.user?.role === UserRole.OWNER ||
-      this.user?.role === UserRole.TECH_ADMIN
-    );
+    return this.user?.role === UserRole.OWNER || this.user?.role === UserRole.TECH_ADMIN;
   }
 
   get isBanned() {

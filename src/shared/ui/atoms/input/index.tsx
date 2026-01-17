@@ -4,8 +4,7 @@ import { SearchIcon, X } from 'lucide-react';
 
 import { formatNumericValue } from '@/shared/utils/string';
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   searchIcon?: boolean;
   closeIcon?: boolean;
   error?: string;
@@ -22,13 +21,7 @@ const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps>(
   ({ onChange, canBeZeroAtTheStart = true, float, ...props }, ref) => {
     const onChangeValue = (e: React.ChangeEvent<HTMLInputElement>) => {
       const initialValue = e.target.value;
-      const formattedValue = formatNumericValue(
-        initialValue,
-        props.min,
-        props.max,
-        canBeZeroAtTheStart,
-        float
-      );
+      const formattedValue = formatNumericValue(initialValue, props.min, props.max, canBeZeroAtTheStart, float);
 
       e.target.value = formattedValue;
 
@@ -38,40 +31,21 @@ const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps>(
     return (
       <Input
         ref={ref}
-        type='text'
-        inputMode='decimal'
+        type="text"
+        inputMode="decimal"
         onChange={onChangeValue}
         min={0}
-        mapSetValue={(value) =>
-          formatNumericValue(
-            value,
-            props.min,
-            props.max,
-            canBeZeroAtTheStart,
-            float
-          )
-        }
+        mapSetValue={value => formatNumericValue(value, props.min, props.max, canBeZeroAtTheStart, float)}
         {...props}
       />
     );
-  }
+  },
 );
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    {
-      className,
-      type,
-      value: propValue,
-      onChange,
-      searchIcon,
-      closeIcon,
-      error,
-      mapSetValue,
-      label,
-      ...props
-    },
-    ref
+    { className, type, value: propValue, onChange, searchIcon, closeIcon, error, mapSetValue, label, ...props },
+    ref,
   ) => {
     const [value, setValue] = React.useState(propValue || '');
 
@@ -92,20 +66,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const [isFocused, setIsFocused] = React.useState(props.autoFocus || false);
 
     return (
-      <div className='relative w-full'>
+      <div className="relative w-full">
         {searchIcon && (
-          <SearchIcon
-            className={cn(
-              'absolute left-3 top-4.5 -translate-y-1/2 text-muted-foreground',
-              'h-4 w-4'
-            )}
-          />
+          <SearchIcon className={cn('absolute left-3 top-4.5 -translate-y-1/2 text-muted-foreground', 'h-4 w-4')} />
         )}
 
         {label && (
           <label
             className={cn(
-              'absolute left-2 top-0 -translate-y-1/2 rounded-md border border-white/10 bg-neutral-800 px-2 text-xs font-medium text-zinc-100 shadow-sm'
+              'absolute left-2 top-0 -translate-y-1/2 rounded-md border border-white/10 bg-neutral-800 px-2 text-xs font-medium text-zinc-100 shadow-sm',
             )}>
             {label}
           </label>
@@ -115,11 +84,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           value={value}
           onChange={handleChange}
-          onFocus={(e) => {
+          onFocus={e => {
             setIsFocused(true);
             props.onFocus?.(e);
           }}
-          onBlur={(e) => {
+          onBlur={e => {
             setIsFocused(false);
             props.onBlur?.(e);
           }}
@@ -128,16 +97,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {
               'pl-9': searchIcon,
             },
-            className
+            className,
           )}
           {...props}
         />
 
         {value && closeIcon && (
           <button
-            type='button'
-            className='absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground'
-            onClick={(e) => {
+            type="button"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+            onClick={e => {
               e.preventDefault();
 
               setValue('');
@@ -151,13 +120,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
 
         {error && (
-          <p className='absolute -bottom-2 right-2 text-destructive bg-red-950 text-xs text-right px-2 rounded-lg'>
+          <p className="absolute -bottom-2 right-2 text-destructive bg-red-950 text-xs text-right px-2 rounded-lg">
             {error}
           </p>
         )}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = 'Input';

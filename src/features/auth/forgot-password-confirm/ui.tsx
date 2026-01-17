@@ -6,10 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import classNames from 'classnames';
 import { FC, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  forgotPasswordConfirmModel,
-  ForgotPasswordConfirmModel,
-} from './model';
+import { forgotPasswordConfirmModel, ForgotPasswordConfirmModel } from './model';
 import * as yup from 'yup';
 
 import { FormDto } from './lib';
@@ -26,19 +23,19 @@ const ForgotPasswordConfirmForm: FC<{
   const schema = yup.object().shape({
     password: yup
       .string()
-      .test('password', 'Пароль повинен містити хоча б одну цифру', (value) => {
+      .test('password', 'Пароль повинен містити хоча б одну цифру', value => {
         return /\d/.test(value || '');
       })
-      .test('password', 'Пароль повинен містити хоча б одну букву', (value) => {
+      .test('password', 'Пароль повинен містити хоча б одну букву', value => {
         return /[a-zA-Z]/.test(value || '');
       })
-      .test('password', 'Пароль повинен містити хоча б один спеціальний символ', (value) => {
+      .test('password', 'Пароль повинен містити хоча б один спеціальний символ', value => {
         return /[!@#$%^&*]/.test(value || '');
       })
-      .test('password', 'Пароль повинен містити хоча б одну велику букву', (value) => {
+      .test('password', 'Пароль повинен містити хоча б одну велику букву', value => {
         return /[A-Z]/.test(value || '');
       })
-      .test('password', 'Пароль повинен містити хоча б одну маленьку букву', (value) => {
+      .test('password', 'Пароль повинен містити хоча б одну маленьку букву', value => {
         return /[a-z]/.test(value || '');
       })
       .min(8, 'Пароль повинен бути не менше 8 символів')
@@ -83,24 +80,19 @@ const ForgotPasswordConfirmForm: FC<{
   }, [model]);
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className={classNames(
-        'max-w-lg flex flex-col paper p-4',
-        className
-      )}>
-      <h2 className='text-2xl font-bold mb-4 text-center'>Зміна паролю</h2>
+    <form onSubmit={form.handleSubmit(onSubmit)} className={classNames('max-w-lg flex flex-col paper p-4', className)}>
+      <h2 className="text-2xl font-bold mb-4 text-center">Зміна паролю</h2>
 
-      <div className='flex flex-col gap-4 min-w-96'>
+      <div className="flex flex-col gap-4 min-w-96">
         <Controller
           control={form.control}
-          name='password'
+          name="password"
           render={({ field }) => (
             <Input
               {...field}
-              className='w-full'
-              label='Пароль'
-              type='password'
+              className="w-full"
+              label="Пароль"
+              type="password"
               error={form.formState.errors.password?.message}
             />
           )}
@@ -108,23 +100,20 @@ const ForgotPasswordConfirmForm: FC<{
 
         <Controller
           control={form.control}
-          name='confirmPassword'
+          name="confirmPassword"
           render={({ field }) => (
             <Input
               {...field}
-              className='w-full'
-              label='Повторіть пароль'
-              type='password'
+              className="w-full"
+              label="Повторіть пароль"
+              type="password"
               error={form.formState.errors.confirmPassword?.message}
             />
           )}
         />
       </div>
 
-      <Button
-        type='submit'
-        className='mt-4'
-        disabled={isSubmitting || !isValid || !isDirty}>
+      <Button type="submit" className="mt-4" disabled={isSubmitting || !isValid || !isDirty}>
         Змінити пароль
       </Button>
     </form>

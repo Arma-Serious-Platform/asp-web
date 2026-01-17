@@ -1,9 +1,7 @@
-
 import { ServerModel } from '@/entities/server/model';
 import { ManageServerModel } from '@/features/servers/manage/model';
 
 import { makeAutoObservable } from 'mobx';
-
 
 export class ServersModel {
   constructor() {
@@ -13,7 +11,6 @@ export class ServersModel {
   server = new ServerModel();
 
   manageServer = new ManageServerModel();
-
 }
 
 export const serversModel = new ServersModel();

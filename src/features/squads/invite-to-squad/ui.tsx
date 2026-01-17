@@ -2,13 +2,7 @@
 
 import { UserModel } from '@/entities/user/model';
 import { Button } from '@/shared/ui/atoms/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogOverlay,
-} from '@/shared/ui/organisms/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogOverlay } from '@/shared/ui/organisms/dialog';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 import { Select } from '@/shared/ui/atoms/select';
 import { FC, useEffect, useState } from 'react';
@@ -40,16 +34,14 @@ const InviteToSquadModal: FC<{
       {
         userId: selectedUserId,
       },
-      onInviteSuccess
+      onInviteSuccess,
     );
   };
 
   const squad = model.visibility.payload?.squad;
 
   return (
-    <Dialog
-      open={model.visibility.isOpen}
-      onOpenChange={model.visibility.switch}>
+    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       <DialogContent>
         <DialogHeader>
@@ -57,13 +49,11 @@ const InviteToSquadModal: FC<{
         </DialogHeader>
 
         <Preloader isLoading={model.loader.isLoading}>
-          <div className='flex flex-col gap-4'>
-            <div className='flex flex-col gap-2'>
-              <p className='text-sm text-zinc-400'>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-zinc-400">
                 Оберіть користувача, якого хочете запросити до загону{' '}
-                <span className='text-primary font-semibold'>
-                  {squad?.name}
-                </span>
+                <span className="text-primary font-semibold">{squad?.name}</span>
               </p>
 
               <Observer>
@@ -71,8 +61,8 @@ const InviteToSquadModal: FC<{
                   <Select
                     value={selectedUserId}
                     onChange={setSelectedUserId}
-                    label='Користувач'
-                    onSearch={(search) => {
+                    label="Користувач"
+                    onSearch={search => {
                       model.users.pagination.init({
                         search,
                         skip: 0,
@@ -86,15 +76,11 @@ const InviteToSquadModal: FC<{
               </Observer>
             </div>
 
-            <div className='flex justify-between mt-4'>
-              <Button
-                variant='outline'
-                onClick={() => model.visibility.close()}>
+            <div className="flex justify-between mt-4">
+              <Button variant="outline" onClick={() => model.visibility.close()}>
                 Скасувати
               </Button>
-              <Button
-                onClick={handleInvite}
-                disabled={!selectedUserId || model.loader.isLoading}>
+              <Button onClick={handleInvite} disabled={!selectedUserId || model.loader.isLoading}>
                 Надіслати запрошення
               </Button>
             </div>
@@ -106,4 +92,3 @@ const InviteToSquadModal: FC<{
 });
 
 export { InviteToSquadModal };
-

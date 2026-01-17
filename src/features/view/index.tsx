@@ -9,11 +9,7 @@ type ConditionProps = PropsWithChildren<{
   else?: ReactNode;
 }>;
 
-const Condition: FC<ConditionProps> = ({
-  if: condition,
-  children,
-  else: elseNode = null,
-}) => {
+const Condition: FC<ConditionProps> = ({ if: condition, children, else: elseNode = null }) => {
   if (condition) {
     return <>{children}</>;
   }
@@ -26,19 +22,15 @@ type RoleProps = PropsWithChildren<{
   role: UserRole | UserRole[];
 }>;
 
-const Role: FC<RoleProps> = observer(
-  ({ role, children, if: condition = true }) => {
-    if (!session.user.user || !condition) return null;
+const Role: FC<RoleProps> = observer(({ role, children, if: condition = true }) => {
+  if (!session.user.user || !condition) return null;
 
-    const isMatch = Array.isArray(role)
-      ? role.includes(session.user.user?.role)
-      : role === session.user.user?.role;
+  const isMatch = Array.isArray(role) ? role.includes(session.user.user?.role) : role === session.user.user?.role;
 
-    if (!isMatch) return null;
+  if (!isMatch) return null;
 
-    return children;
-  }
-);
+  return children;
+});
 
 const View = {
   Condition,

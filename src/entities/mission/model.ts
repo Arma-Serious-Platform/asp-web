@@ -13,7 +13,7 @@ class MissionModel {
   islands: Island[] = [];
 
   get islandsOptions() {
-    return this.islands.map((island) => ({
+    return this.islands.map(island => ({
       value: island.id,
       label: island.name,
     }));
@@ -30,8 +30,8 @@ class MissionModel {
       const { data } = await api.findIslands();
 
       this.islands = data;
-    } catch(error) {
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -42,4 +42,3 @@ class MissionModel {
 }
 
 export { MissionModel };
-

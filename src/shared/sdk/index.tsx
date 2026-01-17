@@ -53,7 +53,7 @@ class ApiModel {
   });
 
   constructor() {
-    this.instance.interceptors.request.use(async (config) => {
+    this.instance.interceptors.request.use(async config => {
       const token = await getCookie('token');
 
       if (token) {
@@ -64,14 +64,10 @@ class ApiModel {
     });
 
     this.instance.interceptors.response.use(
-      (res) => res,
-      async (error) => {
+      res => res,
+      async error => {
         const { config, response } = error;
-        if (
-          (response?.status === 401 || response?.status === 403) &&
-          !config._retry &&
-          !this.refreshFailed
-        ) {
+        if ((response?.status === 401 || response?.status === 403) && !config._retry && !this.refreshFailed) {
           config._retry = true;
 
           // Prevent concurrent refresh attempts
@@ -81,9 +77,7 @@ class ApiModel {
 
           const refreshToken =
             typeof window === 'undefined'
-              ? await (await import('next/headers'))
-                  .cookies()
-                  .then((cookie) => cookie.get('refreshToken')?.value)
+              ? await (await import('next/headers')).cookies().then(cookie => cookie.get('refreshToken')?.value)
               : await getCookie('refreshToken');
 
           if (!refreshToken) {
@@ -132,7 +126,7 @@ class ApiModel {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -231,10 +225,7 @@ class ApiModel {
     return await this.instance.post(`/users/unban/${userId}`);
   };
 
-  changeIsMissionReviewer = async (
-    userId: string,
-    isMissionReviewer: boolean
-  ) => {
+  changeIsMissionReviewer = async (userId: string, isMissionReviewer: boolean) => {
     return await this.instance.post(`/users/change-is-mission-reviewer`, {
       userId,
       isMissionReviewer,
@@ -265,10 +256,7 @@ class ApiModel {
 
     Object.entries(dto).forEach(([key, value]) => {
       if (value) {
-        formData.append(
-          key,
-          typeof value === 'number' ? value.toString() : value
-        );
+        formData.append(key, typeof value === 'number' ? value.toString() : value);
       }
     });
 
@@ -290,9 +278,7 @@ class ApiModel {
   };
 
   inviteToSquad = async (dto: InviteToSquadDto) => {
-    return await this.instance.post<SquadInvitation>(
-      `/squads/invite/${dto.userId}`
-    );
+    return await this.instance.post<SquadInvitation>(`/squads/invite/${dto.userId}`);
   };
 
   squadInvitations = async () => {
@@ -300,15 +286,11 @@ class ApiModel {
   };
 
   acceptSquadInvitation = async (invitationId: string) => {
-    return await this.instance.post<SquadInvitation>(
-      `/squads/invitations/accept/${invitationId}`
-    );
+    return await this.instance.post<SquadInvitation>(`/squads/invitations/accept/${invitationId}`);
   };
 
   rejectSquadInvitation = async (invitationId: string) => {
-    return await this.instance.post<SquadInvitation>(
-      `/squads/invitations/reject/${invitationId}`
-    );
+    return await this.instance.post<SquadInvitation>(`/squads/invitations/reject/${invitationId}`);
   };
 
   kickFromSquad = async (userId: string) => {
@@ -384,10 +366,7 @@ class ApiModel {
     });
   };
 
-  createMissionVersion = async (
-    missionId: string,
-    dto: CreateMissionVersionDto
-  ) => {
+  createMissionVersion = async (missionId: string, dto: CreateMissionVersionDto) => {
     const formData = new FormData();
     if (dto.file) {
       formData.append('file', dto.file);
@@ -417,22 +396,14 @@ class ApiModel {
       formData.append('rating', dto.rating.toString());
     }
 
-    return await this.instance.post<MissionVersion>(
-      `/missions/${missionId}/versions`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
+    return await this.instance.post<MissionVersion>(`/missions/${missionId}/versions`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   };
 
-  updateMissionVersion = async (
-    missionId: string,
-    versionId: string,
-    dto: UpdateMissionVersionDto
-  ) => {
+  updateMissionVersion = async (missionId: string, versionId: string, dto: UpdateMissionVersionDto) => {
     const formData = new FormData();
     if (dto.file) {
       formData.append('file', dto.file);
@@ -480,28 +451,17 @@ class ApiModel {
       formData.append('rating', dto.rating.toString());
     }
 
-    return await this.instance.patch<MissionVersion>(
-      `/missions/${missionId}/versions/${versionId}`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
+    return await this.instance.patch<MissionVersion>(`/missions/${missionId}/versions/${versionId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   };
 
-  changeMissionVersionStatus = async (
-    missionId: string,
-    versionId: string,
-    status: MissionStatus
-  ) => {
-    return await this.instance.post(
-      `/missions/${missionId}/versions/${versionId}/change-status`,
-      {
-        status,
-      }
-    );
+  changeMissionVersionStatus = async (missionId: string, versionId: string, status: MissionStatus) => {
+    return await this.instance.post(`/missions/${missionId}/versions/${versionId}/change-status`, {
+      status,
+    });
   };
 }
 

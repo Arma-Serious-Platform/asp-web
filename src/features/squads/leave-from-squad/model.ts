@@ -27,8 +27,7 @@ export class LeaveFromSquadModel {
       this.visibility.close();
       onSuccess?.();
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'Не вдалося покинути загін';
+      const errorMessage = error?.response?.data?.message || 'Не вдалося покинути загін';
       toast.error(errorMessage);
     } finally {
       this.loader.stop();
@@ -37,4 +36,3 @@ export class LeaveFromSquadModel {
 }
 
 export const leaveFromSquadModel = new LeaveFromSquadModel();
-

@@ -1,4 +1,4 @@
-import { SideType } from "@/shared/sdk/types";
+import { SideType } from '@/shared/sdk/types';
 
 export const getSideTypeText = (type: SideType) => {
   switch (type) {

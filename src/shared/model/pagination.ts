@@ -3,13 +3,10 @@ import { makeAutoObservable, reaction } from 'mobx';
 import { PaginatedResponse } from '../sdk/types';
 import { Preloader } from './loader';
 
-type ApiFunction<P, T> = (
-  params: P,
-) => Promise<AxiosResponse<PaginatedResponse<T>>>;
+type ApiFunction<P, T> = (params: P) => Promise<AxiosResponse<PaginatedResponse<T>>>;
 
 type PaginationConstructor<T, P> = {
   api: ApiFunction<P, T>;
-
 };
 
 class Pagination<T, P, Y> {
@@ -20,9 +17,7 @@ class Pagination<T, P, Y> {
   public params: P = {} as P;
   preloader = new Preloader();
 
-  constructor({
-    api,
-  }: PaginationConstructor<T, P>) {
+  constructor({ api }: PaginationConstructor<T, P>) {
     makeAutoObservable(this);
 
     this.api = api;
@@ -37,11 +32,11 @@ class Pagination<T, P, Y> {
 
   setData = (data: T[]) => {
     this.data = data;
-  }
+  };
 
   private setTotal = (total: number) => {
     this.total = total;
-  }
+  };
 
   init = async (initialParams: P) => {
     try {
@@ -53,7 +48,7 @@ class Pagination<T, P, Y> {
 
       this.setTotal(total);
       this.setData(data);
-      this.params = { ...initialParams, ...params, };
+      this.params = { ...initialParams, ...params };
     } catch (error) {
       console.log(error);
     } finally {
@@ -67,7 +62,7 @@ class Pagination<T, P, Y> {
 
       const {
         data: { data, total, ...params },
-      } = await this.api({ ...this.params, skip: this.data.length, });
+      } = await this.api({ ...this.params, skip: this.data.length });
 
       this.setTotal(total);
       this.setData([...this.data, ...data]);

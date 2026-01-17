@@ -6,6 +6,6 @@ export const Radio: FC<{
   checked: boolean;
 }> = ({ checked, className }) => (
   <div className={cn('size-4 flex items-center justify-center rounded-full border border-primary', className)}>
-    {checked && <div className='size-2 rounded-full bg-primary' />}
+    {checked && <div className="size-2 rounded-full bg-primary" />}
   </div>
 );

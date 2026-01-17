@@ -1,5 +1,5 @@
-import { UserProfileModel } from "@/widgets/users/profile/model";
-import { makeAutoObservable } from "mobx";
+import { UserProfileModel } from '@/widgets/users/profile/model';
+import { makeAutoObservable } from 'mobx';
 
 class UserProfilePageModel {
   constructor() {

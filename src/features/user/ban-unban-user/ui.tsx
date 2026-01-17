@@ -22,37 +22,26 @@ const BanUnbanUserModal: FC<
 > = observer(({ model = banUnbanUserModel, children, onBanSuccess, onUnbanSuccess }) => {
   const [banTime, setBanTime] = useState('');
 
-  const isBanAction =
-    model.visibility?.payload?.user?.status !== UserStatus.BANNED;
+  const isBanAction = model.visibility?.payload?.user?.status !== UserStatus.BANNED;
 
   return (
-    <Dialog
-      open={model.visibility.isOpen}
-      onOpenChange={model.visibility.switch}>
+    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
             Ви впевнені, що хочете {isBanAction ? ' заблокувати ' : ' розблокувати '}
-            гравця{' '}
-            <span className='text-primary'>
-              {model.visibility?.payload?.user?.nickname}
-            </span>
-            ?
+            гравця <span className="text-primary">{model.visibility?.payload?.user?.nickname}</span>?
           </DialogTitle>
         </DialogHeader>
-        <div className='flex flex-col gap-2'>
+        <div className="flex flex-col gap-2">
           {isBanAction && (
-            <Input
-              label='Час блокування'
-              type='datetime-local'
-              onChange={(e) => setBanTime(e.target.value)}
-            />
+            <Input label="Час блокування" type="datetime-local" onChange={e => setBanTime(e.target.value)} />
           )}
 
-          <div className='flex justify-between mt-4'>
-            <Button variant='outline' onClick={() => model.visibility.close()}>
+          <div className="flex justify-between mt-4">
+            <Button variant="outline" onClick={() => model.visibility.close()}>
               Скасувати
             </Button>
             <Button
@@ -64,13 +53,10 @@ const BanUnbanUserModal: FC<
                       userId: model.visibility?.payload?.user?.id || '',
                       bannedUntil: banTime ? dayjs(banTime).toDate() : null,
                     },
-                    onBanSuccess
+                    onBanSuccess,
                   );
                 } else {
-                  model.unbanUser(
-                    model.visibility?.payload?.user?.id || '',
-                    onUnbanSuccess
-                  );
+                  model.unbanUser(model.visibility?.payload?.user?.id || '', onUnbanSuccess);
                 }
               }}>
               {isBanAction ? 'Заблокувати' : 'Розблокувати'}

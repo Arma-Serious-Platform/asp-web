@@ -22,7 +22,7 @@ export class ChangeMissionVersionStatusModel {
     missionId: string,
     versionId: string,
     status: MissionStatus,
-    onSuccess?: (status: MissionStatus) => void
+    onSuccess?: (status: MissionStatus) => void,
   ) {
     try {
       this.loader.start();
@@ -32,10 +32,7 @@ export class ChangeMissionVersionStatusModel {
         onSuccess(status);
       }
 
-      const statusLabel =
-        status === MissionStatus.APPROVED
-          ? 'Перевірено'
-          : 'Потребує змін';
+      const statusLabel = status === MissionStatus.APPROVED ? 'Перевірено' : 'Потребує змін';
       toast.success(`Статус версії змінено на "${statusLabel}"`);
       this.visibility.close();
     } catch {
@@ -45,4 +42,3 @@ export class ChangeMissionVersionStatusModel {
     }
   }
 }
-

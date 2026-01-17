@@ -3,8 +3,7 @@ import { Server } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 
 class ServerInfoModel {
-  constructor(
-  ) {
+  constructor() {
     makeAutoObservable(this);
   }
 
@@ -23,4 +22,4 @@ class ServerInfoModel {
 
 const serverInfo = new ServerInfoModel();
 
-export { serverInfo, ServerInfoModel }
+export { serverInfo, ServerInfoModel };

@@ -25,13 +25,10 @@ export class KickFromSquadModel {
         onSuccess(this.visibility.payload.user);
       }
 
-      toast.success(
-        `${this.visibility.payload?.user?.nickname} був вилучений з загону`
-      );
+      toast.success(`${this.visibility.payload?.user?.nickname} був вилучений з загону`);
       this.visibility.close();
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'Не вдалося вилучити гравця з загону';
+      const errorMessage = error?.response?.data?.message || 'Не вдалося вилучити гравця з загону';
       toast.error(errorMessage);
     } finally {
       this.loader.stop();
@@ -40,4 +37,3 @@ export class KickFromSquadModel {
 }
 
 export const kickFromSquadModel = new KickFromSquadModel();
-

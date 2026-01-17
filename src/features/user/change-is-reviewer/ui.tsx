@@ -9,10 +9,7 @@ import {
 } from '@/shared/ui/organisms/dialog';
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren } from 'react';
-import {
-  changeIsReviewerModel,
-  ChangeIsReviewerModel,
-} from './model';
+import { changeIsReviewerModel, ChangeIsReviewerModel } from './model';
 
 const ChangeIsReviewerModal: FC<
   PropsWithChildren<{
@@ -24,28 +21,19 @@ const ChangeIsReviewerModal: FC<
   const isRevokeAction = isReviewer === true;
 
   return (
-    <Dialog
-      open={model.visibility.isOpen}
-      onOpenChange={model.visibility.switch}>
+    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Ви впевнені, що хочете{' '}
-            {isRevokeAction
-              ? 'зняти з перевірки місій'
-              : 'зробити перевіряючим місій'}{' '}
-            гравця{' '}
-            <span className='text-primary'>
-              {model.visibility?.payload?.user?.nickname}
-            </span>
-            ?
+            Ви впевнені, що хочете {isRevokeAction ? 'зняти з перевірки місій' : 'зробити перевіряючим місій'} гравця{' '}
+            <span className="text-primary">{model.visibility?.payload?.user?.nickname}</span>?
           </DialogTitle>
         </DialogHeader>
-        <div className='flex flex-col gap-2'>
-          <div className='flex justify-between mt-4'>
-            <Button variant='outline' onClick={() => model.visibility.close()}>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between mt-4">
+            <Button variant="outline" onClick={() => model.visibility.close()}>
               Скасувати
             </Button>
             <Button
@@ -54,14 +42,12 @@ const ChangeIsReviewerModal: FC<
                 model.changeIsReviewer(
                   model.visibility?.payload?.user?.id || '',
                   model.visibility?.payload?.isMissionReviewer || false,
-                  (isMissionReviewer) => {
+                  isMissionReviewer => {
                     onSuccess?.(model.visibility?.payload?.user?.id || '', isMissionReviewer);
-                  }
+                  },
                 );
               }}>
-              {isRevokeAction
-                ? 'Зняти з перевірки місій'
-                : 'Зробити перевіряючим місій'}
+              {isRevokeAction ? 'Зняти з перевірки місій' : 'Зробити перевіряючим місій'}
             </Button>
           </div>
         </div>
@@ -71,4 +57,3 @@ const ChangeIsReviewerModal: FC<
 });
 
 export { ChangeIsReviewerModal };
-

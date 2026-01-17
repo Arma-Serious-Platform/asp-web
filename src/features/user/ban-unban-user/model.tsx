@@ -25,9 +25,7 @@ export class BanUnbanUserModel {
         onSuccess(this.visibility.payload.user);
       }
 
-      toast.success(
-        `${this.visibility.payload?.user?.nickname} був заблокований`
-      );
+      toast.success(`${this.visibility.payload?.user?.nickname} був заблокований`);
       this.visibility.close();
     } catch {
       toast.error('Не вдалося заблокувати гравця');
@@ -45,9 +43,7 @@ export class BanUnbanUserModel {
         onSuccess(this.visibility.payload.user);
       }
 
-      toast.success(
-        `${this.visibility.payload?.user?.nickname} був розблокований`
-      );
+      toast.success(`${this.visibility.payload?.user?.nickname} був розблокований`);
       this.visibility.close();
     } catch {
       toast.error('Не вдалося розблокувати гравця');

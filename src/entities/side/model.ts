@@ -9,7 +9,7 @@ export class SideModel {
   }
 
   get options() {
-    return this.pagination.data.map((side) => ({
+    return this.pagination.data.map(side => ({
       label: side.name,
       value: side.id,
     }));

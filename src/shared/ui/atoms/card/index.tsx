@@ -7,11 +7,7 @@ export type CardProps = {
   variant?: 'default' | 'elevated';
 };
 
-export const Card: FC<CardProps> = ({
-  children,
-  className,
-  variant = 'default',
-}) => {
+export const Card: FC<CardProps> = ({ children, className, variant = 'default' }) => {
   return (
     <div
       className={cn(
@@ -20,10 +16,9 @@ export const Card: FC<CardProps> = ({
           'bg-black/40 p-4': variant === 'default',
           'bg-black/50 p-4 shadow-lg': variant === 'elevated',
         },
-        className
+        className,
       )}>
       {children}
     </div>
   );
 };
-

@@ -26,10 +26,7 @@ export class InviteToSquadModel {
     });
   };
 
-  inviteToSquad = async (
-    dto: InviteToSquadDto,
-    onSuccess?: (invitation: SquadInvitation) => void
-  ) => {
+  inviteToSquad = async (dto: InviteToSquadDto, onSuccess?: (invitation: SquadInvitation) => void) => {
     try {
       this.loader.start();
       const { data: invitation } = await api.inviteToSquad(dto);
@@ -41,8 +38,7 @@ export class InviteToSquadModel {
 
       onSuccess?.(invitation);
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'Не вдалося надіслати запрошення';
+      const errorMessage = error?.response?.data?.message || 'Не вдалося надіслати запрошення';
       toast.error(errorMessage);
     } finally {
       this.loader.stop();
@@ -55,4 +51,3 @@ export class InviteToSquadModel {
 }
 
 export const inviteToSquadModel = new InviteToSquadModel();
-

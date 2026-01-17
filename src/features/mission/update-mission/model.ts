@@ -23,11 +23,7 @@ export class UpdateMissionModel {
     mission: Mission;
   }>();
 
-  async save(
-    data: MissionFormData,
-    imageFile: File | null,
-    onSuccess?: () => void
-  ) {
+  async save(data: MissionFormData, imageFile: File | null, onSuccess?: () => void) {
     try {
       this.loader.start();
 
@@ -70,4 +66,3 @@ export class UpdateMissionModel {
     }
   }
 }
-

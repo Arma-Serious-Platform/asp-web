@@ -7,12 +7,9 @@ export const statusLabels: Record<MissionStatus, string> = {
 };
 
 export const statusColors: Record<MissionStatus, string> = {
-  [MissionStatus.APPROVED]:
-    'bg-green-500/20 text-green-400 border-green-500/30',
-  [MissionStatus.PENDING_APPROVAL]:
-    'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  [MissionStatus.CHANGES_REQUESTED]:
-    'bg-red-500/20 text-red-400 border-red-500/30',
+  [MissionStatus.APPROVED]: 'bg-green-500/20 text-green-400 border-green-500/30',
+  [MissionStatus.PENDING_APPROVAL]: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  [MissionStatus.CHANGES_REQUESTED]: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
 export const sideTypeColors: Record<MissionGameSide, string> = {
@@ -20,7 +17,6 @@ export const sideTypeColors: Record<MissionGameSide, string> = {
   [MissionGameSide.RED]: 'text-red-400',
   [MissionGameSide.GREEN]: 'text-green-400',
 };
-
 
 export const statusOptions = [
   { label: 'Всі статуси', value: '' },

@@ -20,9 +20,8 @@ export class ChangeIsReviewerModel {
   async changeIsReviewer(userId: string, isMissionReviewer: boolean, onSuccess?: (isMissionReviewer: boolean) => void) {
     try {
       this.loader.start();
-      
-      await api.changeIsMissionReviewer(userId, isMissionReviewer);
 
+      await api.changeIsMissionReviewer(userId, isMissionReviewer);
 
       if (onSuccess) {
         onSuccess(isMissionReviewer);
@@ -30,10 +29,8 @@ export class ChangeIsReviewerModel {
 
       toast.success(
         `${this.visibility.payload?.user?.nickname} ${
-          isMissionReviewer
-            ? 'тепер перевіряючий місій'
-            : 'більше не перевіряючий місій'
-        }`
+          isMissionReviewer ? 'тепер перевіряючий місій' : 'більше не перевіряючий місій'
+        }`,
       );
       this.visibility.close();
     } catch {
@@ -45,4 +42,3 @@ export class ChangeIsReviewerModel {
 }
 
 export const changeIsReviewerModel = new ChangeIsReviewerModel();
-

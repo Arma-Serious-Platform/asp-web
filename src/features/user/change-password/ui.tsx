@@ -13,11 +13,8 @@ const ChangePassword: FC<{
   model?: ChangePasswordModel;
 }> = ({ user, model = changePassword }) => {
   const schema = yup.object().shape({
-    oldPassword: yup.string().required('Старий пароль є обов\'язковим'),
-    newPassword: yup
-      .string()
-      .min(8, 'Новий пароль повинен містити 8 символів')
-      .required('Новий пароль є обов\'язковим'),
+    oldPassword: yup.string().required("Старий пароль є обов'язковим"),
+    newPassword: yup.string().min(8, 'Новий пароль повинен містити 8 символів').required("Новий пароль є обов'язковим"),
   });
 
   const form = useForm<ChangePasswordDto>({
@@ -48,29 +45,23 @@ const ChangePassword: FC<{
   if (!user) return null;
 
   return (
-    <form
-      className='flex flex-col gap-4 min-w-96'
-      onSubmit={form.handleSubmit(onSubmit)}>
+    <form className="flex flex-col gap-4 min-w-96" onSubmit={form.handleSubmit(onSubmit)}>
       <Input
         {...form.register('oldPassword')}
-        label='Старий пароль'
-        type='password'
+        label="Старий пароль"
+        type="password"
         error={form.formState.errors.oldPassword?.message}
         disabled={isSubmitting}
       />
       <Input
         {...form.register('newPassword')}
-        label='Новий пароль'
-        type='password'
+        label="Новий пароль"
+        type="password"
         error={form.formState.errors.newPassword?.message}
         disabled={isSubmitting}
       />
-      <Button type='submit' disabled={!isDirty || !isValid || isSubmitting}>
-        {isSubmitting ? (
-          <LoaderIcon className='w-4 h-4 animate-spin' />
-        ) : (
-          'Змінити пароль'
-        )}
+      <Button type="submit" disabled={!isDirty || !isValid || isSubmitting}>
+        {isSubmitting ? <LoaderIcon className="w-4 h-4 animate-spin" /> : 'Змінити пароль'}
       </Button>
     </form>
   );

@@ -18,12 +18,7 @@ import { useEffect, useRef, FC, PropsWithChildren, RefObject, useState } from 'r
 import { LoaderIcon, UploadIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
-import {
-  CropperRef,
-  FixedCropper,
-  ImageRestriction,
-  FixedCropperRef,
-} from 'react-advanced-cropper';
+import { CropperRef, FixedCropper, ImageRestriction, FixedCropperRef } from 'react-advanced-cropper';
 import { base64ToFile } from '@/shared/utils/file';
 import { UpdateMissionModel, MissionFormData } from './model';
 import { Select } from '@/shared/ui/atoms/select';
@@ -51,7 +46,7 @@ const UpdateMissionModal: FC<
   const payload = model.visibility?.payload;
   const mission = payload?.mission;
 
-  const islandsOptions = islands.map((island) => ({
+  const islandsOptions = islands.map(island => ({
     value: island.id,
     label: island.name,
   }));
@@ -145,25 +140,23 @@ const UpdateMissionModal: FC<
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Редагувати місію</DialogTitle>
         </DialogHeader>
-        <form
-          className='flex flex-col gap-4'
-          onSubmit={missionForm.handleSubmit(handleSubmit)}>
-          <div className='flex flex-col gap-4'>
+        <form className="flex flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
+          <div className="flex flex-col gap-4">
             <input
               ref={imageRef}
-              type='file'
-              accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
+              type="file"
+              accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
               onChange={handleImageChange}
-              className='hidden'
+              className="hidden"
             />
             {imagePreview && (
               <FixedCropper
                 ref={cropperRef as RefObject<FixedCropperRef>}
-                className='h-64 rounded-lg'
+                className="h-64 rounded-lg"
                 src={imagePreview}
                 imageRestriction={ImageRestriction.stencil}
                 stencilProps={{
@@ -183,55 +176,42 @@ const UpdateMissionModal: FC<
               />
             )}
             {!imagePreview && mission.image?.url && (
-              <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10'>
-                <Image
-                  src={mission.image.url}
-                  alt='Current image'
-                  fill
-                  className='object-cover'
-                />
+              <div className="relative w-full aspect-video overflow-hidden rounded-lg border border-white/10">
+                <Image src={mission.image.url} alt="Current image" fill className="object-cover" />
               </div>
             )}
             {!imagePreview && !mission.image?.url && (
-              <div className='relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center'>
-                <span className='text-zinc-500 text-sm'>Немає зображення</span>
+              <div className="relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center">
+                <span className="text-zinc-500 text-sm">Немає зображення</span>
               </div>
             )}
             <Button
-              type='button'
-              variant={
-                imagePreview || mission.image?.url ? 'outline' : 'default'
-              }
-              className='w-full'
+              type="button"
+              variant={imagePreview || mission.image?.url ? 'outline' : 'default'}
+              className="w-full"
               onClick={() => {
                 imageRef.current?.click();
                 setImagePreview('');
               }}>
-              <UploadIcon className='size-4' />
-              {imagePreview || mission.image?.url
-                ? 'Обрати інше зображення'
-                : 'Обрати зображення'}
+              <UploadIcon className="size-4" />
+              {imagePreview || mission.image?.url ? 'Обрати інше зображення' : 'Обрати зображення'}
             </Button>
           </div>
 
           <Controller
             control={missionForm.control}
-            name='name'
+            name="name"
             render={({ field }) => (
-              <Input
-                {...field}
-                label='Назва місії'
-                error={missionForm.formState.errors.name?.message}
-              />
+              <Input {...field} label="Назва місії" error={missionForm.formState.errors.name?.message} />
             )}
           />
 
           <Controller
             control={missionForm.control}
-            name='islandId'
+            name="islandId"
             render={({ field }) => (
               <Select
-                label='Карта'
+                label="Карта"
                 localSearch
                 options={islandsOptions}
                 value={field.value || null}
@@ -244,27 +224,25 @@ const UpdateMissionModal: FC<
 
           <Controller
             control={missionForm.control}
-            name='description'
+            name="description"
             render={({ field }) => (
               <Textarea
                 {...field}
-                label='Опис місії'
+                label="Опис місії"
                 rows={6}
                 error={missionForm.formState.errors.description?.message}
               />
             )}
           />
 
-          <div className='flex justify-between pt-4'>
-            <Button type='button' variant='outline' onClick={handleClose}>
+          <div className="flex justify-between pt-4">
+            <Button type="button" variant="outline" onClick={handleClose}>
               Скасувати
             </Button>
-            <Button
-              type='submit'
-              disabled={model.loader.isLoading || !missionForm.formState.isValid}>
+            <Button type="submit" disabled={model.loader.isLoading || !missionForm.formState.isValid}>
               {model.loader.isLoading ? (
                 <>
-                  <LoaderIcon className='size-4 animate-spin' />
+                  <LoaderIcon className="size-4 animate-spin" />
                   Збереження...
                 </>
               ) : (
@@ -279,4 +257,3 @@ const UpdateMissionModal: FC<
 });
 
 export { UpdateMissionModal };
-

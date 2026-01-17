@@ -15,9 +15,9 @@ function ForgotPasswordContent() {
   return (
     <>
       {token ? (
-        <ForgotPasswordConfirmForm token={token} className='w-full' />
+        <ForgotPasswordConfirmForm token={token} className="w-full" />
       ) : (
-        <ForgotPasswordForm className='w-full' />
+        <ForgotPasswordForm className="w-full" />
       )}
     </>
   );
@@ -25,8 +25,8 @@ function ForgotPasswordContent() {
 
 export default observer(function ForgotPasswordPage() {
   return (
-    <Layout className='h-full flex justify-center items-center flex-1'>
-      <Suspense fallback={<ForgotPasswordForm className='w-full' />}>
+    <Layout className="h-full flex justify-center items-center flex-1">
+      <Suspense fallback={<ForgotPasswordForm className="w-full" />}>
         <ForgotPasswordContent />
       </Suspense>
     </Layout>

@@ -15,10 +15,10 @@ const InstallationGuide: FC<{
         <p>
           Перейдіть на офіційний сайт{' '}
           <a
-            className='text-primary hover:underline'
-            href='https://www.resilio.com/individuals/'
-            target='_blank'
-            rel='noopener noreferrer'>
+            className="text-primary hover:underline"
+            href="https://www.resilio.com/individuals/"
+            target="_blank"
+            rel="noopener noreferrer">
             Resilio Sync
           </a>{' '}
           та встановіть програму
@@ -33,11 +33,10 @@ const InstallationGuide: FC<{
           <b> "Ввести ключ або посилання"</b>. Введіть ключ моду.
           <br />
           <br />
-          Рекомендуємо створити теку для всіх модів, які додаються через ключі
-          (Наприклад: VTG Pack). У цій теці створюйте підтеки з назвами:
+          Рекомендуємо створити теку для всіх модів, які додаються через ключі (Наприклад: VTG Pack). У цій теці
+          створюйте підтеки з назвами:
           <br />
-          "VTG Core", "VTG Mods", "VTG BW" та "VTG Maps"{' '}
-          <b>під кожний окремий ключ</b>.
+          "VTG Core", "VTG Mods", "VTG BW" та "VTG Maps" <b>під кожний окремий ключ</b>.
         </p>
       ),
     },
@@ -46,8 +45,8 @@ const InstallationGuide: FC<{
       description: (
         <p>
           Правою кнопкою миші на роздачі оберіть <b>"Налаштування"</b>.<br />
-          Зніміть галочку з <b>"Зберігати видалені файли в архіві"</b> та
-          поставте галочку на <b>"Перезаписувати змінені файли"</b>.
+          Зніміть галочку з <b>"Зберігати видалені файли в архіві"</b> та поставте галочку на{' '}
+          <b>"Перезаписувати змінені файли"</b>.
         </p>
       ),
     },
@@ -55,8 +54,7 @@ const InstallationGuide: FC<{
       title: 'Додайте моди до Arma 3',
       description: (
         <p>
-          Відкрийте лаунчер Arma 3, перейдіть в <b>"Mods"</b> та додайте
-          завантажені моди через <b>"Local Mods"</b>.
+          Відкрийте лаунчер Arma 3, перейдіть в <b>"Mods"</b> та додайте завантажені моди через <b>"Local Mods"</b>.
         </p>
       ),
     },
@@ -66,8 +64,8 @@ const InstallationGuide: FC<{
         <p>
           Завантажте моди зі{' '}
           <a
-            className='text-primary hover:underline'
-            href='https://steamcommunity.com/sharedfiles/filedetails/?id=3105364650'>
+            className="text-primary hover:underline"
+            href="https://steamcommunity.com/sharedfiles/filedetails/?id=3105364650">
             Steam Workshop
           </a>
         </p>
@@ -78,12 +76,12 @@ const InstallationGuide: FC<{
   return (
     <div className={cn('flex flex-col gap-10', className)}>
       {steps.map((step, index) => (
-        <div key={step.title} className='flex gap-4'>
-          <div className='bg-primary rounded-full size-10 flex items-center justify-center text-2xl font-bold shrink-0'>
+        <div key={step.title} className="flex gap-4">
+          <div className="bg-primary rounded-full size-10 flex items-center justify-center text-2xl font-bold shrink-0">
             {index + 1}
           </div>
           <div>
-            <h3 className='text-2xl font-bold'>{step.title}</h3>
+            <h3 className="text-2xl font-bold">{step.title}</h3>
             <div>{step.description}</div>
           </div>
         </div>
@@ -147,21 +145,16 @@ const InstallationGuideLinks: FC<{
 
   return (
     <div className={cn('flex flex-col gap-4 w-full text-lg', className)}>
-      <div className='flex flex-col gap-4'>
-        {links.map((link) => (
-          <a
-            key={link.title}
-            href={link.href}
-            className='w-fit'
-            target='_blank'
-            rel='noopener noreferrer'>
-            <Button size='sm'>{link.title}</Button>
+      <div className="flex flex-col gap-4">
+        {links.map(link => (
+          <a key={link.title} href={link.href} className="w-fit" target="_blank" rel="noopener noreferrer">
+            <Button size="sm">{link.title}</Button>
           </a>
         ))}
       </div>
 
-      <div className='flex flex-col gap-4'>
-        {copyLinks.map((copy) => (
+      <div className="flex flex-col gap-4">
+        {copyLinks.map(copy => (
           <div key={copy.title}>
             <p>{copy.title}</p>
             <CodeCopy string={copy.copy} />
@@ -180,10 +173,10 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
         <p>
           Перейдіть на офіційний сайт{' '}
           <a
-            href='https://teamspeak.com/en/downloads/#ts3client'
-            className='text-primary hover:underline'
-            target='_blank'
-            rel='noopener noreferrer'>
+            href="https://teamspeak.com/en/downloads/#ts3client"
+            className="text-primary hover:underline"
+            target="_blank"
+            rel="noopener noreferrer">
             TeamSpeak 3
           </a>{' '}
           для завантаження та встановлення програми.
@@ -193,20 +186,15 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
     {
       title: 'Встановіть плагін Task Force Radio',
       description: (
-        <div className='flex flex-col gap-2'>
+        <div className="flex flex-col gap-2">
           <p>
-            Після завантаження TeamSpeak 3 обов'язково встановіть плагін, який
-            прикріплено нижче.
+            Після завантаження TeamSpeak 3 обов'язково встановіть плагін, який прикріплено нижче.
             <br />
-            Для цього відкрийте файл за допомогою TeamSpeak 3 та виконайте
-            встановлення.
+            Для цього відкрийте файл за допомогою TeamSpeak 3 та виконайте встановлення.
           </p>
-          <a
-            download
-            href='/files/task_force_radio.ts3_plugin'
-            className='w-fit'>
-            <Button size='sm'>
-              <DownloadIcon className='size-4' /> Завантажити плагін рації
+          <a download href="/files/task_force_radio.ts3_plugin" className="w-fit">
+            <Button size="sm">
+              <DownloadIcon className="size-4" /> Завантажити плагін рації
             </Button>
           </a>
         </div>
@@ -216,8 +204,7 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
       title: 'Вимкніть плагін Overwolf',
       description: (
         <p>
-          Вимкніть або видаліть плагін Overwolf у TeamSpeak 3. Використання
-          цього плагіну заборонено правилами проекту!
+          Вимкніть або видаліть плагін Overwolf у TeamSpeak 3. Використання цього плагіну заборонено правилами проекту!
         </p>
       ),
     },
@@ -225,10 +212,10 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
       title: 'Підключення до серверу TeamSpeak 3',
       description: (
         <p>
-          При підключенні до серверу проекту в TeamSpeak 3, використовуйте
-          нікнейм, який відповідає вашому нікнейму в Discord. <br />
+          При підключенні до серверу проекту в TeamSpeak 3, використовуйте нікнейм, який відповідає вашому нікнейму в
+          Discord. <br />
           <br />
-          <b>TeamSpeak IP:</b> <span className='text-primary'>vtgarma3</span>
+          <b>TeamSpeak IP:</b> <span className="text-primary">vtgarma3</span>
         </p>
       ),
     },
@@ -237,12 +224,12 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       {steps.map((step, index) => (
-        <div key={step.title} className='flex gap-4'>
-          <div className='bg-primary rounded-full size-10 flex items-center justify-center text-2xl font-bold shrink-0'>
+        <div key={step.title} className="flex gap-4">
+          <div className="bg-primary rounded-full size-10 flex items-center justify-center text-2xl font-bold shrink-0">
             {index + 1}
           </div>
           <div>
-            <h3 className='text-2xl font-bold'>{step.title}</h3>
+            <h3 className="text-2xl font-bold">{step.title}</h3>
             <div>{step.description}</div>
           </div>
         </div>

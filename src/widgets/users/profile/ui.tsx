@@ -4,19 +4,9 @@ import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
-import {
-  ActivityIcon,
-  MailIcon,
-  SendIcon,
-  ShieldUserIcon,
-  UserIcon,
-} from 'lucide-react';
+import { ActivityIcon, MailIcon, SendIcon, ShieldUserIcon, UserIcon } from 'lucide-react';
 
-import {
-  UserNicknameText,
-  UserRoleText,
-  UserStatusText,
-} from '@/entities/user/ui/user-text';
+import { UserNicknameText, UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
 import { View } from '@/features/view';
 import { parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from '@/widgets/user/user-squad';
@@ -34,155 +24,139 @@ type UserProfileProps = {
   userIdOrNickname?: string;
 };
 
-const UserProfile = observer(
-  ({ userIdOrNickname, model }: UserProfileProps) => {
-    const [tab, setTab] = useQueryState(
-      'tab',
-      parseAsStringEnum([
-        ProfileTab.PROFILE,
-        ProfileTab.SQUAD,
-        ProfileTab.SECURITY,
-      ]).withDefault(ProfileTab.PROFILE)
-    );
+const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => {
+  const [tab, setTab] = useQueryState(
+    'tab',
+    parseAsStringEnum([ProfileTab.PROFILE, ProfileTab.SQUAD, ProfileTab.SECURITY]).withDefault(ProfileTab.PROFILE),
+  );
 
-    useEffect(() => {
-      model.init(userIdOrNickname || undefined);
-    }, [userIdOrNickname, model]);
+  useEffect(() => {
+    model.init(userIdOrNickname || undefined);
+  }, [userIdOrNickname, model]);
 
-    return (
-      <>
-        {model.isOwnProfile && (
-          <ChangeAvatarModal model={model.avatar} autoInputClick />
-        )}
+  return (
+    <>
+      {model.isOwnProfile && <ChangeAvatarModal model={model.avatar} autoInputClick />}
 
-        <div className='container relative mx-auto my-6 w-full px-4'>
-          <Preloader isLoading={model.loader.isLoading}>
-            <div className='paper mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:flex-row lg:px-7 lg:py-6'>
-              {/* Left column: avatar + tabs */}
-              <div className='flex w-full flex-col gap-4 lg:w-64'>
-                <div className='group relative w-full overflow-hidden rounded-lg border border-white/10 bg-black/70 shadow-lg'>
-                  <Image
-                    className='h-full w-full object-cover'
-                    src={model.user?.avatar?.url || '/images/avatar.jpg'}
-                    width={256}
-                    height={256}
-                    alt='avatar'
-                  />
-                  <div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-70' />
-                  {model.isOwnProfile && (
-                    <Button
-                      onClick={() => model.avatar.modal.open()}
-                      size='sm'
-                      variant='secondary'
-                      className='absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/20 bg-black/80 px-4 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-100 hover:bg-black'>
-                      Змінити аватар
-                    </Button>
-                  )}
-                </div>
-
-                <ProfileSidebar
-                  tab={tab}
-                  setTab={setTab}
-                  isOwnProfile={model.isOwnProfile}
+      <div className="container relative mx-auto my-6 w-full px-4">
+        <Preloader isLoading={model.loader.isLoading}>
+          <div className="paper mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:flex-row lg:px-7 lg:py-6">
+            {/* Left column: avatar + tabs */}
+            <div className="flex w-full flex-col gap-4 lg:w-64">
+              <div className="group relative w-full overflow-hidden rounded-lg border border-white/10 bg-black/70 shadow-lg">
+                <Image
+                  className="h-full w-full object-cover"
+                  src={model.user?.avatar?.url || '/images/avatar.jpg'}
+                  width={256}
+                  height={256}
+                  alt="avatar"
                 />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-70" />
+                {model.isOwnProfile && (
+                  <Button
+                    onClick={() => model.avatar.modal.open()}
+                    size="sm"
+                    variant="secondary"
+                    className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/20 bg-black/80 px-4 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-100 hover:bg-black">
+                    Змінити аватар
+                  </Button>
+                )}
               </div>
 
-              {/* Right column: tab content */}
-              <div className='flex w-full flex-col gap-4 border-t border-white/10 pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0'>
-                <View.Condition if={tab === 'profile' || !model.isOwnProfile}>
-                  <div className='flex flex-col gap-5'>
-                    <div className='flex flex-col gap-1'>
-                      <span className='text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500'>
-                        Основна інформація
-                      </span>
-                      <div className='flex items-center gap-2 text-lg font-semibold text-white'>
-                        <UserIcon className='size-5 text-primary' />
-                        <UserNicknameText
-                          user={model.user}
-                          tag={model?.user?.squad?.tag}
-                          sideType={model?.user?.squad?.side?.type}
-                        />
-                      </div>
-                    </div>
+              <ProfileSidebar tab={tab} setTab={setTab} isOwnProfile={model.isOwnProfile} />
+            </div>
 
-                    <div className='grid gap-3 text-sm text-zinc-200 sm:grid-cols-2'>
-                      <InfoTile
-                        icon={<ShieldUserIcon className='size-4' />}
-                        title='Роль'
-                        description={<UserRoleText role={model.user?.role} />}
-                      />
-                      <InfoTile
-                        icon={<ActivityIcon className='size-4' />}
-                        title='Статус'
-                        description={
-                          <UserStatusText status={model.user?.status} />
-                        }
-                      />
-
-                      {model.isOwnProfile && (
-                        <InfoTile
-                          className='sm:col-span-2'
-                          icon={<MailIcon className='size-4' />}
-                          title='Електронна пошта'
-                          description={model.user?.email}
-                        />
-                      )}
-
-                      <InfoTile
-                        className='sm:col-span-2'
-                        icon={<SendIcon className='size-4' />}
-                        title='Соціальні мережі'
-                        description={
-                          <ChangeSocials
-                            className='mt-1'
-                            user={model.user}
-                            isLoading={model.socialsLoader.isLoading}
-                            readonly={!model.isOwnProfile}
-                            onChange={(changes) => {
-                              if (Object.keys(changes).length === 0) return;
-
-                              model.updateUser(changes);
-                            }}
-                          />
-                        }
+            {/* Right column: tab content */}
+            <div className="flex w-full flex-col gap-4 border-t border-white/10 pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+              <View.Condition if={tab === 'profile' || !model.isOwnProfile}>
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                      Основна інформація
+                    </span>
+                    <div className="flex items-center gap-2 text-lg font-semibold text-white">
+                      <UserIcon className="size-5 text-primary" />
+                      <UserNicknameText
+                        user={model.user}
+                        tag={model?.user?.squad?.tag}
+                        sideType={model?.user?.squad?.side?.type}
                       />
                     </div>
                   </div>
-                </View.Condition>
 
-                {model.isOwnProfile && (
-                  <>
-                    <View.Condition if={tab === 'squad'}>
-                      <div className='flex flex-col gap-3'>
-                        <span className='text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500'>
-                          Мій загін
+                  <div className="grid gap-3 text-sm text-zinc-200 sm:grid-cols-2">
+                    <InfoTile
+                      icon={<ShieldUserIcon className="size-4" />}
+                      title="Роль"
+                      description={<UserRoleText role={model.user?.role} />}
+                    />
+                    <InfoTile
+                      icon={<ActivityIcon className="size-4" />}
+                      title="Статус"
+                      description={<UserStatusText status={model.user?.status} />}
+                    />
+
+                    {model.isOwnProfile && (
+                      <InfoTile
+                        className="sm:col-span-2"
+                        icon={<MailIcon className="size-4" />}
+                        title="Електронна пошта"
+                        description={model.user?.email}
+                      />
+                    )}
+
+                    <InfoTile
+                      className="sm:col-span-2"
+                      icon={<SendIcon className="size-4" />}
+                      title="Соціальні мережі"
+                      description={
+                        <ChangeSocials
+                          className="mt-1"
+                          user={model.user}
+                          isLoading={model.socialsLoader.isLoading}
+                          readonly={!model.isOwnProfile}
+                          onChange={changes => {
+                            if (Object.keys(changes).length === 0) return;
+
+                            model.updateUser(changes);
+                          }}
+                        />
+                      }
+                    />
+                  </div>
+                </div>
+              </View.Condition>
+
+              {model.isOwnProfile && (
+                <>
+                  <View.Condition if={tab === 'squad'}>
+                    <div className="flex flex-col gap-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                        Мій загін
+                      </span>
+                      <UserSquad user={model.user} />
+                    </div>
+                  </View.Condition>
+
+                  <View.Condition if={tab === 'security'}>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                          Безпека облікового запису
                         </span>
-                        <UserSquad user={model.user} />
+                        <div className="text-lg font-bold text-white">Змінити пароль</div>
                       </div>
-                    </View.Condition>
-
-                    <View.Condition if={tab === 'security'}>
-                      <div className='flex flex-col gap-4'>
-                        <div className='flex flex-col gap-1'>
-                          <span className='text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500'>
-                            Безпека облікового запису
-                          </span>
-                          <div className='text-lg font-bold text-white'>
-                            Змінити пароль
-                          </div>
-                        </div>
-                        <ChangePassword user={model.user} />
-                      </div>
-                    </View.Condition>
-                  </>
-                )}
-              </div>
+                      <ChangePassword user={model.user} />
+                    </div>
+                  </View.Condition>
+                </>
+              )}
             </div>
-          </Preloader>
-        </div>
-      </>
-    );
-  }
-);
+          </div>
+        </Preloader>
+      </div>
+    </>
+  );
+});
 
 export { UserProfile };

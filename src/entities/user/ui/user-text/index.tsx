@@ -1,12 +1,7 @@
 import { SideType, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC, PropsWithChildren } from 'react';
-import {
-  getUserRoleColor,
-  getUserRoleText,
-  getUserStatusText,
-  hasAccessToAdminPanel,
-} from '../../lib';
+import { getUserRoleColor, getUserRoleText, getUserStatusText, hasAccessToAdminPanel } from '../../lib';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
@@ -23,9 +18,7 @@ const UserProfileLink: FC<
   if (!link) return <span className={className}>{children}</span>;
 
   return (
-    <Link
-      className={cn('inline hover:underline', className)}
-      href={ROUTES.user.profileById(user.nickname)}>
+    <Link className={cn('inline hover:underline', className)} href={ROUTES.user.profileById(user.nickname)}>
       {children}
     </Link>
   );
@@ -53,19 +46,14 @@ export const UserNicknameText: FC<{
           })}>
           [{tag || user.squad?.tag}]
         </span>
-        <span
-          className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>
-          {user.nickname}
-        </span>
+        <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>{user.nickname}</span>
       </UserProfileLink>
     );
   }
 
   return (
     <UserProfileLink link={link} className={className} user={user}>
-      <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>
-        {user.nickname}
-      </span>
+      <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>{user.nickname}</span>
     </UserProfileLink>
   );
 };
@@ -99,14 +87,10 @@ export const UserStatusText: FC<{
           'text-red-500': status === UserStatus.BANNED,
           'text-blue-500': status === UserStatus.INVITED,
         },
-        className
+        className,
       )}>
       {getUserStatusText(status)}
-      {bannedUntil && (
-        <span className='text-red-500'>
-          {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}
-        </span>
-      )}
+      {bannedUntil && <span className="text-red-500">{dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
     </span>
   );
 };

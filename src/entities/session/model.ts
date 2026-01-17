@@ -28,9 +28,7 @@ export class SessionModel {
   }
 
   get isHasAdminPanelAccess() {
-    return [UserRole.OWNER, UserRole.TECH_ADMIN].includes(
-      this.user?.user?.role as UserRole
-    );
+    return [UserRole.OWNER, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   boot = async () => {

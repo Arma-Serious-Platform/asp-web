@@ -20,8 +20,8 @@ const AdminPage = observer(() => {
   }, []);
 
   return (
-    <Layout className='flex w-full mt-10 container mx-auto h-full'>
-      <div className='flex flex-col bg-card w-full p-4'>
+    <Layout className="flex w-full mt-10 container mx-auto h-full">
+      <div className="flex flex-col bg-card w-full p-4">
         <ManageServerModal
           model={serversModel.manageServer}
           onCreateSuccess={() => {
@@ -41,15 +41,13 @@ const AdminPage = observer(() => {
           }}
           existedServers={serversModel.server.servers}
         />
-        <AdminSidebar className='mb-4' />
-        <div className='mb-2 flex justify-between items-center'>
-          <h1 className='text-2xl font-bold'>Сервери</h1>
+        <AdminSidebar className="mb-4" />
+        <div className="mb-2 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Сервери</h1>
           <Button
-            size='sm'
-            variant='secondary'
-            onClick={() =>
-              serversModel.manageServer.modal.open({ mode: 'manage' })
-            }>
+            size="sm"
+            variant="secondary"
+            onClick={() => serversModel.manageServer.modal.open({ mode: 'manage' })}>
             Додати сервер
           </Button>
         </div>

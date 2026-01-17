@@ -27,14 +27,7 @@ const ManageServerModal: FC<
     onDeleteSuccess?: (server: Server) => void;
   }>
 > = observer(
-  ({
-    model = manageServerModel,
-    children,
-    existedServers = [],
-    onCreateSuccess,
-    onUpdateSuccess,
-    onDeleteSuccess,
-  }) => {
+  ({ model = manageServerModel, children, existedServers = [], onCreateSuccess, onUpdateSuccess, onDeleteSuccess }) => {
     const form = useForm<CreateServerDto>({
       resolver: yupResolver(
         yup.object().shape({
@@ -43,17 +36,17 @@ const ManageServerModal: FC<
             .required("Назва є обов'язковою")
             .when('$existedServers', {
               is: (existedServers: Server[], value: string) => {
-                return existedServers.some((server) => server.name === value);
+                return existedServers.some(server => server.name === value);
               },
-              then: (schema) => {
+              then: schema => {
                 return schema.required('Назва сервера вже існує');
               },
-              otherwise: (schema) => schema,
+              otherwise: schema => schema,
             }),
           ip: yup.string().required("IP є обов'язковим"),
           port: yup.number().required("Порт є обов'язковим"),
           status: yup.string<ServerStatus>().required("Стан є обов'язковим"),
-        })
+        }),
       ),
       context: {
         existedServers,
@@ -75,7 +68,7 @@ const ManageServerModal: FC<
             ...data,
             id: model.modal.payload?.server?.id || '',
           },
-          onUpdateSuccess
+          onUpdateSuccess,
         );
       } else {
         model.createServer(data, onCreateSuccess);
@@ -87,10 +80,7 @@ const ManageServerModal: FC<
         form.setValue('name', model.modal.payload?.server?.name || '');
         form.setValue('ip', model.modal.payload?.server?.ip || '');
         form.setValue('port', model.modal.payload?.server?.port || 2302);
-        form.setValue(
-          'status',
-          model.modal.payload?.server?.status || ServerStatus.ACTIVE
-        );
+        form.setValue('status', model.modal.payload?.server?.status || ServerStatus.ACTIVE);
       }
 
       if (!model.modal.isOpen) {
@@ -101,53 +91,38 @@ const ManageServerModal: FC<
 
     return (
       <>
-        <Dialog
-          open={model.modal.isOpen && model.modal?.payload?.mode !== 'delete'}
-          onOpenChange={model.modal.switch}>
+        <Dialog open={model.modal.isOpen && model.modal?.payload?.mode !== 'delete'} onOpenChange={model.modal.switch}>
           <DialogOverlay />
           {children && <DialogTrigger asChild>{children}</DialogTrigger>}
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {isEdit ? 'Редагувати сервер' : 'Створити сервер'}
-              </DialogTitle>
+              <DialogTitle>{isEdit ? 'Редагувати сервер' : 'Створити сервер'}</DialogTitle>
             </DialogHeader>
 
-            <form
-              className='flex flex-col gap-2'
-              onSubmit={form.handleSubmit(onSubmit)}>
-              <div className='flex flex-col gap-6'>
+            <form className="flex flex-col gap-2" onSubmit={form.handleSubmit(onSubmit)}>
+              <div className="flex flex-col gap-6">
                 <Controller
                   control={form.control}
-                  name='name'
+                  name="name"
                   render={({ field }) => (
-                    <Input
-                      {...field}
-                      autoFocus
-                      label='Назва сервера'
-                      error={form.formState.errors.name?.message}
-                    />
+                    <Input {...field} autoFocus label="Назва сервера" error={form.formState.errors.name?.message} />
                   )}
                 />
                 <Controller
                   control={form.control}
-                  name='ip'
+                  name="ip"
                   render={({ field }) => (
-                    <Input
-                      {...field}
-                      label='IP сервера'
-                      error={form.formState.errors.ip?.message}
-                    />
+                    <Input {...field} label="IP сервера" error={form.formState.errors.ip?.message} />
                   )}
                 />
 
                 <Controller
                   control={form.control}
-                  name='port'
+                  name="port"
                   render={({ field }) => (
                     <NumericInput
                       {...field}
-                      label='Порт сервера'
+                      label="Порт сервера"
                       maxLength={4}
                       error={form.formState.errors.port?.message}
                     />
@@ -156,71 +131,52 @@ const ManageServerModal: FC<
 
                 <Controller
                   control={form.control}
-                  name='status'
+                  name="status"
                   render={({ field }) => (
-                    <div className='flex items-center gap-2'>
+                    <div className="flex items-center gap-2">
                       <Switch
                         checked={field.value === ServerStatus.ACTIVE}
-                        onCheckedChange={(checked) =>
-                          field.onChange(
-                            checked
-                              ? ServerStatus.ACTIVE
-                              : ServerStatus.INACTIVE
-                          )
+                        onCheckedChange={checked =>
+                          field.onChange(checked ? ServerStatus.ACTIVE : ServerStatus.INACTIVE)
                         }
                       />
-                      <span className='text-sm'>
-                        {field.value === ServerStatus.ACTIVE && (
-                          <span className='text-green-500'>Активний</span>
-                        )}
+                      <span className="text-sm">
+                        {field.value === ServerStatus.ACTIVE && <span className="text-green-500">Активний</span>}
 
-                        {field.value === ServerStatus.INACTIVE && (
-                          <span className='text-red-500'>Неактивний</span>
-                        )}
+                        {field.value === ServerStatus.INACTIVE && <span className="text-red-500">Неактивний</span>}
                       </span>
                     </div>
                   )}
                 />
               </div>
 
-              <div className='flex justify-between mt-4'>
-                <Button variant='outline' onClick={() => model.modal.close()}>
+              <div className="flex justify-between mt-4">
+                <Button variant="outline" onClick={() => model.modal.close()}>
                   Скасувати
                 </Button>
-                <Button type='submit'>
-                  {model?.modal?.payload?.server ? 'Зберегти' : 'Створити'}
-                </Button>
+                <Button type="submit">{model?.modal?.payload?.server ? 'Зберегти' : 'Створити'}</Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
 
-        <Dialog
-          open={model.modal.isOpen && model.modal?.payload?.mode === 'delete'}
-          onOpenChange={model.modal.switch}>
+        <Dialog open={model.modal.isOpen && model.modal?.payload?.mode === 'delete'} onOpenChange={model.modal.switch}>
           <DialogOverlay />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                Видалити сервер{' '}
-                <span className='text-green-500'>
-                  {model.modal?.payload?.server?.name}
-                </span>
-                ?
+                Видалити сервер <span className="text-green-500">{model.modal?.payload?.server?.name}</span>?
               </DialogTitle>
             </DialogHeader>
 
-            <div className='flex justify-between mt-4'>
-              <Button variant='outline' onClick={() => model.modal.close()}>
+            <div className="flex justify-between mt-4">
+              <Button variant="outline" onClick={() => model.modal.close()}>
                 Скасувати
               </Button>
               <Button
-                variant='destructive'
+                variant="destructive"
                 onClick={() => {
-                  model.deleteServer(
-                    model.modal?.payload?.server?.id || '',
-                    onDeleteSuccess
-                  );
+                  model.deleteServer(model.modal?.payload?.server?.id || '', onDeleteSuccess);
                 }}>
                 Видалити
               </Button>
@@ -229,7 +185,7 @@ const ManageServerModal: FC<
         </Dialog>
       </>
     );
-  }
+  },
 );
 
 export { ManageServerModal };

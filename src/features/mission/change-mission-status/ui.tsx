@@ -30,9 +30,7 @@ const ChangeMissionVersionStatusModal: FC<
   const statusLabel = status ? statusLabels[status] : '';
 
   return (
-    <Dialog
-      open={model.visibility.isOpen}
-      onOpenChange={model.visibility.switch}>
+    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent>
@@ -40,22 +38,20 @@ const ChangeMissionVersionStatusModal: FC<
           <DialogTitle>
             <View.Condition if={isApproveAction}>
               <div>
-                Ви впевнені, що хочете допустити версію місії{' '}
-                <span className='text-primary'>{version?.version}</span> до ігр?
+                Ви впевнені, що хочете допустити версію місії <span className="text-primary">{version?.version}</span>{' '}
+                до ігр?
               </div>
             </View.Condition>
             <View.Condition if={!isApproveAction}>
               <div>
-                Ви впевнені, що версія{' '}
-                <span className='text-primary'>{version?.version}</span> ще
-                потребує змін?
+                Ви впевнені, що версія <span className="text-primary">{version?.version}</span> ще потребує змін?
               </div>
             </View.Condition>
           </DialogTitle>
         </DialogHeader>
-        <div className='flex flex-col gap-2'>
-          <div className='flex justify-between mt-4'>
-            <Button variant='outline' onClick={() => model.visibility.close()}>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between mt-4">
+            <Button variant="outline" onClick={() => model.visibility.close()}>
               Скасувати
             </Button>
             <Button

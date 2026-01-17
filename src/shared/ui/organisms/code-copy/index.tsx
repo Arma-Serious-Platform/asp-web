@@ -18,15 +18,9 @@ const CodeCopy: FC<{
 
   return (
     <div
-      className={cn(
-        'flex items-center gap-2 relative h-8 w-fit bg-black text-sm p-2 truncate rounded-sm',
-        className
-      )}>
-      <code className='text-primary'>{string}</code>
-      <CopyIcon
-        className='size-4 cursor-pointer shrink-0 hover:text-primary'
-        onClick={handleCopy}
-      />
+      className={cn('flex items-center gap-2 relative h-8 w-fit bg-black text-sm p-2 truncate rounded-sm', className)}>
+      <code className="text-primary">{string}</code>
+      <CopyIcon className="size-4 cursor-pointer shrink-0 hover:text-primary" onClick={handleCopy} />
     </div>
   );
 };

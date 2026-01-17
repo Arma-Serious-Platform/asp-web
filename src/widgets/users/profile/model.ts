@@ -34,7 +34,7 @@ class UserProfileModel {
         return;
       }
 
-      const {data: otherUserData} =  await api.getUserByIdOrNickname(userIdOrNickname || '')
+      const { data: otherUserData } = await api.getUserByIdOrNickname(userIdOrNickname || '');
       this.otherUser = otherUserData;
     } catch (error) {
       console.error(error);
@@ -59,4 +59,3 @@ class UserProfileModel {
 }
 
 export { UserProfileModel };
-

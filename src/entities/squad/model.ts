@@ -12,21 +12,15 @@ class SquadModel {
   pagination = new Pagination({ api: api.findSquads });
 
   get blueSquads() {
-    return this.pagination.data.filter(
-      (squad) => squad.side?.type === SideType.BLUE
-    );
+    return this.pagination.data.filter(squad => squad.side?.type === SideType.BLUE);
   }
 
   get redSquads() {
-    return this.pagination.data.filter(
-      (squad) => squad.side?.type === SideType.RED
-    );
+    return this.pagination.data.filter(squad => squad.side?.type === SideType.RED);
   }
 
   get unassignedSquads() {
-    return this.pagination.data.filter(
-      (squad) => squad.side?.type === SideType.UNASSIGNED
-    );
+    return this.pagination.data.filter(squad => squad.side?.type === SideType.UNASSIGNED);
   }
 
   init = async () => {

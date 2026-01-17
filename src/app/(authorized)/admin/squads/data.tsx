@@ -17,12 +17,7 @@ export const columns: ColumnDef<Squad>[] = [
     header: () => <div>Назва</div>,
     cell: ({ row }) => {
       return (
-        <Image
-          src={row.original.logo?.url || '/images/avatar.jpg'}
-          alt={row.original.name}
-          width={40}
-          height={40}
-        />
+        <Image src={row.original.logo?.url || '/images/avatar.jpg'} alt={row.original.name} width={40} height={40} />
       );
     },
   },
@@ -89,37 +84,37 @@ export const columns: ColumnDef<Squad>[] = [
     cell: observer(({ row }) => {
       return (
         <Popover
-          className='w-fit flex flex-col gap-2'
+          className="w-fit flex flex-col gap-2"
           trigger={
-            <Button size='icon' variant='secondary'>
-              <MoreHorizontalIcon className='w-4 h-4' />
+            <Button size="icon" variant="secondary">
+              <MoreHorizontalIcon className="w-4 h-4" />
             </Button>
           }>
           <Button
-            size='sm'
-            variant='secondary'
-            align='left'
+            size="sm"
+            variant="secondary"
+            align="left"
             onClick={() => {
               squadsPageModel.manageSquad.modal.open({
                 mode: 'manage',
                 squad: row.original,
               });
             }}>
-            <EditIcon className='w-4 h-4 text-yellow-500' />
+            <EditIcon className="w-4 h-4 text-yellow-500" />
             Редагувати
           </Button>
 
           <Button
-            size='sm'
-            variant='secondary'
-            align='left'
+            size="sm"
+            variant="secondary"
+            align="left"
             onClick={() => {
               squadsPageModel.manageSquad.modal.open({
                 mode: 'delete',
                 squad: row.original,
               });
             }}>
-            <TrashIcon className='w-4 h-4 text-red-500' />
+            <TrashIcon className="w-4 h-4 text-red-500" />
             Видалити
           </Button>
         </Popover>

@@ -1,7 +1,7 @@
-import { session } from "@/entities/session/model";
-import { api } from "@/shared/sdk";
-import { LoginDto } from "@/shared/sdk/types";
-import { makeAutoObservable } from "mobx";
+import { session } from '@/entities/session/model';
+import { api } from '@/shared/sdk';
+import { LoginDto } from '@/shared/sdk/types';
+import { makeAutoObservable } from 'mobx';
 
 class LoginModel {
   constructor() {
@@ -14,7 +14,7 @@ class LoginModel {
     session.authorize(response);
 
     return response;
-  }
+  };
 }
 
 const loginModel = new LoginModel();

@@ -14,8 +14,7 @@ export const ROUTES = {
     login: '/auth/login',
     signup: '/auth/sign-up',
     forgotPassword: '/auth/forgot-password',
-    forgotPasswordConfirm: (token: string) =>
-      `/auth/forgot-password/confirm?token=${token}`,
+    forgotPasswordConfirm: (token: string) => `/auth/forgot-password/confirm?token=${token}`,
   },
   user: {
     profile: '/profile',

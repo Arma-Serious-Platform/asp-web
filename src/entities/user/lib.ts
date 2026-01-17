@@ -16,7 +16,7 @@ export const getUserRoleText = (role?: UserRole, isMissionReviewer?: boolean) =>
       if (isMissionReviewer) {
         return 'Перевіряючий місій';
       }
-      
+
       return 'Користувач';
   }
 };

@@ -8,9 +8,9 @@ export const MissionTabs: FC<{
   onGameChange: (index: number) => void;
 }> = ({ games, activeIndex, onGameChange }) => {
   return (
-    <div className='w-full bg-black/40 border-b border-white/10 backdrop-blur-sm'>
-      <div className='container mx-auto px-4'>
-        <div className='flex gap-0 overflow-x-auto'>
+    <div className="w-full bg-black/40 border-b border-white/10 backdrop-blur-sm">
+      <div className="container mx-auto px-4">
+        <div className="flex gap-0 overflow-x-auto">
           {games.map((game, index) => (
             <Tab
               key={game.id}
@@ -26,4 +26,3 @@ export const MissionTabs: FC<{
     </div>
   );
 };
-

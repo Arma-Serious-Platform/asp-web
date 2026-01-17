@@ -1,4 +1,4 @@
-import { ServerStatus } from "@/shared/sdk/types";
+import { ServerStatus } from '@/shared/sdk/types';
 
 export const getServerStatusText = (status: ServerStatus) => {
   switch (status) {
@@ -10,4 +10,3 @@ export const getServerStatusText = (status: ServerStatus) => {
       return '';
   }
 };
-

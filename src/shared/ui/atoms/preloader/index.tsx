@@ -9,8 +9,8 @@ export const Preloader: FC<
   if (!isLoading) return children;
 
   return (
-    <div className='relative mx-auto w-full'>
-      <LoaderIcon className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin size-4' />
+    <div className="relative mx-auto w-full">
+      <LoaderIcon className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin size-4" />
       {children}
     </div>
   );

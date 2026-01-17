@@ -13,39 +13,30 @@ type WeaponrySectionProps = {
   sideType: MissionGameSide;
 };
 
-export const WeaponrySection: FC<WeaponrySectionProps> = ({
-  weaponry,
-  isOpen,
-  setIsOpen,
-  sideType,
-}) => {
+export const WeaponrySection: FC<WeaponrySectionProps> = ({ weaponry, isOpen, setIsOpen, sideType }) => {
   if (weaponry.length === 0) {
     return null;
   }
 
   return (
-    <div className='pt-2 border-t border-white/5'>
+    <div className="pt-2 border-t border-white/5">
       <button
-        type='button'
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className='flex items-center justify-between w-full hover:opacity-80 transition-opacity cursor-pointer'>
-        <span className='text-xs font-medium text-zinc-400'>
-          Озброєння ({weaponry.length})
-        </span>
+        className="flex items-center justify-between w-full hover:opacity-80 transition-opacity cursor-pointer">
+        <span className="text-xs font-medium text-zinc-400">Озброєння ({weaponry.length})</span>
         {isOpen ? (
-          <ChevronUpIcon className='size-4 text-zinc-400' />
+          <ChevronUpIcon className="size-4 text-zinc-400" />
         ) : (
-          <ChevronDownIcon className='size-4 text-zinc-400' />
+          <ChevronDownIcon className="size-4 text-zinc-400" />
         )}
       </button>
       {isOpen && (
-        <div className='mt-2 flex flex-col gap-1.5'>
+        <div className="mt-2 flex flex-col gap-1.5">
           {weaponry.map((weaponryItem, index) => (
-            <div
-              key={weaponryItem.id || index}
-              className='p-2 rounded bg-black/60 border border-white/5'>
-              <div className='flex items-start justify-between gap-2'>
-                <div className='flex-1'>
+            <div key={weaponryItem.id || index} className="p-2 rounded bg-black/60 border border-white/5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1">
                   <div
                     className={cn('font-medium text-sm', {
                       'text-destructive': sideType === MissionGameSide.RED,
@@ -54,10 +45,7 @@ export const WeaponrySection: FC<WeaponrySectionProps> = ({
                     })}>
                     {weaponryItem.name}
                     {weaponryItem.description && (
-                      <span className='text-xs text-zinc-400 mt-0.5'>
-                        {' '}
-                        ({weaponryItem.description})
-                      </span>
+                      <span className="text-xs text-zinc-400 mt-0.5"> ({weaponryItem.description})</span>
                     )}
                   </div>
                 </div>

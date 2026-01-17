@@ -46,10 +46,7 @@ export class CreateUpdateMissionVersionModel {
     version?: MissionVersion;
   }>();
 
-  async save(
-    data: VersionFormData,
-    onSuccess?: () => void
-  ) {
+  async save(data: VersionFormData, onSuccess?: () => void) {
     try {
       this.loader.start();
 
@@ -124,4 +121,3 @@ export class CreateUpdateMissionVersionModel {
     }
   }
 }
-

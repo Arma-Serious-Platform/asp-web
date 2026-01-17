@@ -31,20 +31,14 @@ const UserProfilePage = observer(() => {
     return null;
   }
 
-  if (
-    userIdOrNickname === session?.user?.user?.id ||
-    model.userProfile.user?.id === session.user?.user?.id
-  ) {
+  if (userIdOrNickname === session?.user?.user?.id || model.userProfile.user?.id === session.user?.user?.id) {
     return redirect(`${ROUTES.user.profile}?tab=profile`);
   }
 
   return (
     <Layout>
       <Hero />
-      <UserProfile
-        userIdOrNickname={userIdOrNickname}
-        model={model.userProfile}
-      />
+      <UserProfile userIdOrNickname={userIdOrNickname} model={model.userProfile} />
     </Layout>
   );
 });

@@ -16,12 +16,8 @@ const AdminSidebarItem: FC<{
   const pathname = usePathname();
 
   return (
-    <Link href={href} className='w-full'>
-      <Button
-        className='w-full'
-        size='sm'
-        align='left'
-        variant={pathname === href ? 'outline' : 'default'}>
+    <Link href={href} className="w-full">
+      <Button className="w-full" size="sm" align="left" variant={pathname === href ? 'outline' : 'default'}>
         {icon}
         {label}
       </Button>
@@ -31,32 +27,12 @@ const AdminSidebarItem: FC<{
 
 const AdminSidebar: FC<{ className?: string }> = ({ className }) => {
   return (
-    <aside
-      className={classNames(
-        'flex flex-col gap-2 bg-card max-w-40 w-full',
-        className
-      )}>
-      <div className='flex gap-0.5 w-full'>
-        <AdminSidebarItem
-          href={ROUTES.admin.users}
-          label='Гравці'
-          icon={<UserIcon />}
-        />
-        <AdminSidebarItem
-          href={ROUTES.admin.squads}
-          label='Загони'
-          icon={<UsersIcon />}
-        />
-        <AdminSidebarItem
-          href={ROUTES.admin.sides}
-          label='Сторони'
-          icon={<SwordIcon />}
-        />
-        <AdminSidebarItem
-          href={ROUTES.admin.servers}
-          label='Сервери'
-          icon={<ServerIcon />}
-        />
+    <aside className={classNames('flex flex-col gap-2 bg-card max-w-40 w-full', className)}>
+      <div className="flex gap-0.5 w-full">
+        <AdminSidebarItem href={ROUTES.admin.users} label="Гравці" icon={<UserIcon />} />
+        <AdminSidebarItem href={ROUTES.admin.squads} label="Загони" icon={<UsersIcon />} />
+        <AdminSidebarItem href={ROUTES.admin.sides} label="Сторони" icon={<SwordIcon />} />
+        <AdminSidebarItem href={ROUTES.admin.servers} label="Сервери" icon={<ServerIcon />} />
       </div>
     </aside>
   );

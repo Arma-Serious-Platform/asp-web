@@ -24,7 +24,7 @@ const AdminPage = observer(() => {
       setParams({ search });
     },
     200,
-    [search]
+    [search],
   );
 
   useEffect(() => {
@@ -36,16 +36,16 @@ const AdminPage = observer(() => {
   }, [params]);
 
   return (
-    <Layout className='flex w-full mt-10 container mx-auto h-full'>
-      <div className='flex flex-col bg-card w-full p-4'>
-        <AdminSidebar className='mb-4' />
-        <h1 className='text-2xl font-bold mb-2'>Гравці</h1>
+    <Layout className="flex w-full mt-10 container mx-auto h-full">
+      <div className="flex flex-col bg-card w-full p-4">
+        <AdminSidebar className="mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Гравці</h1>
         <BanUnbanUserModal
           model={usersModel.banUnbanUserModel}
-          onBanSuccess={(user) => {
+          onBanSuccess={user => {
             usersModel.afterBanUser(user);
           }}
-          onUnbanSuccess={(user) => {
+          onUnbanSuccess={user => {
             usersModel.afterUnbanUser(user);
           }}
         />
@@ -57,11 +57,11 @@ const AdminPage = observer(() => {
         />
         <Input
           searchIcon
-          placeholder='Пошук...'
-          className='mb-4'
+          placeholder="Пошук..."
+          className="mb-4"
           autoFocus
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
         />
         <DataTable
           columns={columns}

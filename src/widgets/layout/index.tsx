@@ -11,17 +11,11 @@ const Layout: FC<
     headerProps?: HeaderProps;
     showHero?: boolean;
   }>
-> = ({
-  wrapperClassName,
-  className,
-  children,
-  headerProps,
-  showHero = false,
-}) => (
+> = ({ wrapperClassName, className, children, headerProps, showHero = false }) => (
   <div
     className={classNames(
       'relative flex flex-col justify-center min-h-screen w-full overflow-x-clip',
-      wrapperClassName
+      wrapperClassName,
     )}>
     <Header {...headerProps} />
     <MobileMenu />

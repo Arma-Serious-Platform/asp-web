@@ -1,6 +1,6 @@
-import { Loader } from "@/shared/model/loader";
-import { api } from "@/shared/sdk";
-import { makeAutoObservable } from "mobx";
+import { Loader } from '@/shared/model/loader';
+import { api } from '@/shared/sdk';
+import { makeAutoObservable } from 'mobx';
 
 export class ConfirmSignUpModel {
   constructor() {
@@ -13,7 +13,7 @@ export class ConfirmSignUpModel {
 
   setSuccess = (success: boolean) => {
     this.isSuccess = success;
-  }
+  };
 
   confirmSignUp = async (token: string) => {
     try {
@@ -27,7 +27,7 @@ export class ConfirmSignUpModel {
     } finally {
       this.loader.stop();
     }
-  }
+  };
 }
 
 const confirmSignUpModel = new ConfirmSignUpModel();

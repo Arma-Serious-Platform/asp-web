@@ -16,7 +16,7 @@ export const ServerStatusText: FC<{
           'text-green-500': status === ServerStatus.ACTIVE,
           'text-red-500': status === ServerStatus.INACTIVE,
         },
-        className
+        className,
       )}>
       {getServerStatusText(status)}
     </span>

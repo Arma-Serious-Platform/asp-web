@@ -24,9 +24,7 @@ class ForgotPasswordModel {
 
       this.setSended(true);
     } catch (error) {
-      if (
-        error?.response?.data?.message === 'Reset password token is still valid'
-      ) {
+      if (error?.response?.data?.message === 'Reset password token is still valid') {
         this.setAlreadySended(true);
 
         return;

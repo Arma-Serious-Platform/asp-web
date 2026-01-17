@@ -11,10 +11,7 @@ export class AcceptOrRejectInviteModel {
 
   loader = new Loader();
 
-  acceptInvitation = async (
-    invitationId: string,
-    onSuccess?: (invitation: SquadInvitation) => void
-  ) => {
+  acceptInvitation = async (invitationId: string, onSuccess?: (invitation: SquadInvitation) => void) => {
     try {
       this.loader.start();
       const { data: invitation } = await api.acceptSquadInvitation(invitationId);
@@ -23,18 +20,14 @@ export class AcceptOrRejectInviteModel {
 
       onSuccess?.(invitation);
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'Не вдалося прийняти запрошення';
+      const errorMessage = error?.response?.data?.message || 'Не вдалося прийняти запрошення';
       toast.error(errorMessage);
     } finally {
       this.loader.stop();
     }
   };
 
-  rejectInvitation = async (
-    invitationId: string,
-    onSuccess?: (invitation: SquadInvitation) => void
-  ) => {
+  rejectInvitation = async (invitationId: string, onSuccess?: (invitation: SquadInvitation) => void) => {
     try {
       this.loader.start();
       const { data: invitation } = await api.rejectSquadInvitation(invitationId);
@@ -43,8 +36,7 @@ export class AcceptOrRejectInviteModel {
 
       onSuccess?.(invitation);
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'Не вдалося відхилити запрошення';
+      const errorMessage = error?.response?.data?.message || 'Не вдалося відхилити запрошення';
       toast.error(errorMessage);
     } finally {
       this.loader.stop();
@@ -53,4 +45,3 @@ export class AcceptOrRejectInviteModel {
 }
 
 export const acceptOrRejectInviteModel = new AcceptOrRejectInviteModel();
-

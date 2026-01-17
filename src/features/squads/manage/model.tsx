@@ -31,10 +31,7 @@ class ManageSquadModel {
     });
   };
 
-  createSquad = async (
-    squad: CreateSquadDto,
-    onSuccess?: (squad: Squad) => void
-  ) => {
+  createSquad = async (squad: CreateSquadDto, onSuccess?: (squad: Squad) => void) => {
     try {
       this.loader.start();
       const { data: createdSquad } = await api.createSquad(squad);
@@ -51,10 +48,7 @@ class ManageSquadModel {
     }
   };
 
-  updateSquad = async (
-    squad: UpdateSquadDto,
-    onSuccess?: (squad: Squad) => void
-  ) => {
+  updateSquad = async (squad: UpdateSquadDto, onSuccess?: (squad: Squad) => void) => {
     try {
       this.loader.start();
       const { data: updatedSquad } = await api.updateSquad(squad);

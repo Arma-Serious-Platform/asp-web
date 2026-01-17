@@ -13,16 +13,9 @@ export const Avatar: FC<{
         'bg-gray-200 overflow-hidden rounded-full relative',
         size === 'lg' && 'w-12 h-12',
         size === 'md' && 'w-10 h-10',
-        size === 'sm' && 'w-8 h-8'
+        size === 'sm' && 'w-8 h-8',
       )}>
-      <img
-        src={src}
-        alt={alt}
-        className='size-auto'
-        width={40}
-        height={40}
-        loading='lazy'
-      />
+      <img src={src} alt={alt} className="size-auto" width={40} height={40} loading="lazy" />
     </div>
   );
 };

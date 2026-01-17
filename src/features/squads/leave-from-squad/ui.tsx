@@ -1,13 +1,7 @@
 'use client';
 
 import { Button } from '@/shared/ui/atoms/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogOverlay,
-} from '@/shared/ui/organisms/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogOverlay } from '@/shared/ui/organisms/dialog';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 import { Select } from '@/shared/ui/atoms/select';
 import { FC, useEffect, useState } from 'react';
@@ -25,12 +19,10 @@ const LeaveFromSquadModal: FC<{
   const members = squad?.members || [];
 
   // Filter out current user from members list for leader selection
-  const availableMembers = members.filter(
-    (member) => member.id !== squad?.leader?.id
-  );
+  const availableMembers = members.filter(member => member.id !== squad?.leader?.id);
 
   // Create options for leader selection
-  const leaderOptions = availableMembers.map((member) => ({
+  const leaderOptions = availableMembers.map(member => ({
     label: member.nickname || member.id,
     value: member.id,
   }));
@@ -50,39 +42,27 @@ const LeaveFromSquadModal: FC<{
   };
 
   return (
-    <Dialog
-      open={model.visibility.isOpen}
-      onOpenChange={model.visibility.switch}>
+    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {isLeader
-              ? 'Покинути загін та передати лідерство'
-              : 'Покинути загін'}
-          </DialogTitle>
+          <DialogTitle>{isLeader ? 'Покинути загін та передати лідерство' : 'Покинути загін'}</DialogTitle>
         </DialogHeader>
 
         <Preloader isLoading={model.loader.isLoading}>
-          <div className='flex flex-col gap-4'>
+          <div className="flex flex-col gap-4">
             {isLeader ? (
               <>
                 {availableMembers.length === 0 ? (
-                  <p className='text-sm text-zinc-400'>
-                    Ви є єдиним учасником загону{' '}
-                    <span className='text-primary font-semibold'>
-                      {squad?.name}
-                    </span>
-                    . Неможливо покинути загін без інших учасників.
+                  <p className="text-sm text-zinc-400">
+                    Ви є єдиним учасником загону <span className="text-primary font-semibold">{squad?.name}</span>.
+                    Неможливо покинути загін без інших учасників.
                   </p>
                 ) : (
                   <>
-                    <p className='text-sm text-zinc-400'>
-                      Ви є лідером загону{' '}
-                      <span className='text-primary font-semibold'>
-                        {squad?.name}
-                      </span>
-                      . Перед тим як покинути загін, оберіть нового лідера.
+                    <p className="text-sm text-zinc-400">
+                      Ви є лідером загону <span className="text-primary font-semibold">{squad?.name}</span>. Перед тим
+                      як покинути загін, оберіть нового лідера.
                     </p>
 
                     <Observer>
@@ -90,13 +70,9 @@ const LeaveFromSquadModal: FC<{
                         <Select
                           value={selectedLeaderId}
                           onChange={setSelectedLeaderId}
-                          label='Новий лідер загону'
+                          label="Новий лідер загону"
                           options={leaderOptions}
-                          error={
-                            !selectedLeaderId
-                              ? 'Оберіть нового лідера загону'
-                              : undefined
-                          }
+                          error={!selectedLeaderId ? 'Оберіть нового лідера загону' : undefined}
                         />
                       )}
                     </Observer>
@@ -104,28 +80,20 @@ const LeaveFromSquadModal: FC<{
                 )}
               </>
             ) : (
-              <p className='text-sm text-zinc-400'>
-                Ви впевнені, що хочете покинути загін{' '}
-                <span className='text-primary font-semibold'>
-                  {squad?.name}
-                </span>
-                ? Ця дія незворотна.
+              <p className="text-sm text-zinc-400">
+                Ви впевнені, що хочете покинути загін <span className="text-primary font-semibold">{squad?.name}</span>?
+                Ця дія незворотна.
               </p>
             )}
 
-            <div className='flex justify-between mt-4'>
-              <Button
-                variant='outline'
-                onClick={() => model.visibility.close()}>
+            <div className="flex justify-between mt-4">
+              <Button variant="outline" onClick={() => model.visibility.close()}>
                 Скасувати
               </Button>
               <Button
-                variant='destructive'
+                variant="destructive"
                 onClick={handleLeave}
-                disabled={
-                  model.loader.isLoading ||
-                  (isLeader && (!selectedLeaderId || availableMembers.length === 0))
-                }>
+                disabled={model.loader.isLoading || (isLeader && (!selectedLeaderId || availableMembers.length === 0))}>
                 Покинути загін
               </Button>
             </div>
@@ -137,4 +105,3 @@ const LeaveFromSquadModal: FC<{
 });
 
 export { LeaveFromSquadModal };
-

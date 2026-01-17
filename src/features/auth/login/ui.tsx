@@ -49,17 +49,12 @@ const LoginForm: FC<{
         form.setError('password', { message: 'Неправильний email або пароль' });
       }
 
-      if (
-        error?.response?.data?.message ===
-        'Activation token expired. Check your email for a new token'
-      ) {
+      if (error?.response?.data?.message === 'Activation token expired. Check your email for a new token') {
         toast.error(
-          <div className='text-center'>
-            Аккаунт ще не активовано. На пошту надіслано посилання для активації
-          </div>,
+          <div className="text-center">Аккаунт ще не активовано. На пошту надіслано посилання для активації</div>,
           {
             duration: 5000,
-          }
+          },
         );
       }
     }
@@ -67,55 +62,36 @@ const LoginForm: FC<{
 
   return (
     <div className={classNames('max-w-lg flex flex-col paper p-4', className)}>
-      <h2 className='text-2xl font-bold mb-4 text-center'>Увійти</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Увійти</h2>
 
-      <form
-        className='flex flex-col gap-4'
-        onSubmit={form.handleSubmit(onSubmit)}>
+      <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
         <Controller
           control={form.control}
-          name='email'
+          name="email"
           render={({ field }) => (
-            <Input
-              {...field}
-              autoFocus
-              label='Нікнейм або email'
-              error={form.formState.errors.email?.message}
-            />
+            <Input {...field} autoFocus label="Нікнейм або email" error={form.formState.errors.email?.message} />
           )}
         />
 
         <Controller
           control={form.control}
-          name='password'
+          name="password"
           render={({ field }) => (
-            <Input
-              {...field}
-              type='password'
-              label='Пароль'
-              error={form.formState.errors.password?.message}
-            />
+            <Input {...field} type="password" label="Пароль" error={form.formState.errors.password?.message} />
           )}
         />
 
-        <div className='flex justify-between gap-1'>
-          <span className='text-sm text-muted-foreground'>
+        <div className="flex justify-between gap-1">
+          <span className="text-sm text-muted-foreground">
             <Link href={ROUTES.auth.forgotPassword}>Забули пароль?</Link>
           </span>
-          <span className='text-sm text-muted-foreground'>
+          <span className="text-sm text-muted-foreground">
             <Link href={ROUTES.auth.signup}>Ще не маєте аккаунту?</Link>
           </span>
         </div>
 
-        <Button
-          className='uppercase'
-          type='submit'
-          disabled={isSubmitting || !isValid}>
-          {isSubmitting ? (
-            <LoaderIcon className='size-4 animate-spin' />
-          ) : (
-            'Увійти'
-          )}
+        <Button className="uppercase" type="submit" disabled={isSubmitting || !isValid}>
+          {isSubmitting ? <LoaderIcon className="size-4 animate-spin" /> : 'Увійти'}
         </Button>
       </form>
     </div>

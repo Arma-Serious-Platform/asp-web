@@ -17,10 +17,7 @@ export class ManageServerModel {
     mode: 'manage' | 'delete';
   }>();
 
-  createServer = async (
-    server: CreateServerDto,
-    onSuccess?: (server: Server) => void
-  ) => {
+  createServer = async (server: CreateServerDto, onSuccess?: (server: Server) => void) => {
     try {
       this.loader.start();
       const { data: createdServer } = await api.createServer(server);
@@ -37,10 +34,7 @@ export class ManageServerModel {
     }
   };
 
-  updateServer = async (
-    server: UpdateServerDto,
-    onSuccess?: (server: Server) => void
-  ) => {
+  updateServer = async (server: UpdateServerDto, onSuccess?: (server: Server) => void) => {
     try {
       this.loader.start();
       const { data: updatedServer } = await api.updateServer(server);
@@ -57,10 +51,7 @@ export class ManageServerModel {
     }
   };
 
-  deleteServer = async (
-    serverId: string,
-    onSuccess?: (server: Server) => void
-  ) => {
+  deleteServer = async (serverId: string, onSuccess?: (server: Server) => void) => {
     try {
       this.loader.start();
       const { data: deletedServer } = await api.deleteServer(serverId);
