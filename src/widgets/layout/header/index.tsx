@@ -248,7 +248,7 @@ export const MobileMenu = observer(() => {
       )}>
       <div className='relative mx-auto flex w-full max-w-xl flex-col px-4 pt-4'>
         <div className='flex items-center justify-between'>
-          <Link href={ROUTES.home} onClick={headerModel.mobileMenu.close}>
+          <Link className='w-fit shrink-0' href={ROUTES.home} onClick={headerModel.mobileMenu.close}>
             <Image
               className='mr-2 transition-transform duration-300 hover:scale-105'
               priority
@@ -351,7 +351,7 @@ export const Header: FC<HeaderProps> = observer(
           }
         )}>
         <div className='container max-lg:mx-4 flex items-center justify-between'>
-          <Link href={ROUTES.home}>
+          <Link className='w-fit shrink-0' href={ROUTES.home}>
             <Image
               className='mr-4 hover:scale-110 transition-all duration-300'
               priority

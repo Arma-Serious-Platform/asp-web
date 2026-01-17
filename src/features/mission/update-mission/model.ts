@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 export type MissionFormData = {
   name: string;
   description: string;
+  islandId: string;
   image: File | null;
 };
 
@@ -40,9 +41,15 @@ export class UpdateMissionModel {
       if (data.name !== mission.name) {
         dto.name = data.name;
       }
+
       if (data.description !== mission.description) {
         dto.description = data.description;
       }
+
+      if (data.islandId !== mission?.island?.id) {
+        dto.islandId = data.islandId;
+      }
+
       if (imageFile) {
         dto.image = imageFile;
       }

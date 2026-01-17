@@ -21,6 +21,7 @@ type BaseSelectProps = {
   error?: string;
   children?: React.ReactNode;
   label?: ReactNode;
+  localSearch?: boolean;
   onSearch?: (value: string) => void;
 };
 
@@ -44,10 +45,12 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   multiple,
   options,
   value,
+  localSearch,
   onSearch,
   onChange,
 }) => {
   const [savedOptions, setSavedOptions] = useState<SelectOption[]>([]);
+  const [searchValue, setSearchValue] = useState('');
 
   const onSelect = (option: SelectOption) => {
     const isAlreadySelected = savedOptions.some(
@@ -69,12 +72,19 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
 
   const combinedOptions = useMemo(() => {
     return [
-      ...options,
+      ...options.filter((o) => {
+        if (localSearch) {
+          return o.label.toLowerCase().includes(searchValue.toLowerCase());
+        }
+
+        return true;
+      }),
+
       ...savedOptions.filter(
         (o) => !options.some((o2) => o2.value === o.value)
       ),
     ];
-  }, [options, savedOptions]);
+  }, [options, savedOptions, searchValue, localSearch]);
 
   return (
     <Popover
@@ -112,13 +122,19 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
         )
       }>
       <div className='flex flex-col w-full max-h-[calc(100vh-40rem)] overflow-y-auto'>
-        {onSearch && (
+        {(onSearch || localSearch) && (
           <Input
             className='border-t-0 border-b-1 border-x-0 outline-0'
             placeholder='Пошук'
             searchIcon
             error={error}
-            onChange={(e) => onSearch(e.target.value)}
+            onChange={(e) => {
+              if (onSearch) {
+                onSearch(e.target.value);
+              } else {
+                setSearchValue(e.target.value);
+              }
+            }}
           />
         )}
         <Preloader isLoading={isLoading || false}>

@@ -10,7 +10,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { CreateMissionDto } from '@/shared/sdk/types';
 import { api } from '@/shared/sdk';
-import { useState, useRef, RefObject } from 'react';
+import { useState, useRef, RefObject, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { LoaderIcon, UploadIcon } from 'lucide-react';
@@ -22,27 +22,54 @@ import {
 } from 'react-advanced-cropper';
 import { base64ToFile } from '@/shared/utils/file';
 import { Section } from '@/shared/ui/organisms/section';
+import { Select } from '@/shared/ui/atoms/select';
+import { Island } from '@/shared/sdk/types';
 
 const schema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
   description: yup.string().required("Опис є обов'язковим"),
+  islandId: yup.string().required("Карта є обов'язковою"),
 });
 
 export default function CreateMissionPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [islands, setIslands] = useState<Island[]>([]);
+  const [isLoadingIslands, setIsLoadingIslands] = useState(false);
   const imageRef = useRef<HTMLInputElement>(null);
   const cropperRef = useRef<CropperRef>(null);
 
   const form = useForm<CreateMissionDto>({
     mode: 'onChange',
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
     defaultValues: {
       name: '',
       description: '',
+      islandId: '',
     },
   });
+
+  const islandsOptions = islands.map((island) => ({
+    value: island.id,
+    label: island.name,
+  }));
+
+  useEffect(() => {
+    const loadIslands = async () => {
+      try {
+        setIsLoadingIslands(true);
+        const response = await api.findIslands();
+        setIslands(response.data);
+      } catch (error) {
+        console.error('Failed to load islands:', error);
+      } finally {
+        setIsLoadingIslands(false);
+      }
+    };
+
+    loadIslands();
+  }, []);
 
   const { isValid } = form.formState;
 
@@ -162,6 +189,23 @@ export default function CreateMissionPage() {
                     label='Назва місії'
                     autoFocus
                     error={form.formState.errors.name?.message}
+                  />
+                )}
+              />
+
+              {/* Island */}
+              <Controller
+                control={form.control}
+                name='islandId'
+                render={({ field }) => (
+                  <Select
+                    label='Карта'
+                    localSearch
+                    options={islandsOptions}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    isLoading={isLoadingIslands}
+                    error={form.formState.errors.islandId?.message}
                   />
                 )}
               />

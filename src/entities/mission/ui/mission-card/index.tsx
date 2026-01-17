@@ -100,6 +100,12 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
                 <UserNicknameText user={mission.author} className='text-zinc-400' />
               </div>
             )}
+            {mission.island && (
+              <div className='text-xs text-zinc-500'>
+                <span className='text-zinc-500'>Карта: </span>
+                <span className='text-zinc-400'>{mission.island.name}</span>
+              </div>
+            )}
           </div>
 
           {/* Stats */}

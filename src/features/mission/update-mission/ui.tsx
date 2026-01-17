@@ -26,10 +26,14 @@ import {
 } from 'react-advanced-cropper';
 import { base64ToFile } from '@/shared/utils/file';
 import { UpdateMissionModel, MissionFormData } from './model';
+import { Select } from '@/shared/ui/atoms/select';
+import { api } from '@/shared/sdk';
+import { Island } from '@/shared/sdk/types';
 
 const missionSchema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
   description: yup.string().required("Опис є обов'язковим"),
+  islandId: yup.string().required("Карта є обов'язковою"),
 });
 
 const UpdateMissionModal: FC<
@@ -41,9 +45,16 @@ const UpdateMissionModal: FC<
   const imageRef = useRef<HTMLInputElement>(null);
   const cropperRef = useRef<CropperRef>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [islands, setIslands] = useState<Island[]>([]);
+  const [isLoadingIslands, setIsLoadingIslands] = useState(false);
 
   const payload = model.visibility?.payload;
   const mission = payload?.mission;
+
+  const islandsOptions = islands.map((island) => ({
+    value: island.id,
+    label: island.name,
+  }));
 
   const missionForm = useForm<MissionFormData>({
     mode: 'onChange',
@@ -51,18 +62,36 @@ const UpdateMissionModal: FC<
     defaultValues: {
       name: '',
       description: '',
+      islandId: '',
       image: null,
     },
   });
 
   useEffect(() => {
-    if (model.visibility.isOpen && mission) {
-      missionForm.reset({
-        name: mission.name,
-        description: mission.description,
-        image: null,
-      });
-      setImagePreview('');
+    if (model.visibility.isOpen) {
+      const loadIslands = async () => {
+        try {
+          setIsLoadingIslands(true);
+          const response = await api.findIslands();
+          setIslands(response.data);
+        } catch (error) {
+          console.error('Failed to load islands:', error);
+        } finally {
+          setIsLoadingIslands(false);
+        }
+      };
+
+      loadIslands();
+
+      if (mission) {
+        missionForm.reset({
+          name: mission.name,
+          description: mission.description,
+          islandId: mission?.island?.id || '',
+          image: null,
+        });
+        setImagePreview('');
+      }
     }
   }, [model.visibility.isOpen, mission]);
 
@@ -104,6 +133,7 @@ const UpdateMissionModal: FC<
       missionForm.reset({
         name: mission.name,
         description: mission.description,
+        islandId: mission?.island?.id || '',
         image: null,
       });
     }
@@ -192,6 +222,22 @@ const UpdateMissionModal: FC<
                 {...field}
                 label='Назва місії'
                 error={missionForm.formState.errors.name?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={missionForm.control}
+            name='islandId'
+            render={({ field }) => (
+              <Select
+                label='Карта'
+                localSearch
+                options={islandsOptions}
+                value={field.value || null}
+                onChange={field.onChange}
+                isLoading={isLoadingIslands}
+                error={missionForm.formState.errors.islandId?.message}
               />
             )}
           />

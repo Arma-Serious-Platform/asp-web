@@ -351,6 +351,7 @@ class ApiModel {
 
     formData.append('name', dto.name);
     formData.append('description', dto.description);
+    formData.append('islandId', dto.islandId);
 
     return await this.instance.post<Mission>('/missions', formData, {
       headers: {
@@ -363,6 +364,10 @@ class ApiModel {
     const formData = new FormData();
     if (dto.image) {
       formData.append('image', dto.image);
+    }
+
+    if (dto.islandId) {
+      formData.append('islandId', dto.islandId);
     }
 
     if (dto.name) {
