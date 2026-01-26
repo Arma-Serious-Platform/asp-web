@@ -58,6 +58,7 @@ export const UserSquad: FC<{
             width={128}
             height={128}
             className="h-32 w-32 object-cover"
+            unoptimized={!squad.logo?.url?.startsWith('https')}
           />
         </div>
 

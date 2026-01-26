@@ -17,7 +17,13 @@ export const columns: ColumnDef<Squad>[] = [
     header: () => <div>Назва</div>,
     cell: ({ row }) => {
       return (
-        <Image src={row.original.logo?.url || '/images/avatar.jpg'} alt={row.original.name} width={40} height={40} />
+        <Image
+          src={row.original.logo?.url || '/images/avatar.jpg'}
+          alt={row.original.name}
+          width={40}
+          height={40}
+          unoptimized={!row.original.logo?.url?.startsWith('https')}
+        />
       );
     },
   },

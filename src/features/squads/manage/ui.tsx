@@ -211,6 +211,7 @@ const ManageSquadModal: FC<
                     alt="Old logo"
                     width={256}
                     height={256}
+                    unoptimized={!oldLogo.startsWith('https')}
                   />
                 )}
 
