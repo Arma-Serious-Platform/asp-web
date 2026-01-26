@@ -28,7 +28,7 @@ class UserProfileModel {
     try {
       this.loader.start();
 
-      if (this.isOwnProfile) {
+      if (this.isOwnProfile && !userIdOrNickname) {
         await session.fetchMe();
 
         return;

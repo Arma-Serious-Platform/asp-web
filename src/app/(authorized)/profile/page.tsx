@@ -17,6 +17,7 @@ const ProfilePage = observer(() => {
   useEffect(() => {
     if (!session.isAuthorized) {
       router.push(ROUTES.auth.login);
+
       return;
     }
   }, [session.isAuthorized, router]);

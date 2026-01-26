@@ -7,17 +7,19 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { MissionStatus } from '@/shared/sdk/types';
-import { UserModel } from '@/entities/user/model';
+
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useState } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { model } from './model';
-import toast from 'react-hot-toast';
+
 import { CreateMissionModal } from '@/features/mission/create-mission/ui';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState, useQueryStates } from 'nuqs';
 import { statusOptions } from '@/entities/mission/lib';
+import { View } from '@/features/view';
+import { session } from '@/entities/session/model';
 
 const MissionsPage = observer(() => {
   const router = useRouter();
@@ -31,7 +33,9 @@ const MissionsPage = observer(() => {
   });
 
   const isFilterApplied = useMemo(() => {
-    return Object.values(filters).some(value => value !== undefined && typeof value === 'number' ? true : Boolean(value));
+    return Object.values(filters).some(value =>
+      value !== undefined && typeof value === 'number' ? true : Boolean(value),
+    );
   }, [filters]);
 
   useEffect(() => {
@@ -141,9 +145,8 @@ const MissionsPage = observer(() => {
 
                       model.missionModel.pagination.init({
                         skip: 0,
-                        take: 25
+                        take: 25,
                       });
-
                     }}
                     className="w-full">
                     Скинути
@@ -168,12 +171,14 @@ const MissionsPage = observer(() => {
             ) : (
               <>
                 {/* Create Mission Button */}
-                <div className="flex mb-4">
-                  <Button variant="default" onClick={handleCreateMission}>
-                    <PlusIcon className="size-4" />
-                    Створити місію
-                  </Button>
-                </div>
+                <View.Condition if={session.isAuthorized}>
+                  <div className="flex mb-4">
+                    <Button variant="default" onClick={handleCreateMission}>
+                      <PlusIcon className="size-4" />
+                      Створити місію
+                    </Button>
+                  </div>
+                </View.Condition>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                   {model.missionModel.pagination.data.map(mission => (
@@ -184,7 +189,10 @@ const MissionsPage = observer(() => {
             )}
 
             {model.missionModel.pagination.canLoadMore && (
-              <Button variant="outline" className="w-fit mx-auto" onClick={() => model.missionModel.pagination.loadMore()}>
+              <Button
+                variant="outline"
+                className="w-fit mx-auto"
+                onClick={() => model.missionModel.pagination.loadMore()}>
                 Показати більше: {model.missionModel.pagination.data.length} з {model.missionModel.pagination.total}
               </Button>
             )}

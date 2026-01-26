@@ -31,8 +31,8 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
   );
 
   useEffect(() => {
-    model.init(userIdOrNickname || undefined);
-  }, [userIdOrNickname, model]);
+    model.init(userIdOrNickname ?? undefined);
+  }, [userIdOrNickname]);
 
   return (
     <>
@@ -50,6 +50,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                   width={256}
                   height={256}
                   alt="avatar"
+                  unoptimized={!model.user?.avatar?.url?.startsWith('https')}
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-70" />
                 {model.isOwnProfile && (

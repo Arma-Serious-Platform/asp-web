@@ -62,11 +62,11 @@ const MainLinks: FC<{
       <a className={className} href="https://replays.vtg.in.ua" target="_blank" rel="noopener noreferrer">
         Реплеї
       </a>
-      <View.Condition if={session.user?.user}>
-        <Link className={className} activeClassName={activeClassName} href={ROUTES.missions.root}>
-          Місії
-        </Link>
-      </View.Condition>
+
+      <Link className={className} activeClassName={activeClassName} href={ROUTES.missions.root}>
+        Місії
+      </Link>
+
       {/* <View.Condition if={session.user?.user}>
         <Popover
           asChild

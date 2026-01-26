@@ -13,12 +13,6 @@ class ProfileModel {
     makeAutoObservable(this);
   }
 
-  init = async () => {
-    if (!session.isAuthorized) return;
-
-    await session.fetchMe();
-  };
-
   socialsLoader = new Loader();
 
   avatar = new ChangeAvatarModel();

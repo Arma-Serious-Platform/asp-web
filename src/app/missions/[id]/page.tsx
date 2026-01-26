@@ -14,14 +14,21 @@ import { CreateUpdateMissionVersionModal } from '@/features/mission/create-updat
 import { UpdateMissionModal } from '@/features/mission/update-mission/ui';
 import { MissionDetailsModel } from './model';
 import { MissionVersionCard } from '@/entities/mission/version/version-card/ui';
+import { View } from '@/features/view';
+import { session } from '@/entities/session/model';
+import { observer } from 'mobx-react-lite';
 
-export default function MissionDetailsPage() {
+const MissionDetailsPage = observer(() => {
   const params = useParams();
   const router = useRouter();
   const missionId = params.id as string;
   const [mission, setMission] = useState<Mission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
+
+  const isMissionAuthor = useMemo(() => {
+    return session.user?.user?.id === mission?.authorId;
+  }, [session.user?.user?.id, mission?.authorId]);
 
   useEffect(() => {
     const loadMission = async () => {
@@ -119,7 +126,13 @@ export default function MissionDetailsPage() {
             {/* Mission Image */}
             <div className="relative w-full md:w-64 aspect-video md:aspect-square overflow-hidden rounded-lg border border-white/10 flex-shrink-0">
               {mission.image?.url ? (
-                <Image src={mission.image.url} alt={mission?.name} fill className="object-cover" />
+                <Image
+                  src={mission.image.url}
+                  alt={mission?.name}
+                  fill
+                  className="object-cover"
+                  unoptimized={!mission.image.url.startsWith('https')}
+                />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
                   <span className="text-zinc-500 text-sm">Немає зображення</span>
@@ -137,13 +150,15 @@ export default function MissionDetailsPage() {
                   <p className="text-zinc-300 leading-relaxed">{mission.description}</p>
                 </div>
 
-                <Button
-                  onClick={handleMissionUpdate}
-                  variant="outline"
-                  className="flex items-center gap-2 hover:bg-white/10 transition-colors">
-                  <EditIcon className="size-4" />
-                  <span className="hidden sm:inline">Редагувати</span>
-                </Button>
+                <View.Condition if={isMissionAuthor}>
+                  <Button
+                    onClick={handleMissionUpdate}
+                    variant="outline"
+                    className="flex items-center gap-2 hover:bg-white/10 transition-colors">
+                    <EditIcon className="size-4" />
+                    <span className="hidden sm:inline">Редагувати</span>
+                  </Button>
+                </View.Condition>
               </div>
             </div>
           </div>
@@ -171,19 +186,23 @@ export default function MissionDetailsPage() {
           <div className="border-t border-white/10 pt-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">Версії місії</h2>
-              <Button variant="default" onClick={handleCreateVersion}>
-                <PlusIcon className="size-4" />
-                Створити версію
-              </Button>
+              <View.Condition if={isMissionAuthor}>
+                <Button variant="default" onClick={handleCreateVersion}>
+                  <PlusIcon className="size-4" />
+                  Створити версію
+                </Button>
+              </View.Condition>
             </div>
 
             {mission?.missionVersions?.length === 0 ? (
               <div className="paper flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 text-center">
                 <p className="text-zinc-400">Версій поки немає</p>
-                <Button variant="default" onClick={handleCreateVersion}>
-                  <PlusIcon className="size-4" />
-                  Створити першу версію
-                </Button>
+                <View.Condition if={isMissionAuthor}>
+                  <Button variant="default" onClick={handleCreateVersion}>
+                    <PlusIcon className="size-4" />
+                    Створити першу версію
+                  </Button>
+                </View.Condition>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -218,4 +237,6 @@ export default function MissionDetailsPage() {
       <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
     </Layout>
   );
-}
+});
+
+export default MissionDetailsPage;

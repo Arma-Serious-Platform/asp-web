@@ -1,4 +1,5 @@
 import axios from 'axios';
+import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import {
   BanUserDto,
   ChangePasswordDto,
@@ -34,98 +35,76 @@ import {
   UpdateUserDto,
   User,
 } from './types';
-import { deleteCookie, getCookie, setCookie } from 'cookies-next';
+
 
 import { env } from '../config/env';
-import { setTokens } from '../actions/cookies/set-tokens';
+
+import { clearTokensFromLocalStorage, getTokensFromLocalStorage, redirectToLogin, setTokensToLocalStorage } from '../utils/session';
 
 class ApiModel {
-  /* Servers */
-
-  private isRefreshing = false;
-  private refreshFailed = false;
-
-  instance = axios.create({
+    instance = axios.create({
     baseURL: env.apiUrl,
     headers: {
       'Content-Type': 'application/json',
+      ...(getTokensFromLocalStorage()?.token && { Authorization: `Bearer ${getTokensFromLocalStorage()?.token}` }),
     },
   });
 
   constructor() {
-    this.instance.interceptors.request.use(async config => {
-      const token = await getCookie('token');
+    this.setupInterceptors();
+  }
+
+  private setupInterceptors() {
+    this.instance.interceptors.request.use((request) => {
+      const token = getTokensFromLocalStorage().token;
 
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        request.headers['Authorization'] = `Bearer ${token}`;
       }
 
-      return config;
+      return request;
     });
 
-    this.instance.interceptors.response.use(
-      res => res,
-      async error => {
-        const { config, response } = error;
-        if ((response?.status === 401 || response?.status === 403) && !config._retry && !this.refreshFailed) {
-          config._retry = true;
+    createAuthRefreshInterceptor(
+      this.instance,
+      async (failedRequest) => {
+        const storedRefreshToken = getTokensFromLocalStorage().refreshToken || '';
 
-          // Prevent concurrent refresh attempts
-          if (this.isRefreshing) {
-            return Promise.reject(error);
-          }
+        // Do not try to refresh on refresh/logout endpoints or when there is no refresh token
+        if (['/users/refresh'].includes(failedRequest?.config?.url) || !storedRefreshToken) {
 
-          const refreshToken =
-            typeof window === 'undefined'
-              ? await (await import('next/headers')).cookies().then(cookie => cookie.get('refreshToken')?.value)
-              : await getCookie('refreshToken');
+          clearTokensFromLocalStorage();
+          redirectToLogin();
 
-          if (!refreshToken) {
-            this.refreshFailed = true;
-            throw error;
-          }
-
-          this.isRefreshing = true;
-
-          try {
-            const { data } = await this.refreshToken({ refreshToken });
-
-            if (data?.token && data?.refreshToken) {
-              config.headers.Authorization = `Bearer ${data.token}`;
-
-              if (typeof window === 'undefined') {
-                try {
-                  setTokens({
-                    token: data.token,
-                    refreshToken: data.refreshToken,
-                  });
-                } catch (error) {
-                  console.error(error);
-                }
-              } else {
-                await setCookie('token', data.token);
-                await setCookie('refreshToken', data.refreshToken);
-              }
-
-              this.isRefreshing = false;
-              this.refreshFailed = false;
-              return this.instance(config);
-            }
-          } catch {
-            this.refreshFailed = true;
-            this.isRefreshing = false;
-
-            // Clear invalid tokens
-            if (typeof window !== 'undefined') {
-              await deleteCookie('token');
-              await deleteCookie('refreshToken');
-            }
-
-            return Promise.reject(error);
-          }
+          return Promise.reject(failedRequest);
         }
 
-        return Promise.reject(error);
+        try {
+          const { data } = await this.refreshToken({refreshToken: storedRefreshToken});
+
+          setTokensToLocalStorage(data.token, data.refreshToken);
+
+          // Update default headers for all next requests
+          this.instance.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+
+          // Update the failed request with the new token so it will be retried correctly
+          if (failedRequest.response?.config?.headers) {
+            failedRequest.response.config.headers['Authorization'] = `Bearer ${data.token}`;
+          } else if (failedRequest.config?.headers) {
+            failedRequest.config.headers['Authorization'] = `Bearer ${data.token}`;
+          }
+
+          return Promise.resolve();
+        } catch {
+          clearTokensFromLocalStorage();
+          redirectToLogin();
+
+          return Promise.reject(failedRequest);
+        }
+      },
+      {
+        pauseInstanceWhileRefreshing: true,
+        statusCodes: [401],
       },
     );
   }
