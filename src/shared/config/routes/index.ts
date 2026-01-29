@@ -26,5 +26,6 @@ export const ROUTES = {
     servers: '/admin/servers',
     sides: '/admin/sides',
     squads: '/admin/squads',
+    weekends: '/admin/weekends',
   },
 } as const;

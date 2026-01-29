@@ -4,16 +4,20 @@ import {
   BanUserDto,
   ChangePasswordDto,
   ConfirmForgotPasswordDto,
+  CreateGameDto,
   CreateMissionDto,
   CreateMissionVersionDto,
   CreateServerDto,
   CreateSquadDto,
+  CreateWeekendDto,
   FindMissionsDto,
   FindServersDto,
   FindSidesDto,
   FindSquadsDto,
   FindUsersDto,
+  FindWeekendsDto,
   ForgotPasswordDto,
+  Game,
   InviteToSquadDto,
   Island,
   LoginDto,
@@ -28,21 +32,28 @@ import {
   SignUpDto,
   Squad,
   SquadInvitation,
+  UpdateGameDto,
   UpdateMissionDto,
   UpdateMissionVersionDto,
   UpdateServerDto,
   UpdateSquadDto,
   UpdateUserDto,
+  UpdateWeekendDto,
   User,
+  Weekend,
 } from './types';
-
 
 import { env } from '../config/env';
 
-import { clearTokensFromLocalStorage, getTokensFromLocalStorage, redirectToLogin, setTokensToLocalStorage } from '../utils/session';
+import {
+  clearTokensFromLocalStorage,
+  getTokensFromLocalStorage,
+  redirectToLogin,
+  setTokensToLocalStorage,
+} from '../utils/session';
 
 class ApiModel {
-    instance = axios.create({
+  instance = axios.create({
     baseURL: env.apiUrl,
     headers: {
       'Content-Type': 'application/json',
@@ -55,7 +66,7 @@ class ApiModel {
   }
 
   private setupInterceptors() {
-    this.instance.interceptors.request.use((request) => {
+    this.instance.interceptors.request.use(request => {
       const token = getTokensFromLocalStorage().token;
 
       if (token) {
@@ -67,12 +78,11 @@ class ApiModel {
 
     createAuthRefreshInterceptor(
       this.instance,
-      async (failedRequest) => {
+      async failedRequest => {
         const storedRefreshToken = getTokensFromLocalStorage().refreshToken || '';
 
         // Do not try to refresh on refresh/logout endpoints or when there is no refresh token
         if (['/users/refresh'].includes(failedRequest?.config?.url) || !storedRefreshToken) {
-
           clearTokensFromLocalStorage();
           redirectToLogin();
 
@@ -80,7 +90,7 @@ class ApiModel {
         }
 
         try {
-          const { data } = await this.refreshToken({refreshToken: storedRefreshToken});
+          const { data } = await this.refreshToken({ refreshToken: storedRefreshToken });
 
           setTokensToLocalStorage(data.token, data.refreshToken);
 
@@ -441,6 +451,44 @@ class ApiModel {
     return await this.instance.post(`/missions/${missionId}/versions/${versionId}/change-status`, {
       status,
     });
+  };
+
+  /* Weekends */
+
+  findWeekends = async (dto: FindWeekendsDto = {}) => {
+    return await this.instance.get<PaginatedResponse<Weekend>>('/weekends', {
+      params: dto,
+    });
+  };
+
+  createWeekend = async (dto: CreateWeekendDto) => {
+    return await this.instance.post<Weekend>('/weekends', dto);
+  };
+
+  updateWeekend = async (id: string, dto: UpdateWeekendDto) => {
+    return await this.instance.patch<Weekend>(`/weekends/${id}`, dto);
+  };
+
+  deleteWeekend = async (weekendId: string) => {
+    return await this.instance.delete<Weekend>(`/weekends/${weekendId}`);
+  };
+
+  findWeekendById = async (weekendId: string) => {
+    return await this.instance.get<Weekend>(`/weekends/${weekendId}`);
+  };
+
+  /* Games (nested under weekends) */
+
+  createGame = async (weekendId: string, dto: CreateGameDto) => {
+    return await this.instance.post<Game>(`/weekends/${weekendId}/games`, dto);
+  };
+
+  updateGame = async (weekendId: string, gameId: string, dto: UpdateGameDto) => {
+    return await this.instance.patch<Game>(`/weekends/${weekendId}/games/${gameId}`, dto);
+  };
+
+  deleteGame = async (weekendId: string, gameId: string) => {
+    return await this.instance.delete<Game>(`/weekends/${weekendId}/games/${gameId}`);
   };
 }
 

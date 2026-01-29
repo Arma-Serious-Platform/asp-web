@@ -3,7 +3,7 @@
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
 import classNames from 'classnames';
-import { ServerIcon, SwordIcon, UserIcon, UsersIcon } from 'lucide-react';
+import { CalendarIcon, ServerIcon, SwordIcon, UserIcon, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FC } from 'react';
@@ -33,6 +33,7 @@ const AdminSidebar: FC<{ className?: string }> = ({ className }) => {
         <AdminSidebarItem href={ROUTES.admin.squads} label="Загони" icon={<UsersIcon />} />
         <AdminSidebarItem href={ROUTES.admin.sides} label="Сторони" icon={<SwordIcon />} />
         <AdminSidebarItem href={ROUTES.admin.servers} label="Сервери" icon={<ServerIcon />} />
+        <AdminSidebarItem href={ROUTES.admin.weekends} label="Анонси" icon={<CalendarIcon />} />
       </div>
     </aside>
   );

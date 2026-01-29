@@ -390,3 +390,66 @@ export type UpdateMissionVersionDto = {
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
 };
+
+/* Weekends & Games */
+
+export type Game = {
+  id: string;
+  name: string;
+  date: string;
+  position: number;
+  missionId: string;
+  attackSideId: string;
+  defenseSideId: string;
+  weekendId?: string;
+  weekend?: Weekend;
+};
+
+export type Weekend = {
+  id: string;
+  name: string;
+  description: string;
+  published: boolean;
+  publishedAt: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  games?: Game[];
+};
+
+export type FindWeekendsDto = PaginatedRequest<{
+  search?: string;
+  published?: boolean;
+}>;
+
+export type CreateGameDto = {
+  name: string;
+  date: string;
+  position: number;
+  missionId: string;
+  attackSideId: string;
+  defenseSideId: string;
+};
+
+export type CreateWeekendDto = {
+  name: string;
+  description: string;
+  games: CreateGameDto[];
+  published?: boolean;
+  publishedAt?: string | null;
+};
+
+export type UpdateWeekendDto = {
+  name?: string;
+  description?: string;
+  published?: boolean;
+  publishedAt?: string | null;
+};
+
+export type UpdateGameDto = {
+  name?: string;
+  date?: string;
+  position?: number;
+  missionId?: string;
+  attackSideId?: string;
+  defenseSideId?: string;
+};
