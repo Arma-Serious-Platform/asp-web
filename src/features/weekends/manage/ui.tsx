@@ -14,8 +14,8 @@ import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { CreateWeekendDto, CreateGameDto, Weekend } from '@/shared/sdk/types';
 import { api } from '@/shared/sdk';
-import { Mission, Side } from '@/shared/sdk/types';
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { Mission, MissionVersion, Side, User } from '@/shared/sdk/types';
+import { Controller, Resolver, useFieldArray, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Switch } from '@/shared/ui/atoms/switch';
@@ -27,8 +27,10 @@ const defaultGame: CreateGameDto = {
   date: '',
   position: 0,
   missionId: '',
+  missionVersionId: '',
   attackSideId: '',
   defenseSideId: '',
+  adminId: null,
 };
 
 const gameSchema = yup.object().shape({
@@ -36,8 +38,10 @@ const gameSchema = yup.object().shape({
   date: yup.string().required("Дата є обов'язковою"),
   position: yup.number().required().min(0),
   missionId: yup.string().required("Місія є обов'язковою"),
+  missionVersionId: yup.string().required("Версія місії є обов'язковою"),
   attackSideId: yup.string().required("Сторона атаки є обов'язковою"),
   defenseSideId: yup.string().required("Сторона оборони є обов'язковою"),
+  adminId: yup.string().nullable(),
 });
 
 const schema = yup.object().shape({
@@ -68,9 +72,11 @@ const ManageWeekendModal: FC<
 > = observer(({ model = manageWeekendModel, children, onCreateSuccess, onUpdateSuccess, onDeleteSuccess }) => {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [sides, setSides] = useState<Side[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [missionVersionsCache, setMissionVersionsCache] = useState<Record<string, MissionVersion[]>>({});
 
   const form = useForm<WeekendFormValues>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as Resolver<WeekendFormValues>,
     defaultValues: {
       name: '',
       description: '',
@@ -87,17 +93,31 @@ const ManageWeekendModal: FC<
 
   const fetchOptions = useCallback(async () => {
     try {
-      const [missionsRes, sidesRes] = await Promise.all([
+      const [missionsRes, sidesRes, usersRes] = await Promise.all([
         api.findMissions({ take: 200 }),
         api.findSides({ take: 200 }),
+        api.findUsers({ take: 200 }),
       ]);
       setMissions(
         (missionsRes.data as { data?: Mission[] })?.data ?? (Array.isArray(missionsRes.data) ? missionsRes.data : []),
       );
       setSides((sidesRes.data as { data?: Side[] })?.data ?? (Array.isArray(sidesRes.data) ? sidesRes.data : []));
+      setUsers((usersRes.data as { data?: User[] })?.data ?? (Array.isArray(usersRes.data) ? usersRes.data : []));
     } catch {
       setMissions([]);
       setSides([]);
+      setUsers([]);
+    }
+  }, []);
+
+  const fetchMissionVersions = useCallback(async (missionId: string) => {
+    if (!missionId) return;
+    try {
+      const { data } = await api.findMissionById(missionId);
+      const versions = data?.missionVersions ?? [];
+      setMissionVersionsCache(prev => ({ ...prev, [missionId]: versions }));
+    } catch {
+      setMissionVersionsCache(prev => ({ ...prev, [missionId]: [] }));
     }
   }, []);
 
@@ -132,8 +152,10 @@ const ManageWeekendModal: FC<
             date: g.date,
             position: g.position,
             missionId: g.missionId,
+            missionVersionId: g.missionVersionId,
             attackSideId: g.attackSideId,
             defenseSideId: g.defenseSideId,
+            adminId: g.adminId ?? null,
           });
         }
         for (const g of toCreate) {
@@ -142,8 +164,10 @@ const ManageWeekendModal: FC<
             date: g.date,
             position: g.position,
             missionId: g.missionId,
+            missionVersionId: g.missionVersionId,
             attackSideId: g.attackSideId,
             defenseSideId: g.defenseSideId,
+            adminId: g.adminId ?? null,
           });
         }
 
@@ -164,8 +188,10 @@ const ManageWeekendModal: FC<
           date: g.date,
           position: g.position,
           missionId: g.missionId,
+          missionVersionId: g.missionVersionId,
           attackSideId: g.attackSideId,
           defenseSideId: g.defenseSideId,
+          adminId: g.adminId ?? null,
         })),
         published: data.published,
         publishedAt: data.publishedAt || null,
@@ -186,10 +212,13 @@ const ManageWeekendModal: FC<
               date: g.date,
               position: g.position,
               missionId: g.missionId,
+              missionVersionId: g.missionVersionId,
               attackSideId: g.attackSideId,
               defenseSideId: g.defenseSideId,
+              adminId: g.adminId ?? null,
             }))
           : [{ ...defaultGame }];
+        games.forEach(g => g.missionId && fetchMissionVersions(g.missionId));
         form.reset({
           name: w.name ?? '',
           description: w.description ?? '',
@@ -214,6 +243,10 @@ const ManageWeekendModal: FC<
 
   const missionOptions = missions.map(m => ({ label: m.name, value: m.id }));
   const sideOptions = sides.map(s => ({ label: s.name, value: s.id }));
+  const userOptions = users.map(u => ({ label: u.nickname, value: u.id }));
+
+  const getVersionOptionsForMission = (missionId: string) =>
+    (missionVersionsCache[missionId] ?? []).map(v => ({ label: v.version, value: v.id }));
 
   return (
     <>
@@ -335,34 +368,43 @@ const ManageWeekendModal: FC<
                               label="Місія"
                               options={missionOptions}
                               value={f.value || null}
-                              onChange={v => f.onChange(v ?? '')}
+                              onChange={v => {
+                                f.onChange(v ?? '');
+                                form.setValue(`games.${index}.missionVersionId`, '');
+                                if (v) fetchMissionVersions(v);
+                              }}
                               error={form.formState.errors.games?.[index]?.missionId?.message}
                             />
                           )}
                         />
                         <Controller
                           control={form.control}
-                          name={`games.${index}.attackSideId`}
-                          render={({ field: f }) => (
-                            <Select
-                              label="Сторона атаки"
-                              options={sideOptions}
-                              value={f.value || null}
-                              onChange={v => f.onChange(v ?? '')}
-                              error={form.formState.errors.games?.[index]?.attackSideId?.message}
-                            />
-                          )}
+                          name={`games.${index}.missionVersionId`}
+                          render={({ field: f }) => {
+                            const missionId = form.watch(`games.${index}.missionId`);
+                            const versionOptions = getVersionOptionsForMission(missionId ?? '');
+                            return (
+                              <Select
+                                label="Версія місії"
+                                options={versionOptions}
+                                value={f.value || null}
+                                onChange={v => f.onChange(v ?? '')}
+                                error={form.formState.errors.games?.[index]?.missionVersionId?.message}
+                              />
+                            );
+                          }}
                         />
+
                         <Controller
                           control={form.control}
-                          name={`games.${index}.defenseSideId`}
+                          name={`games.${index}.adminId`}
                           render={({ field: f }) => (
                             <Select
-                              label="Сторона оборони"
-                              options={sideOptions}
-                              value={f.value || null}
-                              onChange={v => f.onChange(v ?? '')}
-                              error={form.formState.errors.games?.[index]?.defenseSideId?.message}
+                              label="Адмін гри (необов'язково)"
+                              options={[{ label: '— Не обрано', value: '' }, ...userOptions]}
+                              value={f.value || ''}
+                              onChange={v => f.onChange(v === '' ? null : v)}
+                              error={form.formState.errors.games?.[index]?.adminId?.message}
                             />
                           )}
                         />

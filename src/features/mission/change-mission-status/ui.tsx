@@ -39,7 +39,7 @@ const ChangeMissionVersionStatusModal: FC<
             <View.Condition if={isApproveAction}>
               <div>
                 Ви впевнені, що хочете допустити версію місії <span className="text-primary">{version?.version}</span>{' '}
-                до ігр?
+                до ігор?
               </div>
             </View.Condition>
             <View.Condition if={!isApproveAction}>

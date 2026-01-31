@@ -1,3 +1,5 @@
+'use client';
+
 import axios from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import {
@@ -57,7 +59,7 @@ class ApiModel {
     baseURL: env.apiUrl,
     headers: {
       'Content-Type': 'application/json',
-      ...(getTokensFromLocalStorage()?.token && { Authorization: `Bearer ${getTokensFromLocalStorage()?.token}` }),
+      ...(getTokensFromLocalStorage?.()?.token && { Authorization: `Bearer ${getTokensFromLocalStorage?.()?.token}` }),
     },
   });
 

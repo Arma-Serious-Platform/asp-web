@@ -43,7 +43,10 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({ version, missi
             </View.Condition>
 
             <View.Condition
-              if={session.user?.user?.isMissionReviewer && version.status === MissionStatus.PENDING_APPROVAL}>
+              if={
+                (session.user?.user?.isMissionReviewer || session.user.isOwnerOrTech) &&
+                version.status === MissionStatus.PENDING_APPROVAL
+              }>
               <Button
                 variant="secondary"
                 size="sm"

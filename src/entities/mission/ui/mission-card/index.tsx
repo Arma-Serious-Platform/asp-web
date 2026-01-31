@@ -53,6 +53,7 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
               alt={mission.name}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
+              unoptimized={!mission.image.url.startsWith('https')}
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">

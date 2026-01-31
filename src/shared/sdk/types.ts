@@ -399,10 +399,14 @@ export type Game = {
   date: string;
   position: number;
   missionId: string;
+  missionVersionId: string;
   attackSideId: string;
   defenseSideId: string;
+  adminId: string | null;
   weekendId?: string;
   weekend?: Weekend;
+  missionVersion?: MissionVersion;
+  admin?: User | null;
 };
 
 export type Weekend = {
@@ -426,8 +430,10 @@ export type CreateGameDto = {
   date: string;
   position: number;
   missionId: string;
+  missionVersionId: string;
   attackSideId: string;
   defenseSideId: string;
+  adminId?: string | null;
 };
 
 export type CreateWeekendDto = {
@@ -450,6 +456,8 @@ export type UpdateGameDto = {
   date?: string;
   position?: number;
   missionId?: string;
+  missionVersionId?: string;
   attackSideId?: string;
   defenseSideId?: string;
+  adminId?: string | null;
 };

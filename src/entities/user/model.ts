@@ -18,7 +18,7 @@ class UserModel {
     }));
   }
 
-  get isAdmin() {
+  get isOwnerOrTech() {
     return this.user?.role === UserRole.OWNER || this.user?.role === UserRole.TECH_ADMIN;
   }
 
