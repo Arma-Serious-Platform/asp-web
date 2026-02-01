@@ -2,7 +2,7 @@ export const ROUTES = {
   home: '/',
   headquarters: '/headquarters',
   rules: '/rules',
-  schedule: '/schedule',
+  weekends: '/weekends',
   squads: '/squads',
   replays: '/replays',
   missions: {

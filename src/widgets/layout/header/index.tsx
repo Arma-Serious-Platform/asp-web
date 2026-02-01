@@ -51,7 +51,7 @@ const MainLinks: FC<{
       <Link className={className} activeClassName={activeClassName} href={ROUTES.rules}>
         Правила
       </Link>
-      <Link className={className} activeClassName={activeClassName} href={ROUTES.schedule}>
+      <Link className={className} activeClassName={activeClassName} href={ROUTES.weekends}>
         Анонси
       </Link>
       {!env.isLanding && (

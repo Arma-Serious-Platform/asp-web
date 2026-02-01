@@ -34,7 +34,7 @@ export const CompactWeekendSchedule: FC = () => {
                 </div>
                 <h2 className="text-xl md:text-2xl font-bold text-white">Найближчі ігри</h2>
               </div>
-              <Link href={ROUTES.schedule}>
+              <Link href={ROUTES.weekends}>
                 <Button variant="outline" size="sm">
                   Всі анонси
                   <ArrowRightIcon className="size-4" />
