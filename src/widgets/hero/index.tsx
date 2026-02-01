@@ -1,11 +1,15 @@
+'use client';
+
 import { ServerInfo } from '@/features/server-info';
-import { CompactWeekendSchedule } from '@/features/weekend/compact-weekend-schedule/ui';
+import { IncomingWeekends } from '@/widgets/incoming-weekends/ui';
 
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
 import classNames from 'classnames';
 
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
+import { model } from './model';
 
 const LogoAndTitle: FC<{
   size?: 'md' | 'lg';
@@ -39,11 +43,11 @@ const LogoAndTitle: FC<{
 export const Hero: FC<{
   className?: string;
   variant?: 'default' | 'home';
-}> = ({ className, variant = 'default' }) => {
+}> = observer(({ className, variant = 'default' }) => {
   if (variant === 'default') {
     return (
       <div className={classNames('relative w-full', className)}>
-        <CompactWeekendSchedule />
+        <IncomingWeekends model={model.incomingWeekends} />
       </div>
     );
   }
@@ -67,4 +71,4 @@ export const Hero: FC<{
       </div>
     </div>
   );
-};
+});

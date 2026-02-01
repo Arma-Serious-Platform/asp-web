@@ -405,7 +405,8 @@ export type Game = {
   adminId: string | null;
   weekendId?: string;
   weekend?: Weekend;
-  missionVersion?: MissionVersion;
+  missionVersion: MissionVersion;
+  mission: Mission;
   admin?: User | null;
 };
 

@@ -4,14 +4,13 @@ import { Layout } from '@/widgets/layout';
 import { WeekendAnnouncement } from '@/entities/weekend/weekend-announcement/ui';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
-import { weekendsPageModel } from './model';
+import { model } from './model';
+import { View } from '@/features/view';
 
-const SchedulePage = observer(function SchedulePage() {
+const WeekendsPage = observer(() => {
   useEffect(() => {
-    weekendsPageModel.init();
+    model.init();
   }, []);
-
-  const { announcements, isLoading, error } = weekendsPageModel;
 
   return (
     <Layout>
@@ -24,33 +23,28 @@ const SchedulePage = observer(function SchedulePage() {
             </p>
           </div>
 
-          {error && (
-            <div className="max-w-7xl mx-auto mb-6 rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-red-400 text-center">
-              {error}
-            </div>
-          )}
-
-          {isLoading ? (
-            <div className="max-w-7xl mx-auto flex justify-center py-16">
-              <div className="text-zinc-400">Завантаження…</div>
-            </div>
-          ) : (
+          <View.Condition
+            if={!model.weekends.pagination.preloader.isLoading}
+            else={
+              <div className="max-w-7xl mx-auto flex justify-center py-16">
+                <div className="text-zinc-400">Завантаження…</div>
+              </div>
+            }>
             <div className="flex flex-col gap-12">
-              {announcements.map(announcement => (
-                <WeekendAnnouncement key={announcement.id} announcement={announcement} />
+              {model.weekends.pagination.data.map(weekend => (
+                <WeekendAnnouncement key={weekend.id} weekend={weekend} />
               ))}
             </div>
-          )}
+          </View.Condition>
 
-          {!isLoading && !error && announcements.length === 0 && (
-            <div className="max-w-7xl mx-auto text-center text-zinc-500 py-16">
-              Немає опублікованих анонсів
-            </div>
-          )}
+          <View.Condition
+            if={!model.weekends.pagination.preloader.isLoading && model.weekends.pagination.data.length === 0}>
+            <div className="max-w-7xl mx-auto text-center text-zinc-500 py-16">Немає опублікованих анонсів</div>
+          </View.Condition>
         </div>
       </div>
     </Layout>
   );
 });
 
-export default SchedulePage;
+export default WeekendsPage;

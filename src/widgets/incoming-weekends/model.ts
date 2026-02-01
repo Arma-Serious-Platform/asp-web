@@ -1,20 +1,21 @@
-'use client';
-
+import { WeekendModel } from '@/entities/weekend/model';
 import { makeAutoObservable } from 'mobx';
 
-import { WeekendModel } from '@/entities/weekend/model';
-
-class WeekendsPageModel {
+export class IncomingWeekendsModel {
   constructor() {
     makeAutoObservable(this);
   }
 
   weekends = new WeekendModel();
 
+  get weekend() {
+    return this.weekends.pagination.data[0] ?? null;
+  }
+
   init = async () => {
     await this.weekends.init({
       published: true,
-      take: 4,
+      take: 1,
     });
   };
 
@@ -22,5 +23,3 @@ class WeekendsPageModel {
     this.weekends.reset();
   };
 }
-
-export const model = new WeekendsPageModel();

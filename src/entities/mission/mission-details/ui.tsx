@@ -1,23 +1,23 @@
 import { FC } from 'react';
-import { WeekendGame } from '@/features/weekend/model';
+
 import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon } from 'lucide-react';
 import { Card } from '@/shared/ui/atoms/card';
 import classNames from 'classnames';
+import { Game, MissionGameSide, SideType } from '@/shared/sdk/types';
+import dayjs from 'dayjs';
 
-export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
-  const { side1, side2 } = game.combatants;
-
+export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
   return (
     <div className="flex flex-col gap-5">
       {/* Header Section */}
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-3xl font-bold text-white leading-tight">{game.title}</h2>
+          <h2 className="text-3xl font-bold text-white leading-tight">{game.mission.name}</h2>
         </div>
-        {game.gameDate && (
+        {game.date && (
           <div className="flex items-center gap-2 text-sm text-zinc-400">
             <CalendarIcon className="size-4" />
-            <span>{game.gameDate}</span>
+            <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
           </div>
         )}
       </div>
@@ -32,48 +32,48 @@ export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
           <div className="flex items-center gap-2">
             <div
               className={classNames('w-2 h-2 rounded-full', {
-                'bg-red-500': side1.color === 'red',
-                'bg-blue-500': side1.color === 'blue',
+                'bg-red-500': game.missionVersion.attackSideType === MissionGameSide.RED,
+                'bg-blue-500': game.missionVersion.attackSideType === MissionGameSide.BLUE,
               })}
             />
             <span
               className={classNames('font-bold text-base', {
-                'text-red-500': side1.color === 'red',
-                'text-blue-500': side1.color === 'blue',
+                'text-red-500': game.missionVersion.attackSideType === MissionGameSide.RED,
+                'text-blue-500': game.missionVersion.attackSideType === MissionGameSide.BLUE,
               })}>
-              {side1.name}
+              {game.missionVersion.attackSideName}
             </span>
-            <span className="text-zinc-500 text-sm">({side1.playerCount})</span>
+            <span className="text-zinc-500 text-sm">({game.missionVersion.attackSideSlots})</span>
             <span
               className={classNames('px-2 py-0.5 rounded text-xs font-semibold', {
-                'bg-red-500/20 text-red-400': side1.role === 'attack',
-                'bg-blue-500/20 text-blue-400': side1.role === 'defense',
+                'bg-red-500/20 text-red-400': game.missionVersion.attackSideType === MissionGameSide.RED,
+                'bg-blue-500/20 text-blue-400': game.missionVersion.attackSideType === MissionGameSide.BLUE,
               })}>
-              {side1.role === 'attack' ? 'Атака' : 'Оборона'}
+              {game.missionVersion.attackSideType === MissionGameSide.RED ? 'Атака' : 'Оборона'}
             </span>
           </div>
           <span className="text-zinc-500 font-bold">vs</span>
           <div className="flex items-center gap-2">
             <div
               className={classNames('w-2 h-2 rounded-full', {
-                'bg-red-500': side2.color === 'red',
-                'bg-blue-500': side2.color === 'blue',
+                'bg-red-500': game.missionVersion.defenseSideType === MissionGameSide.RED,
+                'bg-blue-500': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
               })}
             />
             <span
               className={classNames('font-bold text-base', {
-                'text-red-500': side2.color === 'red',
-                'text-blue-500': side2.color === 'blue',
+                'text-red-500': game.missionVersion.defenseSideType === MissionGameSide.RED,
+                'text-blue-500': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
               })}>
-              {side2.name}
+              {game.missionVersion.defenseSideName}
             </span>
-            <span className="text-zinc-500 text-sm">({side2.playerCount})</span>
+            <span className="text-zinc-500 text-sm">({game.missionVersion.defenseSideSlots})</span>
             <span
               className={classNames('px-2 py-0.5 rounded text-xs font-semibold', {
-                'bg-red-500/20 text-red-400': side2.role === 'attack',
-                'bg-blue-500/20 text-blue-400': side2.role === 'defense',
+                'bg-red-500/20 text-red-400': game.missionVersion.defenseSideType === MissionGameSide.RED,
+                'bg-blue-500/20 text-blue-400': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
               })}>
-              {side2.role === 'attack' ? 'Атака' : 'Оборона'}
+              {game.missionVersion.defenseSideType === MissionGameSide.RED ? 'Атака' : 'Оборона'}
             </span>
           </div>
         </div>
@@ -90,27 +90,13 @@ export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
           <div className="flex flex-col gap-2.5">
             <div
               className={classNames('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
-                'text-red-400 border-red-500/30': side1.color === 'red',
-                'text-blue-400 border-blue-500/30': side1.color === 'blue',
+                'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
+                'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
               })}>
-              {side1.name}
+              {game.missionVersion.attackSideName}
             </div>
-            {side1.units.map((unit, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
-                <div className="flex-1 min-w-0">
-                  <span className="text-white">{unit.name}</span>
-                  {unit.details && <span className="text-zinc-400 text-xs ml-2">{unit.details}</span>}
-                </div>
-                <span
-                  className={classNames('ml-3 font-bold text-base', {
-                    'text-red-500': side1.color === 'red',
-                    'text-blue-500': side1.color === 'blue',
-                  })}>
-                  {unit.quantity}x
-                </span>
-              </div>
+            {game.missionVersion.weaponry?.map((unit, idx) => (
+              <div key={idx}>{unit.name}</div>
             ))}
           </div>
 
@@ -118,26 +104,18 @@ export const MissionDetails: FC<{ game: WeekendGame }> = ({ game }) => {
           <div className="flex flex-col gap-2.5">
             <div
               className={classNames('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
-                'text-red-400 border-red-500/30': side2.color === 'red',
-                'text-blue-400 border-blue-500/30': side2.color === 'blue',
+                'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
+                'text-blue-400 border-blue-500/30': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
               })}>
-              {side2.name}
+              {game.missionVersion.defenseSideName}
             </div>
-            {side2.units.map((unit, idx) => (
+            {game.missionVersion.weaponry?.map((unit, idx) => (
               <div
                 key={idx}
                 className="flex items-center justify-between text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
                 <div className="flex-1 min-w-0">
                   <span className="text-white">{unit.name}</span>
-                  {unit.details && <span className="text-zinc-400 text-xs ml-2">{unit.details}</span>}
                 </div>
-                <span
-                  className={classNames('ml-3 font-bold text-base', {
-                    'text-red-500': side2.color === 'red',
-                    'text-blue-500': side2.color === 'blue',
-                  })}>
-                  {unit.quantity}x
-                </span>
               </div>
             ))}
           </div>

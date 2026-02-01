@@ -5,12 +5,13 @@ import { GameAnnouncement } from '@/features/weekend/model';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { Tab } from '@/shared/ui/moleculas/tab';
+import { Weekend } from '@/shared/sdk/types';
 
 export const WeekendAnnouncement: FC<{
-  announcement: GameAnnouncement;
-}> = ({ announcement }) => {
+  weekend: Weekend;
+}> = ({ weekend }) => {
   const [activeGameIndex, setActiveGameIndex] = useState(0);
-  const activeGame = announcement.games[activeGameIndex];
+  const activeGame = weekend.games[activeGameIndex];
 
   return (
     <div className="w-full mb-8">
@@ -20,20 +21,18 @@ export const WeekendAnnouncement: FC<{
       <div className="w-full container mx-auto px-4">
         <div className="flex items-center justify-center gap-2 paper rounded-t-2xl rounded-b-none h-16 mx-auto px-4">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent" />
-          <p className="text-sm font-semibold text-white whitespace-nowrap">
-            Анонс ігор | {announcement.announcementDate}
-          </p>
+          <p className="text-sm font-semibold text-white whitespace-nowrap">{weekend.name}</p>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent" />
         </div>
         <div className="paper rounded-b-2xl rounded-t-none overflow-hidden shadow-xl border-lime-700/20 border-t-none">
           {/* Navigation Tabs - Connected to card */}
           <div className="w-full bg-black/40 border-b border-white/10 backdrop-blur-sm">
             <div className="flex gap-0 overflow-x-auto w-full">
-              {announcement.games.map((game, index) => (
+              {weekend.games.map((game, index) => (
                 <Tab
                   key={game.id}
                   className="w-full"
-                  title={game.title}
+                  title={game.name}
                   index={index}
                   isActive={activeGameIndex === index}
                   onClick={() => setActiveGameIndex(index)}

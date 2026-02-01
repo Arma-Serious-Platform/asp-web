@@ -17,7 +17,6 @@ export const MissionTabs: FC<{
               title={game.title}
               index={index}
               isActive={activeIndex === index}
-              isLast={index === games.length - 1}
               onClick={() => onGameChange(index)}
             />
           ))}
