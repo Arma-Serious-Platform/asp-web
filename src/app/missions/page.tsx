@@ -9,7 +9,7 @@ import { Select } from '@/shared/ui/atoms/select';
 import { MissionStatus } from '@/shared/sdk/types';
 
 import { observer } from 'mobx-react-lite';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { model } from './model';
 
@@ -21,7 +21,7 @@ import { statusOptions } from '@/entities/mission/lib';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 
-const MissionsPage = observer(() => {
+const MissionsPageContent = observer(() => {
   const router = useRouter();
   const [filters, setFilters] = useQueryStates({
     search: parseAsString,
@@ -202,5 +202,22 @@ const MissionsPage = observer(() => {
     </Layout>
   );
 });
+
+const MissionsPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <Layout showHero={false} className="container paper mx-auto my-4">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-center py-12">
+              <div className="text-zinc-400">Завантаження...</div>
+            </div>
+          </div>
+        </Layout>
+      }>
+      <MissionsPageContent />
+    </Suspense>
+  );
+};
 
 export default MissionsPage;
