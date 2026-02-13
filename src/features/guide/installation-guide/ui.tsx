@@ -103,6 +103,10 @@ const InstallationGuideLinks: FC<{
       href: 'https://steamcommunity.com/sharedfiles/filedetails/?id=583544987',
     },
     {
+      title: 'CUP Terrain - Maps 2.0',
+      href: 'https://steamcommunity.com/sharedfiles/filedetails/?id=1981964169',
+    },
+    {
       title: 'RHSAFRF',
       href: 'https://steamcommunity.com/sharedfiles/filedetails/?id=843425103',
     },
@@ -117,6 +121,10 @@ const InstallationGuideLinks: FC<{
     {
       title: 'RHSSAF',
       href: 'https://steamcommunity.com/sharedfiles/filedetails/?id=843632231',
+    },
+    {
+      title: 'JSRS SOUNDMOD (опційно)',
+      href: 'https://steamcommunity.com/sharedfiles/filedetails/?id=3407948300',
     },
     {
       title: 'Українська локалізація (опційно)',

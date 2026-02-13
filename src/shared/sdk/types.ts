@@ -213,6 +213,8 @@ export type ChangePasswordDto = {
 
 export type FindUsersDto = PaginatedRequest<{
   search?: string;
+  status?: UserStatus;
+  role?: UserRole;
 }>;
 
 export type BanUserDto = {

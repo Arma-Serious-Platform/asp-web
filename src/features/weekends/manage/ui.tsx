@@ -12,7 +12,7 @@ import { FC, PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { manageWeekendModel, ManageWeekendModel } from './model';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
-import { CreateWeekendDto, CreateGameDto, Weekend } from '@/shared/sdk/types';
+import { CreateWeekendDto, CreateGameDto, Weekend, UserStatus, UserRole } from '@/shared/sdk/types';
 import { api } from '@/shared/sdk';
 import { Mission, MissionVersion, Side, User } from '@/shared/sdk/types';
 import { Controller, Resolver, useFieldArray, useForm } from 'react-hook-form';
@@ -96,7 +96,7 @@ const ManageWeekendModal: FC<
       const [missionsRes, sidesRes, usersRes] = await Promise.all([
         api.findMissions({ take: 200 }),
         api.findSides({ take: 200 }),
-        api.findUsers({ take: 200 }),
+        api.findUsers({ take: 200, status: UserStatus.ACTIVE, role: UserRole.USER }),
       ]);
       setMissions(
         (missionsRes.data as { data?: Mission[] })?.data ?? (Array.isArray(missionsRes.data) ? missionsRes.data : []),
