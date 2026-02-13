@@ -6,6 +6,7 @@ import { FC, PropsWithChildren } from 'react';
 import { SectionLabel } from '@/shared/ui/moleculas/section-label';
 import { RULE_CATEGORIES } from './config';
 import { RulesMobileMenu } from './rules-mobile-menu';
+import { env } from '@/shared/config/env';
 
 const RuleCategory: FC<PropsWithChildren> = ({ children }) => (
   <div className="paper flex flex-col gap-4 rounded-xl border px-4 py-5 shadow-xl">{children}</div>
@@ -60,7 +61,7 @@ const RuleMenu = () => {
 const RulesPage = () => {
   return (
     <Layout className="w-full mx-auto">
-      <Hero />
+      {!env.isLanding && <Hero />}
       <div className="container mx-auto mt-6 w-full px-4">
         <div className="mb-4 flex flex-col gap-2">
           <h1 className="text-3xl font-bold leading-tight tracking-tight text-white">Правила проєкту VTG</h1>

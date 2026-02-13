@@ -51,9 +51,15 @@ const MainLinks: FC<{
       <Link className={className} activeClassName={activeClassName} href={ROUTES.rules}>
         Правила
       </Link>
-      <Link className={className} activeClassName={activeClassName} href={ROUTES.weekends}>
-        Анонси
-      </Link>
+
+      {env.isLanding && (
+        <Link
+          className={className}
+          activeClassName={activeClassName}
+          href="https://docs.google.com/spreadsheets/d/1WAqlUvOtcD-SQr2ebIzxh0ZJgXq1_7IpKHT6u-duSec/edit?gid=525821223#gid=525821223">
+          Анонси
+        </Link>
+      )}
       {!env.isLanding && (
         <Link className={className} activeClassName={activeClassName} href={ROUTES.squads}>
           Загони
@@ -63,9 +69,11 @@ const MainLinks: FC<{
         Реплеї
       </a>
 
-      <Link className={className} activeClassName={activeClassName} href={ROUTES.missions.root}>
-        Місії
-      </Link>
+      {!env.isLanding && (
+        <Link className={className} activeClassName={activeClassName} href={ROUTES.missions.root}>
+          Місії
+        </Link>
+      )}
 
       {/* <View.Condition if={session.user?.user}>
         <Popover
