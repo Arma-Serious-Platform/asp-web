@@ -41,15 +41,18 @@ function PopoverAnchor({ ...props }: React.ComponentProps<typeof PopoverPrimitiv
 
 const Popover: React.FC<{
   className?: string;
+  disabled?: boolean;
   children: React.ReactNode;
   asChild?: boolean;
   trigger: React.ReactNode;
   open?: boolean;
   onChange?: (open: boolean) => void;
-}> = ({ children, trigger, className, open, asChild = true, onChange }) => {
+}> = ({ children, trigger, className, open, asChild = true, onChange, disabled }) => {
   return (
     <PopoverRoot open={open} onOpenChange={onChange}>
-      <PopoverTrigger asChild={asChild}>{trigger}</PopoverTrigger>
+      <PopoverTrigger asChild={asChild} disabled={disabled}>
+        {trigger}
+      </PopoverTrigger>
       <PopoverContent className={className}>{children}</PopoverContent>
     </PopoverRoot>
   );

@@ -96,6 +96,7 @@ const MissionsPageContent = observer(() => {
                   multiple={false}
                   options={model.missionModel.islandsOptions}
                   value={filters.islandId || ''}
+                  localSearch
                   onChange={value => setFilters({ ...filters, islandId: value || null })}
                 />
                 <NumericInput

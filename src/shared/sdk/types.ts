@@ -397,7 +397,7 @@ export type UpdateMissionVersionDto = {
 
 export type Game = {
   id: string;
-  name: string;
+  name?: string;
   date: string;
   position: number;
   missionId: string;
@@ -415,7 +415,7 @@ export type Game = {
 export type Weekend = {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   published: boolean;
   publishedAt: string | null;
   createdAt?: string;
@@ -429,7 +429,6 @@ export type FindWeekendsDto = PaginatedRequest<{
 }>;
 
 export type CreateGameDto = {
-  name: string;
   date: string;
   position: number;
   missionId: string;
@@ -441,7 +440,7 @@ export type CreateGameDto = {
 
 export type CreateWeekendDto = {
   name: string;
-  description: string;
+  description?: string;
   games: CreateGameDto[];
   published?: boolean;
   publishedAt?: string | null;
@@ -455,7 +454,6 @@ export type UpdateWeekendDto = {
 };
 
 export type UpdateGameDto = {
-  name?: string;
   date?: string;
   position?: number;
   missionId?: string;

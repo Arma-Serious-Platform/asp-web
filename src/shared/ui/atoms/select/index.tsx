@@ -22,6 +22,7 @@ type BaseSelectProps = {
   children?: React.ReactNode;
   label?: ReactNode;
   localSearch?: boolean;
+  disabled?: boolean;
   onSearch?: (value: string) => void;
 };
 
@@ -46,6 +47,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   options,
   value,
   localSearch,
+  disabled,
   onSearch,
   onChange,
 }) => {
@@ -83,6 +85,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   return (
     <Popover
       className="p-0"
+      disabled={disabled}
       trigger={
         children ? (
           children

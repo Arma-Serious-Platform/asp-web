@@ -61,6 +61,11 @@ const MainLinks: FC<{
         </Link>
       )}
       {!env.isLanding && (
+        <Link className={className} activeClassName={activeClassName} href={ROUTES.weekends}>
+          Анонси
+        </Link>
+      )}
+      {!env.isLanding && (
         <Link className={className} activeClassName={activeClassName} href={ROUTES.squads}>
           Загони
         </Link>

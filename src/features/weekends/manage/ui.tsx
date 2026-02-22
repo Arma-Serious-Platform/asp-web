@@ -10,7 +10,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { manageWeekendModel, ManageWeekendModel } from './model';
-import { Input, NumericInput } from '@/shared/ui/atoms/input';
+import { Input } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { CreateWeekendDto, CreateGameDto, Weekend, UserStatus, UserRole } from '@/shared/sdk/types';
 import { api } from '@/shared/sdk';
@@ -20,10 +20,25 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Switch } from '@/shared/ui/atoms/switch';
 import toast from 'react-hot-toast';
-import { PlusIcon, TrashIcon } from 'lucide-react';
+import { PlusIcon, TrashIcon, GripVerticalIcon } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const defaultGame: CreateGameDto = {
-  name: '',
   date: '',
   position: 0,
   missionId: '',
@@ -34,7 +49,6 @@ const defaultGame: CreateGameDto = {
 };
 
 const gameSchema = yup.object().shape({
-  name: yup.string().required("Назва є обов'язковою"),
   date: yup.string().required("Дата є обов'язковою"),
   position: yup.number().required().min(0),
   missionId: yup.string().required("Місія є обов'язковою"),
@@ -46,7 +60,7 @@ const gameSchema = yup.object().shape({
 
 const schema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
-  description: yup.string().required("Опис є обов'язковим"),
+  description: yup.string().optional(),
   published: yup.boolean(),
   publishedAt: yup.string().nullable(),
   games: yup.array().of(gameSchema).min(1, 'Додайте щонайменше одну гру'),
@@ -56,10 +70,159 @@ type GameFormItem = CreateGameDto & { id?: string };
 
 type WeekendFormValues = {
   name: string;
-  description: string;
+  description?: string;
   published: boolean;
   publishedAt: string;
   games: GameFormItem[];
+};
+
+type SortableGameItemProps = {
+  id: string;
+  index: number;
+  form: any;
+  missionOptions: Array<{ label: string; value: string }>;
+  sideOptions: Array<{ label: string; value: string }>;
+  userOptions: Array<{ label: string; value: string }>;
+  getVersionOptionsForMission: (missionId: string) => Array<{ label: string; value: string }>;
+  fetchMissionVersions: (missionId: string) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+};
+
+const SortableGameItem: FC<SortableGameItemProps> = ({
+  id,
+  index,
+  form,
+  missionOptions,
+  sideOptions,
+  userOptions,
+  getVersionOptionsForMission,
+  fetchMissionVersions,
+  onRemove,
+  canRemove,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="rounded-lg border border-neutral-700 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-neutral-400 hover:text-neutral-200">
+            <GripVerticalIcon className="w-5 h-5" />
+          </button>
+          <span className="text-xs text-muted-foreground">Гра {index + 1}</span>
+        </div>
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 text-red-500"
+          onClick={onRemove}
+          disabled={!canRemove}>
+          <TrashIcon className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="flex flex-col gap-4">
+        <Controller
+          control={form.control}
+          name={`games.${index}.date`}
+          render={({ field: f }) => (
+            <Input {...f} type="date" label="Дата" error={form.formState.errors.games?.[index]?.date?.message} />
+          )}
+        />
+        <div className="flex gap-2">
+          <Controller
+            control={form.control}
+            name={`games.${index}.missionId`}
+            render={({ field: f }) => (
+              <Select
+                label="Місія"
+                options={missionOptions}
+                value={f.value || null}
+                onChange={v => {
+                  f.onChange(v ?? '');
+                  form.setValue(`games.${index}.missionVersionId`, '');
+                  if (v) fetchMissionVersions(v);
+                }}
+                error={form.formState.errors.games?.[index]?.missionId?.message}
+              />
+            )}
+          />
+          <Controller
+            control={form.control}
+            name={`games.${index}.missionVersionId`}
+            render={({ field: f }) => {
+              const missionId = form.watch(`games.${index}.missionId`) as string;
+              const versionOptions = getVersionOptionsForMission(missionId ?? '');
+
+              return (
+                <Select
+                  label="Версія місії"
+                  options={versionOptions}
+                  value={f.value || null}
+                  disabled={!missionId}
+                  onChange={v => f.onChange(v ?? '')}
+                  error={form.formState.errors.games?.[index]?.missionVersionId?.message}
+                />
+              );
+            }}
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <Controller
+            control={form.control}
+            name={`games.${index}.attackSideId`}
+            render={({ field: f }) => (
+              <Select
+                label="Сторона атаки"
+                options={sideOptions}
+                value={f.value || null}
+                onChange={v => f.onChange(v ?? '')}
+                error={form.formState.errors.games?.[index]?.attackSideId?.message}
+              />
+            )}
+          />
+          <Controller
+            control={form.control}
+            name={`games.${index}.defenseSideId`}
+            render={({ field: f }) => (
+              <Select
+                label="Сторона оборони"
+                options={sideOptions}
+                value={f.value || null}
+                onChange={v => f.onChange(v ?? '')}
+                error={form.formState.errors.games?.[index]?.defenseSideId?.message}
+              />
+            )}
+          />
+        </div>
+        <Controller
+          control={form.control}
+          name={`games.${index}.adminId`}
+          render={({ field: f }) => (
+            <Select
+              label="Ігровий адміністратор (опційно)"
+              options={[{ label: '— Не обрано', value: '' }, ...userOptions]}
+              value={f.value || ''}
+              onChange={v => f.onChange(v === '' ? null : v)}
+              error={form.formState.errors.games?.[index]?.adminId?.message}
+            />
+          )}
+        />
+      </div>
+    </div>
+  );
 };
 
 const ManageWeekendModal: FC<
@@ -86,10 +249,27 @@ const ManageWeekendModal: FC<
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: 'games',
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = fields.findIndex(field => field.id === active.id);
+      const newIndex = fields.findIndex(field => field.id === over.id);
+      move(oldIndex, newIndex);
+    }
+  };
 
   const fetchOptions = useCallback(async () => {
     try {
@@ -147,10 +327,10 @@ const ManageWeekendModal: FC<
         }
         for (const g of toUpdate) {
           if (!g.id) continue;
+          const index = data.games.findIndex(game => game.id === g.id);
           await api.updateGame(weekendId, g.id, {
-            name: g.name,
             date: g.date,
-            position: g.position,
+            position: index,
             missionId: g.missionId,
             missionVersionId: g.missionVersionId,
             attackSideId: g.attackSideId,
@@ -159,10 +339,10 @@ const ManageWeekendModal: FC<
           });
         }
         for (const g of toCreate) {
+          const index = data.games.findIndex(game => !game.id && game === g);
           await api.createGame(weekendId, {
-            name: g.name,
             date: g.date,
-            position: g.position,
+            position: index,
             missionId: g.missionId,
             missionVersionId: g.missionVersionId,
             attackSideId: g.attackSideId,
@@ -183,10 +363,9 @@ const ManageWeekendModal: FC<
       const createDto: CreateWeekendDto = {
         name: data.name,
         description: data.description,
-        games: data.games.map(g => ({
-          name: g.name,
+        games: data.games.map((g, index) => ({
           date: g.date,
-          position: g.position,
+          position: index,
           missionId: g.missionId,
           missionVersionId: g.missionVersionId,
           attackSideId: g.attackSideId,
@@ -206,17 +385,18 @@ const ManageWeekendModal: FC<
       if (model.modal.payload?.weekend) {
         const w = model.modal.payload.weekend;
         const games: GameFormItem[] = (w.games ?? []).length
-          ? (w.games ?? []).map(g => ({
-              id: g.id,
-              name: g.name,
-              date: g.date,
-              position: g.position,
-              missionId: g.missionId,
-              missionVersionId: g.missionVersionId,
-              attackSideId: g.attackSideId,
-              defenseSideId: g.defenseSideId,
-              adminId: g.adminId ?? null,
-            }))
+          ? (w.games ?? [])
+              .sort((a, b) => a.position - b.position)
+              .map(g => ({
+                id: g.id,
+                date: g.date,
+                position: g.position,
+                missionId: g.missionId,
+                missionVersionId: g.missionVersionId,
+                attackSideId: g.attackSideId,
+                defenseSideId: g.defenseSideId,
+                adminId: g.adminId ?? null,
+              }))
           : [{ ...defaultGame }];
         games.forEach(g => g.missionId && fetchMissionVersions(g.missionId));
         form.reset({
@@ -271,7 +451,7 @@ const ManageWeekendModal: FC<
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <Input {...field} label="Опис" error={form.formState.errors.description?.message} />
+                  <Input {...field} label="Опис (необов'язково)" error={form.formState.errors.description?.message} />
                 )}
               />
               <Controller
@@ -308,110 +488,27 @@ const ManageWeekendModal: FC<
                 {form.formState.errors.games?.message && (
                   <p className="text-sm text-destructive mb-2">{form.formState.errors.games.message}</p>
                 )}
-                <div className="flex flex-col gap-4">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="rounded-lg border border-neutral-700 p-3 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Гра {index + 1}</span>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-red-500"
-                          onClick={() => remove(index)}
-                          disabled={fields.length <= 1}>
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Controller
-                          control={form.control}
-                          name={`games.${index}.name`}
-                          render={({ field: f }) => (
-                            <Input
-                              {...f}
-                              label="Назва дня"
-                              placeholder="П'ятниця 1-а"
-                              error={form.formState.errors.games?.[index]?.name?.message}
-                            />
-                          )}
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                    <div className="flex flex-col gap-4">
+                      {fields.map((field, index) => (
+                        <SortableGameItem
+                          key={field.id}
+                          id={field.id}
+                          index={index}
+                          form={form}
+                          missionOptions={missionOptions}
+                          sideOptions={sideOptions}
+                          userOptions={userOptions}
+                          getVersionOptionsForMission={getVersionOptionsForMission}
+                          fetchMissionVersions={fetchMissionVersions}
+                          onRemove={() => remove(index)}
+                          canRemove={fields.length > 1}
                         />
-                        <Controller
-                          control={form.control}
-                          name={`games.${index}.date`}
-                          render={({ field: f }) => (
-                            <Input
-                              {...f}
-                              type="datetime-local"
-                              label="Дата"
-                              error={form.formState.errors.games?.[index]?.date?.message}
-                            />
-                          )}
-                        />
-                        <Controller
-                          control={form.control}
-                          name={`games.${index}.position`}
-                          render={({ field: f }) => (
-                            <NumericInput
-                              {...f}
-                              label="Позиція"
-                              min={0}
-                              error={form.formState.errors.games?.[index]?.position?.message}
-                            />
-                          )}
-                        />
-                        <Controller
-                          control={form.control}
-                          name={`games.${index}.missionId`}
-                          render={({ field: f }) => (
-                            <Select
-                              label="Місія"
-                              options={missionOptions}
-                              value={f.value || null}
-                              onChange={v => {
-                                f.onChange(v ?? '');
-                                form.setValue(`games.${index}.missionVersionId`, '');
-                                if (v) fetchMissionVersions(v);
-                              }}
-                              error={form.formState.errors.games?.[index]?.missionId?.message}
-                            />
-                          )}
-                        />
-                        <Controller
-                          control={form.control}
-                          name={`games.${index}.missionVersionId`}
-                          render={({ field: f }) => {
-                            const missionId = form.watch(`games.${index}.missionId`);
-                            const versionOptions = getVersionOptionsForMission(missionId ?? '');
-                            return (
-                              <Select
-                                label="Версія місії"
-                                options={versionOptions}
-                                value={f.value || null}
-                                onChange={v => f.onChange(v ?? '')}
-                                error={form.formState.errors.games?.[index]?.missionVersionId?.message}
-                              />
-                            );
-                          }}
-                        />
-
-                        <Controller
-                          control={form.control}
-                          name={`games.${index}.adminId`}
-                          render={({ field: f }) => (
-                            <Select
-                              label="Адмін гри (необов'язково)"
-                              options={[{ label: '— Не обрано', value: '' }, ...userOptions]}
-                              value={f.value || ''}
-                              onChange={v => f.onChange(v === '' ? null : v)}
-                              error={form.formState.errors.games?.[index]?.adminId?.message}
-                            />
-                          )}
-                        />
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
 
