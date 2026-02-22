@@ -10,7 +10,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { manageWeekendModel, ManageWeekendModel } from './model';
-import { Input } from '@/shared/ui/atoms/input';
+import { DateInput, Input } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { CreateWeekendDto, CreateGameDto, Weekend, UserStatus, UserRole } from '@/shared/sdk/types';
 import { api } from '@/shared/sdk';
@@ -137,7 +137,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
           control={form.control}
           name={`games.${index}.date`}
           render={({ field: f }) => (
-            <Input {...f} type="date" label="Дата" error={form.formState.errors.games?.[index]?.date?.message} />
+            <DateInput {...f} mode="date" label="Дата" error={form.formState.errors.games?.[index]?.date?.message} />
           )}
         />
         <div className="flex gap-2">
@@ -147,6 +147,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
             render={({ field: f }) => (
               <Select
                 label="Місія"
+                localSearch
                 options={missionOptions}
                 value={f.value || null}
                 onChange={v => {
@@ -233,9 +234,6 @@ const ManageWeekendModal: FC<
     onDeleteSuccess?: (weekend: Weekend) => void;
   }>
 > = observer(({ model = manageWeekendModel, children, onCreateSuccess, onUpdateSuccess, onDeleteSuccess }) => {
-  const [missions, setMissions] = useState<Mission[]>([]);
-  const [sides, setSides] = useState<Side[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [missionVersionsCache, setMissionVersionsCache] = useState<Record<string, MissionVersion[]>>({});
 
   const form = useForm<WeekendFormValues>({
@@ -270,25 +268,6 @@ const ManageWeekendModal: FC<
       move(oldIndex, newIndex);
     }
   };
-
-  const fetchOptions = useCallback(async () => {
-    try {
-      const [missionsRes, sidesRes, usersRes] = await Promise.all([
-        api.findMissions({ take: 200 }),
-        api.findSides({ take: 200 }),
-        api.findUsers({ take: 200, status: UserStatus.ACTIVE, role: UserRole.USER }),
-      ]);
-      setMissions(
-        (missionsRes.data as { data?: Mission[] })?.data ?? (Array.isArray(missionsRes.data) ? missionsRes.data : []),
-      );
-      setSides((sidesRes.data as { data?: Side[] })?.data ?? (Array.isArray(sidesRes.data) ? sidesRes.data : []));
-      setUsers((usersRes.data as { data?: User[] })?.data ?? (Array.isArray(usersRes.data) ? usersRes.data : []));
-    } catch {
-      setMissions([]);
-      setSides([]);
-      setUsers([]);
-    }
-  }, []);
 
   const fetchMissionVersions = useCallback(async (missionId: string) => {
     if (!missionId) return;
@@ -381,7 +360,7 @@ const ManageWeekendModal: FC<
 
   useEffect(() => {
     if (model.modal.isOpen) {
-      fetchOptions();
+      model.init();
       if (model.modal.payload?.weekend) {
         const w = model.modal.payload.weekend;
         const games: GameFormItem[] = (w.games ?? []).length
@@ -419,11 +398,11 @@ const ManageWeekendModal: FC<
       form.reset({ name: '', description: '', published: false, publishedAt: '', games: [{ ...defaultGame }] });
       model.modal.clearPayload();
     }
-  }, [model.modal.isOpen, model.modal.payload?.weekend, fetchOptions]);
+  }, [model.modal.isOpen, model.modal.payload?.weekend]);
 
-  const missionOptions = missions.map(m => ({ label: m.name, value: m.id }));
-  const sideOptions = sides.map(s => ({ label: s.name, value: s.id }));
-  const userOptions = users.map(u => ({ label: u.nickname, value: u.id }));
+  const missionOptions = model.missions.options;
+  const sideOptions = model.sides.options;
+  const userOptions = model.users.options;
 
   const getVersionOptionsForMission = (missionId: string) =>
     (missionVersionsCache[missionId] ?? []).map(v => ({ label: v.version, value: v.id }));
@@ -468,10 +447,9 @@ const ManageWeekendModal: FC<
                 control={form.control}
                 name="publishedAt"
                 render={({ field }) => (
-                  <Input
+                  <DateInput
                     {...field}
-                    type="datetime-local"
-                    label="Дата публікації (необов'язково)"
+                    label="Дата публікації (опційно)"
                     error={form.formState.errors.publishedAt?.message}
                   />
                 )}

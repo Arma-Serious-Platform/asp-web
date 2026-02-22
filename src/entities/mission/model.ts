@@ -12,6 +12,13 @@ class MissionModel {
 
   islands: Island[] = [];
 
+  get options() {
+    return this.pagination.data.map(mission => ({
+      value: mission.id,
+      label: mission.name,
+    }));
+  }
+
   get islandsOptions() {
     return this.islands.map(island => ({
       value: island.id,
