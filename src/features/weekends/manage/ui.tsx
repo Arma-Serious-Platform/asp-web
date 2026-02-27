@@ -298,36 +298,40 @@ const ManageWeekendModal: FC<
         const originalGames = model.modal.payload?.weekend?.games ?? [];
         const currentIds = data.games.filter(g => g.id).map(g => g.id as string);
         const toDelete = originalGames.filter(g => !currentIds.includes(g.id));
-        const toUpdate = data.games.filter(g => g.id);
-        const toCreate = data.games.filter(g => !g.id);
-
+        
+        // Process games in order to maintain correct positions
+        // Position is based on the index in the data.games array (which reflects drag-and-drop order)
+        for (let index = 0; index < data.games.length; index++) {
+          const g = data.games[index];
+          
+          if (g.id) {
+            // Update existing game
+            await api.updateGame(weekendId, g.id, {
+              date: g.date,
+              position: index,
+              missionId: g.missionId,
+              missionVersionId: g.missionVersionId,
+              attackSideId: g.attackSideId,
+              defenseSideId: g.defenseSideId,
+              adminId: g.adminId ?? null,
+            });
+          } else {
+            // Create new game
+            await api.createGame(weekendId, {
+              date: g.date,
+              position: index,
+              missionId: g.missionId,
+              missionVersionId: g.missionVersionId,
+              attackSideId: g.attackSideId,
+              defenseSideId: g.defenseSideId,
+              adminId: g.adminId ?? null,
+            });
+          }
+        }
+        
+        // Delete removed games
         for (const g of toDelete) {
           await api.deleteGame(weekendId, g.id);
-        }
-        for (const g of toUpdate) {
-          if (!g.id) continue;
-          const index = data.games.findIndex(game => game.id === g.id);
-          await api.updateGame(weekendId, g.id, {
-            date: g.date,
-            position: index,
-            missionId: g.missionId,
-            missionVersionId: g.missionVersionId,
-            attackSideId: g.attackSideId,
-            defenseSideId: g.defenseSideId,
-            adminId: g.adminId ?? null,
-          });
-        }
-        for (const g of toCreate) {
-          const index = data.games.findIndex(game => !game.id && game === g);
-          await api.createGame(weekendId, {
-            date: g.date,
-            position: index,
-            missionId: g.missionId,
-            missionVersionId: g.missionVersionId,
-            attackSideId: g.attackSideId,
-            defenseSideId: g.defenseSideId,
-            adminId: g.adminId ?? null,
-          });
         }
 
         toast.success('Анонс успішно оновлений');

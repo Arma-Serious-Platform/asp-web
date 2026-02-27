@@ -1,7 +1,6 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { GameAnnouncement } from '@/features/weekend/model';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { Tab } from '@/shared/ui/moleculas/tab';
@@ -11,7 +10,13 @@ export const WeekendAnnouncement: FC<{
   weekend: Weekend;
 }> = ({ weekend }) => {
   const [activeGameIndex, setActiveGameIndex] = useState(0);
-  const activeGame = weekend.games[activeGameIndex];
+  
+  // Sort games by position to ensure correct order
+  const sortedGames = weekend.games
+    ? [...weekend.games].sort((a, b) => a.position - b.position)
+    : [];
+  
+  const activeGame = sortedGames[activeGameIndex];
 
   return (
     <div className="w-full mb-8">
@@ -28,11 +33,11 @@ export const WeekendAnnouncement: FC<{
           {/* Navigation Tabs - Connected to card */}
           <div className="w-full bg-black/40 border-b border-white/10 backdrop-blur-sm">
             <div className="flex gap-0 overflow-x-auto w-full">
-              {weekend.games.map((game, index) => (
+              {sortedGames.map((game, index) => (
                 <Tab
                   key={game.id}
                   className="w-full"
-                  title={game.name}
+                  title={game.mission?.name || `Гра ${index + 1}`}
                   index={index}
                   isActive={activeGameIndex === index}
                   onClick={() => setActiveGameIndex(index)}
@@ -42,17 +47,19 @@ export const WeekendAnnouncement: FC<{
           </div>
 
           {/* Main Content */}
-          <div className="p-6 md:p-8">
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-              {/* Left Panel - Image and Actions */}
-              <MissionImagePanel game={activeGame} />
+          {activeGame && (
+            <div className="p-6 md:p-8">
+              <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+                {/* Left Panel - Image and Actions */}
+                <MissionImagePanel game={activeGame} />
 
-              {/* Right Panel - Mission Details */}
-              <div className="lg:w-3/5">
-                <MissionDetails game={activeGame} />
+                {/* Right Panel - Mission Details */}
+                <div className="lg:w-3/5">
+                  <MissionDetails game={activeGame} />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
