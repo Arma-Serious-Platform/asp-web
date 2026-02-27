@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon } from 'lucide-react';
+import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon, MapIcon } from 'lucide-react';
 import { Card } from '@/shared/ui/atoms/card';
 import classNames from 'classnames';
 import { Game, MissionGameSide, SideType } from '@/shared/sdk/types';
@@ -14,12 +14,20 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-3xl font-bold text-white leading-tight">{game.mission.name}</h2>
         </div>
-        {game.date && (
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
-            <CalendarIcon className="size-4" />
-            <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-4 flex-wrap">
+          {game.date && (
+            <div className="flex items-center gap-2 text-sm text-zinc-400">
+              <CalendarIcon className="size-4" />
+              <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
+            </div>
+          )}
+          {game.mission.island && (
+            <div className="flex items-center gap-2 text-sm text-zinc-400">
+              <MapIcon className="size-4" />
+              <span>{game.mission.island.name}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Combatants Card */}

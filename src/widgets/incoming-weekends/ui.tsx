@@ -5,7 +5,7 @@ import { Link } from '@/shared/ui/atoms/link';
 import { ROUTES } from '@/shared/config/routes';
 
 import { FC, useEffect } from 'react';
-import { CalendarIcon, ArrowRightIcon } from 'lucide-react';
+import { CalendarIcon, ArrowRightIcon, MapIcon } from 'lucide-react';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { IncomingWeekendsModel } from './model';
@@ -77,10 +77,20 @@ export const IncomingWeekends: FC<{
 
                     {/* Game Info */}
                     <div className="flex-1 min-w-0 flex flex-col gap-2">
-                      {/* Date */}
-                      <div className="flex items-center gap-2 text-sm text-zinc-400">
-                        <CalendarIcon className="size-4" />
-                        <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
+                      {/* Date and Island */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {game.date && (
+                          <div className="flex items-center gap-2 text-sm text-zinc-400">
+                            <CalendarIcon className="size-4" />
+                            <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
+                          </div>
+                        )}
+                        {game.mission.island && (
+                          <div className="flex items-center gap-2 text-sm text-zinc-400">
+                            <MapIcon className="size-4" />
+                            <span>{game.mission.island.name}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Sides */}
