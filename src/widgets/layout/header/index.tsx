@@ -6,6 +6,14 @@ import { View } from '@/features/view';
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/organisms/dialog';
 import { Popover } from '@/shared/ui/moleculas/popover';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import NextLink from 'next/link';
@@ -111,6 +119,7 @@ const MainLinks: FC<{
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer(({ className, activeClassName }) => {
   const router = useRouter();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   if (session.preloader.isLoading) {
     return (
@@ -185,13 +194,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                 </Button>
               </NextLink>
             </View.Condition>
-            <NextLink
-              href={ROUTES.auth.login}
-              onClick={e => {
-                e.preventDefault();
-
-                session.logout();
-              }}>
+            <button type="button" onClick={() => setLogoutDialogOpen(true)}>
               <Button
                 align="left"
                 size="sm"
@@ -199,7 +202,28 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                 <LogOutIcon className="size-4" />
                 <span>Вийти</span>
               </Button>
-            </NextLink>
+            </button>
+            <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+              <DialogContent showCloseButton>
+                <DialogHeader>
+                  <DialogTitle>Вийти з облікового запису</DialogTitle>
+                  <DialogDescription>Ви впевнені, що хочете вийти?</DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="flex gap-2">
+                  <Button variant="outline" onClick={() => setLogoutDialogOpen(false)}>
+                    Скасувати
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      session.logout();
+                      setLogoutDialogOpen(false);
+                    }}>
+                    Вийти
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </Popover>
         </>
       )}
