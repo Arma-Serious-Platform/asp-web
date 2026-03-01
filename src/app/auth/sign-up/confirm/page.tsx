@@ -55,7 +55,7 @@ const ConfirmSignUpContent = observer(() => {
 
 const ConfirmSignUpPage = observer(() => {
   return (
-    <Layout className="max-w-lg mx-auto bg-card/80 p-4 my-auto">
+    <Layout className="max-w-lg mx-auto paper p-4 my-auto">
       <Suspense
         fallback={
           <div className="flex flex-col gap-2 text-center justify-center">

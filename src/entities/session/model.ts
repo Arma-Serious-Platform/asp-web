@@ -87,8 +87,8 @@ export class SessionModel {
   };
 
   logout = () => {
-    deleteCookie('token');
-    deleteCookie('refreshToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     this.isAuthorized = false;
     this.user.user = null;
   };

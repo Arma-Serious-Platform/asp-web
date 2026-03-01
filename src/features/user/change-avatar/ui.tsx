@@ -29,28 +29,6 @@ const ChangeAvatarModal = observer(({ model, autoInputClick = false }: ChangeAva
     }
   }, [file]);
 
-  useEffect(() => {
-    if (autoInputClick && model.modal.isOpen) {
-      // Use requestAnimationFrame to ensure DOM is ready after dialog opens
-      // Double RAF ensures the portal content is fully rendered
-      let rafId: number | undefined;
-      const frame1 = requestAnimationFrame(() => {
-        rafId = requestAnimationFrame(() => {
-          if (inputRef.current) {
-            inputRef.current.click();
-          }
-        });
-      });
-
-      return () => {
-        cancelAnimationFrame(frame1);
-        if (rafId !== undefined) {
-          cancelAnimationFrame(rafId);
-        }
-      };
-    }
-  }, [autoInputClick, model.modal.isOpen]);
-
   return (
     <Dialog open={model.modal.isOpen} onOpenChange={model.modal.switch}>
       <DialogOverlay />
