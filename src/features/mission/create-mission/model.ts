@@ -1,7 +1,7 @@
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
-import { CreateMissionDto } from '@/shared/sdk/types';
+import { CreateMissionDto, MissionType } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -9,6 +9,7 @@ export type MissionFormData = {
   name: string;
   description: string;
   islandId: string;
+  missionType: MissionType;
   image: File | null;
 };
 
@@ -29,6 +30,7 @@ export class CreateMissionModel {
         name: data.name,
         description: data.description,
         islandId: data.islandId,
+        missionType: data.missionType,
         image: imageFile,
       };
 

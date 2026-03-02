@@ -5,6 +5,7 @@ import { Card } from '@/shared/ui/atoms/card';
 import classNames from 'classnames';
 import { Game, MissionGameSide, SideType } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
+import { cn } from '@/shared/utils/cn';
 
 export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
   return (
@@ -97,14 +98,24 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
           {/* Side 1 Units */}
           <div className="flex flex-col gap-2.5">
             <div
-              className={classNames('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
+              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
                 'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
                 'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
               })}>
               {game.missionVersion.attackSideName}
             </div>
             {game.missionVersion.weaponry?.map((unit, idx) => (
-              <div key={idx}>{unit.name}</div>
+              <div key={idx} className=" text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
+                <span
+                  className={cn('text-sm', {
+                    'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
+                    'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
+                  })}>
+                  {unit.name}
+                </span>{' '}
+                <span className="text-zinc-500">x{unit.count}</span>{' '}
+                {unit.description && <span className="text-zinc-500">({unit.description})</span>}
+              </div>
             ))}
           </div>
 
@@ -122,7 +133,15 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
                 key={idx}
                 className="flex items-center justify-between text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
                 <div className="flex-1 min-w-0">
-                  <span className="text-white">{unit.name}</span>
+                  <span
+                    className={cn({
+                      'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
+                      'text-blue-400 border-blue-500/30': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                    })}>
+                    {unit.name}
+                  </span>{' '}
+                  <span className="text-zinc-500">x{unit.count}</span>{' '}
+                  {unit.description && <span className="text-zinc-500">({unit.description})</span>}
                 </div>
               </div>
             ))}

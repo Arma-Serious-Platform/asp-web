@@ -15,13 +15,18 @@ import { base64ToFile } from '@/shared/utils/file';
 import { CreateMissionModel, MissionFormData } from './model';
 import { Select } from '@/shared/ui/atoms/select';
 import { api } from '@/shared/sdk';
-import { Island } from '@/shared/sdk/types';
+import { Island, MissionType } from '@/shared/sdk/types';
 import { Section } from '@/shared/ui/organisms/section';
+import { missionTypeLabels } from '@/entities/mission/lib';
 
 const missionSchema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
   description: yup.string().required("Опис є обов'язковим"),
   islandId: yup.string().required("Карта є обов'язковою"),
+  missionType: yup
+    .mixed<MissionType>()
+    .oneOf(Object.values(MissionType) as MissionType[])
+    .required("Тип місії є обов'язковим"),
 });
 
 const CreateMissionModal: FC<{
@@ -46,6 +51,7 @@ const CreateMissionModal: FC<{
       name: '',
       description: '',
       islandId: '',
+      missionType: MissionType.SG,
       image: null,
     },
   });
@@ -69,6 +75,7 @@ const CreateMissionModal: FC<{
         name: '',
         description: '',
         islandId: '',
+        missionType: MissionType.SG,
         image: null,
       });
       setImagePreview('');
@@ -111,6 +118,7 @@ const CreateMissionModal: FC<{
       name: '',
       description: '',
       islandId: '',
+      missionType: MissionType.SG,
       image: null,
     });
   };
@@ -123,7 +131,7 @@ const CreateMissionModal: FC<{
           <DialogTitle>Створити місію</DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-4">
               <input
                 ref={imageRef}
@@ -186,11 +194,29 @@ const CreateMissionModal: FC<{
               render={({ field }) => (
                 <Select
                   label="Карта"
+                  localSearch
                   options={islandsOptions}
                   value={field.value || null}
                   onChange={field.onChange}
                   isLoading={isLoadingIslands}
                   error={missionForm.formState.errors.islandId?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={missionForm.control}
+              name="missionType"
+              render={({ field }) => (
+                <Select
+                  label="Тип місії"
+                  options={[
+                    { value: MissionType.SG, label: missionTypeLabels[MissionType.SG] },
+                    { value: MissionType.mini, label: missionTypeLabels[MissionType.mini] },
+                  ]}
+                  value={field.value || null}
+                  onChange={field.onChange}
+                  error={missionForm.formState.errors.missionType?.message as string | undefined}
                 />
               )}
             />

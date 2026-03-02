@@ -5,17 +5,16 @@ import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { Tab } from '@/shared/ui/moleculas/tab';
 import { Weekend } from '@/shared/sdk/types';
+import dayjs from 'dayjs';
 
 export const WeekendAnnouncement: FC<{
   weekend: Weekend;
 }> = ({ weekend }) => {
   const [activeGameIndex, setActiveGameIndex] = useState(0);
-  
+
   // Sort games by position to ensure correct order
-  const sortedGames = weekend.games
-    ? [...weekend.games].sort((a, b) => a.position - b.position)
-    : [];
-  
+  const sortedGames = weekend.games ? [...weekend.games].sort((a, b) => a.position - b.position) : [];
+
   const activeGame = sortedGames[activeGameIndex];
 
   return (
@@ -26,18 +25,18 @@ export const WeekendAnnouncement: FC<{
       <div className="w-full container mx-auto px-4">
         <div className="flex items-center justify-center gap-2 paper rounded-t-2xl rounded-b-none h-16 mx-auto px-4">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent" />
-          <p className="text-sm font-semibold text-white whitespace-nowrap">{weekend.name}</p>
+          <p className="text-xl font-semibold text-white whitespace-nowrap">{weekend.name}</p>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent" />
         </div>
         <div className="paper rounded-b-2xl rounded-t-none overflow-hidden shadow-xl border-lime-700/20 border-t-none">
           {/* Navigation Tabs - Connected to card */}
           <div className="w-full bg-black/40 border-b border-white/10 backdrop-blur-sm">
-            <div className="flex gap-0 overflow-x-auto w-full">
+            <div className="flex justify-center items-center gap-0 overflow-x-auto w-full">
               {sortedGames.map((game, index) => (
                 <Tab
                   key={game.id}
-                  className="w-full"
-                  title={game.mission?.name || `Гра ${index + 1}`}
+                  className="w-full justify-center items-center"
+                  title={game.mission?.name || `Гра ${index + 1} ${dayjs(game.date).format('DD.MM')}`}
                   index={index}
                   isActive={activeGameIndex === index}
                   onClick={() => setActiveGameIndex(index)}

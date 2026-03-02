@@ -15,6 +15,11 @@ export enum MissionStatus {
   CHANGES_REQUESTED = 'CHANGES_REQUESTED',
 }
 
+export enum MissionType {
+  SG = 'SG',
+  mini = 'mini',
+}
+
 export enum SideType {
   BLUE = 'BLUE',
   RED = 'RED',
@@ -288,12 +293,14 @@ export type FindMissionsDto = PaginatedRequest<{
   islandId?: string;
   minSlots?: number;
   maxSlots?: number;
+  missionType?: MissionType;
 }>;
 
 export type CreateMissionDto = {
   islandId: string;
   name: string;
   description: string;
+  missionType: MissionType;
   image?: File;
 };
 
@@ -313,6 +320,7 @@ export type Mission = {
   id: string;
   name: string;
   description: string;
+  missionType: MissionType;
   imageId: string | null;
   image?: {
     id: string;

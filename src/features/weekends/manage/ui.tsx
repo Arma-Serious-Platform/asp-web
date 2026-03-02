@@ -37,6 +37,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import dayjs from 'dayjs';
 
 const defaultGame: CreateGameDto = {
   date: '',
@@ -54,7 +55,20 @@ const gameSchema = yup.object().shape({
   missionId: yup.string().required("Місія є обов'язковою"),
   missionVersionId: yup.string().required("Версія місії є обов'язковою"),
   attackSideId: yup.string().required("Сторона атаки є обов'язковою"),
-  defenseSideId: yup.string().required("Сторона оборони є обов'язковою"),
+  defenseSideId: yup
+    .string()
+    .required("Сторона оборони є обов'язковою")
+    .test(
+      'different-from-attack',
+      'Сторона оборони не може співпадати зі стороною атаки',
+      function (value) {
+        const { attackSideId } = this.parent as { attackSideId?: string };
+
+        if (!value || !attackSideId) return true;
+
+        return value !== attackSideId;
+      },
+    ),
   adminId: yup.string().nullable(),
 });
 
@@ -298,12 +312,12 @@ const ManageWeekendModal: FC<
         const originalGames = model.modal.payload?.weekend?.games ?? [];
         const currentIds = data.games.filter(g => g.id).map(g => g.id as string);
         const toDelete = originalGames.filter(g => !currentIds.includes(g.id));
-        
+
         // Process games in order to maintain correct positions
         // Position is based on the index in the data.games array (which reflects drag-and-drop order)
         for (let index = 0; index < data.games.length; index++) {
           const g = data.games[index];
-          
+
           if (g.id) {
             // Update existing game
             await api.updateGame(weekendId, g.id, {
@@ -328,7 +342,7 @@ const ManageWeekendModal: FC<
             });
           }
         }
-        
+
         // Delete removed games
         for (const g of toDelete) {
           await api.deleteGame(weekendId, g.id);
@@ -427,14 +441,25 @@ const ManageWeekendModal: FC<
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <Input {...field} autoFocus label="Назва" error={form.formState.errors.name?.message} />
+                  <Input
+                    {...field}
+                    autoFocus
+                    placeholder={`Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`}
+                    label="Назва"
+                    error={form.formState.errors.name?.message}
+                  />
                 )}
               />
               <Controller
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <Input {...field} label="Опис (необов'язково)" error={form.formState.errors.description?.message} />
+                  <Input
+                    {...field}
+                    placeholder="Було оновлення збірки..."
+                    label="Опис (необов'язково)"
+                    error={form.formState.errors.description?.message}
+                  />
                 )}
               />
               <Controller

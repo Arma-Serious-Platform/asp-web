@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { EyeIcon, UsersIcon, LayersIcon, MilestoneIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
-import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
+import { missionTypeLabels, statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
 
 type SideInfoProps = {
   label: string;
@@ -61,6 +61,12 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+          <div className="absolute top-3 left-3 flex items-center gap-2">
+            <span className="px-2 py-1 rounded text-xs font-semibold border border-white/20 bg-black/40 text-white">
+              {missionTypeLabels[mission.missionType]}
+            </span>
+          </div>
 
           {/* Status Badge */}
           {lastVersion?.status && (

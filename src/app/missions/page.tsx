@@ -6,7 +6,7 @@ import { MissionCard } from '@/entities/mission/ui/mission-card';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
-import { MissionStatus } from '@/shared/sdk/types';
+import { MissionStatus, MissionType } from '@/shared/sdk/types';
 
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useState, Suspense } from 'react';
@@ -17,7 +17,7 @@ import { CreateMissionModal } from '@/features/mission/create-mission/ui';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState, useQueryStates } from 'nuqs';
-import { statusOptions } from '@/entities/mission/lib';
+import { missionTypeOptions, statusOptions } from '@/entities/mission/lib';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 
@@ -30,6 +30,7 @@ const MissionsPageContent = observer(() => {
     authorId: parseAsString,
     minSlots: parseAsInteger,
     maxSlots: parseAsInteger,
+    missionType: parseAsStringEnum(Object.values(MissionType)),
   });
 
   const isFilterApplied = useMemo(() => {
@@ -46,6 +47,7 @@ const MissionsPageContent = observer(() => {
       search: filters.search || undefined,
       minSlots: filters.minSlots || undefined,
       maxSlots: filters.maxSlots || undefined,
+      missionType: filters.missionType || undefined,
       take: 25,
     });
   }, []);
@@ -75,6 +77,17 @@ const MissionsPageContent = observer(() => {
                   searchIcon
                 />
                 <Select
+                  label="Тип місії"
+                  options={missionTypeOptions}
+                  value={filters.missionType || ''}
+                  onChange={value =>
+                    setFilters({
+                      ...filters,
+                      missionType: value ? (value as MissionType) : null,
+                    })
+                  }
+                />
+                <Select
                   label="Статус"
                   options={statusOptions}
                   value={filters.status || ''}
@@ -99,6 +112,7 @@ const MissionsPageContent = observer(() => {
                   localSearch
                   onChange={value => setFilters({ ...filters, islandId: value || null })}
                 />
+
                 <NumericInput
                   label="Мін. слотів"
                   placeholder="0"
@@ -142,6 +156,7 @@ const MissionsPageContent = observer(() => {
                         authorId: null,
                         minSlots: null,
                         maxSlots: null,
+                        missionType: null,
                       });
 
                       model.missionModel.pagination.init({
