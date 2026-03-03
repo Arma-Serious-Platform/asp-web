@@ -104,19 +104,21 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               })}>
               {game.missionVersion.attackSideName}
             </div>
-            {game.missionVersion.weaponry?.map((unit, idx) => (
-              <div key={idx} className=" text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
-                <span
-                  className={cn('text-sm', {
-                    'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
-                    'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-                  })}>
-                  {unit.name}
-                </span>{' '}
-                <span className="text-zinc-500">x{unit.count}</span>{' '}
-                {unit.description && <span className="text-zinc-500">({unit.description})</span>}
-              </div>
-            ))}
+            {game.missionVersion.weaponry
+              ?.filter(unit => unit.type === game.missionVersion.attackSideType)
+              .map((unit, idx) => (
+                <div key={idx} className=" text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
+                  <span
+                    className={cn('text-sm', {
+                      'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
+                      'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
+                    })}>
+                    {unit.name}
+                  </span>{' '}
+                  <span className="text-zinc-500">x{unit.count}</span>{' '}
+                  {unit.description && <span className="text-zinc-500">({unit.description})</span>}
+                </div>
+              ))}
           </div>
 
           {/* Side 2 Units */}
@@ -128,23 +130,26 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               })}>
               {game.missionVersion.defenseSideName}
             </div>
-            {game.missionVersion.weaponry?.map((unit, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
-                <div className="flex-1 min-w-0">
-                  <span
-                    className={cn({
-                      'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                      'text-blue-400 border-blue-500/30': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                    })}>
-                    {unit.name}
-                  </span>{' '}
-                  <span className="text-zinc-500">x{unit.count}</span>{' '}
-                  {unit.description && <span className="text-zinc-500">({unit.description})</span>}
+            {game.missionVersion.weaponry
+              ?.filter(unit => unit.type === game.missionVersion.defenseSideType)
+              .map((unit, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <span
+                      className={cn({
+                        'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
+                        'text-blue-400 border-blue-500/30':
+                          game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                      })}>
+                      {unit.name}
+                    </span>{' '}
+                    <span className="text-zinc-500">x{unit.count}</span>{' '}
+                    {unit.description && <span className="text-zinc-500">({unit.description})</span>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </Card>

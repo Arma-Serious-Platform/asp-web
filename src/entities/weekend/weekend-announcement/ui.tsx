@@ -25,7 +25,10 @@ export const WeekendAnnouncement: FC<{
       <div className="w-full container mx-auto px-4">
         <div className="flex items-center justify-center gap-2 paper rounded-t-2xl rounded-b-none h-16 mx-auto px-4">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent" />
-          <p className="text-xl font-semibold text-white whitespace-nowrap">{weekend.name}</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-xl font-semibold text-white whitespace-nowrap">{weekend.name}</p>
+            <p className="text-xs font-semibold text-white whitespace-nowrap">{weekend.description}</p>
+          </div>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-lime-700/50 to-transparent" />
         </div>
         <div className="paper rounded-b-2xl rounded-t-none overflow-hidden shadow-xl border-lime-700/20 border-t-none">
