@@ -217,7 +217,7 @@ const CreateUpdateMissionVersionModal: FC<{
   return (
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
-      <DialogContent className="min-w-[95vw] max-w-none max-h-[90vh] overflow-y-auto">
+      <DialogContent className="min-w-[45vw] max-w-none max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingVersion ? 'Редагувати версію' : 'Створити нову версію'}</DialogTitle>
         </DialogHeader>

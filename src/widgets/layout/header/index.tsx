@@ -68,11 +68,19 @@ const MainLinks: FC<{
           Анонси
         </Link>
       )}
+
       {!env.isLanding && (
         <Link className={className} activeClassName={activeClassName} href={ROUTES.weekends}>
           Анонси
         </Link>
       )}
+
+      {!env.isLanding && (
+        <Link className={className} activeClassName={activeClassName} href={ROUTES.missions.root}>
+          Місії
+        </Link>
+      )}
+
       {!env.isLanding && (
         <Link className={className} activeClassName={activeClassName} href={ROUTES.squads}>
           Загони
@@ -81,12 +89,6 @@ const MainLinks: FC<{
       <a className={className} href="https://replays.vtg.in.ua" target="_blank" rel="noopener noreferrer">
         Реплеї
       </a>
-
-      {!env.isLanding && (
-        <Link className={className} activeClassName={activeClassName} href={ROUTES.missions.root}>
-          Місії
-        </Link>
-      )}
 
       {/* <View.Condition if={session.user?.user}>
         <Popover
