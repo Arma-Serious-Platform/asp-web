@@ -17,6 +17,9 @@ import { MissionVersionCard } from '@/entities/mission/version/version-card/ui';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { observer } from 'mobx-react-lite';
+import { CommentList } from '@/entities/comment';
+import { MessageEditor } from '@/features/chat/editor';
+import type { MissionComment } from '@/shared/sdk/types';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -45,6 +48,14 @@ const MissionDetailsPage = observer(() => {
 
     if (missionId) {
       loadMission();
+    }
+  }, [missionId]);
+
+  useEffect(() => {
+    if (missionId) {
+      missionDetailsModel.commentModel.pagination.loadAll({
+        missionId,
+      });
     }
   }, [missionId]);
 
@@ -113,6 +124,20 @@ const MissionDetailsPage = observer(() => {
 
   return (
     <Layout showHero={false}>
+      <ChangeMissionVersionStatusModal
+        model={missionDetailsModel.changeMissionVersionStatusModel}
+        onSuccess={async status => {
+          // Reload mission to get updated versions
+          const response = await api.findMissionById(missionId);
+          setMission(response.data);
+        }}
+      />
+      <CreateUpdateMissionVersionModal
+        model={missionDetailsModel.createUpdateMissionVersionModel}
+        onSuccess={handleVersionSaved}
+      />
+      <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
+
       <div className="container mx-auto my-6 w-full px-4">
         <Button variant="ghost" onClick={() => router.push(ROUTES.missions.root)} className="mb-4">
           ← Повернутися до списку
@@ -222,21 +247,36 @@ const MissionDetailsPage = observer(() => {
               </div>
             )}
           </div>
+
+          {/* Comments Section */}
+          <div className="border-t border-white/10 mt-6 pt-2">
+            <h2 className="text-2xl font-bold text-white">Коментарі</h2>
+
+            {missionDetailsModel.commentModel.pagination.preloader.isLoading &&
+            missionDetailsModel.commentModel.pagination.data.length === 0 ? (
+              <p className="text-zinc-500 text-sm">
+                <LoaderIcon className="size-4 animate-spin flex items-center justify-center" />
+              </p>
+            ) : missionDetailsModel.commentModel.pagination.data.length === 0 ? (
+              <div className="text-white text-sm py-4 text-center h-10">Наразі жодних коментарів немає</div>
+            ) : (
+              <CommentList comments={missionDetailsModel.commentModel.pagination.data} />
+            )}
+
+            <View.Condition if={session.isAuthorized}>
+              <div className="mb-4">
+                <MessageEditor
+                  placeholder="Додати коментар..."
+                  maxCharacters={250}
+                  onSubmit={async content => {
+                    await missionDetailsModel.commentModel.create(missionId, content);
+                  }}
+                />
+              </div>
+            </View.Condition>
+          </div>
         </div>
       </div>
-      <ChangeMissionVersionStatusModal
-        model={missionDetailsModel.changeMissionVersionStatusModel}
-        onSuccess={async status => {
-          // Reload mission to get updated versions
-          const response = await api.findMissionById(missionId);
-          setMission(response.data);
-        }}
-      />
-      <CreateUpdateMissionVersionModal
-        model={missionDetailsModel.createUpdateMissionVersionModel}
-        onSuccess={handleVersionSaved}
-      />
-      <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
     </Layout>
   );
 });

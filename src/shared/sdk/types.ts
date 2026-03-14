@@ -138,13 +138,18 @@ export type User = {
   };
 };
 
-export type UpdateUserDto = {
+export type UpdateMeDto = {
   nickname?: string;
+  email?: string;
+  steamId?: string;
   telegramUrl?: string;
   discordUrl?: string;
-  twitchUrl?: string;
   youtubeUrl?: string;
+  twitchUrl?: string;
 };
+
+/** @deprecated Use UpdateMeDto for PATCH /users/me */
+export type UpdateUserDto = UpdateMeDto;
 
 export type Squad = {
   id: string;
@@ -191,13 +196,22 @@ export type ForgotPasswordDto = {
   email: string;
 };
 
-export type ConfirmForgotPasswordDto = {
+export type ResetPasswordDto = {
   token: string;
   newPassword: string;
 };
 
+/** @deprecated Use ResetPasswordDto */
+export type ConfirmForgotPasswordDto = ResetPasswordDto;
+
+/** @deprecated Use LoginUserDto (emailOrNickname + password) */
 export type LoginDto = {
   email: string;
+  password: string;
+};
+
+export type LoginUserDto = {
+  emailOrNickname: string;
   password: string;
 };
 
@@ -220,11 +234,13 @@ export type FindUsersDto = PaginatedRequest<{
   search?: string;
   status?: UserStatus;
   role?: UserRole;
+  hasSquad?: boolean;
 }>;
 
+/** bannedUntil is sent as path param (ISO string). Required by API. */
 export type BanUserDto = {
   userId: string;
-  bannedUntil: Date | null;
+  bannedUntil: string | Date;
 };
 
 export type UnbanUserDto = {
@@ -254,7 +270,16 @@ export type CreateServerDto = {
 
 export type FindSidesDto = PaginatedRequest<{
   type?: SideType;
+  search?: string;
 }>;
+
+export type CreateSideDto = {
+  name?: string;
+  description?: string;
+  serverId?: string;
+};
+
+export type UpdateSideDto = Record<string, unknown>;
 
 export type FindSquadsDto = PaginatedRequest<{
   search?: string;
@@ -469,4 +494,61 @@ export type UpdateGameDto = {
   attackSideId?: string;
   defenseSideId?: string;
   adminId?: string | null;
+};
+
+/* Mission comments */
+
+/** Lexical editor state / JSON content (object) */
+export type MissionCommentMessage = Record<string, unknown>;
+
+export type MissionComment = {
+  id: string;
+  /** Lexical JSON content */
+  message: MissionCommentMessage;
+  missionId: string;
+  createdAt: string;
+  updatedAt: string;
+  userId?: string;
+  user?: User;
+};
+
+export type CreateMissionCommentDto = {
+  /** Lexical JSON content */
+  message: MissionCommentMessage;
+  missionId: string;
+};
+
+export type UpdateMissionCommentDto = {
+  /** Lexical JSON content */
+  message: MissionCommentMessage;
+};
+
+export type FindMissionCommentsDto = PaginatedRequest<{
+  search?: string;
+  missionId?: string;
+}>;
+
+/* Chats */
+
+export enum ChatType {
+  DIRECT = 'DIRECT',
+  GROUP = 'GROUP',
+}
+
+export type Chat = {
+  id: string;
+  name?: string;
+  type: ChatType;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateChatDto = {
+  type: ChatType;
+  userIds: string[];
+  name?: string;
+};
+
+export type LeaveSquadDto = {
+  newLeaderId?: string;
 };
