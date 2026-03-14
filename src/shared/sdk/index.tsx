@@ -48,7 +48,9 @@ import {
   UpdateSideDto,
   UpdateSquadDto,
   UpdateUserDto,
+  ChangeUserRoleDto,
   UpdateWeekendDto,
+  UserRole,
   User,
   Weekend,
 } from './types';
@@ -238,6 +240,10 @@ class ApiModel {
       userId,
       isMissionReviewer,
     });
+  };
+
+  changeUserRole = async (dto: ChangeUserRoleDto) => {
+    return await this.instance.post<User>('/users/change-role', dto);
   };
 
   /* Squads */

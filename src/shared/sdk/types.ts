@@ -36,6 +36,7 @@ export enum UserRole {
   OWNER = 'OWNER',
   TECH_ADMIN = 'TECH_ADMIN',
   GAME_ADMIN = 'GAME_ADMIN',
+  MINI_ADMIN = 'MINI_ADMIN',
   USER = 'USER',
 }
 
@@ -245,6 +246,12 @@ export type BanUserDto = {
 
 export type UnbanUserDto = {
   userId: string;
+};
+
+/** Body for POST /users/change-role */
+export type ChangeUserRoleDto = {
+  id: string;
+  role: UserRole;
 };
 
 export type FindServersDto = PaginatedRequest<{
