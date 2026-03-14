@@ -1,6 +1,11 @@
 import { Pagination } from '@/shared/model/pagination';
 import { api } from '@/shared/sdk';
-import { CreateMissionCommentDto, FindMissionCommentsDto, MissionComment } from '@/shared/sdk/types';
+import {
+  CreateMissionCommentDto,
+  FindMissionCommentsDto,
+  MissionComment,
+  MissionCommentMessage,
+} from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -17,11 +22,11 @@ class MissionCommentsModel {
     await this.pagination.init({ missionId, take });
   };
 
-  create = async (missionId: string, content: string) => {
+  create = async (missionId: string, message: MissionCommentMessage) => {
     try {
       await api.createMissionComment({
         missionId,
-        message: { text: content },
+        message,
       });
       toast.success('Коментар додано');
       await this.pagination.init({

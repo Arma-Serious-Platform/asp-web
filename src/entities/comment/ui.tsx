@@ -4,20 +4,13 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import { cn } from '@/shared/utils/cn';
 import { FC } from 'react';
 import { UserNicknameText } from '../user/ui/user-text';
-import { MissionComment, MissionCommentMessage } from '@/shared/sdk/types';
+import { MissionComment } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
+import { MessageContent } from './lexical-message';
 
 export type CommentItemProps = {
   className?: string;
 } & MissionComment;
-
-function getMessageText(message: MissionCommentMessage): string {
-  if (typeof message === 'object' && message !== null && 'text' in message) {
-    return String((message as { text?: string }).text ?? '');
-  }
-  if (typeof message === 'string') return message;
-  return '—';
-}
 
 export const CommentItem: FC<CommentItemProps> = ({ user, message, updatedAt, className }) => {
   return (
@@ -36,7 +29,9 @@ export const CommentItem: FC<CommentItemProps> = ({ user, message, updatedAt, cl
             {dayjs(updatedAt).format('DD.MM.YYYY HH:mm')}
           </span>
         </div>
-        <div className="mt-1 break-words text-base text-zinc-300 whitespace-pre-wrap">{getMessageText(message)}</div>
+        <div className="mt-1">
+          <MessageContent message={message} />
+        </div>
       </div>
     </article>
   );

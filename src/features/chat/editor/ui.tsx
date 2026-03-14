@@ -19,8 +19,15 @@ import { cn } from '@/shared/utils/cn';
 import { ToolbarPlugin } from './toolbar';
 import { RichTextBehaviorPlugin } from './rich-text-plugin';
 
+export type MessageEditorSubmitPayload = {
+  /** Plain text for validation/fallback */
+  text: string;
+  /** Full Lexical editor state to persist (links, YouTube, formatting) */
+  lexicalState: Record<string, unknown>;
+};
+
 export type MessageEditorProps = {
-  onSubmit: (content: string) => void | Promise<void>;
+  onSubmit: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
   placeholder?: string;
   maxCharacters?: number;
   className?: string;
@@ -38,7 +45,7 @@ function InnerEditor({
   maxCharacters,
   disabled,
 }: {
-  onSubmit: (content: string) => void | Promise<void>;
+  onSubmit: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
   maxCharacters: number;
   disabled?: boolean;
 }) {
@@ -46,13 +53,19 @@ function InnerEditor({
 
   const handleSubmit = async () => {
     let text = '';
-    editor.getEditorState().read(() => {
-      text = $getRoot().getTextContent();
+    let hasStructure = false;
+    const state = editor.getEditorState();
+    state.read(() => {
+      const root = $getRoot();
+      text = root.getTextContent();
+      const children = root.getChildren();
+      hasStructure = children.some(node => typeof node.getType === 'function' && node.getType() !== 'paragraph');
     });
     text = text.trim();
-    if (!text) return;
+    if (!text && !hasStructure) return;
     if (text.length > maxCharacters) return;
-    await Promise.resolve(onSubmit(text));
+    const lexicalState = state.toJSON() as unknown as Record<string, unknown>;
+    await Promise.resolve(onSubmit({ text, lexicalState }));
     editor.update(() => {
       $getRoot().clear();
     });

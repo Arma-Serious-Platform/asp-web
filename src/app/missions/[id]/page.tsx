@@ -268,8 +268,8 @@ const MissionDetailsPage = observer(() => {
                 <MessageEditor
                   placeholder="Додати коментар..."
                   maxCharacters={250}
-                  onSubmit={async content => {
-                    await missionDetailsModel.commentModel.create(missionId, content);
+                  onSubmit={async ({ lexicalState }) => {
+                    await missionDetailsModel.commentModel.create(missionId, lexicalState);
                   }}
                 />
               </div>

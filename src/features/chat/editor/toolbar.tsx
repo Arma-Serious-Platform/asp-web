@@ -228,17 +228,17 @@ export function ToolbarPlugin() {
             variant="ghost"
             size="icon"
             className="size-8 shrink-0"
-            aria-label="Insert YouTube video"
-            title="Insert YouTube video">
+            aria-label="Вставте посилання на YouTube відео"
+            title="Вставте посилання на YouTube відео">
             <VideoIcon className="size-4" />
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Insert YouTube video</DialogTitle>
+            <DialogTitle>Додайте YouTube посилання</DialogTitle>
           </DialogHeader>
           <div>
-            <label className="text-muted-foreground mb-1 block text-sm">Video URL</label>
+            <label className="text-muted-foreground mb-1 block text-sm">Посилання на YouTube відео</label>
             <input
               type="url"
               value={youtubeUrl}
@@ -249,10 +249,10 @@ export function ToolbarPlugin() {
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setYoutubeOpen(false)}>
-              Cancel
+              Скасувати
             </Button>
             <Button type="button" onClick={insertYouTube} disabled={!extractYouTubeVideoId(youtubeUrl)}>
-              Insert video
+              Додати відео
             </Button>
           </DialogFooter>
         </DialogContent>
