@@ -10,15 +10,23 @@ import { session } from '@/entities/session/model';
 import { FC, useState } from 'react';
 import dayjs from 'dayjs';
 import { WeaponrySection } from './weaponry-section';
+import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 
 type MissionVersionCardProps = {
+  canEdit: boolean;
   version: MissionVersion;
   missionId: string;
   onEdit: (version: MissionVersion) => void;
   onChangeStatus: (params: { missionId: string; version: MissionVersion; status: MissionStatus }) => void;
 };
 
-export const MissionVersionCard: FC<MissionVersionCardProps> = ({ version, missionId, onEdit, onChangeStatus }) => {
+export const MissionVersionCard: FC<MissionVersionCardProps> = ({
+  version,
+  missionId,
+  canEdit,
+  onEdit,
+  onChangeStatus,
+}) => {
   const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(false);
   const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
 
@@ -47,32 +55,43 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({ version, missi
                 (session.user?.user?.isMissionReviewer || session.user.isOwnerOrTech) &&
                 version.status === MissionStatus.PENDING_APPROVAL
               }>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  onChangeStatus({
-                    missionId,
-                    version,
-                    status: MissionStatus.APPROVED,
-                  });
-                }}>
-                <CheckCircleIcon className="size-4 text-green-500" />
-                Перевірено
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  onChangeStatus({
-                    missionId,
-                    version,
-                    status: MissionStatus.CHANGES_REQUESTED,
-                  });
-                }}>
-                <BanIcon className="size-4 text-destructive" />
-                Потребує змін
-              </Button>
+              <Popover
+                asChild
+                className="p-4 flex flex-col gap-2 w-fit"
+                trigger={
+                  <Button variant="secondary" size="sm" className="text-xs py-0 h-6">
+                    Обрати статус
+                  </Button>
+                }>
+                <Button
+                  className="justify-start w-full"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    onChangeStatus({
+                      missionId,
+                      version,
+                      status: MissionStatus.APPROVED,
+                    });
+                  }}>
+                  <CheckCircleIcon className="size-4 text-green-500" />
+                  Перевірено
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start w-full"
+                  onClick={() => {
+                    onChangeStatus({
+                      missionId,
+                      version,
+                      status: MissionStatus.CHANGES_REQUESTED,
+                    });
+                  }}>
+                  <BanIcon className="size-4 text-destructive" />
+                  Потребує змін
+                </Button>
+              </Popover>
             </View.Condition>
           </div>
         </div>
@@ -143,14 +162,16 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({ version, missi
             Завантажити
           </Button>
         )}
-        <Button
-          variant="outline"
-          size={version.file?.url ? 'default' : 'default'}
-          className={version.file?.url ? '' : 'w-full'}
-          onClick={() => onEdit(version)}>
-          <EditIcon className="size-4" />
-          {version.file?.url ? '' : 'Редагувати'}
-        </Button>
+        <View.Condition if={canEdit}>
+          <Button
+            variant="outline"
+            size={version.file?.url ? 'default' : 'default'}
+            className={version.file?.url ? '' : 'w-full'}
+            onClick={() => onEdit(version)}>
+            <EditIcon className="size-4" />
+            {version.file?.url ? '' : 'Редагувати'}
+          </Button>
+        </View.Condition>
       </div>
     </div>
   );

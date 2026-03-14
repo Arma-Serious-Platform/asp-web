@@ -174,6 +174,7 @@ const MissionDetailsPage = observer(() => {
               <MissionVersionCard
                 version={mission.missionVersions?.[0]}
                 missionId={missionId}
+                canEdit={isMissionAuthor || session.user?.isOwnerOrTech}
                 onEdit={handleEditVersion}
                 onChangeStatus={params => {
                   missionDetailsModel.changeMissionVersionStatusModel.visibility.open(params);
@@ -209,6 +210,7 @@ const MissionDetailsPage = observer(() => {
                 {mission?.missionVersions?.map(version => (
                   <MissionVersionCard
                     key={version.id}
+                    canEdit={isMissionAuthor || session.user?.isOwnerOrTech}
                     version={version}
                     missionId={missionId}
                     onEdit={handleEditVersion}
