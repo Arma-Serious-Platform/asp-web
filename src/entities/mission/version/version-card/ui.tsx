@@ -2,7 +2,7 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, BanIcon } from 'lucide-react';
+import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, BanIcon, InfoIcon } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
@@ -11,6 +11,7 @@ import { FC, useState } from 'react';
 import dayjs from 'dayjs';
 import { WeaponrySection } from './weaponry-section';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
+import { Tooltip } from '@/shared/ui/moleculas/tooltip';
 
 type MissionVersionCardProps = {
   canEdit: boolean;
@@ -43,6 +44,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
             {version.rating && <span className="text-sm text-yellow-400">⭐ {version.rating}</span>}
           </div>
           <div className="flex items-center gap-2">
+            <View.Condition if={version.status === MissionStatus.CHANGES_REQUESTED}>
+              <Tooltip trigger={<InfoIcon className="size-4 text-zinc-400" />}>
+                <span>Версія {version.version} потребує змін. Перезалийте файл або створіть нову версію.</span>
+              </Tooltip>
+            </View.Condition>
             <View.Condition
               if={!session.user?.user?.isMissionReviewer || version.status !== MissionStatus.PENDING_APPROVAL}>
               <span className={cn('px-2 py-0.5 rounded text-xs font-semibold border', statusColors[version.status])}>
@@ -50,47 +56,33 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               </span>
             </View.Condition>
 
-            <View.Condition
-              if={
-                (session.user?.user?.isMissionReviewer || session.user.isOwnerOrTech) &&
-                version.status === MissionStatus.PENDING_APPROVAL
-              }>
+            <View.Condition if={session.user?.user?.isMissionReviewer || session.user.isOwnerOrTech}>
               <Popover
                 asChild
                 className="p-4 flex flex-col gap-2 w-fit"
                 trigger={
                   <Button variant="secondary" size="sm" className="text-xs py-0 h-6">
-                    Обрати статус
+                    <EditIcon className="size-4" />
                   </Button>
                 }>
-                <Button
-                  className="justify-start w-full"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    onChangeStatus({
-                      missionId,
-                      version,
-                      status: MissionStatus.APPROVED,
-                    });
-                  }}>
-                  <CheckCircleIcon className="size-4 text-green-500" />
-                  Перевірено
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start w-full"
-                  onClick={() => {
-                    onChangeStatus({
-                      missionId,
-                      version,
-                      status: MissionStatus.CHANGES_REQUESTED,
-                    });
-                  }}>
-                  <BanIcon className="size-4 text-destructive" />
-                  Потребує змін
-                </Button>
+                {[MissionStatus.APPROVED, MissionStatus.CHANGES_REQUESTED, MissionStatus.PENDING_APPROVAL]
+                  .filter(status => status !== version.status)
+                  .map(status => (
+                    <Button
+                      className="justify-start w-full"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        onChangeStatus({
+                          missionId,
+                          version,
+                          status,
+                        });
+                      }}>
+                      <CheckCircleIcon className={cn('size-4', statusColors[status])} />
+                      {statusLabels[status]}
+                    </Button>
+                  ))}
               </Popover>
             </View.Condition>
           </div>

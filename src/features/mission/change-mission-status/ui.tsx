@@ -27,7 +27,8 @@ const ChangeMissionVersionStatusModal: FC<
   const missionId = model.visibility?.payload?.missionId;
 
   const isApproveAction = status === MissionStatus.APPROVED;
-  const statusLabel = status ? statusLabels[status] : '';
+  const isChangesRequestedAction = status === MissionStatus.CHANGES_REQUESTED;
+  const isPendingApprovalAction = status === MissionStatus.PENDING_APPROVAL;
 
   return (
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
@@ -42,7 +43,13 @@ const ChangeMissionVersionStatusModal: FC<
                 до ігор?
               </div>
             </View.Condition>
-            <View.Condition if={!isApproveAction}>
+            <View.Condition if={isPendingApprovalAction}>
+              <div>
+                Ви впевнені, що хочете перевести версію <span className="text-primary">{version?.version}</span> в
+                статус <span className="text-primary">{statusLabels[MissionStatus.PENDING_APPROVAL]}</span>?
+              </div>
+            </View.Condition>
+            <View.Condition if={isChangesRequestedAction}>
               <div>
                 Ви впевнені, що версія <span className="text-primary">{version?.version}</span> ще потребує змін?
               </div>
@@ -61,7 +68,7 @@ const ChangeMissionVersionStatusModal: FC<
                   model.changeStatus(missionId, version.id, status, onSuccess);
                 }
               }}>
-              {isApproveAction ? 'Перевірено' : 'Потребує змін'}
+              {statusLabels[status]}
             </Button>
           </div>
         </div>

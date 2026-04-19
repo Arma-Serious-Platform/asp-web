@@ -258,9 +258,9 @@ const MissionDetailsPage = observer(() => {
                 <LoaderIcon className="size-4 animate-spin flex items-center justify-center" />
               </p>
             ) : missionDetailsModel.commentModel.pagination.data.length === 0 ? (
-              <div className="text-white text-sm py-4 text-center h-10">Наразі жодних коментарів немає</div>
+              <div className="text-white text-sm py-4 text-center h-10 mb-8">Наразі жодних коментарів немає</div>
             ) : (
-              <CommentList comments={missionDetailsModel.commentModel.pagination.data} />
+              <CommentList className="mb-2" comments={missionDetailsModel.commentModel.pagination.data} />
             )}
 
             <View.Condition if={session.isAuthorized}>
