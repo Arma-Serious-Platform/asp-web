@@ -434,6 +434,18 @@ class ApiModel {
       });
     }
 
+    if (dto.attackScreenshots?.length) {
+      dto.attackScreenshots.forEach(file => {
+        formData.append('attackScreenshots', file);
+      });
+    }
+
+    if (dto.defenseScreenshots?.length) {
+      dto.defenseScreenshots.forEach(file => {
+        formData.append('defenseScreenshots', file);
+      });
+    }
+
     if (dto.rating !== undefined) {
       formData.append('rating', dto.rating.toString());
     }
@@ -487,6 +499,30 @@ class ApiModel {
         // Empty array means clear all weaponry
         formData.append('weaponry', '[]');
       }
+    }
+
+    if (dto.attackScreenshots?.length) {
+      dto.attackScreenshots.forEach(file => {
+        formData.append('attackScreenshots', file);
+      });
+    }
+
+    if (dto.defenseScreenshots?.length) {
+      dto.defenseScreenshots.forEach(file => {
+        formData.append('defenseScreenshots', file);
+      });
+    }
+
+    if (dto.removeAttackScreenshotIds?.length) {
+      dto.removeAttackScreenshotIds.forEach((id, index) => {
+        formData.append(`removeAttackScreenshotIds[${index}]`, id);
+      });
+    }
+
+    if (dto.removeDefenseScreenshotIds?.length) {
+      dto.removeDefenseScreenshotIds.forEach((id, index) => {
+        formData.append(`removeDefenseScreenshotIds[${index}]`, id);
+      });
     }
 
     if (dto.rating !== undefined) {

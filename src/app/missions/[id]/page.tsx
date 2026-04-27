@@ -190,7 +190,7 @@ const MissionDetailsPage = observer(() => {
 
           {/* Last Version Details */}
           {mission?.missionVersions && mission.missionVersions.length > 0 && (
-            <div className="border-t border-white/10 pt-6">
+            <div key={mission.missionVersions?.[0]?.id} className="border-t border-white/10 pt-6">
               {mission.missionVersions?.[0]?.version && (
                 <h2 className="text-xl font-bold text-white mb-4">
                   Остання версія: {mission.missionVersions?.[0]?.version}

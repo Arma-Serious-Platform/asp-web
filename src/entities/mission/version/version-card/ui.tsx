@@ -10,8 +10,10 @@ import { session } from '@/entities/session/model';
 import { FC, useState } from 'react';
 import dayjs from 'dayjs';
 import { WeaponrySection } from './weaponry-section';
+import { UniformSection } from './uniform-section';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 import { Tooltip } from '@/shared/ui/moleculas/tooltip';
+import { Dialog, DialogContent, DialogOverlay } from '@/shared/ui/organisms/dialog';
 
 type MissionVersionCardProps = {
   canEdit: boolean;
@@ -30,9 +32,14 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
 }) => {
   const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(false);
   const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
+  const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
+  const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
+  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
 
   const attackWeaponry = (version.weaponry || []).filter(w => w.type === version.attackSideType);
   const defenseWeaponry = (version.weaponry || []).filter(w => w.type === version.defenseSideType);
+  const attackUniformScreenshots = version.attackScreenshots || [];
+  const defenseUniformScreenshots = version.defenseScreenshots || [];
 
   return (
     <div className="paper flex flex-col gap-4 rounded-xl border p-4 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative">
@@ -112,6 +119,12 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               setIsOpen={setIsAttackWeaponryOpen}
               sideType={version.attackSideType}
             />
+            <UniformSection
+              screenshots={attackUniformScreenshots}
+              isOpen={isAttackUniformOpen}
+              setIsOpen={setIsAttackUniformOpen}
+              onPreview={setPreviewScreenshotUrl}
+            />
           </div>
 
           {/* Defense Side */}
@@ -136,6 +149,12 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               setIsOpen={setIsDefenseWeaponryOpen}
               sideType={version.defenseSideType}
             />
+            <UniformSection
+              screenshots={defenseUniformScreenshots}
+              isOpen={isDefenseUniformOpen}
+              setIsOpen={setIsDefenseUniformOpen}
+              onPreview={setPreviewScreenshotUrl}
+            />
           </div>
         </div>
 
@@ -147,7 +166,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
       </div>
 
       {/* Fixed Bottom Actions */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 pt-0 flex gap-2 bg-gradient-to-t from-black/95 via-black/90 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-5 pt-0 flex gap-2 bg-linear-to-t from-black/95 via-black/90 to-transparent">
         {version.file?.url && (
           <Button variant="outline" className="flex-1" onClick={() => window.open(version.file?.url, '_blank')}>
             <DownloadIcon className="size-4" />
@@ -165,6 +184,15 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </Button>
         </View.Condition>
       </div>
+
+      <Dialog open={Boolean(previewScreenshotUrl)} onOpenChange={open => !open && setPreviewScreenshotUrl(null)}>
+        <DialogOverlay />
+        <DialogContent className="max-w-[80vw] max-h-[85vh] p-2">
+          {previewScreenshotUrl && (
+            <img src={previewScreenshotUrl} alt="Попередній перегляд скріншоту" className="w-full h-full object-contain" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

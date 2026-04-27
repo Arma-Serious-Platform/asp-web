@@ -384,9 +384,16 @@ export type MissionVersion = {
   };
   rating?: number;
   weaponry?: MissionWeaponry[];
+  attackScreenshots?: MissionVersionScreenshot[];
+  defenseScreenshots?: MissionVersionScreenshot[];
   status: MissionStatus;
   createdAt: string;
   updatedAt: string;
+};
+
+export type MissionVersionScreenshot = {
+  id: string;
+  url: string;
 };
 
 export type MissionWeaponry = {
@@ -416,6 +423,8 @@ export type CreateMissionVersionDto = {
   attackSideName: string;
   defenseSideName: string;
   file: File;
+  attackScreenshots?: File[];
+  defenseScreenshots?: File[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
 };
@@ -429,6 +438,10 @@ export type UpdateMissionVersionDto = {
   attackSideName?: string;
   defenseSideName?: string;
   file?: File;
+  attackScreenshots?: File[];
+  defenseScreenshots?: File[];
+  removeAttackScreenshotIds?: string[];
+  removeDefenseScreenshotIds?: string[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
 };
