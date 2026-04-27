@@ -90,6 +90,10 @@ const MainLinks: FC<{
         Реплеї
       </a>
 
+      <a className={className} href="https://feedback.vtg.in.ua" target="_blank" rel="noopener noreferrer">
+        Баг-трекер
+      </a>
+
       {/* <View.Condition if={session.user?.user}>
         <Popover
           asChild
