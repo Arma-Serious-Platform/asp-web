@@ -2,7 +2,17 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, BanIcon, InfoIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  UsersIcon,
+  DownloadIcon,
+  EditIcon,
+  CheckCircleIcon,
+  BanIcon,
+  InfoIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
@@ -23,6 +33,55 @@ type MissionVersionCardProps = {
   onChangeStatus: (params: { missionId: string; version: MissionVersion; status: MissionStatus }) => void;
 };
 
+const normalizeScreenshotList = (raw: unknown) => {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((item: any, index) => {
+      const url = item?.url || item?.file?.url || item?.screenshot?.url || item?.path;
+      const id = item?.id || item?.fileId || item?.screenshotId || `${url || 'screenshot'}-${index}`;
+
+      if (!url || typeof url !== 'string') {
+        return null;
+      }
+
+      return {
+        id: String(id),
+        url,
+      };
+    })
+    .filter(Boolean) as NonNullable<MissionVersion['attackScreenshots']>;
+};
+
+const getSideScreenshotsFromSharedList = (
+  shared: unknown,
+  side: 'attack' | 'defense',
+  sideType: MissionVersion['attackSideType'] | MissionVersion['defenseSideType'],
+) => {
+  if (!Array.isArray(shared)) {
+    return [];
+  }
+
+  const sideTokens = [side, sideType, sideType?.toLowerCase?.(), side === 'attack' ? 'attacker' : 'defender'].filter(
+    Boolean,
+  );
+
+  return normalizeScreenshotList(
+    shared.filter((item: any) => {
+      const marker = String(
+        item?.sideType || item?.side || item?.team || item?.type || item?.screenshotType || item?.role || '',
+      ).toLowerCase();
+
+      const isAttackFlag = item?.isAttack;
+      if (typeof isAttackFlag === 'boolean') {
+        return side === 'attack' ? isAttackFlag : !isAttackFlag;
+      }
+
+      return sideTokens.some(token => marker.includes(String(token).toLowerCase()));
+    }),
+  );
+};
+
 export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   version,
   missionId,
@@ -34,12 +93,62 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
-  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
+  const [previewScreenshots, setPreviewScreenshots] = useState<MissionVersion['attackScreenshots']>([]);
+  const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
 
   const attackWeaponry = (version.weaponry || []).filter(w => w.type === version.attackSideType);
   const defenseWeaponry = (version.weaponry || []).filter(w => w.type === version.defenseSideType);
-  const attackUniformScreenshots = version.attackScreenshots || [];
-  const defenseUniformScreenshots = version.defenseScreenshots || [];
+  const rawVersion = version as MissionVersion & Record<string, unknown>;
+  const sharedScreenshots =
+    rawVersion.screenshots || rawVersion.uniformScreenshots || rawVersion.missionVersionScreenshots;
+
+  const attackUniformScreenshots =
+    normalizeScreenshotList(
+      rawVersion.attackScreenshots || rawVersion.attack_screenshots || rawVersion.attackUniformScreenshots,
+    ) || [];
+  const defenseUniformScreenshots =
+    normalizeScreenshotList(
+      rawVersion.defenseScreenshots || rawVersion.defense_screenshots || rawVersion.defenseUniformScreenshots,
+    ) || [];
+
+  const attackFromShared = getSideScreenshotsFromSharedList(sharedScreenshots, 'attack', version.attackSideType);
+  const defenseFromShared = getSideScreenshotsFromSharedList(sharedScreenshots, 'defense', version.defenseSideType);
+  const allSharedScreenshots = normalizeScreenshotList(sharedScreenshots);
+  const resolvedAttackUniformScreenshots =
+    attackUniformScreenshots.length > 0
+      ? attackUniformScreenshots
+      : attackFromShared.length > 0
+        ? attackFromShared
+        : allSharedScreenshots;
+  const resolvedDefenseUniformScreenshots =
+    defenseUniformScreenshots.length > 0
+      ? defenseUniformScreenshots
+      : defenseFromShared.length > 0
+        ? defenseFromShared
+        : allSharedScreenshots;
+  const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
+  const hasPreview = Boolean(previewScreenshotUrl);
+  const canNavigatePreview = (previewScreenshots?.length || 0) > 1;
+
+  const handleOpenPreview = (screenshots: NonNullable<MissionVersion['attackScreenshots']>, startIndex: number) => {
+    setPreviewScreenshots(screenshots);
+    setPreviewScreenshotIndex(startIndex);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewScreenshotIndex(0);
+    setPreviewScreenshots([]);
+  };
+
+  const showPreviousScreenshot = () => {
+    if (!previewScreenshots?.length) return;
+    setPreviewScreenshotIndex(prev => (prev === 0 ? previewScreenshots.length - 1 : prev - 1));
+  };
+
+  const showNextScreenshot = () => {
+    if (!previewScreenshots?.length) return;
+    setPreviewScreenshotIndex(prev => (prev === previewScreenshots.length - 1 ? 0 : prev + 1));
+  };
 
   return (
     <div className="paper flex flex-col gap-4 rounded-xl border p-4 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative">
@@ -120,10 +229,10 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               sideType={version.attackSideType}
             />
             <UniformSection
-              screenshots={attackUniformScreenshots}
+              screenshots={resolvedAttackUniformScreenshots}
               isOpen={isAttackUniformOpen}
               setIsOpen={setIsAttackUniformOpen}
-              onPreview={setPreviewScreenshotUrl}
+              onPreview={handleOpenPreview}
             />
           </div>
 
@@ -150,10 +259,10 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               sideType={version.defenseSideType}
             />
             <UniformSection
-              screenshots={defenseUniformScreenshots}
+              screenshots={resolvedDefenseUniformScreenshots}
               isOpen={isDefenseUniformOpen}
               setIsOpen={setIsDefenseUniformOpen}
-              onPreview={setPreviewScreenshotUrl}
+              onPreview={handleOpenPreview}
             />
           </div>
         </div>
@@ -185,11 +294,40 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
         </View.Condition>
       </div>
 
-      <Dialog open={Boolean(previewScreenshotUrl)} onOpenChange={open => !open && setPreviewScreenshotUrl(null)}>
-        <DialogOverlay />
-        <DialogContent className="max-w-[80vw] max-h-[85vh] p-2">
+      <Dialog open={hasPreview} onOpenChange={open => !open && handleClosePreview()}>
+        <DialogContent
+          showCloseButton={false}
+          className="w-[90vw] max-w-[90vw] h-[85vh] p-2 overflow-hidden flex items-center justify-center">
           {previewScreenshotUrl && (
-            <img src={previewScreenshotUrl} alt="Попередній перегляд скріншоту" className="w-full h-full object-contain" />
+            <div className="relative h-full w-full">
+              <div className="h-full w-full flex items-center justify-center overflow-hidden rounded">
+                <img
+                  src={previewScreenshotUrl}
+                  alt="Попередній перегляд скріншоту"
+                  className="max-h-full max-w-full w-auto h-auto object-contain"
+                />
+              </div>
+              {canNavigatePreview && (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute left-3 top-1/2 -translate-y-1/2"
+                    onClick={showPreviousScreenshot}>
+                    <ChevronLeftIcon className="size-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    onClick={showNextScreenshot}>
+                    <ChevronRightIcon className="size-5" />
+                  </Button>
+                </>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>

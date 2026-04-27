@@ -8,7 +8,7 @@ type UniformSectionProps = {
   screenshots: MissionVersionScreenshot[];
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onPreview: (url: string) => void;
+  onPreview: (screenshots: MissionVersionScreenshot[], startIndex: number) => void;
 };
 
 export const UniformSection: FC<UniformSectionProps> = ({ screenshots, isOpen, setIsOpen, onPreview }) => {
@@ -31,16 +31,16 @@ export const UniformSection: FC<UniformSectionProps> = ({ screenshots, isOpen, s
       </button>
       {isOpen && (
         <div className="mt-2 grid grid-cols-3 gap-2">
-          {screenshots.map(screenshot => (
+          {screenshots.map((screenshot, index) => (
             <button
               key={screenshot.id}
               type="button"
-              onClick={() => onPreview(screenshot.url)}
-              className="group relative overflow-hidden rounded border border-white/10 bg-black/60 focus:outline-none focus:ring-2 focus:ring-lime-500/70">
+              onClick={() => onPreview(screenshots, index)}
+              className="group relative overflow-hidden rounded border border-white/10 bg-black/60 focus:outline-none focus:ring-2 focus:ring-lime-500/70 cursor-zoom-in">
               <img
                 src={screenshot.url}
                 alt="Скріншот уніформи"
-                className="h-20 w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                className="w-full object-cover transition-transform duration-200 group-hover:scale-105"
               />
             </button>
           ))}
