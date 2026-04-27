@@ -21,6 +21,7 @@ import { FC, useState } from 'react';
 import dayjs from 'dayjs';
 import { WeaponrySection } from './weaponry-section';
 import { UniformSection } from './uniform-section';
+import { resolveUniformScreenshots } from './lib';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 import { Tooltip } from '@/shared/ui/moleculas/tooltip';
 import { Dialog, DialogContent, DialogOverlay } from '@/shared/ui/organisms/dialog';
@@ -31,55 +32,6 @@ type MissionVersionCardProps = {
   missionId: string;
   onEdit: (version: MissionVersion) => void;
   onChangeStatus: (params: { missionId: string; version: MissionVersion; status: MissionStatus }) => void;
-};
-
-const normalizeScreenshotList = (raw: unknown) => {
-  if (!Array.isArray(raw)) return [];
-
-  return raw
-    .map((item: any, index) => {
-      const url = item?.url || item?.file?.url || item?.screenshot?.url || item?.path;
-      const id = item?.id || item?.fileId || item?.screenshotId || `${url || 'screenshot'}-${index}`;
-
-      if (!url || typeof url !== 'string') {
-        return null;
-      }
-
-      return {
-        id: String(id),
-        url,
-      };
-    })
-    .filter(Boolean) as NonNullable<MissionVersion['attackScreenshots']>;
-};
-
-const getSideScreenshotsFromSharedList = (
-  shared: unknown,
-  side: 'attack' | 'defense',
-  sideType: MissionVersion['attackSideType'] | MissionVersion['defenseSideType'],
-) => {
-  if (!Array.isArray(shared)) {
-    return [];
-  }
-
-  const sideTokens = [side, sideType, sideType?.toLowerCase?.(), side === 'attack' ? 'attacker' : 'defender'].filter(
-    Boolean,
-  );
-
-  return normalizeScreenshotList(
-    shared.filter((item: any) => {
-      const marker = String(
-        item?.sideType || item?.side || item?.team || item?.type || item?.screenshotType || item?.role || '',
-      ).toLowerCase();
-
-      const isAttackFlag = item?.isAttack;
-      if (typeof isAttackFlag === 'boolean') {
-        return side === 'attack' ? isAttackFlag : !isAttackFlag;
-      }
-
-      return sideTokens.some(token => marker.includes(String(token).toLowerCase()));
-    }),
-  );
 };
 
 export const MissionVersionCard: FC<MissionVersionCardProps> = ({
@@ -98,34 +50,8 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
 
   const attackWeaponry = (version.weaponry || []).filter(w => w.type === version.attackSideType);
   const defenseWeaponry = (version.weaponry || []).filter(w => w.type === version.defenseSideType);
-  const rawVersion = version as MissionVersion & Record<string, unknown>;
-  const sharedScreenshots =
-    rawVersion.screenshots || rawVersion.uniformScreenshots || rawVersion.missionVersionScreenshots;
-
-  const attackUniformScreenshots =
-    normalizeScreenshotList(
-      rawVersion.attackScreenshots || rawVersion.attack_screenshots || rawVersion.attackUniformScreenshots,
-    ) || [];
-  const defenseUniformScreenshots =
-    normalizeScreenshotList(
-      rawVersion.defenseScreenshots || rawVersion.defense_screenshots || rawVersion.defenseUniformScreenshots,
-    ) || [];
-
-  const attackFromShared = getSideScreenshotsFromSharedList(sharedScreenshots, 'attack', version.attackSideType);
-  const defenseFromShared = getSideScreenshotsFromSharedList(sharedScreenshots, 'defense', version.defenseSideType);
-  const allSharedScreenshots = normalizeScreenshotList(sharedScreenshots);
-  const resolvedAttackUniformScreenshots =
-    attackUniformScreenshots.length > 0
-      ? attackUniformScreenshots
-      : attackFromShared.length > 0
-        ? attackFromShared
-        : allSharedScreenshots;
-  const resolvedDefenseUniformScreenshots =
-    defenseUniformScreenshots.length > 0
-      ? defenseUniformScreenshots
-      : defenseFromShared.length > 0
-        ? defenseFromShared
-        : allSharedScreenshots;
+  const { attack: resolvedAttackUniformScreenshots, defense: resolvedDefenseUniformScreenshots } =
+    resolveUniformScreenshots(version);
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
   const canNavigatePreview = (previewScreenshots?.length || 0) > 1;

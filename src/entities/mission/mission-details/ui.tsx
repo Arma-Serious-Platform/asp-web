@@ -1,13 +1,48 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 
-import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon, MapIcon } from 'lucide-react';
+import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon, MapIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Card } from '@/shared/ui/atoms/card';
+import { Button } from '@/shared/ui/atoms/button';
 import classNames from 'classnames';
 import { Game, MissionGameSide, SideType } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 import { cn } from '@/shared/utils/cn';
+import { UniformSection } from '@/entities/mission/version/version-card/uniform-section';
+import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
+import { Dialog, DialogContent } from '@/shared/ui/organisms/dialog';
 
 export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
+  const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
+  const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
+  const [previewScreenshots, setPreviewScreenshots] = useState<{ id: string; url: string }[]>([]);
+  const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
+
+  const { attack: attackUniformScreenshots, defense: defenseUniformScreenshots } = resolveUniformScreenshots(
+    game.missionVersion,
+  );
+  const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
+  const hasPreview = Boolean(previewScreenshotUrl);
+
+  const handleOpenPreview = (screenshots: { id: string; url: string }[], startIndex: number) => {
+    setPreviewScreenshots(screenshots);
+    setPreviewScreenshotIndex(startIndex);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewScreenshotIndex(0);
+    setPreviewScreenshots([]);
+  };
+
+  const showPreviousScreenshot = () => {
+    if (!previewScreenshots.length) return;
+    setPreviewScreenshotIndex(prev => (prev === 0 ? previewScreenshots.length - 1 : prev - 1));
+  };
+
+  const showNextScreenshot = () => {
+    if (!previewScreenshots.length) return;
+    setPreviewScreenshotIndex(prev => (prev === previewScreenshots.length - 1 ? 0 : prev + 1));
+  };
+
   return (
     <div className="flex flex-col gap-5">
       {/* Header Section */}
@@ -43,12 +78,14 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               className={classNames('w-2 h-2 rounded-full', {
                 'bg-red-500': game.missionVersion.attackSideType === MissionGameSide.RED,
                 'bg-blue-500': game.missionVersion.attackSideType === MissionGameSide.BLUE,
+                'bg-green-500': game.missionVersion.attackSideType === MissionGameSide.GREEN,
               })}
             />
             <span
               className={classNames('font-bold text-base', {
                 'text-red-500': game.missionVersion.attackSideType === MissionGameSide.RED,
                 'text-blue-500': game.missionVersion.attackSideType === MissionGameSide.BLUE,
+                'text-green-500': game.missionVersion.attackSideType === MissionGameSide.GREEN,
               })}>
               {game.missionVersion.attackSideName}
             </span>
@@ -67,12 +104,14 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               className={classNames('w-2 h-2 rounded-full', {
                 'bg-red-500': game.missionVersion.defenseSideType === MissionGameSide.RED,
                 'bg-blue-500': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                'bg-green-500': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
               })}
             />
             <span
               className={classNames('font-bold text-base', {
                 'text-red-500': game.missionVersion.defenseSideType === MissionGameSide.RED,
                 'text-blue-500': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                'text-green-500': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
               })}>
               {game.missionVersion.defenseSideName}
             </span>
@@ -81,6 +120,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               className={classNames('px-2 py-0.5 rounded text-xs font-semibold', {
                 'bg-red-500/20 text-red-400': game.missionVersion.defenseSideType === MissionGameSide.RED,
                 'bg-blue-500/20 text-blue-400': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                'bg-green-500/20 text-green-400': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
               })}>
               {game.missionVersion.defenseSideType === MissionGameSide.RED ? 'Атака' : 'Оборона'}
             </span>
@@ -101,6 +141,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
                 'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
                 'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
+                'text-green-400 border-green-500/30': game.missionVersion.attackSideType === MissionGameSide.GREEN,
               })}>
               {game.missionVersion.attackSideName}
             </div>
@@ -112,6 +153,8 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
                     className={cn('text-sm', {
                       'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
                       'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
+                      'text-green-400 border-green-500/30':
+                        game.missionVersion.attackSideType === MissionGameSide.GREEN,
                     })}>
                     {unit.name}
                   </span>{' '}
@@ -127,6 +170,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               className={classNames('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
                 'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
                 'text-blue-400 border-blue-500/30': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                'text-green-400 border-green-500/30': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
               })}>
               {game.missionVersion.defenseSideName}
             </div>
@@ -142,6 +186,8 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
                         'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
                         'text-blue-400 border-blue-500/30':
                           game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                        'text-green-400 border-green-500/30':
+                          game.missionVersion.defenseSideType === MissionGameSide.GREEN,
                       })}>
                       {unit.name}
                     </span>{' '}
@@ -153,6 +199,83 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
           </div>
         </div>
       </Card>
+      <Card>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Уніформа</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <div
+              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
+                'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
+                'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
+                'text-green-400 border-green-500/30': game.missionVersion.attackSideType === MissionGameSide.GREEN,
+              })}>
+              {game.missionVersion.attackSideName}
+            </div>
+            <UniformSection
+              screenshots={attackUniformScreenshots}
+              isOpen={isAttackUniformOpen}
+              setIsOpen={setIsAttackUniformOpen}
+              onPreview={handleOpenPreview}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div
+              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
+                'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
+                'text-blue-400 border-blue-500/30': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
+                'text-green-400 border-green-500/30': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
+              })}>
+              {game.missionVersion.defenseSideName}
+            </div>
+            <UniformSection
+              screenshots={defenseUniformScreenshots}
+              isOpen={isDefenseUniformOpen}
+              setIsOpen={setIsDefenseUniformOpen}
+              onPreview={handleOpenPreview}
+            />
+          </div>
+        </div>
+      </Card>
+      <Dialog open={hasPreview} onOpenChange={open => !open && handleClosePreview()}>
+        <DialogContent
+          showCloseButton={false}
+          className="w-[90vw] max-w-[90vw] h-[85vh] p-2 overflow-hidden flex items-center justify-center">
+          {previewScreenshotUrl && (
+            <div className="relative h-full w-full">
+              <div className="h-full w-full flex items-center justify-center overflow-hidden rounded">
+                <img
+                  src={previewScreenshotUrl}
+                  alt="Попередній перегляд скріншоту"
+                  className="max-h-full max-w-full w-auto h-auto object-contain"
+                />
+              </div>
+              {previewScreenshots.length > 1 && (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute left-3 top-1/2 -translate-y-1/2"
+                    onClick={showPreviousScreenshot}>
+                    <ChevronLeftIcon className="size-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    onClick={showNextScreenshot}>
+                    <ChevronRightIcon className="size-5" />
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
