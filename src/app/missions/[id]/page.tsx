@@ -20,6 +20,7 @@ import { observer } from 'mobx-react-lite';
 import { CommentList } from '@/entities/comment';
 import { MessageEditor } from '@/features/chat/editor';
 import type { MissionComment } from '@/shared/sdk/types';
+import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -28,6 +29,7 @@ const MissionDetailsPage = observer(() => {
   const [mission, setMission] = useState<Mission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
+  const deleteCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
 
   const isMissionAuthor = useMemo(() => {
     return session.user?.user?.id === mission?.authorId;
@@ -95,6 +97,17 @@ const MissionDetailsPage = observer(() => {
     setMission(response.data);
   };
 
+  const canDeleteComment = (comment: MissionComment) => {
+    const currentUserId = session.user?.user?.id;
+    const isCommentAuthor = Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
+
+    return session.isHasAdminPanelAccess || isCommentAuthor;
+  };
+
+  const handleDeleteComment = (comment: MissionComment) => {
+    deleteCommentModel.visibility.open({ comment });
+  };
+
   if (isLoading) {
     return (
       <Layout showHero={false}>
@@ -137,6 +150,10 @@ const MissionDetailsPage = observer(() => {
         onSuccess={handleVersionSaved}
       />
       <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
+      <DeleteMissionCommentModal
+        model={deleteCommentModel}
+        onConfirm={commentId => missionDetailsModel.commentModel.remove(missionId, commentId)}
+      />
 
       <div className="container mx-auto my-6 w-full px-4">
         <Button variant="ghost" onClick={() => router.push(ROUTES.missions.root)} className="mb-4">
@@ -260,7 +277,12 @@ const MissionDetailsPage = observer(() => {
             ) : missionDetailsModel.commentModel.pagination.data.length === 0 ? (
               <div className="text-white text-sm py-4 text-center h-10 mb-8">Наразі жодних коментарів немає</div>
             ) : (
-              <CommentList className="mb-2" comments={missionDetailsModel.commentModel.pagination.data} />
+              <CommentList
+                className="mb-2"
+                comments={missionDetailsModel.commentModel.pagination.data}
+                canDeleteComment={canDeleteComment}
+                onDeleteComment={handleDeleteComment}
+              />
             )}
 
             <View.Condition if={session.isAuthorized}>

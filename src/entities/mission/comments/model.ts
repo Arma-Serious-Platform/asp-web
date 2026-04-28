@@ -38,6 +38,20 @@ class MissionCommentsModel {
       throw new Error('Failed to create comment');
     }
   };
+
+  remove = async (missionId: string, commentId: string) => {
+    try {
+      await api.deleteMissionComment(commentId);
+      toast.success('Коментар видалено');
+      await this.pagination.init({
+        missionId,
+        take: (this.pagination.params as FindMissionCommentsDto).take ?? 25,
+      });
+    } catch {
+      toast.error('Не вдалося видалити коментар');
+      throw new Error('Failed to delete comment');
+    }
+  };
 }
 
 export { MissionCommentsModel };
