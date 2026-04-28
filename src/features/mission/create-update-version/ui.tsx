@@ -20,6 +20,7 @@ import { PlusIcon, LoaderIcon, UploadIcon, TrashIcon, MinusIcon } from 'lucide-r
 import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionVersion } from '@/shared/sdk/types';
 import { CreateUpdateMissionVersionModel, VersionFormData } from './model';
+import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
 
 const sideTypeOptions = [
   { label: 'BLUE', value: MissionGameSide.BLUE },
@@ -94,6 +95,7 @@ const CreateUpdateMissionVersionModal: FC<{
   const missionId = payload?.missionId;
   const mission = payload?.mission;
   const editingVersion = payload?.version;
+  const resolvedEditingScreenshots = editingVersion ? resolveUniformScreenshots(editingVersion) : null;
 
   const versionForm = useForm<VersionFormData>({
     mode: 'onChange',
@@ -453,7 +455,7 @@ const CreateUpdateMissionVersionModal: FC<{
                   className="invisible"
                 />
 
-                {editingVersion?.attackScreenshots
+                {resolvedEditingScreenshots?.attack
                   ?.filter(s => !versionForm.watch('removeAttackScreenshotIds').includes(s.id))
                   .map(screenshot => (
                     <div key={screenshot.id} className="flex items-center justify-between rounded border border-white/10 p-2">
@@ -688,7 +690,7 @@ const CreateUpdateMissionVersionModal: FC<{
                   className="invisible"
                 />
 
-                {editingVersion?.defenseScreenshots
+                {resolvedEditingScreenshots?.defense
                   ?.filter(s => !versionForm.watch('removeDefenseScreenshotIds').includes(s.id))
                   .map(screenshot => (
                     <div key={screenshot.id} className="flex items-center justify-between rounded border border-white/10 p-2">
