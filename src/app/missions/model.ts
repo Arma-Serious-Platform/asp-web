@@ -18,7 +18,7 @@ class MissionsPageModel {
     try {
       this.missionModel.getIslands();
       await this.missionModel.init(dto);
-      await this.userModel.pagination.init({
+      await this.userModel.pagination.loadAll({
         take: 100,
       });
     } catch {

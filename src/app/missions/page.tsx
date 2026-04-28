@@ -72,10 +72,12 @@ const MissionsPageContent = observer(() => {
               <div className="flex flex-col gap-4">
                 <Input
                   label="Пошук"
+                  placeholder="По назві"
                   value={filters.search || ''}
                   onChange={e => setFilters({ ...filters, search: e.target.value })}
                   searchIcon
                 />
+
                 <Select
                   label="Тип місії"
                   options={missionTypeOptions}
@@ -87,6 +89,7 @@ const MissionsPageContent = observer(() => {
                     })
                   }
                 />
+
                 <Select
                   label="Статус"
                   options={statusOptions}
@@ -98,15 +101,21 @@ const MissionsPageContent = observer(() => {
                     })
                   }
                 />
+
                 <Select
                   label="Автор"
                   options={model.userModel.options}
+                  localSearch
+                  placeholder="Усі автори"
                   value={filters.authorId || ''}
                   onChange={value => setFilters({ ...filters, authorId: value || null })}
                 />
+
                 <Select
                   label="Карта"
+                  resultsClassName="max-h-[150px] overflow-y-auto"
                   multiple={false}
+                  placeholder="Усі карти"
                   options={model.missionModel.islandsOptions}
                   value={filters.islandId || ''}
                   localSearch
@@ -124,6 +133,7 @@ const MissionsPageContent = observer(() => {
                     })
                   }
                 />
+
                 <NumericInput
                   label="Макс. слотів"
                   placeholder="0"
@@ -135,6 +145,7 @@ const MissionsPageContent = observer(() => {
                     })
                   }
                 />
+
                 <div className="flex flex-col gap-2 pt-2">
                   <Button
                     variant="outline"
@@ -145,6 +156,7 @@ const MissionsPageContent = observer(() => {
                     className="w-full">
                     Застосувати
                   </Button>
+
                   <Button
                     variant="ghost"
                     disabled={model.missionModel.pagination.preloader.isLoading || !isFilterApplied}
@@ -176,7 +188,7 @@ const MissionsPageContent = observer(() => {
           <main className="flex-1 min-w-0">
             <div className="mb-8">
               <h1 className="text-3xl font-bold leading-tight tracking-tight text-white mb-2">Місії</h1>
-              <p className="text-zinc-400">Перегляньте доступні місії та створіть нову</p>
+              <p className="text-zinc-400">Перегляньте доступні місії або створіть нову</p>
             </div>
 
             {/* Missions Grid */}

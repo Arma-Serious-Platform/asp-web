@@ -6,7 +6,7 @@ export const hasAccessToAdminPanel = (role?: UserRole) => {
 
 /** Ukrainian labels for roles (admin panel and display) */
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.OWNER]: 'Власник',
+  [UserRole.OWNER]: 'Керівництво',
   [UserRole.TECH_ADMIN]: 'Тех. адміністратор',
   [UserRole.GAME_ADMIN]: 'Ігровий адміністратор',
   [UserRole.MINI_ADMIN]: 'mVTG адміністратор',
