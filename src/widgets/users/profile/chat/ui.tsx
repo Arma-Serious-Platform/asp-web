@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/uk';
 import toast from 'react-hot-toast';
 import { LoaderIcon, MessageCircleIcon, UsersIcon } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
@@ -17,6 +19,9 @@ import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { session } from '@/entities/session/model';
 import { env } from '@/shared/config/env';
 import { getTokensFromLocalStorage } from '@/shared/utils/session';
+
+dayjs.extend(relativeTime);
+dayjs.locale('uk');
 
 type ProfileChatProps = {
   initialUserId?: string;
@@ -179,48 +184,49 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
   const [chatActivityById, setChatActivityById] = useState<Record<string, string>>({});
   const handledInitialUserIdRef = useRef<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   const activeChat = useMemo(() => chats.find(chat => chat.id === activeChatId) ?? null, [activeChatId, chats]);
   const currentUserId = session.user.user?.id;
 
-  const bumpChatActivity = useCallback(
-    (chatId: string, at?: string) => {
-      const timestamp = at ?? new Date().toISOString();
-      setChatActivityById(prev => {
-        const next = { ...prev, [chatId]: timestamp };
-        setChats(prevChats =>
-          [...prevChats].sort(
-            (a, b) =>
-              dayjs(next[b.id] ?? b.updatedAt ?? b.createdAt ?? '1970-01-01T00:00:00.000Z').valueOf() -
-              dayjs(next[a.id] ?? a.updatedAt ?? a.createdAt ?? '1970-01-01T00:00:00.000Z').valueOf(),
-          ),
-        );
-        return next;
-      });
-    },
-    [],
-  );
+  const bumpChatActivity = useCallback((chatId: string, at?: string) => {
+    const timestamp = at ?? new Date().toISOString();
+    setChatActivityById(prev => {
+      const next = { ...prev, [chatId]: timestamp };
+      setChats(prevChats =>
+        [...prevChats].sort(
+          (a, b) =>
+            dayjs(next[b.id] ?? b.updatedAt ?? b.createdAt ?? '1970-01-01T00:00:00.000Z').valueOf() -
+            dayjs(next[a.id] ?? a.updatedAt ?? a.createdAt ?? '1970-01-01T00:00:00.000Z').valueOf(),
+        ),
+      );
+      return next;
+    });
+  }, []);
 
-  const loadMessages = useCallback(async (chatId: string) => {
-    setIsMessagesLoading(true);
-    try {
-      const { data } = await api.findChatMessages(chatId);
-      const normalized = getArrayPayload(data)
-        .map(item => normalizeChatMessage(item, chatId))
-        .filter((item): item is ChatMessage => Boolean(item));
-      setMessages(normalized);
-      if (normalized.length > 0) {
-        const last = normalized[normalized.length - 1];
-        bumpChatActivity(chatId, last.createdAt ?? last.updatedAt);
+  const loadMessages = useCallback(
+    async (chatId: string) => {
+      setIsMessagesLoading(true);
+      try {
+        const { data } = await api.findChatMessages(chatId);
+        const normalized = getArrayPayload(data)
+          .map(item => normalizeChatMessage(item, chatId))
+          .filter((item): item is ChatMessage => Boolean(item));
+        setMessages(normalized);
+        if (normalized.length > 0) {
+          const last = normalized[normalized.length - 1];
+          bumpChatActivity(chatId, last.createdAt ?? last.updatedAt);
+        }
+      } catch (error) {
+        console.error(error);
+        setMessages([]);
+        toast.error('Не вдалося завантажити повідомлення');
+      } finally {
+        setIsMessagesLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      setMessages([]);
-      toast.error('Не вдалося завантажити повідомлення');
-    } finally {
-      setIsMessagesLoading(false);
-    }
-  }, [bumpChatActivity]);
+    },
+    [bumpChatActivity],
+  );
 
   const loadUsers = useCallback(async () => {
     setIsUsersLoading(true);
@@ -461,15 +467,25 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
     };
   }, []);
 
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'instant',
+    });
+  }, [activeChatId, messages]);
+
   return (
-    <div className="flex min-h-[460px] flex-col gap-4">
+    <div className="flex min-h-0 flex-col gap-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Чат</div>
-      <div className="grid min-h-[420px] grid-cols-1 gap-3 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="flex min-h-[240px] flex-col overflow-hidden rounded-lg border border-white/10 bg-black/40">
+      <div className="grid h-[calc(100vh-220px)] max-h-[calc(100vh-220px)] min-h-[420px] grid-cols-1 gap-3 overflow-hidden lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-black/40">
           <div className="border-b border-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">
             Діалоги
           </div>
-          <div className="flex flex-1 flex-col overflow-y-auto p-2">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-2">
             {isChatsLoading || isUsersLoading ? (
               <div className="flex items-center justify-center py-8 text-zinc-500">
                 <LoaderIcon className="size-4 animate-spin" />
@@ -524,12 +540,14 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
           </div>
         </aside>
 
-        <section className="flex min-h-[240px] flex-col overflow-hidden rounded-lg border border-white/10 bg-black/40">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-black/40">
           <div className="border-b border-white/10 px-3 py-2">
-            <div className="text-sm font-semibold text-white">{activeChat ? resolveChatTitle(activeChat) : 'Оберіть чат'}</div>
+            <div className="text-sm font-semibold text-white">
+              {activeChat ? resolveChatTitle(activeChat) : 'Оберіть чат'}
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3">
+          <div ref={messagesContainerRef} className="min-h-0 flex-1 overflow-y-auto p-3">
             {!activeChat ? (
               <div className="py-8 text-center text-sm text-zinc-500">Оберіть діалог зліва</div>
             ) : isMessagesLoading ? (
@@ -549,14 +567,12 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
                           'flex w-[75%] gap-3 rounded-lg px-3 py-2',
                           isOwnMessage ? 'bg-primary/20' : 'bg-white/4',
                         )}>
-                        {!isOwnMessage && (
-                          <Avatar
-                            toProfileId={message.user?.id}
-                            src={message.user?.avatar?.url ?? undefined}
-                            alt={message.user?.nickname ?? ''}
-                            size="sm"
-                          />
-                        )}
+                        <Avatar
+                          toProfileId={message.user?.id}
+                          src={message.user?.avatar?.url ?? undefined}
+                          alt={message.user?.nickname ?? ''}
+                          size="sm"
+                        />
                         <div className="min-w-0">
                           <div className="mb-1 flex flex-wrap items-center gap-2">
                             <span className="text-xs font-semibold text-zinc-100">
@@ -570,7 +586,7 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
                             </span>
                             <span className="text-[11px] text-zinc-500">
                               {dayjs(message.createdAt ?? message.updatedAt).isValid()
-                                ? dayjs(message.createdAt ?? message.updatedAt).format('DD.MM.YYYY HH:mm')
+                                ? dayjs(message.createdAt ?? message.updatedAt).fromNow()
                                 : ''}
                             </span>
                           </div>
