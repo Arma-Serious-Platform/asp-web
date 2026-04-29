@@ -27,6 +27,14 @@ export const ProfileSidebar = ({ tab, setTab, isOwnProfile }: ProfileSidebarProp
           <>
             <Button
               size="sm"
+              onClick={() => setTab(ProfileTab.CHAT)}
+              variant={tab === ProfileTab.CHAT ? 'default' : 'ghost'}
+              className="flex w-full items-center justify-start gap-2 text-xs">
+              <MessageCircleIcon className="size-4" />
+              <span>Чат</span>
+            </Button>
+            <Button
+              size="sm"
               onClick={() => setTab(ProfileTab.SQUAD)}
               variant={tab === ProfileTab.SQUAD ? 'default' : 'ghost'}
               className="flex w-full items-center justify-start gap-2 text-xs">
@@ -40,13 +48,6 @@ export const ProfileSidebar = ({ tab, setTab, isOwnProfile }: ProfileSidebarProp
               className="flex w-full items-center justify-start gap-2 text-xs">
               <LockKeyholeIcon className="size-4" />
               <span>Безпека</span>
-            </Button>
-          </>
-        )}
-        {!isOwnProfile && (
-          <>
-            <Button size="sm" variant="ghost" className="justify-start text-xs">
-              <MessageCircleIcon className="size-4" /> <span>Написати</span>
             </Button>
           </>
         )}
