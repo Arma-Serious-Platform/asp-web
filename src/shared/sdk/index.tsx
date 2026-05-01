@@ -202,10 +202,10 @@ class ApiModel {
     return await this.instance.patch<User>('/users/me', dto);
   };
 
-  steamLogin = async (accessToken: string) => {
-    return await this.instance.get<LoginResponse>('/users/steam-login', {
-      params: { accessToken },
-    });
+  getSteamLoginUrl = () => {
+    const accessToken = window.localStorage.getItem('token') || '';
+
+    return `${env.apiUrl}/users/steam-login?accessToken=${accessToken}`;
   };
 
   steamCallback = async () => {

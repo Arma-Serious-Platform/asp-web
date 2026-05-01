@@ -128,11 +128,11 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                         ) : (
                           <Button
                             size="sm"
-                            className="flex items-center gap-2 border-0 bg-linear-to-r from-[#171a21] via-[#1b2838] to-[#2a475e] text-white hover:from-[#1b2838] hover:via-[#2a475e] hover:to-[#66c0f4]"
+                            className="flex items-center text-xs gap-2 border-0 bg-linear-to-r from-[#171a21] via-[#1b2838] to-[#2a475e] text-white hover:from-[#1b2838] hover:via-[#2a475e] hover:to-[#66c0f4]"
                             onClick={() => {
-                              api.steamLogin(window.localStorage.getItem('token') || '');
+                              window.location.href = api.getSteamLoginUrl();
                             }}>
-                            <Image src="/images/steam-logo.svg" width={24} height={24} alt="Steam link" />
+                            <Image src="/images/steam-logo.svg" width={20} height={20} alt="Steam link" />
                             Підключити Steam
                           </Button>
                         )
