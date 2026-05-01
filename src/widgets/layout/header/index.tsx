@@ -366,7 +366,7 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
         </Link>
 
         <div className="mx-auto flex items-center justify-between w-full max-lg:hidden">
-          <div className="mr-auto flex items-center justify-between gap-6">
+          <div className="mr-auto flex items-center justify-between gap-3">
             <MainLinks
               className="rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-white/10 hover:text-white"
               activeClassName="bg-primary/90 text-white rounded-md"

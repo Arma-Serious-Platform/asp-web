@@ -12,6 +12,7 @@ import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
 import { BanUnbanUserModal } from '@/features/user/ban-unban-user/ui';
 import { ChangeIsReviewerModal } from '@/features/user/change-is-reviewer/ui';
+import { ChangeUserRoleModal } from '@/features/user/change-user-role/ui';
 
 const AdminPage = observer(() => {
   const [search, setSearch] = useState('');
@@ -53,6 +54,12 @@ const AdminPage = observer(() => {
           model={usersModel.changeIsReviewerModel}
           onSuccess={(userId, isMissionReviewer) => {
             usersModel.afterChangeIsReviewer(userId, isMissionReviewer);
+          }}
+        />
+        <ChangeUserRoleModal
+          model={usersModel.changeUserRoleModel}
+          onSuccess={(userId, role) => {
+            usersModel.afterChangeRole(userId, role);
           }}
         />
         <Input

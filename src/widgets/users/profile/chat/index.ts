@@ -1,0 +1,1 @@
+export { ProfileChat } from './ui';

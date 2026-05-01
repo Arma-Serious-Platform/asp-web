@@ -2,7 +2,17 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, BanIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  UsersIcon,
+  DownloadIcon,
+  EditIcon,
+  CheckCircleIcon,
+  BanIcon,
+  InfoIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
@@ -10,7 +20,11 @@ import { session } from '@/entities/session/model';
 import { FC, useState } from 'react';
 import dayjs from 'dayjs';
 import { WeaponrySection } from './weaponry-section';
+import { UniformSection } from './uniform-section';
+import { resolveUniformScreenshots } from './lib';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
+import { Tooltip } from '@/shared/ui/moleculas/tooltip';
+import { Dialog, DialogContent, DialogOverlay } from '@/shared/ui/organisms/dialog';
 
 type MissionVersionCardProps = {
   canEdit: boolean;
@@ -29,9 +43,38 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
 }) => {
   const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(false);
   const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
+  const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
+  const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
+  const [previewScreenshots, setPreviewScreenshots] = useState<MissionVersion['attackScreenshots']>([]);
+  const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
 
   const attackWeaponry = (version.weaponry || []).filter(w => w.type === version.attackSideType);
   const defenseWeaponry = (version.weaponry || []).filter(w => w.type === version.defenseSideType);
+  const { attack: resolvedAttackUniformScreenshots, defense: resolvedDefenseUniformScreenshots } =
+    resolveUniformScreenshots(version);
+  const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
+  const hasPreview = Boolean(previewScreenshotUrl);
+  const canNavigatePreview = (previewScreenshots?.length || 0) > 1;
+
+  const handleOpenPreview = (screenshots: NonNullable<MissionVersion['attackScreenshots']>, startIndex: number) => {
+    setPreviewScreenshots(screenshots);
+    setPreviewScreenshotIndex(startIndex);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewScreenshotIndex(0);
+    setPreviewScreenshots([]);
+  };
+
+  const showPreviousScreenshot = () => {
+    if (!previewScreenshots?.length) return;
+    setPreviewScreenshotIndex(prev => (prev === 0 ? previewScreenshots.length - 1 : prev - 1));
+  };
+
+  const showNextScreenshot = () => {
+    if (!previewScreenshots?.length) return;
+    setPreviewScreenshotIndex(prev => (prev === previewScreenshots.length - 1 ? 0 : prev + 1));
+  };
 
   return (
     <div className="paper flex flex-col gap-4 rounded-xl border p-4 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative">
@@ -43,6 +86,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
             {version.rating && <span className="text-sm text-yellow-400">⭐ {version.rating}</span>}
           </div>
           <div className="flex items-center gap-2">
+            <View.Condition if={version.status === MissionStatus.CHANGES_REQUESTED}>
+              <Tooltip trigger={<InfoIcon className="size-4 text-zinc-400" />}>
+                <span>Версія {version.version} потребує змін. Перезалийте файл або створіть нову версію.</span>
+              </Tooltip>
+            </View.Condition>
             <View.Condition
               if={!session.user?.user?.isMissionReviewer || version.status !== MissionStatus.PENDING_APPROVAL}>
               <span className={cn('px-2 py-0.5 rounded text-xs font-semibold border', statusColors[version.status])}>
@@ -50,47 +98,33 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               </span>
             </View.Condition>
 
-            <View.Condition
-              if={
-                (session.user?.user?.isMissionReviewer || session.user.isOwnerOrTech) &&
-                version.status === MissionStatus.PENDING_APPROVAL
-              }>
+            <View.Condition if={session.user?.user?.isMissionReviewer || session.user.isOwnerOrTech}>
               <Popover
                 asChild
                 className="p-4 flex flex-col gap-2 w-fit"
                 trigger={
                   <Button variant="secondary" size="sm" className="text-xs py-0 h-6">
-                    Обрати статус
+                    <EditIcon className="size-4" />
                   </Button>
                 }>
-                <Button
-                  className="justify-start w-full"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    onChangeStatus({
-                      missionId,
-                      version,
-                      status: MissionStatus.APPROVED,
-                    });
-                  }}>
-                  <CheckCircleIcon className="size-4 text-green-500" />
-                  Перевірено
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start w-full"
-                  onClick={() => {
-                    onChangeStatus({
-                      missionId,
-                      version,
-                      status: MissionStatus.CHANGES_REQUESTED,
-                    });
-                  }}>
-                  <BanIcon className="size-4 text-destructive" />
-                  Потребує змін
-                </Button>
+                {[MissionStatus.APPROVED, MissionStatus.CHANGES_REQUESTED, MissionStatus.PENDING_APPROVAL]
+                  .filter(status => status !== version.status)
+                  .map(status => (
+                    <Button
+                      className="justify-start w-full"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        onChangeStatus({
+                          missionId,
+                          version,
+                          status,
+                        });
+                      }}>
+                      <CheckCircleIcon className={cn('size-4', statusColors[status])} />
+                      {statusLabels[status]}
+                    </Button>
+                  ))}
               </Popover>
             </View.Condition>
           </div>
@@ -120,6 +154,12 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               setIsOpen={setIsAttackWeaponryOpen}
               sideType={version.attackSideType}
             />
+            <UniformSection
+              screenshots={resolvedAttackUniformScreenshots}
+              isOpen={isAttackUniformOpen}
+              setIsOpen={setIsAttackUniformOpen}
+              onPreview={handleOpenPreview}
+            />
           </div>
 
           {/* Defense Side */}
@@ -144,6 +184,12 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               setIsOpen={setIsDefenseWeaponryOpen}
               sideType={version.defenseSideType}
             />
+            <UniformSection
+              screenshots={resolvedDefenseUniformScreenshots}
+              isOpen={isDefenseUniformOpen}
+              setIsOpen={setIsDefenseUniformOpen}
+              onPreview={handleOpenPreview}
+            />
           </div>
         </div>
 
@@ -155,7 +201,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
       </div>
 
       {/* Fixed Bottom Actions */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 pt-0 flex gap-2 bg-gradient-to-t from-black/95 via-black/90 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-5 pt-0 flex gap-2 bg-linear-to-t from-black/95 via-black/90 to-transparent">
         {version.file?.url && (
           <Button variant="outline" className="flex-1" onClick={() => window.open(version.file?.url, '_blank')}>
             <DownloadIcon className="size-4" />
@@ -173,6 +219,44 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </Button>
         </View.Condition>
       </div>
+
+      <Dialog open={hasPreview} onOpenChange={open => !open && handleClosePreview()}>
+        <DialogContent
+          showCloseButton={false}
+          className="w-[90vw] max-w-[90vw] h-[85vh] p-2 overflow-hidden flex items-center justify-center">
+          {previewScreenshotUrl && (
+            <div className="relative h-full w-full">
+              <div className="h-full w-full flex items-center justify-center overflow-hidden rounded">
+                <img
+                  src={previewScreenshotUrl}
+                  alt="Попередній перегляд скріншоту"
+                  className="max-h-full max-w-full w-auto h-auto object-contain"
+                />
+              </div>
+              {canNavigatePreview && (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute left-3 top-1/2 -translate-y-1/2"
+                    onClick={showPreviousScreenshot}>
+                    <ChevronLeftIcon className="size-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    onClick={showNextScreenshot}>
+                    <ChevronRightIcon className="size-5" />
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -23,6 +23,9 @@ type BaseSelectProps = {
   label?: ReactNode;
   localSearch?: boolean;
   disabled?: boolean;
+  className?: string;
+  resultsClassName?: string;
+  placeholder?: string;
   onSearch?: (value: string) => void;
 };
 
@@ -48,6 +51,8 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   value,
   localSearch,
   disabled,
+  placeholder,
+  resultsClassName,
   onSearch,
   onChange,
 }) => {
@@ -82,6 +87,15 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
     ];
   }, [options, savedOptions, searchValue, localSearch]);
 
+  const labelToDisplay = useMemo(() => {
+    return multiple
+      ? combinedOptions
+          .filter(v => value?.includes(v.value))
+          .map(v => v.label)
+          .join(', ')
+      : combinedOptions.find(v => v.value === value)?.label;
+  }, [multiple, combinedOptions, value]);
+
   return (
     <Popover
       className="p-0"
@@ -101,12 +115,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
                 'flex h-9 w-full cursor-pointer items-center rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 hover:border-lime-500 hover:bg-black/80 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40 disabled:cursor-not-allowed disabled:opacity-45',
                 { 'text-zinc-500': !value || !value.length },
               )}>
-              {multiple
-                ? combinedOptions
-                    .filter(v => value?.includes(v.value))
-                    .map(v => v.label)
-                    .join(', ')
-                : combinedOptions.find(v => v.value === value)?.label}
+              {labelToDisplay ? labelToDisplay : placeholder}
 
               <ChevronDownIcon className="size-4 ml-auto" />
             </div>
@@ -135,7 +144,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
           />
         )}
         <Preloader isLoading={isLoading || false}>
-          <div className="flex flex-col w-full">
+          <div className={cn('flex flex-col w-full', resultsClassName)}>
             {!combinedOptions.length && (
               <div className="p-8 h-8 mx-auto flex items-center justify-between text-sm">
                 {!isLoading && 'Результатів не знайдено'}
@@ -145,7 +154,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
               <div
                 key={option.value}
                 onClick={() => onSelect(option)}
-                className="cursor-pointer hover:bg-primary/15 px-2 py-1.5 text-sm">
+                className={'cursor-pointer hover:bg-primary/15 px-2 py-1.5 text-sm'}>
                 {multiple ? (
                   <div className="flex items-center gap-2">
                     <Checkbox checked={value.some(v => v === option.value)} />

@@ -4,11 +4,11 @@ import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
-import { ActivityIcon, MailIcon, SendIcon, ShieldUserIcon, UserIcon } from 'lucide-react';
+import { ActivityIcon, MailIcon, MessageCircleIcon, SendIcon, ShieldUserIcon, UserIcon } from 'lucide-react';
 
 import { UserNicknameText, UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
 import { View } from '@/features/view';
-import { parseAsStringEnum, useQueryState } from 'nuqs';
+import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from '@/widgets/user/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
@@ -18,6 +18,9 @@ import { UserProfileModel } from './model';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 import { ProfileSidebar } from './sidebar/ui';
 import { ProfileTab } from './lib';
+import { ProfileChat } from './chat';
+import { ROUTES } from '@/shared/config/routes';
+import { useRouter } from 'next/navigation';
 
 type UserProfileProps = {
   model: UserProfileModel;
@@ -25,10 +28,14 @@ type UserProfileProps = {
 };
 
 const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => {
+  const router = useRouter();
   const [tab, setTab] = useQueryState(
     'tab',
-    parseAsStringEnum([ProfileTab.PROFILE, ProfileTab.SQUAD, ProfileTab.SECURITY]).withDefault(ProfileTab.PROFILE),
+    parseAsStringEnum([ProfileTab.PROFILE, ProfileTab.CHAT, ProfileTab.SQUAD, ProfileTab.SECURITY]).withDefault(
+      ProfileTab.PROFILE,
+    ),
   );
+  const [chatUserId, setChatUserId] = useQueryState('userId', parseAsString);
 
   useEffect(() => {
     model.init(userIdOrNickname ?? undefined);
@@ -63,6 +70,21 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                   </Button>
                 )}
               </div>
+
+              {!model.isOwnProfile && (
+                <Button
+                  size="sm"
+                  disabled={!model.user?.id}
+                  onClick={() =>
+                    router.push(
+                      `${ROUTES.user.profile}?tab=${ProfileTab.CHAT}&userId=${encodeURIComponent(model.user?.id ?? '')}`,
+                    )
+                  }
+                  className="w-full">
+                  <MessageCircleIcon className="size-4" />
+                  Написати
+                </Button>
+              )}
 
               <ProfileSidebar tab={tab} setTab={setTab} isOwnProfile={model.isOwnProfile} />
             </div>
@@ -149,6 +171,15 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       </div>
                       <ChangePassword user={model.user} />
                     </div>
+                  </View.Condition>
+
+                  <View.Condition if={tab === 'chat'}>
+                    <ProfileChat
+                      initialUserId={chatUserId ?? undefined}
+                      onInitialUserHandled={() => {
+                        setChatUserId(null);
+                      }}
+                    />
                   </View.Condition>
                 </>
               )}

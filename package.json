@@ -11,10 +11,13 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@base-ui/react": "^1.4.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.0",
+    "@lexical/react": "^0.41.0",
+    "@lexical/rich-text": "^0.41.0",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
@@ -27,6 +30,7 @@
     "cookies-next": "^6.1.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "lexical": "^0.41.0",
     "lucide-react": "^0.561.0",
     "mobx": "^6.13.7",
     "mobx-react-lite": "^4.1.0",
@@ -39,6 +43,7 @@
     "react-hook-form": "^7.61.1",
     "react-hot-toast": "^2.5.2",
     "react-use": "^17.6.0",
+    "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.3.1",
     "yup": "^1.6.1"
   },

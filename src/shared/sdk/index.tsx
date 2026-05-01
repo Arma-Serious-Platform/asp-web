@@ -6,12 +6,16 @@ import {
   BanUserDto,
   ChangePasswordDto,
   ConfirmForgotPasswordDto,
+  CreateChatDto,
   CreateGameDto,
+  CreateMissionCommentDto,
   CreateMissionDto,
   CreateMissionVersionDto,
   CreateServerDto,
+  CreateSideDto,
   CreateSquadDto,
   CreateWeekendDto,
+  FindMissionCommentsDto,
   FindMissionsDto,
   FindServersDto,
   FindSidesDto,
@@ -25,6 +29,8 @@ import {
   LoginDto,
   LoginResponse,
   Mission,
+  Chat,
+  MissionComment,
   MissionStatus,
   MissionVersion,
   PaginatedResponse,
@@ -35,12 +41,16 @@ import {
   Squad,
   SquadInvitation,
   UpdateGameDto,
+  UpdateMissionCommentDto,
   UpdateMissionDto,
   UpdateMissionVersionDto,
   UpdateServerDto,
+  UpdateSideDto,
   UpdateSquadDto,
   UpdateUserDto,
+  ChangeUserRoleDto,
   UpdateWeekendDto,
+  UserRole,
   User,
   Weekend,
 } from './types';
@@ -84,7 +94,7 @@ class ApiModel {
         const storedRefreshToken = getTokensFromLocalStorage().refreshToken || '';
 
         // Do not try to refresh on refresh/logout endpoints or when there is no refresh token
-        if (['/users/refresh'].includes(failedRequest?.config?.url) || !storedRefreshToken) {
+        if ((failedRequest?.config?.url && failedRequest.config.url.includes('refresh-token')) || !storedRefreshToken) {
           clearTokensFromLocalStorage();
           redirectToLogin();
 
@@ -127,6 +137,10 @@ class ApiModel {
     return await this.instance.get<Server[]>('/servers', {
       params: dto,
     });
+  };
+
+  findServerById = async (id: string) => {
+    return await this.instance.get<Server>(`/servers/${id}`);
   };
 
   updateServer = async ({ id, ...dto }: UpdateServerDto) => {
@@ -209,11 +223,16 @@ class ApiModel {
   };
 
   banUser = async (dto: BanUserDto) => {
-    return await this.instance.post(`/users/ban/${dto.userId}`, dto);
+    const bannedUntil = typeof dto.bannedUntil === 'string' ? dto.bannedUntil : dto.bannedUntil.toISOString();
+    return await this.instance.post(`/users/ban/${dto.userId}/${bannedUntil}`);
   };
 
   unbanUser = async (userId: string) => {
     return await this.instance.post(`/users/unban/${userId}`);
+  };
+
+  deleteUser = async (id: string) => {
+    return await this.instance.delete(`/users/${id}`);
   };
 
   changeIsMissionReviewer = async (userId: string, isMissionReviewer: boolean) => {
@@ -221,6 +240,10 @@ class ApiModel {
       userId,
       isMissionReviewer,
     });
+  };
+
+  changeUserRole = async (dto: ChangeUserRoleDto) => {
+    return await this.instance.post<User>('/users/change-role', dto);
   };
 
   /* Squads */
@@ -298,6 +321,34 @@ class ApiModel {
     return await this.instance.get<PaginatedResponse<Side>>('/sides', {
       params: dto,
     });
+  };
+
+  findSideById = async (id: string) => {
+    return await this.instance.get<Side>(`/sides/${id}`);
+  };
+
+  createSide = async (dto: CreateSideDto) => {
+    return await this.instance.post<Side>('/sides', dto);
+  };
+
+  updateSide = async (id: string, dto: UpdateSideDto) => {
+    return await this.instance.patch<Side>(`/sides/${id}`, dto);
+  };
+
+  deleteSide = async (id: string) => {
+    return await this.instance.delete<Side>(`/sides/${id}`);
+  };
+
+  assignSquadToSide = async (sideId: string, squadId: string) => {
+    return await this.instance.post<Side>(`/sides/${sideId}/assign-squad/${squadId}`);
+  };
+
+  assignLeaderToSide = async (sideId: string, leaderId: string) => {
+    return await this.instance.post<Side>(`/sides/${sideId}/assign-leader/${leaderId}`);
+  };
+
+  unassignSquadFromSide = async (sideId: string, squadId: string) => {
+    return await this.instance.post<Side>(`/sides/${sideId}/unassign-squad/${squadId}`);
   };
 
   /* Missions */
@@ -383,6 +434,18 @@ class ApiModel {
       });
     }
 
+    if (dto.attackScreenshots?.length) {
+      dto.attackScreenshots.forEach(file => {
+        formData.append('attackScreenshots', file);
+      });
+    }
+
+    if (dto.defenseScreenshots?.length) {
+      dto.defenseScreenshots.forEach(file => {
+        formData.append('defenseScreenshots', file);
+      });
+    }
+
     if (dto.rating !== undefined) {
       formData.append('rating', dto.rating.toString());
     }
@@ -438,6 +501,30 @@ class ApiModel {
       }
     }
 
+    if (dto.attackScreenshots?.length) {
+      dto.attackScreenshots.forEach(file => {
+        formData.append('attackScreenshots', file);
+      });
+    }
+
+    if (dto.defenseScreenshots?.length) {
+      dto.defenseScreenshots.forEach(file => {
+        formData.append('defenseScreenshots', file);
+      });
+    }
+
+    if (dto.removeAttackScreenshotIds?.length) {
+      dto.removeAttackScreenshotIds.forEach((id, index) => {
+        formData.append(`removeAttackScreenshotIds[${index}]`, id);
+      });
+    }
+
+    if (dto.removeDefenseScreenshotIds?.length) {
+      dto.removeDefenseScreenshotIds.forEach((id, index) => {
+        formData.append(`removeDefenseScreenshotIds[${index}]`, id);
+      });
+    }
+
     if (dto.rating !== undefined) {
       formData.append('rating', dto.rating.toString());
     }
@@ -453,6 +540,30 @@ class ApiModel {
     return await this.instance.post(`/missions/${missionId}/versions/${versionId}/change-status`, {
       status,
     });
+  };
+
+  /* Mission comments */
+
+  findMissionComments = async (dto: FindMissionCommentsDto = {}) => {
+    return await this.instance.get<PaginatedResponse<MissionComment>>('/mission-comments', {
+      params: dto,
+    });
+  };
+
+  createMissionComment = async (dto: CreateMissionCommentDto) => {
+    return await this.instance.post<MissionComment>('/mission-comments', dto);
+  };
+
+  findMissionCommentById = async (id: string) => {
+    return await this.instance.get<MissionComment>(`/mission-comments/${id}`);
+  };
+
+  updateMissionComment = async (id: string, dto: UpdateMissionCommentDto) => {
+    return await this.instance.patch<MissionComment>(`/mission-comments/${id}`, dto);
+  };
+
+  deleteMissionComment = async (id: string) => {
+    return await this.instance.delete(`/mission-comments/${id}`);
   };
 
   /* Weekends */
@@ -491,6 +602,36 @@ class ApiModel {
 
   deleteGame = async (weekendId: string, gameId: string) => {
     return await this.instance.delete<Game>(`/weekends/${weekendId}/games/${gameId}`);
+  };
+
+  /* Chats */
+
+  findChats = async () => {
+    return await this.instance.get<Chat[]>('/chats');
+  };
+
+  createChat = async (dto: CreateChatDto) => {
+    return await this.instance.post<Chat>('/chats', dto);
+  };
+
+  findChatById = async (id: string) => {
+    return await this.instance.get<Chat>(`/chats/${id}`);
+  };
+
+  updateChat = async (chatId: string, dto: { name: string }) => {
+    return await this.instance.patch<Chat>(`/chats/${chatId}`, dto);
+  };
+
+  findChatMessages = async (chatId: string) => {
+    return await this.instance.get<unknown[]>(`/chats/${chatId}/messages`);
+  };
+
+  sendChatMessage = async (chatId: string, body?: unknown) => {
+    return await this.instance.post(`/chats/${chatId}/messages`, body ?? {});
+  };
+
+  leaveChat = async (chatId: string) => {
+    return await this.instance.delete(`/chats/${chatId}/leave`);
   };
 }
 

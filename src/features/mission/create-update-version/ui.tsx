@@ -15,11 +15,12 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useEffect, useRef, FC, PropsWithChildren } from 'react';
+import { useEffect, useRef, useState, FC } from 'react';
 import { PlusIcon, LoaderIcon, UploadIcon, TrashIcon, MinusIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionVersion } from '@/shared/sdk/types';
 import { CreateUpdateMissionVersionModel, VersionFormData } from './model';
+import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
 
 const sideTypeOptions = [
   { label: 'BLUE', value: MissionGameSide.BLUE },
@@ -38,6 +39,10 @@ const createVersionSchema = (missionId: string) =>
     attackSideName: yup.string().required("Обов'язково"),
     defenseSideName: yup.string().required("Обов'язково"),
     file: yup.mixed().nullable(),
+    attackScreenshots: yup.array().of(yup.mixed<File>().required()),
+    defenseScreenshots: yup.array().of(yup.mixed<File>().required()),
+    removeAttackScreenshotIds: yup.array().of(yup.string().required()),
+    removeDefenseScreenshotIds: yup.array().of(yup.string().required()),
     attackWeaponry: yup.array().of(
       yup.object().shape({
         name: yup.string().required("Обов'язково"),
@@ -60,15 +65,37 @@ const incrementVersion = (version: string, totalVersions: number): string => {
   return `v${totalVersions + 1}.0`;
 };
 
+const LocalScreenshotPreview: FC<{ file: File }> = ({ file }) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+      setPreviewUrl(null);
+    };
+  }, [file]);
+
+  if (!previewUrl) {
+    return <div className="h-8 w-8 shrink-0 rounded border border-white/10 bg-zinc-800" aria-hidden />;
+  }
+
+  return <img src={previewUrl} alt={file.name} className="h-8 w-8 rounded object-cover border border-white/10 shrink-0" />;
+};
+
 const CreateUpdateMissionVersionModal: FC<{
   model: CreateUpdateMissionVersionModel;
   onSuccess?: () => void;
 }> = observer(({ model, onSuccess }) => {
   const fileRef = useRef<HTMLInputElement>(null);
+  const attackScreenshotsRef = useRef<HTMLInputElement>(null);
+  const defenseScreenshotsRef = useRef<HTMLInputElement>(null);
   const payload = model.visibility?.payload;
   const missionId = payload?.missionId;
   const mission = payload?.mission;
   const editingVersion = payload?.version;
+  const resolvedEditingScreenshots = editingVersion ? resolveUniformScreenshots(editingVersion) : null;
 
   const versionForm = useForm<VersionFormData>({
     mode: 'onChange',
@@ -83,6 +110,10 @@ const CreateUpdateMissionVersionModal: FC<{
       attackSideName: '',
       defenseSideName: '',
       file: null,
+      attackScreenshots: [],
+      defenseScreenshots: [],
+      removeAttackScreenshotIds: [],
+      removeDefenseScreenshotIds: [],
       attackWeaponry: [],
       defenseWeaponry: [],
     },
@@ -141,6 +172,10 @@ const CreateUpdateMissionVersionModal: FC<{
         attackSideName: editingVersion.attackSideName,
         defenseSideName: editingVersion.defenseSideName,
         file: null,
+        attackScreenshots: [],
+        defenseScreenshots: [],
+        removeAttackScreenshotIds: [],
+        removeDefenseScreenshotIds: [],
         attackWeaponry,
         defenseWeaponry,
       });
@@ -164,6 +199,10 @@ const CreateUpdateMissionVersionModal: FC<{
         attackSideName: previousVersion.attackSideName,
         defenseSideName: previousVersion.defenseSideName,
         file: null,
+        attackScreenshots: [],
+        defenseScreenshots: [],
+        removeAttackScreenshotIds: [],
+        removeDefenseScreenshotIds: [],
         attackWeaponry: [],
         defenseWeaponry: [],
       });
@@ -182,6 +221,10 @@ const CreateUpdateMissionVersionModal: FC<{
         attackSideName: '',
         defenseSideName: '',
         file: null,
+        attackScreenshots: [],
+        defenseScreenshots: [],
+        removeAttackScreenshotIds: [],
+        removeDefenseScreenshotIds: [],
         attackWeaponry: [],
         defenseWeaponry: [],
       });
@@ -390,6 +433,83 @@ const CreateUpdateMissionVersionModal: FC<{
                   Додати
                 </Button>
               </div>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <label className="text-sm font-semibold text-zinc-300">Скріншоти уніформи (атака)</label>
+                <Button type="button" variant="outline" size="sm" onClick={() => attackScreenshotsRef.current?.click()}>
+                  <UploadIcon className="size-4" />
+                  Завантажити скріншоти
+                </Button>
+                <input
+                  ref={attackScreenshotsRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    if (!files.length) return;
+                    const current = versionForm.getValues('attackScreenshots');
+                    versionForm.setValue('attackScreenshots', [...current, ...files], { shouldValidate: true });
+                    e.currentTarget.value = '';
+                  }}
+                  className="invisible"
+                />
+
+                {resolvedEditingScreenshots?.attack
+                  ?.filter(s => !versionForm.watch('removeAttackScreenshotIds').includes(s.id))
+                  .map(screenshot => (
+                    <div key={screenshot.id} className="flex items-center justify-between rounded border border-white/10 p-2">
+                      <a
+                        href={screenshot.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 min-w-0 text-xs underline">
+                        <img
+                          src={screenshot.url}
+                          alt="Існуючий скріншот уніформи"
+                          className="h-8 w-8 rounded object-cover border border-white/10 shrink-0"
+                        />
+                        <span className="truncate">Існуючий скріншот</span>
+                      </a>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          versionForm.setValue(
+                            'removeAttackScreenshotIds',
+                            [...versionForm.getValues('removeAttackScreenshotIds'), screenshot.id],
+                            { shouldValidate: true },
+                          )
+                        }>
+                        <TrashIcon className="size-4 text-red-400" />
+                      </Button>
+                    </div>
+                  ))}
+
+                {versionForm.watch('attackScreenshots').map((file, index) => (
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded border border-white/10 p-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <LocalScreenshotPreview file={file} />
+                      <span className="text-xs text-zinc-300 truncate">{file.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        const current = versionForm.getValues('attackScreenshots');
+                        versionForm.setValue(
+                          'attackScreenshots',
+                          current.filter((_, i) => i !== index),
+                          { shouldValidate: true },
+                        );
+                      }}>
+                      <TrashIcon className="size-4 text-red-400" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Defense Side Column */}
@@ -543,6 +663,87 @@ const CreateUpdateMissionVersionModal: FC<{
                   <PlusIcon className="size-3" />
                   Додати
                 </Button>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <label className="text-sm font-semibold text-zinc-300">Скріншоти уніформи (оборона)</label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => defenseScreenshotsRef.current?.click()}>
+                  <UploadIcon className="size-4" />
+                  Завантажити скріншоти
+                </Button>
+                <input
+                  ref={defenseScreenshotsRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    if (!files.length) return;
+                    const current = versionForm.getValues('defenseScreenshots');
+                    versionForm.setValue('defenseScreenshots', [...current, ...files], { shouldValidate: true });
+                    e.currentTarget.value = '';
+                  }}
+                  className="invisible"
+                />
+
+                {resolvedEditingScreenshots?.defense
+                  ?.filter(s => !versionForm.watch('removeDefenseScreenshotIds').includes(s.id))
+                  .map(screenshot => (
+                    <div key={screenshot.id} className="flex items-center justify-between rounded border border-white/10 p-2">
+                      <a
+                        href={screenshot.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 min-w-0 text-xs underline">
+                        <img
+                          src={screenshot.url}
+                          alt="Існуючий скріншот уніформи"
+                          className="h-8 w-8 rounded object-cover border border-white/10 shrink-0"
+                        />
+                        <span className="truncate">Існуючий скріншот</span>
+                      </a>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          versionForm.setValue(
+                            'removeDefenseScreenshotIds',
+                            [...versionForm.getValues('removeDefenseScreenshotIds'), screenshot.id],
+                            { shouldValidate: true },
+                          )
+                        }>
+                        <TrashIcon className="size-4 text-red-400" />
+                      </Button>
+                    </div>
+                  ))}
+
+                {versionForm.watch('defenseScreenshots').map((file, index) => (
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded border border-white/10 p-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <LocalScreenshotPreview file={file} />
+                      <span className="text-xs text-zinc-300 truncate">{file.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        const current = versionForm.getValues('defenseScreenshots');
+                        versionForm.setValue(
+                          'defenseScreenshots',
+                          current.filter((_, i) => i !== index),
+                          { shouldValidate: true },
+                        );
+                      }}>
+                      <TrashIcon className="size-4 text-red-400" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

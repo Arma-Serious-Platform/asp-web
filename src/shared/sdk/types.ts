@@ -36,6 +36,7 @@ export enum UserRole {
   OWNER = 'OWNER',
   TECH_ADMIN = 'TECH_ADMIN',
   GAME_ADMIN = 'GAME_ADMIN',
+  MINI_ADMIN = 'MINI_ADMIN',
   USER = 'USER',
 }
 
@@ -138,13 +139,18 @@ export type User = {
   };
 };
 
-export type UpdateUserDto = {
+export type UpdateMeDto = {
   nickname?: string;
+  email?: string;
+  steamId?: string;
   telegramUrl?: string;
   discordUrl?: string;
-  twitchUrl?: string;
   youtubeUrl?: string;
+  twitchUrl?: string;
 };
+
+/** @deprecated Use UpdateMeDto for PATCH /users/me */
+export type UpdateUserDto = UpdateMeDto;
 
 export type Squad = {
   id: string;
@@ -191,13 +197,22 @@ export type ForgotPasswordDto = {
   email: string;
 };
 
-export type ConfirmForgotPasswordDto = {
+export type ResetPasswordDto = {
   token: string;
   newPassword: string;
 };
 
+/** @deprecated Use ResetPasswordDto */
+export type ConfirmForgotPasswordDto = ResetPasswordDto;
+
+/** @deprecated Use LoginUserDto (emailOrNickname + password) */
 export type LoginDto = {
   email: string;
+  password: string;
+};
+
+export type LoginUserDto = {
+  emailOrNickname: string;
   password: string;
 };
 
@@ -220,15 +235,23 @@ export type FindUsersDto = PaginatedRequest<{
   search?: string;
   status?: UserStatus;
   role?: UserRole;
+  hasSquad?: boolean;
 }>;
 
+/** bannedUntil is sent as path param (ISO string). Required by API. */
 export type BanUserDto = {
   userId: string;
-  bannedUntil: Date | null;
+  bannedUntil: string | Date;
 };
 
 export type UnbanUserDto = {
   userId: string;
+};
+
+/** Body for POST /users/change-role */
+export type ChangeUserRoleDto = {
+  id: string;
+  role: UserRole;
 };
 
 export type FindServersDto = PaginatedRequest<{
@@ -254,7 +277,16 @@ export type CreateServerDto = {
 
 export type FindSidesDto = PaginatedRequest<{
   type?: SideType;
+  search?: string;
 }>;
+
+export type CreateSideDto = {
+  name?: string;
+  description?: string;
+  serverId?: string;
+};
+
+export type UpdateSideDto = Record<string, unknown>;
 
 export type FindSquadsDto = PaginatedRequest<{
   search?: string;
@@ -352,9 +384,16 @@ export type MissionVersion = {
   };
   rating?: number;
   weaponry?: MissionWeaponry[];
+  attackScreenshots?: MissionVersionScreenshot[];
+  defenseScreenshots?: MissionVersionScreenshot[];
   status: MissionStatus;
   createdAt: string;
   updatedAt: string;
+};
+
+export type MissionVersionScreenshot = {
+  id: string;
+  url: string;
 };
 
 export type MissionWeaponry = {
@@ -384,6 +423,8 @@ export type CreateMissionVersionDto = {
   attackSideName: string;
   defenseSideName: string;
   file: File;
+  attackScreenshots?: File[];
+  defenseScreenshots?: File[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
 };
@@ -397,6 +438,10 @@ export type UpdateMissionVersionDto = {
   attackSideName?: string;
   defenseSideName?: string;
   file?: File;
+  attackScreenshots?: File[];
+  defenseScreenshots?: File[];
+  removeAttackScreenshotIds?: string[];
+  removeDefenseScreenshotIds?: string[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
 };
@@ -469,4 +514,61 @@ export type UpdateGameDto = {
   attackSideId?: string;
   defenseSideId?: string;
   adminId?: string | null;
+};
+
+/* Mission comments */
+
+/** Lexical editor state / JSON content (object) */
+export type MissionCommentMessage = Record<string, unknown>;
+
+export type MissionComment = {
+  id: string;
+  /** Lexical JSON content */
+  message: MissionCommentMessage;
+  missionId: string;
+  createdAt: string;
+  updatedAt: string;
+  userId?: string;
+  user?: User;
+};
+
+export type CreateMissionCommentDto = {
+  /** Lexical JSON content */
+  message: MissionCommentMessage;
+  missionId: string;
+};
+
+export type UpdateMissionCommentDto = {
+  /** Lexical JSON content */
+  message: MissionCommentMessage;
+};
+
+export type FindMissionCommentsDto = PaginatedRequest<{
+  search?: string;
+  missionId?: string;
+}>;
+
+/* Chats */
+
+export enum ChatType {
+  DIRECT = 'DIRECT',
+  GROUP = 'GROUP',
+}
+
+export type Chat = {
+  id: string;
+  name?: string;
+  type: ChatType;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateChatDto = {
+  type: ChatType;
+  userIds: string[];
+  name?: string;
+};
+
+export type LeaveSquadDto = {
+  newLeaderId?: string;
 };

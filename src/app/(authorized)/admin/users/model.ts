@@ -1,8 +1,9 @@
 import { BanUnbanUserModel } from '@/features/user/ban-unban-user/model';
 import { ChangeIsReviewerModel } from '@/features/user/change-is-reviewer/model';
+import { ChangeUserRoleModel } from '@/features/user/change-user-role/model';
 import { Pagination } from '@/shared/model/pagination';
 import { api } from '@/shared/sdk';
-import { User, UserStatus } from '@/shared/sdk/types';
+import { User, UserRole, UserStatus } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -16,6 +17,8 @@ export class UsersModel {
   banUnbanUserModel = new BanUnbanUserModel();
 
   changeIsReviewerModel = new ChangeIsReviewerModel();
+
+  changeUserRoleModel = new ChangeUserRoleModel();
 
   afterBanUser = (user: User) => {
     const foundUser = this.pagination.data.map(u => {
@@ -46,6 +49,18 @@ export class UsersModel {
     const foundUser = this.pagination.data.map(u => {
       if (u.id === userId) {
         u.isMissionReviewer = isMissionReviewer;
+      }
+
+      return u;
+    });
+
+    this.pagination.setData(foundUser);
+  };
+
+  afterChangeRole = (userId: string, role: UserRole) => {
+    const foundUser = this.pagination.data.map(u => {
+      if (u.id === userId) {
+        u.role = role;
       }
 
       return u;

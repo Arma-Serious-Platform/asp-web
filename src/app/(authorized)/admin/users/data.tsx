@@ -1,10 +1,10 @@
 import { UserNicknameText, UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
 
 import { ROUTES } from '@/shared/config/routes';
-import { User, UserStatus } from '@/shared/sdk/types';
+import { User, UserRole, UserStatus } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
-import { BanIcon, MoreHorizontalIcon, HandHeartIcon, SearchCodeIcon } from 'lucide-react';
+import { BanIcon, MoreHorizontalIcon, HandHeartIcon, SearchCodeIcon, ShieldIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usersModel } from './model';
 import { observer } from 'mobx-react-lite';
@@ -71,10 +71,27 @@ export const columns: ColumnDef<User>[] = [
               </Button>
             }>
             <div className="flex flex-col w-fit gap-2">
+              <View.Condition
+                if={
+                  !((session.user?.user?.role as UserRole) === UserRole.OWNER && row.original.role === UserRole.OWNER)
+                }>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  align="left"
+                  variant="secondary"
+                  onClick={() => {
+                    usersModel.changeUserRoleModel.visibility.open({ user: row.original });
+                  }}>
+                  <ShieldIcon className="w-4 h-4" />
+                  Змінити роль
+                </Button>
+              </View.Condition>
+
               <View.Condition if={row.original.isMissionReviewer}>
                 <Button
                   size="sm"
-                  className="w-fit"
+                  className="w-full"
                   align="left"
                   variant="secondary"
                   onClick={() => {
@@ -91,7 +108,7 @@ export const columns: ColumnDef<User>[] = [
               <View.Condition if={!row.original.isMissionReviewer}>
                 <Button
                   size="sm"
-                  className="w-fit"
+                  className="w-full"
                   align="left"
                   variant="secondary"
                   onClick={() => {
@@ -108,7 +125,7 @@ export const columns: ColumnDef<User>[] = [
               <View.Condition if={row.original.status !== UserStatus.BANNED}>
                 <Button
                   size="sm"
-                  className="w-fi"
+                  className="w-full"
                   align="left"
                   variant="secondary"
                   onClick={() => {

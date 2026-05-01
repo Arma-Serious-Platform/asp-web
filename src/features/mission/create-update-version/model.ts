@@ -29,6 +29,10 @@ export type VersionFormData = {
   attackSideName: string;
   defenseSideName: string;
   file: File | null;
+  attackScreenshots: File[];
+  defenseScreenshots: File[];
+  removeAttackScreenshotIds: string[];
+  removeDefenseScreenshotIds: string[];
   attackWeaponry: WeaponryFormItem[];
   defenseWeaponry: WeaponryFormItem[];
 };
@@ -79,6 +83,12 @@ export class CreateUpdateMissionVersionModel {
           attackSideName: data.attackSideName,
           defenseSideName: data.defenseSideName,
           weaponry: weaponry.length > 0 ? weaponry : [],
+          attackScreenshots: data.attackScreenshots.length > 0 ? data.attackScreenshots : undefined,
+          defenseScreenshots: data.defenseScreenshots.length > 0 ? data.defenseScreenshots : undefined,
+          removeAttackScreenshotIds:
+            data.removeAttackScreenshotIds.length > 0 ? data.removeAttackScreenshotIds : undefined,
+          removeDefenseScreenshotIds:
+            data.removeDefenseScreenshotIds.length > 0 ? data.removeDefenseScreenshotIds : undefined,
         };
 
         if (data.file) {
@@ -103,6 +113,8 @@ export class CreateUpdateMissionVersionModel {
           attackSideName: data.attackSideName,
           defenseSideName: data.defenseSideName,
           file: data.file,
+          attackScreenshots: data.attackScreenshots.length > 0 ? data.attackScreenshots : undefined,
+          defenseScreenshots: data.defenseScreenshots.length > 0 ? data.defenseScreenshots : undefined,
           weaponry: weaponry.length > 0 ? weaponry : undefined,
         });
         toast.success('Версію місії створено');

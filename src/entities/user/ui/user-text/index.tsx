@@ -33,7 +33,7 @@ export const UserNicknameText: FC<{
 }> = ({ user, tag, sideType, className, link = true }) => {
   if (!user?.nickname) return '';
 
-  if ((tag && sideType) || user?.squad?.name) {
+  if ((tag && sideType) || user?.squad?.tag) {
     const type = sideType || user?.squad?.side?.type;
 
     return (

@@ -17,6 +17,10 @@ import { MissionVersionCard } from '@/entities/mission/version/version-card/ui';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { observer } from 'mobx-react-lite';
+import { CommentList } from '@/entities/comment';
+import { MessageEditor } from '@/features/chat/editor';
+import type { MissionComment } from '@/shared/sdk/types';
+import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -25,6 +29,7 @@ const MissionDetailsPage = observer(() => {
   const [mission, setMission] = useState<Mission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
+  const deleteCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
 
   const isMissionAuthor = useMemo(() => {
     return session.user?.user?.id === mission?.authorId;
@@ -45,6 +50,14 @@ const MissionDetailsPage = observer(() => {
 
     if (missionId) {
       loadMission();
+    }
+  }, [missionId]);
+
+  useEffect(() => {
+    if (missionId) {
+      missionDetailsModel.commentModel.pagination.loadAll({
+        missionId,
+      });
     }
   }, [missionId]);
 
@@ -84,6 +97,17 @@ const MissionDetailsPage = observer(() => {
     setMission(response.data);
   };
 
+  const canDeleteComment = (comment: MissionComment) => {
+    const currentUserId = session.user?.user?.id;
+    const isCommentAuthor = Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
+
+    return session.isHasAdminPanelAccess || isCommentAuthor;
+  };
+
+  const handleDeleteComment = (comment: MissionComment) => {
+    deleteCommentModel.visibility.open({ comment });
+  };
+
   if (isLoading) {
     return (
       <Layout showHero={false}>
@@ -113,6 +137,24 @@ const MissionDetailsPage = observer(() => {
 
   return (
     <Layout showHero={false}>
+      <ChangeMissionVersionStatusModal
+        model={missionDetailsModel.changeMissionVersionStatusModel}
+        onSuccess={async status => {
+          // Reload mission to get updated versions
+          const response = await api.findMissionById(missionId);
+          setMission(response.data);
+        }}
+      />
+      <CreateUpdateMissionVersionModal
+        model={missionDetailsModel.createUpdateMissionVersionModel}
+        onSuccess={handleVersionSaved}
+      />
+      <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
+      <DeleteMissionCommentModal
+        model={deleteCommentModel}
+        onConfirm={commentId => missionDetailsModel.commentModel.remove(missionId, commentId)}
+      />
+
       <div className="container mx-auto my-6 w-full px-4">
         <Button variant="ghost" onClick={() => router.push(ROUTES.missions.root)} className="mb-4">
           ← Повернутися до списку
@@ -165,7 +207,7 @@ const MissionDetailsPage = observer(() => {
 
           {/* Last Version Details */}
           {mission?.missionVersions && mission.missionVersions.length > 0 && (
-            <div className="border-t border-white/10 pt-6">
+            <div key={mission.missionVersions?.[0]?.id} className="border-t border-white/10 pt-6">
               {mission.missionVersions?.[0]?.version && (
                 <h2 className="text-xl font-bold text-white mb-4">
                   Остання версія: {mission.missionVersions?.[0]?.version}
@@ -222,21 +264,41 @@ const MissionDetailsPage = observer(() => {
               </div>
             )}
           </div>
+
+          {/* Comments Section */}
+          <div className="border-t border-white/10 mt-6 pt-2">
+            <h2 className="text-2xl font-bold text-white">Коментарі</h2>
+
+            {missionDetailsModel.commentModel.pagination.preloader.isLoading &&
+            missionDetailsModel.commentModel.pagination.data.length === 0 ? (
+              <p className="text-zinc-500 text-sm">
+                <LoaderIcon className="size-4 animate-spin flex items-center justify-center" />
+              </p>
+            ) : missionDetailsModel.commentModel.pagination.data.length === 0 ? (
+              <div className="text-white text-sm py-4 text-center h-10 mb-8">Наразі жодних коментарів немає</div>
+            ) : (
+              <CommentList
+                className="mb-2"
+                comments={missionDetailsModel.commentModel.pagination.data}
+                canDeleteComment={canDeleteComment}
+                onDeleteComment={handleDeleteComment}
+              />
+            )}
+
+            <View.Condition if={session.isAuthorized}>
+              <div className="mb-4">
+                <MessageEditor
+                  placeholder="Додати коментар..."
+                  maxCharacters={250}
+                  onSubmit={async ({ lexicalState }) => {
+                    await missionDetailsModel.commentModel.create(missionId, lexicalState);
+                  }}
+                />
+              </div>
+            </View.Condition>
+          </div>
         </div>
       </div>
-      <ChangeMissionVersionStatusModal
-        model={missionDetailsModel.changeMissionVersionStatusModel}
-        onSuccess={async status => {
-          // Reload mission to get updated versions
-          const response = await api.findMissionById(missionId);
-          setMission(response.data);
-        }}
-      />
-      <CreateUpdateMissionVersionModal
-        model={missionDetailsModel.createUpdateMissionVersionModel}
-        onSuccess={handleVersionSaved}
-      />
-      <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
     </Layout>
   );
 });
