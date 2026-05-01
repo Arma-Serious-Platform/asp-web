@@ -29,7 +29,7 @@ const SquadInviteItem: FC<{
   return (
     <Card className="flex gap-3 items-center !p-3">
       <div className="overflow-hidden rounded-lg border border-white/10 bg-black/70 flex-shrink-0">
-        <Image
+        <img
           src={invitation.squad.logo?.url || '/images/logo.webp'}
           alt={invitation.squad.name}
           width={64}

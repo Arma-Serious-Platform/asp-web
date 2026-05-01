@@ -1,6 +1,11 @@
 export const ROUTES = {
   home: '/',
   headquarters: '/headquarters',
+  hq: {
+    root: '/hq',
+    plans: '/hq/plans',
+    planById: (id: string) => `/hq/plans/${id}`,
+  },
   rules: '/rules',
   weekends: '/weekends',
   squads: '/squads',

@@ -63,10 +63,11 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
     const isAlreadySelected = savedOptions.some(o => o.value === option.value);
 
     if (multiple) {
-      setSavedOptions(
-        isAlreadySelected ? [...savedOptions.filter(o => o.value !== option.value)] : [...savedOptions, option],
-      );
-      onChange(savedOptions.map(o => o.value) as never);
+      const nextSavedOptions = isAlreadySelected
+        ? [...savedOptions.filter(o => o.value !== option.value)]
+        : [...savedOptions, option];
+      setSavedOptions(nextSavedOptions);
+      onChange(nextSavedOptions.map(o => o.value) as never);
     } else {
       setSavedOptions(isAlreadySelected ? [] : [option]);
       onChange((value === option.value ? null : option.value) as never);
@@ -130,7 +131,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
       <div className="flex flex-col w-full max-h-[calc(50vh)] overflow-y-auto">
         {(onSearch || localSearch) && (
           <Input
-            className="border-t-0 border-b-1 border-x-0 outline-0"
+            className="border-t-0 border-b border-x-0 outline-0"
             placeholder="Пошук"
             searchIcon
             error={error}

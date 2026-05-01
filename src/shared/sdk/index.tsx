@@ -53,6 +53,11 @@ import {
   UserRole,
   User,
   Weekend,
+  HeadquartersGamePlan,
+  UpdateHeadquartersGamePlanDto,
+  UpdateHeadquartersGamePlanSlotDto,
+  AssignHeadquartersSlotSquadDto,
+  HeadquartersSlot,
 } from './types';
 
 import { env } from '../config/env';
@@ -612,6 +617,48 @@ class ApiModel {
 
   deleteGame = async (weekendId: string, gameId: string) => {
     return await this.instance.delete<Game>(`/weekends/${weekendId}/games/${gameId}`);
+  };
+
+  /* Headquarters */
+
+  findHeadquartersPlansByGame = async (gameId: string) => {
+    return await this.instance.get<HeadquartersGamePlan[]>(`/headquarters/games/${gameId}/plans`);
+  };
+
+  findHeadquartersPlanById = async (id: string) => {
+    return await this.instance.get<HeadquartersGamePlan>(`/headquarters/plans/${id}`);
+  };
+
+  updateHeadquartersPlan = async (id: string, dto: UpdateHeadquartersGamePlanDto) => {
+    return await this.instance.patch<HeadquartersGamePlan>(`/headquarters/plans/${id}`, dto);
+  };
+
+  assignHeadquartersCommander = async (id: string) => {
+    return await this.instance.post<HeadquartersGamePlan>(`/headquarters/plans/${id}/assign-commander`);
+  };
+
+  unassignHeadquartersCommander = async (id: string) => {
+    return await this.instance.post<HeadquartersGamePlan>(`/headquarters/plans/${id}/unassign-commander`);
+  };
+
+  updateHeadquartersSlot = async (slotId: string, dto: UpdateHeadquartersGamePlanSlotDto) => {
+    return await this.instance.patch<HeadquartersSlot>(`/headquarters/slots/${slotId}`, dto);
+  };
+
+  assignHeadquartersSlotSquad = async (slotId: string, dto: AssignHeadquartersSlotSquadDto) => {
+    return await this.instance.post<HeadquartersSlot>(`/headquarters/slots/${slotId}/assign-squad`, dto);
+  };
+
+  unassignHeadquartersSlotSquad = async (slotId: string, dto: AssignHeadquartersSlotSquadDto) => {
+    return await this.instance.post<HeadquartersSlot>(`/headquarters/slots/${slotId}/unassign-squad`, dto);
+  };
+
+  assignHeadquartersSlotWantedSquad = async (slotId: string) => {
+    return await this.instance.post<HeadquartersSlot>(`/headquarters/slots/${slotId}/wanted-squads/assign`);
+  };
+
+  unassignHeadquartersSlotWantedSquad = async (slotId: string) => {
+    return await this.instance.post<HeadquartersSlot>(`/headquarters/slots/${slotId}/wanted-squads/unassign`);
   };
 
   /* Chats */

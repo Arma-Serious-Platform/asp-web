@@ -46,16 +46,14 @@ const MainLinks: FC<{
 
   return (
     <>
-      {/* {session.canAccessHeadquarters && (
-        <Link className={className} href={ROUTES.headquarters}>
+      {session.canAccessHeadquarters && (
+        <Link className={className} href={ROUTES.hq.plans}>
           Штаб
         </Link>
-      )} */}
-      {/* {!session.canAccessHeadquarters && ( */}
+      )}
       <Link className={className} activeClassName={activeClassName} href={ROUTES.home}>
         Грати
       </Link>
-      {/* )} */}
       <Link className={className} activeClassName={activeClassName} href={ROUTES.rules}>
         Правила
       </Link>

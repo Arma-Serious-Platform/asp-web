@@ -548,6 +548,76 @@ export type FindMissionCommentsDto = PaginatedRequest<{
   missionId?: string;
 }>;
 
+/* Headquarters */
+
+export type HeadquartersSquadShort = {
+  id: string;
+  name: string;
+  tag: string;
+  logo?: {
+    id: string;
+    url: string;
+  } | null;
+};
+
+export type HeadquartersSlot = {
+  id: string;
+  slotNumber: string;
+  name: string | null;
+  weaponry: string | null;
+  slotCount: number | null;
+  comment: string | null;
+  spawnPoint: string | null;
+  assignedSquads: HeadquartersSquadShort[];
+  wantedSquads: HeadquartersSquadShort[];
+};
+
+export type HeadquartersGameShort = {
+  id: string;
+  date: string;
+  position: number;
+  mission?: {
+    id: string;
+    name: string;
+  };
+  missionVersion?: {
+    id: string;
+    version: string;
+  };
+};
+
+export type HeadquartersSideShort = {
+  id: string;
+  name: string;
+  type: SideType;
+};
+
+export type HeadquartersGamePlan = {
+  id: string;
+  gameId: string;
+  planUrl: string | null;
+  gameCommanderId: string | null;
+  game?: HeadquartersGameShort;
+  side?: HeadquartersSideShort;
+  slots: HeadquartersSlot[];
+};
+
+export type UpdateHeadquartersGamePlanDto = {
+  planUrl?: string | null;
+};
+
+export type UpdateHeadquartersGamePlanSlotDto = {
+  name?: string | null;
+  weaponry?: string | null;
+  slotCount?: number | null;
+  comment?: string | null;
+  spawnPoint?: string | null;
+};
+
+export type AssignHeadquartersSlotSquadDto = {
+  squadId: string;
+};
+
 /* Chats */
 
 export enum ChatType {
