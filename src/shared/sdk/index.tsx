@@ -202,6 +202,16 @@ class ApiModel {
     return await this.instance.patch<User>('/users/me', dto);
   };
 
+  steamLogin = async (accessToken: string) => {
+    return await this.instance.get<LoginResponse>('/users/steam-login', {
+      params: { accessToken },
+    });
+  };
+
+  steamCallback = async () => {
+    return await this.instance.get('/users/steam/callback');
+  };
+
   findUsers = async (dto: FindUsersDto) => {
     return await this.instance.get<PaginatedResponse<User>>('/users', {
       params: dto,

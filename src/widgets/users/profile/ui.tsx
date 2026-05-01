@@ -21,6 +21,9 @@ import { ProfileTab } from './lib';
 import { ProfileChat } from './chat';
 import { ROUTES } from '@/shared/config/routes';
 import { useRouter } from 'next/navigation';
+import { env } from '@/shared/config/env';
+import { api } from '@/shared/sdk';
+import { session } from '@/entities/session/model';
 
 type UserProfileProps = {
   model: UserProfileModel;
@@ -117,6 +120,29 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       icon={<ActivityIcon className="size-4" />}
                       title="Статус"
                       description={<UserStatusText status={model.user?.status} />}
+                    />
+                    <InfoTile
+                      icon={<ShieldUserIcon className="size-4" />}
+                      title="Steam ID"
+                      description={
+                        <View.Condition
+                          if={model.user?.steamId}
+                          else={
+                            <View.Condition if={model.isOwnProfile} else={'Не підключено'}>
+                              <Button
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => {
+                                  api.steamLogin(window.localStorage.getItem('token') || '');
+                                }}>
+                                <Image src="/images/steam-logo.svg" width={24} height={24} alt="Steam link" />
+                                Підключити Steam
+                              </Button>
+                            </View.Condition>
+                          }>
+                          {model.user.steamId}
+                        </View.Condition>
+                      }
                     />
 
                     {model.isOwnProfile && (
