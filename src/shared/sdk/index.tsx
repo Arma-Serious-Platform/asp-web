@@ -202,6 +202,16 @@ class ApiModel {
     return await this.instance.patch<User>('/users/me', dto);
   };
 
+  getSteamLoginUrl = () => {
+    const accessToken = window.localStorage.getItem('token') || '';
+
+    return `${env.apiUrl}/users/steam-login?accessToken=${accessToken}`;
+  };
+
+  steamCallback = async () => {
+    return await this.instance.get('/users/steam/callback');
+  };
+
   findUsers = async (dto: FindUsersDto) => {
     return await this.instance.get<PaginatedResponse<User>>('/users', {
       params: dto,

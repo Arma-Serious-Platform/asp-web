@@ -4,7 +4,15 @@ import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
-import { ActivityIcon, MailIcon, MessageCircleIcon, SendIcon, ShieldUserIcon, UserIcon } from 'lucide-react';
+import {
+  ActivityIcon,
+  IdCardIcon,
+  MailIcon,
+  MessageCircleIcon,
+  SendIcon,
+  ShieldUserIcon,
+  UserIcon,
+} from 'lucide-react';
 
 import { UserNicknameText, UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
 import { View } from '@/features/view';
@@ -21,6 +29,9 @@ import { ProfileTab } from './lib';
 import { ProfileChat } from './chat';
 import { ROUTES } from '@/shared/config/routes';
 import { useRouter } from 'next/navigation';
+import { env } from '@/shared/config/env';
+import { api } from '@/shared/sdk';
+import { session } from '@/entities/session/model';
 
 type UserProfileProps = {
   model: UserProfileModel;
@@ -106,6 +117,36 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       />
                     </div>
                   </div>
+
+                  <View.Condition if={model.isOwnProfile}>
+                    <InfoTile
+                      icon={<IdCardIcon className="size-4" />}
+                      title="Steam ID"
+                      description={
+                        model.user?.steamId ? (
+                          model.user.steamId
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="flex items-center text-xs gap-2 border-0 bg-linear-to-r from-[#171a21] via-[#1b2838] to-[#2a475e] text-white hover:from-[#1b2838] hover:via-[#2a475e] hover:to-[#66c0f4]"
+                            onClick={() => {
+                              window.location.href = api.getSteamLoginUrl();
+                            }}>
+                            <Image src="/images/steam-logo.svg" width={20} height={20} alt="Steam link" />
+                            Підключити Steam
+                          </Button>
+                        )
+                      }
+                    />
+                  </View.Condition>
+
+                  <View.Condition if={!model.isOwnProfile}>
+                    <InfoTile
+                      icon={<IdCardIcon className="size-4" />}
+                      title="Steam ID"
+                      description={model.user?.steamId ? model.user.steamId : 'Не підключено'}
+                    />
+                  </View.Condition>
 
                   <div className="grid gap-3 text-sm text-zinc-200 sm:grid-cols-2">
                     <InfoTile
