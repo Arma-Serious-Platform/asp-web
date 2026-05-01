@@ -5,12 +5,13 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/uk';
 import toast from 'react-hot-toast';
-import { LoaderIcon, MessageCircleIcon, UsersIcon } from 'lucide-react';
+import { CheckIcon, LoaderIcon, MessageCircleIcon, PencilIcon, PlusIcon, UsersIcon, XIcon } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 
 import { api } from '@/shared/sdk';
 import { Chat, ChatType, MissionCommentMessage, User } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
+import { Input } from '@/shared/ui/atoms/input';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { cn } from '@/shared/utils/cn';
 import { MessageEditor } from '@/features/chat/editor';
@@ -19,6 +20,7 @@ import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { session } from '@/entities/session/model';
 import { env } from '@/shared/config/env';
 import { getTokensFromLocalStorage } from '@/shared/utils/session';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/organisms/dialog';
 
 dayjs.extend(relativeTime);
 dayjs.locale('uk');
@@ -178,7 +180,14 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [creatingChatUserId, setCreatingChatUserId] = useState<string | null>(null);
+  const [isCreateChatDialogOpen, setIsCreateChatDialogOpen] = useState(false);
+  const [selectedUserIdsForNewChat, setSelectedUserIdsForNewChat] = useState<string[]>([]);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [newChatUserSearch, setNewChatUserSearch] = useState('');
+  const [newChatName, setNewChatName] = useState('');
+  const [isRenamingChat, setIsRenamingChat] = useState(false);
+  const [renameChatName, setRenameChatName] = useState('');
+  const [isSavingChatRename, setIsSavingChatRename] = useState(false);
   const [userByChatId, setUserByChatId] = useState<Record<string, User | undefined>>({});
   const [directChatByUserId, setDirectChatByUserId] = useState<Record<string, string>>({});
   const [chatActivityById, setChatActivityById] = useState<Record<string, string>>({});
@@ -290,7 +299,7 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
         return;
       }
 
-      setCreatingChatUserId(targetUser.id);
+      setIsCreatingChat(true);
       try {
         const { data } = await api.createChat({
           type: ChatType.DIRECT,
@@ -310,11 +319,133 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
           toast.error('Не вдалося відкрити чат');
         }
       } finally {
-        setCreatingChatUserId(null);
+        setIsCreatingChat(false);
       }
     },
     [bumpChatActivity, currentUserId, directChatByUserId],
   );
+
+  const toggleUserInSelection = useCallback(
+    (userId: string) => {
+      if (!currentUserId) return;
+      if (userId === currentUserId) return;
+      setSelectedUserIdsForNewChat(prev =>
+        prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId],
+      );
+    },
+    [currentUserId],
+  );
+
+  const createSelectedChat = useCallback(async () => {
+    if (!currentUserId) {
+      toast.error('Не вдалося визначити поточного користувача');
+      return;
+    }
+
+    if (!selectedUserIdsForNewChat.includes(currentUserId)) {
+      toast.error('Поточний користувач має бути учасником чату');
+      return;
+    }
+
+    const selectedOtherUserIds = selectedUserIdsForNewChat.filter(id => id !== currentUserId);
+    if (selectedOtherUserIds.length === 0) {
+      toast.error('Оберіть щонайменше одного користувача');
+      return;
+    }
+
+    if (selectedOtherUserIds.length === 1) {
+      const existingDirectChatId = directChatByUserId[selectedOtherUserIds[0]];
+      if (existingDirectChatId) {
+        toast.error('Чат з цим користувачем вже існує');
+        return;
+      }
+    }
+
+    setIsCreatingChat(true);
+    try {
+      const type = selectedOtherUserIds.length === 1 ? ChatType.DIRECT : ChatType.GROUP;
+      const trimmedName = newChatName.trim();
+      const { data } = await api.createChat({
+        type,
+        userIds: selectedUserIdsForNewChat,
+        ...(trimmedName ? { name: trimmedName } : {}),
+      });
+      const chat = normalizeChat(data);
+      if (!chat) return;
+
+      setChats(prev => (prev.some(item => item.id === chat.id) ? prev : [chat, ...prev]));
+      bumpChatActivity(chat.id, chat.updatedAt ?? chat.createdAt);
+
+      if (type === ChatType.DIRECT) {
+        const partnerId = selectedOtherUserIds[0];
+        const partner = allUsers.find(user => user.id === partnerId);
+        if (partner) {
+          setUserByChatId(prev => ({ ...prev, [chat.id]: partner }));
+          setDirectChatByUserId(prev => ({ ...prev, [partner.id]: chat.id }));
+        }
+      } else {
+        await hydrateDirectChatPartners([chat]);
+      }
+
+      setActiveChatId(chat.id);
+      setIsCreateChatDialogOpen(false);
+      setSelectedUserIdsForNewChat([currentUserId]);
+      setNewChatName('');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося створити чат');
+    } finally {
+      setIsCreatingChat(false);
+    }
+  }, [
+    allUsers,
+    bumpChatActivity,
+    currentUserId,
+    directChatByUserId,
+    hydrateDirectChatPartners,
+    newChatName,
+    selectedUserIdsForNewChat,
+  ]);
+
+  const startRenameChat = useCallback(() => {
+    if (!activeChat) return;
+    const directUser = userByChatId[activeChat.id];
+    const defaultName = directUser?.nickname ?? activeChat.name ?? `Чат #${activeChat.id.slice(0, 8)}`;
+    setRenameChatName(defaultName);
+    setIsRenamingChat(true);
+  }, [activeChat, userByChatId]);
+
+  const cancelRenameChat = useCallback(() => {
+    setIsRenamingChat(false);
+    setRenameChatName('');
+  }, []);
+
+  const saveChatRename = useCallback(async () => {
+    if (!activeChatId) return;
+    const trimmedName = renameChatName.trim();
+    setIsSavingChatRename(true);
+    try {
+      const { data } = await api.updateChat(activeChatId, { name: trimmedName });
+      const updatedChat = normalizeChat(data);
+      setChats(prev =>
+        prev.map(chat => {
+          if (chat.id !== activeChatId) return chat;
+          return {
+            ...chat,
+            name: updatedChat?.name ?? trimmedName,
+            updatedAt: updatedChat?.updatedAt ?? chat.updatedAt,
+          };
+        }),
+      );
+      setIsRenamingChat(false);
+      toast.success('Назву чату оновлено');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося перейменувати чат');
+    } finally {
+      setIsSavingChatRename(false);
+    }
+  }, [activeChatId, renameChatName]);
 
   useEffect(() => {
     const loadChats = async () => {
@@ -403,10 +534,21 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
   }, [addOrActivateDirectChat, allUsers, initialUserId, onInitialUserHandled]);
 
   const activeChatUser = activeChatId ? userByChatId[activeChatId] : undefined;
-  const usersWithoutChat = useMemo(
-    () => allUsers.filter(user => user.id !== currentUserId && !directChatByUserId[user.id]),
-    [allUsers, currentUserId, directChatByUserId],
+  const selectedOtherUsersForNewChat = useMemo(
+    () => allUsers.filter(user => user.id !== currentUserId && selectedUserIdsForNewChat.includes(user.id)),
+    [allUsers, currentUserId, selectedUserIdsForNewChat],
   );
+
+  const currentUser = useMemo(() => allUsers.find(user => user.id === currentUserId), [allUsers, currentUserId]);
+  const filteredUsersForNewChat = useMemo(() => {
+    const query = newChatUserSearch.trim().toLowerCase();
+    return allUsers
+      .filter(user => user.id !== currentUserId)
+      .filter(user => {
+        if (!query) return true;
+        return user.nickname.toLowerCase().includes(query) || user.email.toLowerCase().includes(query);
+      });
+  }, [allUsers, currentUserId, newChatUserSearch]);
 
   const resolveChatTitle = (chat: Chat) => {
     const directUser = userByChatId[chat.id];
@@ -486,6 +628,22 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
             Діалоги
           </div>
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-2">
+            <Button
+              className="mb-2 w-full justify-start gap-2"
+              disabled={isUsersLoading || isCreatingChat || !currentUserId}
+              onClick={() => {
+                if (!currentUserId) {
+                  toast.error('Не вдалося визначити поточного користувача');
+                  return;
+                }
+                setSelectedUserIdsForNewChat([currentUserId]);
+                setNewChatUserSearch('');
+                setNewChatName('');
+                setIsCreateChatDialogOpen(true);
+              }}>
+              <PlusIcon className="size-4" />
+              Створити чат
+            </Button>
             {isChatsLoading || isUsersLoading ? (
               <div className="flex items-center justify-center py-8 text-zinc-500">
                 <LoaderIcon className="size-4 animate-spin" />
@@ -511,30 +669,6 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
                     </Button>
                   ))
                 )}
-
-                <div className="mb-2 mt-3 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                  Інші користувачі
-                </div>
-                {usersWithoutChat.length === 0 ? (
-                  <div className="px-2 py-2 text-xs text-zinc-500">Немає користувачів для нового чату</div>
-                ) : (
-                  usersWithoutChat.map(user => (
-                    <Button
-                      key={user.id}
-                      variant="ghost"
-                      disabled={creatingChatUserId === user.id}
-                      className="mb-1 h-auto justify-start px-2 py-2 text-left"
-                      onClick={() => addOrActivateDirectChat(user)}>
-                      <div className="flex min-w-0 items-center gap-2">
-                        <UsersIcon className="size-4 shrink-0" />
-                        <span className="truncate text-xs">
-                          {user.nickname}
-                          {creatingChatUserId === user.id ? ' (створення...)' : ''}
-                        </span>
-                      </div>
-                    </Button>
-                  ))
-                )}
               </>
             )}
           </div>
@@ -542,9 +676,51 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
 
         <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-black/40">
           <div className="border-b border-white/10 px-3 py-2">
-            <div className="text-sm font-semibold text-white">
-              {activeChat ? resolveChatTitle(activeChat) : 'Оберіть чат'}
-            </div>
+            {activeChat ? (
+              <div className="flex items-center gap-2">
+                {isRenamingChat ? (
+                  <Input
+                    value={renameChatName}
+                    onChange={event => setRenameChatName(event.target.value)}
+                    placeholder="Назва чату"
+                    className="h-8"
+                    disabled={isSavingChatRename}
+                  />
+                ) : (
+                  <div className="truncate text-sm font-semibold text-white">{resolveChatTitle(activeChat)}</div>
+                )}
+                {isRenamingChat ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-8"
+                      onClick={saveChatRename}
+                      disabled={isSavingChatRename}>
+                      {isSavingChatRename ? (
+                        <LoaderIcon className="size-4 animate-spin" />
+                      ) : (
+                        <CheckIcon className="size-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-8"
+                      onClick={cancelRenameChat}
+                      disabled={isSavingChatRename}>
+                      <XIcon className="size-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="ghost" size="icon" className="size-8" onClick={startRenameChat}>
+                    <PencilIcon className="size-4" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm font-semibold text-white">Оберіть чат</div>
+            )}
           </div>
 
           <div ref={messagesContainerRef} className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -631,6 +807,83 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
           )}
         </section>
       </div>
+
+      <Dialog open={isCreateChatDialogOpen} onOpenChange={setIsCreateChatDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Створити чат</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <Input
+              value={newChatName}
+              onChange={event => setNewChatName(event.target.value)}
+              placeholder="Назва чату"
+              label="Назва чату"
+              disabled={isCreatingChat}
+            />
+            <div className="rounded-md border border-white/10 bg-black/30 p-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                Учасники (ви додані за замовчуванням)
+              </div>
+              <ul className="space-y-1">
+                <li className="flex items-center gap-2 text-sm text-zinc-200">
+                  <UsersIcon className="size-4 text-zinc-400" />
+                  {currentUser?.nickname ?? 'Ви'}
+                </li>
+                {selectedOtherUsersForNewChat.map(user => (
+                  <li key={user.id} className="flex items-center gap-2 text-sm text-zinc-200">
+                    <UsersIcon className="size-4 text-zinc-400" />
+                    {user.nickname}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                Список користувачів
+              </div>
+              <input
+                value={newChatUserSearch}
+                onChange={event => setNewChatUserSearch(event.target.value)}
+                placeholder="Пошук користувача..."
+                className="mb-2 w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-primary/60"
+              />
+              <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
+                {filteredUsersForNewChat.length === 0 ? (
+                  <div className="px-2 py-2 text-xs text-zinc-500">Користувачів не знайдено</div>
+                ) : (
+                  filteredUsersForNewChat.map(user => {
+                    const isSelected = selectedUserIdsForNewChat.includes(user.id);
+                    return (
+                      <Button
+                        key={user.id}
+                        variant={isSelected ? 'default' : 'ghost'}
+                        className="h-auto w-full justify-start px-2 py-2 text-left"
+                        onClick={() => toggleUserInSelection(user.id)}>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <UsersIcon className="size-4 shrink-0" />
+                          <span className="truncate text-xs">{user.nickname}</span>
+                        </div>
+                      </Button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateChatDialogOpen(false)} disabled={isCreatingChat}>
+              Скасувати
+            </Button>
+            <Button onClick={createSelectedChat} disabled={isCreatingChat}>
+              {isCreatingChat ? 'Створення...' : 'Створити'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

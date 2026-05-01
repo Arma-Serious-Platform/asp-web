@@ -618,6 +618,10 @@ class ApiModel {
     return await this.instance.get<Chat>(`/chats/${id}`);
   };
 
+  updateChat = async (chatId: string, dto: { name: string }) => {
+    return await this.instance.patch<Chat>(`/chats/${chatId}`, dto);
+  };
+
   findChatMessages = async (chatId: string) => {
     return await this.instance.get<unknown[]>(`/chats/${chatId}/messages`);
   };
