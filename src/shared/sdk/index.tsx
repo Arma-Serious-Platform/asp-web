@@ -58,6 +58,10 @@ import {
   UpdateHeadquartersGamePlanSlotDto,
   AssignHeadquartersSlotSquadDto,
   HeadquartersSlot,
+  HeadquartersComment,
+  FindHeadquartersCommentsDto,
+  CreateHeadquartersCommentDto,
+  UpdateHeadquartersCommentDto,
 } from './types';
 
 import { env } from '../config/env';
@@ -659,6 +663,24 @@ class ApiModel {
 
   unassignHeadquartersSlotWantedSquad = async (slotId: string) => {
     return await this.instance.post<HeadquartersSlot>(`/headquarters/slots/${slotId}/wanted-squads/unassign`);
+  };
+
+  findHeadquartersComments = async (gamePlanId: string, dto: FindHeadquartersCommentsDto = {}) => {
+    return await this.instance.get<{ data: HeadquartersComment[]; total: number }>(`/headquarters/plans/${gamePlanId}/comments`, {
+      params: dto,
+    });
+  };
+
+  createHeadquartersComment = async (gamePlanId: string, dto: CreateHeadquartersCommentDto) => {
+    return await this.instance.post<HeadquartersComment>(`/headquarters/plans/${gamePlanId}/comments`, dto);
+  };
+
+  updateHeadquartersComment = async (id: string, dto: UpdateHeadquartersCommentDto) => {
+    return await this.instance.patch<HeadquartersComment>(`/headquarters/comments/${id}`, dto);
+  };
+
+  deleteHeadquartersComment = async (id: string) => {
+    return await this.instance.delete<{ message: string }>(`/headquarters/comments/${id}`);
   };
 
   /* Chats */

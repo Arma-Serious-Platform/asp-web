@@ -2,11 +2,14 @@
 
 import { session } from '@/entities/session/model';
 import { ROUTES } from '@/shared/config/routes';
+import { env } from '@/shared/config/env';
 import { api } from '@/shared/sdk';
 import {
   Game,
+  HeadquartersComment,
   HeadquartersGamePlan,
   HeadquartersSlot,
+  MissionCommentMessage,
   Side,
   SideType,
   Squad,
@@ -22,13 +25,17 @@ import { cn } from '@/shared/utils/cn';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
+import { MessageContent } from '@/entities/comment/lexical-message';
+import { MessageEditor } from '@/features/chat/editor';
+import { getTokensFromLocalStorage } from '@/shared/utils/session';
 import dayjs from 'dayjs';
 import { ChevronDownIcon, ChevronUpIcon, LoaderIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { io, Socket } from 'socket.io-client';
 
 type HqPlansProps = {
   activePlanId?: string;
@@ -46,6 +53,10 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
   const [gamesById, setGamesById] = useState<Record<string, Game>>({});
   const [sidesById, setSidesById] = useState<Record<string, Side>>({});
   const [isSlotsOpen, setIsSlotsOpen] = useState(true);
+  const [comments, setComments] = useState<HeadquartersComment[]>([]);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
+  const [isCommentSending, setIsCommentSending] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
 
   const hasAccess = Boolean(
     currentUser?.squad && [SideType.BLUE, SideType.RED].includes(currentUser?.squad?.side?.type as SideType),
@@ -199,6 +210,116 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     return 'text-zinc-300';
   };
 
+  const loadComments = async (gamePlanId: string) => {
+    setIsCommentsLoading(true);
+    try {
+      const { data } = await api.findHeadquartersComments(gamePlanId, { take: 100, skip: 0 });
+      setComments(data.data ?? []);
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося завантажити коментарі');
+    } finally {
+      setIsCommentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const gamePlanId = selectedPlan?.id;
+    if (!gamePlanId) {
+      setComments([]);
+      return;
+    }
+
+    void loadComments(gamePlanId);
+  }, [selectedPlan?.id]);
+
+  useEffect(() => {
+    const gamePlanId = selectedPlan?.id;
+    if (!gamePlanId) {
+      return;
+    }
+
+    const token = getTokensFromLocalStorage()?.token;
+    const apiBaseUrl = env.apiUrl?.replace(/\/api\/?$/, '');
+    if (!token || !apiBaseUrl) {
+      return;
+    }
+
+    const socket =
+      socketRef.current ??
+      io(`${apiBaseUrl}/headquarters`, {
+        auth: { token },
+        transports: ['websocket'],
+      });
+
+    socketRef.current = socket;
+
+    const handleGamePlanUpdated = (payload: HeadquartersGamePlan) => {
+      if (!payload?.id || payload.id !== gamePlanId) return;
+      replacePlan(payload);
+    };
+
+    const handleCommanderChanged = (payload: HeadquartersGamePlan) => {
+      if (!payload?.id || payload.id !== gamePlanId) return;
+      replacePlan(payload);
+    };
+
+    const handleSlotUpdated = (payload: HeadquartersSlot) => {
+      if (!payload?.id) return;
+      replaceSlot(payload);
+    };
+
+    const handleCommentCreated = (payload: HeadquartersComment) => {
+      if (!payload?.id) return;
+      setComments(prev => (prev.some(item => item.id === payload.id) ? prev : [payload, ...prev]));
+    };
+
+    const handleCommentUpdated = (payload: HeadquartersComment) => {
+      if (!payload?.id) return;
+      setComments(prev => prev.map(item => (item.id === payload.id ? payload : item)));
+    };
+
+    const handleCommentDeleted = (payload: { id: string }) => {
+      if (!payload?.id) return;
+      setComments(prev => prev.filter(item => item.id !== payload.id));
+    };
+
+    const joinRoom = () => {
+      socket.emit('join_game_plan', { gamePlanId }, (response?: { success?: boolean; error?: string }) => {
+        if (response?.error) {
+          console.error('Failed to join headquarters game plan room:', response.error);
+        }
+      });
+    };
+
+    socket.on('connect', joinRoom);
+    socket.on('game_plan_updated', handleGamePlanUpdated);
+    socket.on('commander_changed', handleCommanderChanged);
+    socket.on('slot_updated', handleSlotUpdated);
+    socket.on('comment_created', handleCommentCreated);
+    socket.on('comment_updated', handleCommentUpdated);
+    socket.on('comment_deleted', handleCommentDeleted);
+    joinRoom();
+
+    return () => {
+      socket.emit('leave_game_plan', { gamePlanId });
+      socket.off('connect', joinRoom);
+      socket.off('game_plan_updated', handleGamePlanUpdated);
+      socket.off('commander_changed', handleCommanderChanged);
+      socket.off('slot_updated', handleSlotUpdated);
+      socket.off('comment_created', handleCommentCreated);
+      socket.off('comment_updated', handleCommentUpdated);
+      socket.off('comment_deleted', handleCommentDeleted);
+    };
+  }, [selectedPlan?.id]);
+
+  useEffect(() => {
+    return () => {
+      socketRef.current?.disconnect();
+      socketRef.current = null;
+    };
+  }, []);
+
   if (!hasAccess) return null;
 
   return (
@@ -275,7 +396,9 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
 
         <section className="rounded-lg border border-white/10 bg-black/40 p-4">
           {!selectedPlan ? (
-            <div className="py-10 text-center text-zinc-500">Оберіть план зліва</div>
+            <div className="py-10 text-center text-zinc-300 text-lg font-bold h-full flex items-center justify-center">
+              Оберіть план
+            </div>
           ) : (
             <div className="flex flex-col gap-4">
               <div className="rounded-lg border border-white/10 bg-black/20 p-3">
@@ -551,6 +674,61 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                     </table>
                   </div>
                 )}
+              </div>
+
+              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Коментарі</div>
+
+                {isCommentsLoading ? (
+                  <div className="flex items-center justify-center py-6 text-zinc-500">
+                    <LoaderIcon className="size-4 animate-spin" />
+                  </div>
+                ) : comments.length === 0 ? (
+                  <div className="mb-3 text-sm text-zinc-500">Ще немає коментарів</div>
+                ) : (
+                  <ul className="mb-3 flex flex-col gap-2">
+                    {comments.map(comment => (
+                      <li key={comment.id} className="rounded-md border border-white/10 bg-black/30 p-2">
+                        <div className="mb-1 flex items-center gap-2">
+                          <Avatar
+                            size="sm"
+                            toProfileId={comment.user?.id}
+                            src={comment.user?.avatar?.url ?? undefined}
+                            alt={comment.user?.nickname ?? ''}
+                          />
+                          {comment.user ? (
+                            <UserNicknameText user={comment.user as User} />
+                          ) : (
+                            <span className="text-sm text-zinc-300">Користувач</span>
+                          )}
+                          <span className="text-xs text-zinc-500">{dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}</span>
+                        </div>
+                        <MessageContent message={comment.message as MissionCommentMessage} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <MessageEditor
+                  placeholder="Написати коментар..."
+                  maxCharacters={500}
+                  disabled={isCommentSending}
+                  onSubmit={async ({ lexicalState }) => {
+                    if (!selectedPlan?.id) return;
+                    setIsCommentSending(true);
+                    try {
+                      const { data } = await api.createHeadquartersComment(selectedPlan.id, {
+                        message: lexicalState as MissionCommentMessage,
+                      });
+                      setComments(prev => (prev.some(item => item.id === data.id) ? prev : [data, ...prev]));
+                    } catch (error) {
+                      console.error(error);
+                      toast.error('Не вдалося додати коментар');
+                    } finally {
+                      setIsCommentSending(false);
+                    }
+                  }}
+                />
               </div>
             </div>
           )}

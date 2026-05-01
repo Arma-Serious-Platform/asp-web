@@ -618,6 +618,38 @@ export type AssignHeadquartersSlotSquadDto = {
   squadId: string;
 };
 
+export type HeadquartersComment = {
+  id: string;
+  gamePlanId: string;
+  userId: string;
+  replyId?: string | null;
+  message: MissionCommentMessage;
+  createdAt: string;
+  updatedAt: string;
+  user?: Pick<User, 'id' | 'nickname' | 'avatar'>;
+  replyTo?: {
+    id: string;
+    userId: string;
+    message: MissionCommentMessage;
+    createdAt: string;
+    user?: Pick<User, 'id' | 'nickname'>;
+  } | null;
+};
+
+export type FindHeadquartersCommentsDto = PaginatedRequest<{
+  replyId?: string;
+}>;
+
+export type CreateHeadquartersCommentDto = {
+  message: MissionCommentMessage;
+  replyId?: string;
+};
+
+export type UpdateHeadquartersCommentDto = {
+  message?: MissionCommentMessage;
+  replyId?: string | null;
+};
+
 /* Chats */
 
 export enum ChatType {
