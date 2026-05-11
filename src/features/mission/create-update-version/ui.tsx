@@ -81,7 +81,9 @@ const LocalScreenshotPreview: FC<{ file: File }> = ({ file }) => {
     return <div className="h-8 w-8 shrink-0 rounded border border-white/10 bg-zinc-800" aria-hidden />;
   }
 
-  return <img src={previewUrl} alt={file.name} className="h-8 w-8 rounded object-cover border border-white/10 shrink-0" />;
+  return (
+    <img src={previewUrl} alt={file.name} className="h-8 w-8 rounded object-cover border border-white/10 shrink-0" />
+  );
 };
 
 const CreateUpdateMissionVersionModal: FC<{
@@ -349,7 +351,7 @@ const CreateUpdateMissionVersionModal: FC<{
                             control={versionForm.control}
                             name={`attackWeaponry.${index}.description`}
                             render={({ field }) => (
-                              <Input {...field} label="Опис (необовʼязково)" placeholder="Опис озброєння" />
+                              <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
                             )}
                           />
                         </div>
@@ -458,7 +460,9 @@ const CreateUpdateMissionVersionModal: FC<{
                 {resolvedEditingScreenshots?.attack
                   ?.filter(s => !versionForm.watch('removeAttackScreenshotIds').includes(s.id))
                   .map(screenshot => (
-                    <div key={screenshot.id} className="flex items-center justify-between rounded border border-white/10 p-2">
+                    <div
+                      key={screenshot.id}
+                      className="flex items-center justify-between rounded border border-white/10 p-2">
                       <a
                         href={screenshot.url}
                         target="_blank"
@@ -488,7 +492,9 @@ const CreateUpdateMissionVersionModal: FC<{
                   ))}
 
                 {versionForm.watch('attackScreenshots').map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded border border-white/10 p-2">
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between rounded border border-white/10 p-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <LocalScreenshotPreview file={file} />
                       <span className="text-xs text-zinc-300 truncate">{file.name}</span>
@@ -580,7 +586,7 @@ const CreateUpdateMissionVersionModal: FC<{
                             control={versionForm.control}
                             name={`defenseWeaponry.${index}.description`}
                             render={({ field }) => (
-                              <Input {...field} label="Опис (необовʼязково)" placeholder="Опис озброєння" />
+                              <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
                             )}
                           />
                         </div>
@@ -693,7 +699,9 @@ const CreateUpdateMissionVersionModal: FC<{
                 {resolvedEditingScreenshots?.defense
                   ?.filter(s => !versionForm.watch('removeDefenseScreenshotIds').includes(s.id))
                   .map(screenshot => (
-                    <div key={screenshot.id} className="flex items-center justify-between rounded border border-white/10 p-2">
+                    <div
+                      key={screenshot.id}
+                      className="flex items-center justify-between rounded border border-white/10 p-2">
                       <a
                         href={screenshot.url}
                         target="_blank"
@@ -723,7 +731,9 @@ const CreateUpdateMissionVersionModal: FC<{
                   ))}
 
                 {versionForm.watch('defenseScreenshots').map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded border border-white/10 p-2">
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between rounded border border-white/10 p-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <LocalScreenshotPreview file={file} />
                       <span className="text-xs text-zinc-300 truncate">{file.name}</span>

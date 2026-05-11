@@ -58,17 +58,13 @@ const gameSchema = yup.object().shape({
   defenseSideId: yup
     .string()
     .required("Сторона оборони є обов'язковою")
-    .test(
-      'different-from-attack',
-      'Сторона оборони не може співпадати зі стороною атаки',
-      function (value) {
-        const { attackSideId } = this.parent as { attackSideId?: string };
+    .test('different-from-attack', 'Сторона оборони не може співпадати зі стороною атаки', function (value) {
+      const { attackSideId } = this.parent as { attackSideId?: string };
 
-        if (!value || !attackSideId) return true;
+      if (!value || !attackSideId) return true;
 
-        return value !== attackSideId;
-      },
-    ),
+      return value !== attackSideId;
+    }),
   adminId: yup.string().nullable(),
 });
 
@@ -419,7 +415,7 @@ const ManageWeekendModal: FC<
   }, [model.modal.isOpen, model.modal.payload?.weekend]);
 
   const missionOptions = model.missions.options;
-  const sideOptions = model.sides.options;
+  const sideOptions = model.sides.options.filter(s => s.label !== 'Unassigned');
   const userOptions = model.users.options;
 
   const getVersionOptionsForMission = (missionId: string) =>
