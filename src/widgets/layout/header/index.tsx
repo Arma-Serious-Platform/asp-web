@@ -32,7 +32,6 @@ import { Social } from '@/features/social/ui';
 import { useRouter } from 'next/navigation';
 import { headerModel } from './model';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
-import { SideType } from '@/shared/sdk/types';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -42,8 +41,6 @@ const MainLinks: FC<{
   className?: string;
   activeClassName?: string;
 }> = observer(({ className, activeClassName }) => {
-  const [showMore, setShowMore] = useState(false);
-
   return (
     <>
       {session.canAccessHeadquarters && (
@@ -51,9 +48,11 @@ const MainLinks: FC<{
           Штаб
         </Link>
       )}
-      <Link className={className} activeClassName={activeClassName} href={ROUTES.home}>
-        Грати
-      </Link>
+      {!session.canAccessHeadquarters && (
+        <Link className={className} activeClassName={activeClassName} href={ROUTES.home}>
+          Грати
+        </Link>
+      )}
       <Link className={className} activeClassName={activeClassName} href={ROUTES.rules}>
         Правила
       </Link>
@@ -91,32 +90,6 @@ const MainLinks: FC<{
       <a className={className} href="https://feedback.vtg.in.ua" target="_blank" rel="noopener noreferrer">
         Баг-трекер
       </a>
-
-      {/* <View.Condition if={session.user?.user}>
-        <Popover
-          asChild
-          open={showMore}
-          className='w-full flex flex-col gap-2 min-w-44'
-          onChange={(open) => setShowMore(open)}
-          trigger={
-            <Button
-              variant='ghost'
-              className={cn(className, 'block')}
-              onClick={(e) => {
-                e.preventDefault();
-                setShowMore(!showMore);
-              }}>
-              Ще...
-            </Button>
-          }>
-          <Link
-            className={className}
-            activeClassName={activeClassName}
-            href={ROUTES.missions.root}>
-            Місії
-          </Link>
-        </Popover>
-      </View.Condition> */}
     </>
   );
 });
