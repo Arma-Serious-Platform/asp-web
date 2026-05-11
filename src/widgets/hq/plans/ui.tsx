@@ -29,7 +29,7 @@ import { MessageContent } from '@/entities/comment/lexical-message';
 import { MessageEditor } from '@/features/chat/editor';
 import { getTokensFromLocalStorage } from '@/shared/utils/session';
 import dayjs from 'dayjs';
-import { ChevronDownIcon, ChevronUpIcon, LoaderIcon } from 'lucide-react';
+import { CalendarIcon, ChevronDownIcon, ChevronUpIcon, LoaderIcon, ShieldIcon, UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -42,6 +42,7 @@ type HqPlansProps = {
 };
 
 const normalizeSlotCount = (value: number | null | undefined) => (typeof value === 'number' ? value : 0);
+const PLANS_PAGE_SIZE = 8;
 
 export function HqPlans({ activePlanId }: HqPlansProps) {
   const router = useRouter();
@@ -56,6 +57,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
   const [comments, setComments] = useState<HeadquartersComment[]>([]);
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
   const [isCommentSending, setIsCommentSending] = useState(false);
+  const [visiblePlansCount, setVisiblePlansCount] = useState(PLANS_PAGE_SIZE);
   const socketRef = useRef<Socket | null>(null);
 
   const hasAccess = Boolean(
@@ -84,7 +86,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
       setIsLoading(true);
       try {
         const [weekendsRes, usersRes, squadsRes, sidesRes] = await Promise.all([
-          api.findWeekends({ take: 100, skip: 0 }),
+          api.findWeekends({ take: 2, skip: 0 }),
           api.findUsers({ take: 1000, skip: 0 }),
           api.findSquads({ take: 1000, skip: 0 }),
           api.findSides({ take: 1000, skip: 0 }),
@@ -107,9 +109,10 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
 
         const filtered = loadedPlans
           .filter(plan => plan.side?.type === currentSide)
-          .sort((a, b) => dayjs(a.game?.date).valueOf() - dayjs(b.game?.date).valueOf());
+          .sort((a, b) => dayjs(b.game?.date).valueOf() - dayjs(a.game?.date).valueOf());
 
         setPlans(filtered);
+        setVisiblePlansCount(PLANS_PAGE_SIZE);
 
         if (!activePlanId && filtered[0]?.id) {
           router.replace(`/hq/plans/${filtered[0].id}`);
@@ -123,7 +126,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     };
 
     load();
-  }, [activePlanId, currentSide, hasAccess, router]);
+  }, [currentSide, hasAccess, router]);
 
   const replacePlan = (nextPlan: HeadquartersGamePlan) => {
     setPlans(prev => prev.map(item => (item.id === nextPlan.id ? nextPlan : item)));
@@ -198,6 +201,16 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     () => selectedPlan?.slots.reduce((sum, slot) => sum + normalizeSlotCount(slot.slotCount), 0) ?? 0,
     [selectedPlan],
   );
+  const visiblePlans = useMemo(() => plans.slice(0, visiblePlansCount), [plans, visiblePlansCount]);
+
+  useEffect(() => {
+    if (!activePlanId) return;
+
+    const activePlanIndex = plans.findIndex(plan => plan.id === activePlanId);
+    if (activePlanIndex === -1) return;
+
+    setVisiblePlansCount(prev => Math.max(prev, activePlanIndex + 1, PLANS_PAGE_SIZE));
+  }, [activePlanId, plans]);
 
   const totalOccupied = totalSlots;
   const selectedGame = selectedPlan?.gameId ? gamesById[selectedPlan.gameId] : undefined;
@@ -208,6 +221,34 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     if (sideType === SideType.BLUE) return 'text-blue-400';
     if (sideType === SideType.RED) return 'text-red-400';
     return 'text-zinc-300';
+  };
+
+  const sideAppearance = (sideType?: SideType) => {
+    if (sideType === SideType.RED) {
+      return {
+        dot: 'bg-red-500',
+        text: 'text-red-400',
+        badge: 'bg-red-500/20 text-red-400',
+      };
+    }
+
+    if (sideType === SideType.BLUE) {
+      return {
+        dot: 'bg-blue-500',
+        text: 'text-blue-400',
+        badge: 'bg-blue-500/20 text-blue-400',
+      };
+    }
+
+    return {
+      dot: 'bg-zinc-500',
+      text: 'text-zinc-300',
+      badge: 'bg-zinc-500/20 text-zinc-300',
+    };
+  };
+
+  const loadMorePlans = () => {
+    setVisiblePlansCount(prev => Math.min(prev + PLANS_PAGE_SIZE, plans.length));
   };
 
   const loadComments = async (gamePlanId: string) => {
@@ -332,8 +373,19 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
       </div>
 
       <div className="grid min-h-[460px] grid-cols-1 gap-3 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="max-h-[calc(100vh-220px)] overflow-y-auto rounded-lg border border-white/10 bg-black/40 p-2">
-          <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Список планів</div>
+        <aside
+          className="max-h-[calc(100vh-220px)] overflow-y-auto rounded-lg border border-white/10 bg-black/40 p-2"
+          onScroll={event => {
+            const target = event.currentTarget;
+            const isBottomReached = target.scrollTop + target.clientHeight >= target.scrollHeight - 24;
+
+            if (isBottomReached && visiblePlansCount < plans.length) {
+              loadMorePlans();
+            }
+          }}>
+          <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+            Список планів (2 тижні)
+          </div>
           {isLoading ? (
             <div className="flex items-center justify-center py-8 text-zinc-500">
               <LoaderIcon className="size-4 animate-spin" />
@@ -342,54 +394,90 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
             <div className="px-2 py-2 text-sm text-zinc-500">Плани не знайдено</div>
           ) : (
             <div className="space-y-1">
-              {plans.map(plan => (
-                <Link key={plan.id} href={`/hq/plans/${plan.id}`} className="block">
-                  <div
-                    className={cn(
-                      'rounded-md border border-transparent px-3 py-2 transition-colors',
-                      activePlanId === plan.id ? 'border-primary/40 bg-primary/15' : 'hover:bg-white/5',
-                    )}>
-                    <div className="relative mb-2 aspect-video w-full overflow-hidden rounded-md border border-white/10">
-                      <Image
-                        src={gamesById[plan.gameId]?.mission?.image?.url || '/images/avatar.jpg'}
-                        alt={gamesById[plan.gameId]?.mission?.name || 'mission image'}
-                        fill
-                        className="object-cover"
-                        unoptimized={!gamesById[plan.gameId]?.mission?.image?.url?.startsWith('https')}
-                      />
+              {visiblePlans.map(plan => {
+                const game = gamesById[plan.gameId];
+                const attackSideType = sidesById[game?.attackSideId || '']?.type;
+                const defenseSideType = sidesById[game?.defenseSideId || '']?.type;
+                const attackAppearance = sideAppearance(attackSideType);
+                const defenseAppearance = sideAppearance(defenseSideType);
+
+                return (
+                  <Link key={plan.id} href={`/hq/plans/${plan.id}`} className="block">
+                    <div
+                      className={cn(
+                        'rounded-md border border-transparent px-3 py-2 transition-colors',
+                        activePlanId === plan.id ? 'border-primary/40 bg-primary/15' : 'hover:bg-white/5',
+                      )}>
+                      <div className="relative mb-2 aspect-video w-full overflow-hidden rounded-md border border-white/10">
+                        <Image
+                          src={game?.mission?.image?.url || '/images/avatar.jpg'}
+                          alt={game?.mission?.name || 'mission image'}
+                          fill
+                          className="object-cover"
+                          unoptimized={!game?.mission?.image?.url?.startsWith('https')}
+                        />
+                      </div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-zinc-100">
+                            {plan.game?.mission?.name ?? `Гра #${plan.game?.position ?? '-'}`}
+                          </div>
+                          <div className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
+                            <ShieldIcon className="size-3.5" />
+                            <span>
+                              {typeof plan.game?.position === 'number'
+                                ? `${plan.game.position + 1}-${plan.game.position + 1 === 1 ? 'а' : 'га'} гра`
+                                : 'Гра'}
+                            </span>
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400">
+                            <CalendarIcon className="size-3.5" />
+                            <span>{dayjs(plan.game?.date).isValid() ? dayjs(plan.game?.date).format('DD.MM.YYYY') : 'Без дати'}</span>
+                          </div>
+                        </div>
+                        <div className="shrink-0 text-right text-xs">
+                          <div className="flex items-center justify-end gap-1 text-zinc-400">
+                            <UserIcon className="size-3.5" />
+                            {plan.gameCommanderId && usersById[plan.gameCommanderId] ? (
+                              <span className="text-zinc-300">
+                                <UserNicknameText user={usersById[plan.gameCommanderId]} />
+                              </span>
+                            ) : (
+                              <span className="text-zinc-500">КС відсутній</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn('size-2 rounded-full', attackAppearance.dot)} />
+                          <span className={cn('font-semibold', attackAppearance.text)}>
+                            {(game?.missionVersion?.attackSideName ?? sidesById[game?.attackSideId || '']?.name ?? '—') +
+                              ` (${game?.missionVersion?.attackSideSlots ?? '-'})`}
+                          </span>
+                          <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', attackAppearance.badge)}>
+                            Атака
+                          </span>
+                        </div>
+                        <span className="text-zinc-500">vs</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn('size-2 rounded-full', defenseAppearance.dot)} />
+                          <span className={cn('font-semibold', defenseAppearance.text)}>
+                            {(game?.missionVersion?.defenseSideName ?? sidesById[game?.defenseSideId || '']?.name ?? '—') +
+                              ` (${game?.missionVersion?.defenseSideSlots ?? '-'})`}
+                          </span>
+                          <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', defenseAppearance.badge)}>
+                            Оборона
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="truncate text-sm font-semibold text-zinc-100">
-                      {plan.game?.mission?.name ?? `Гра #${plan.game?.position ?? '-'}`}
-                    </div>
-                    <div className="text-xs text-zinc-400">
-                      {dayjs(plan.game?.date).isValid()
-                        ? dayjs(plan.game?.date).format('DD.MM.YYYY HH:mm')
-                        : 'Без дати'}
-                    </div>
-                    <div className="mt-1 flex items-center gap-2 text-xs">
-                      <span
-                        className={cn(
-                          'font-semibold',
-                          sideColorClass(sidesById[gamesById[plan.gameId]?.attackSideId || '']?.type),
-                        )}>
-                        {gamesById[plan.gameId]?.missionVersion?.attackSideName ??
-                          sidesById[gamesById[plan.gameId]?.attackSideId || '']?.name ??
-                          '—'}
-                      </span>
-                      <span className="text-zinc-500">vs</span>
-                      <span
-                        className={cn(
-                          'font-semibold',
-                          sideColorClass(sidesById[gamesById[plan.gameId]?.defenseSideId || '']?.type),
-                        )}>
-                        {gamesById[plan.gameId]?.missionVersion?.defenseSideName ??
-                          sidesById[gamesById[plan.gameId]?.defenseSideId || '']?.name ??
-                          '—'}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
+              {visiblePlansCount < plans.length && (
+                <div className="px-2 py-2 text-center text-xs text-zinc-500">Прокрутіть нижче, щоб завантажити ще</div>
+              )}
             </div>
           )}
         </aside>
@@ -705,7 +793,9 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                           ) : (
                             <span className="text-sm text-zinc-300">Користувач</span>
                           )}
-                          <span className="text-xs text-zinc-500">{dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}</span>
+                          <span className="text-xs text-zinc-500">
+                            {dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}
+                          </span>
                         </div>
                         <MessageContent message={comment.message as MissionCommentMessage} />
                       </li>
