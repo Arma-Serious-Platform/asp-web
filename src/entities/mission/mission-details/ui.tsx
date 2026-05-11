@@ -11,7 +11,49 @@ import { UniformSection } from '@/entities/mission/version/version-card/uniform-
 import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
 import { Dialog, DialogContent } from '@/shared/ui/organisms/dialog';
 
-export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
+type MissionDetailsProps = {
+  game: Game;
+  attackSideType?: SideType;
+  defenseSideType?: SideType;
+};
+
+const resolveMissionSideColor = (sideType?: MissionGameSide | SideType) => {
+  if (sideType === MissionGameSide.RED || sideType === SideType.RED) {
+    return {
+      dot: 'bg-red-500',
+      text: 'text-red-500',
+      soft: 'bg-red-500/20 text-red-400',
+      accent: 'text-red-400 border-red-500/30',
+    };
+  }
+
+  if (sideType === MissionGameSide.BLUE || sideType === SideType.BLUE) {
+    return {
+      dot: 'bg-blue-500',
+      text: 'text-blue-500',
+      soft: 'bg-blue-500/20 text-blue-400',
+      accent: 'text-blue-400 border-blue-500/30',
+    };
+  }
+
+  if (sideType === MissionGameSide.GREEN) {
+    return {
+      dot: 'bg-green-500',
+      text: 'text-green-500',
+      soft: 'bg-green-500/20 text-green-400',
+      accent: 'text-green-400 border-green-500/30',
+    };
+  }
+
+  return {
+    dot: 'bg-zinc-500',
+    text: 'text-zinc-300',
+    soft: 'bg-zinc-500/20 text-zinc-300',
+    accent: 'text-zinc-300 border-zinc-500/30',
+  };
+};
+
+export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, defenseSideType }) => {
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
   const [previewScreenshots, setPreviewScreenshots] = useState<{ id: string; url: string }[]>([]);
@@ -20,6 +62,10 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
   const { attack: attackUniformScreenshots, defense: defenseUniformScreenshots } = resolveUniformScreenshots(
     game.missionVersion,
   );
+  const resolvedAttackSideType = attackSideType ?? game.missionVersion.attackSideType;
+  const resolvedDefenseSideType = defenseSideType ?? game.missionVersion.defenseSideType;
+  const attackColor = resolveMissionSideColor(resolvedAttackSideType);
+  const defenseColor = resolveMissionSideColor(resolvedDefenseSideType);
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
 
@@ -75,55 +121,26 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <div
-              className={classNames('w-2 h-2 rounded-full', {
-                'bg-red-500': game.missionVersion.attackSideType === MissionGameSide.RED,
-                'bg-blue-500': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-                'bg-green-500': game.missionVersion.attackSideType === MissionGameSide.GREEN,
-              })}
+              className={classNames('w-2 h-2 rounded-full', attackColor.dot)}
             />
             <span
-              className={classNames('font-bold text-base', {
-                'text-red-500': game.missionVersion.attackSideType === MissionGameSide.RED,
-                'text-blue-500': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-                'text-green-500': game.missionVersion.attackSideType === MissionGameSide.GREEN,
-              })}>
+              className={classNames('font-bold text-base', attackColor.text)}>
               {game.missionVersion.attackSideName}
             </span>
             <span className="text-zinc-500 text-sm">({game.missionVersion.attackSideSlots})</span>
-            <span
-              className={classNames('px-2 py-0.5 rounded text-xs font-semibold', {
-                'bg-red-500/20 text-red-400': game.missionVersion.attackSideType === MissionGameSide.RED,
-                'bg-blue-500/20 text-blue-400': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-              })}>
-              {game.missionVersion.attackSideType === MissionGameSide.RED ? 'Атака' : 'Оборона'}
-            </span>
+            <span className={classNames('px-2 py-0.5 rounded text-xs font-semibold', attackColor.soft)}>Атака</span>
           </div>
           <span className="text-zinc-500 font-bold">vs</span>
           <div className="flex items-center gap-2">
             <div
-              className={classNames('w-2 h-2 rounded-full', {
-                'bg-red-500': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                'bg-blue-500': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                'bg-green-500': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
-              })}
+              className={classNames('w-2 h-2 rounded-full', defenseColor.dot)}
             />
             <span
-              className={classNames('font-bold text-base', {
-                'text-red-500': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                'text-blue-500': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                'text-green-500': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
-              })}>
+              className={classNames('font-bold text-base', defenseColor.text)}>
               {game.missionVersion.defenseSideName}
             </span>
             <span className="text-zinc-500 text-sm">({game.missionVersion.defenseSideSlots})</span>
-            <span
-              className={classNames('px-2 py-0.5 rounded text-xs font-semibold', {
-                'bg-red-500/20 text-red-400': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                'bg-blue-500/20 text-blue-400': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                'bg-green-500/20 text-green-400': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
-              })}>
-              {game.missionVersion.defenseSideType === MissionGameSide.RED ? 'Атака' : 'Оборона'}
-            </span>
+            <span className={classNames('px-2 py-0.5 rounded text-xs font-semibold', defenseColor.soft)}>Оборона</span>
           </div>
         </div>
       </Card>
@@ -138,11 +155,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
           {/* Side 1 Units */}
           <div className="flex flex-col gap-2.5">
             <div
-              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
-                'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
-                'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-                'text-green-400 border-green-500/30': game.missionVersion.attackSideType === MissionGameSide.GREEN,
-              })}>
+              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', attackColor.accent)}>
               {game.missionVersion.attackSideName}
             </div>
             {game.missionVersion.weaponry
@@ -150,12 +163,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
               .map((unit, idx) => (
                 <div key={idx} className=" text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
                   <span
-                    className={cn('text-sm', {
-                      'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
-                      'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-                      'text-green-400 border-green-500/30':
-                        game.missionVersion.attackSideType === MissionGameSide.GREEN,
-                    })}>
+                    className={cn('text-sm', attackColor.accent)}>
                     {unit.name}
                   </span>{' '}
                   <span className="text-zinc-500">x{unit.count}</span>{' '}
@@ -167,11 +175,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
           {/* Side 2 Units */}
           <div className="flex flex-col gap-2.5">
             <div
-              className={classNames('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
-                'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                'text-blue-400 border-blue-500/30': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                'text-green-400 border-green-500/30': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
-              })}>
+              className={classNames('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', defenseColor.accent)}>
               {game.missionVersion.defenseSideName}
             </div>
             {game.missionVersion.weaponry
@@ -182,13 +186,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
                   className="flex items-center justify-between text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
                   <div className="flex-1 min-w-0">
                     <span
-                      className={cn({
-                        'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                        'text-blue-400 border-blue-500/30':
-                          game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                        'text-green-400 border-green-500/30':
-                          game.missionVersion.defenseSideType === MissionGameSide.GREEN,
-                      })}>
+                      className={cn(defenseColor.accent)}>
                       {unit.name}
                     </span>{' '}
                     <span className="text-zinc-500">x{unit.count}</span>{' '}
@@ -206,11 +204,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <div
-              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
-                'text-red-400 border-red-500/30': game.missionVersion.attackSideType === MissionGameSide.RED,
-                'text-blue-400 border-blue-500/30': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-                'text-green-400 border-green-500/30': game.missionVersion.attackSideType === MissionGameSide.GREEN,
-              })}>
+              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', attackColor.accent)}>
               {game.missionVersion.attackSideName}
             </div>
             <UniformSection
@@ -223,11 +217,7 @@ export const MissionDetails: FC<{ game: Game }> = ({ game }) => {
 
           <div className="flex flex-col gap-2">
             <div
-              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', {
-                'text-red-400 border-red-500/30': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                'text-blue-400 border-blue-500/30': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                'text-green-400 border-green-500/30': game.missionVersion.defenseSideType === MissionGameSide.GREEN,
-              })}>
+              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', defenseColor.accent)}>
               {game.missionVersion.defenseSideName}
             </div>
             <UniformSection

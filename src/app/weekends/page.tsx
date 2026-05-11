@@ -3,13 +3,31 @@
 import { Layout } from '@/widgets/layout';
 import { WeekendAnnouncement } from '@/entities/weekend/weekend-announcement/ui';
 import { observer } from 'mobx-react-lite';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { model } from './model';
 import { View } from '@/features/view';
+import { api } from '@/shared/sdk';
+import { Side } from '@/shared/sdk/types';
 
 const WeekendsPage = observer(() => {
+  const [sidesById, setSidesById] = useState<Record<string, Side>>({});
+
   useEffect(() => {
     model.init();
+  }, []);
+
+  useEffect(() => {
+    const loadSides = async () => {
+      try {
+        const sidesRes = await api.findSides({ take: 1000, skip: 0 });
+        const sides = sidesRes.data.data ?? [];
+        setSidesById(Object.fromEntries(sides.map(side => [side.id, side])));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    void loadSides();
   }, []);
 
   return (
@@ -32,7 +50,7 @@ const WeekendsPage = observer(() => {
             }>
             <div className="flex flex-col gap-12">
               {model.weekends.pagination.data.map(weekend => (
-                <WeekendAnnouncement key={weekend.id} weekend={weekend} />
+                <WeekendAnnouncement key={weekend.id} weekend={weekend} sidesById={sidesById} />
               ))}
             </div>
           </View.Condition>

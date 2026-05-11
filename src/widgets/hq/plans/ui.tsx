@@ -411,7 +411,11 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
                       <MissionImagePanel game={selectedGame} />
                       <div className="lg:w-3/5">
-                        <MissionDetails game={selectedGame} />
+                        <MissionDetails
+                          game={selectedGame}
+                          attackSideType={attackSide?.type}
+                          defenseSideType={defenseSide?.type}
+                        />
                       </div>
                     </div>
                   </div>

@@ -4,12 +4,13 @@ import { FC, useState } from 'react';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { Tab } from '@/shared/ui/moleculas/tab';
-import { Weekend } from '@/shared/sdk/types';
+import { Side, Weekend } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 
 export const WeekendAnnouncement: FC<{
   weekend: Weekend;
-}> = ({ weekend }) => {
+  sidesById: Record<string, Side>;
+}> = ({ weekend, sidesById }) => {
   const [activeGameIndex, setActiveGameIndex] = useState(0);
 
   // Sort games by position to ensure correct order
@@ -57,7 +58,11 @@ export const WeekendAnnouncement: FC<{
 
                 {/* Right Panel - Mission Details */}
                 <div className="lg:w-3/5">
-                  <MissionDetails game={activeGame} />
+                  <MissionDetails
+                    game={activeGame}
+                    attackSideType={sidesById[activeGame.attackSideId]?.type}
+                    defenseSideType={sidesById[activeGame.defenseSideId]?.type}
+                  />
                 </div>
               </div>
             </div>
