@@ -222,6 +222,17 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     () => selectedPlan?.slots.reduce((sum, slot) => sum + normalizeSlotCount(slot.slotCount), 0) ?? 0,
     [selectedPlan],
   );
+  const totalOccupied = useMemo(
+    () =>
+      selectedPlan?.slots.reduce((sum, slot) => {
+        if (!slot.assignedSquads.length) {
+          return sum;
+        }
+
+        return sum + normalizeSlotCount(slot.slotCount);
+      }, 0) ?? 0,
+    [selectedPlan],
+  );
   const visiblePlans = useMemo(() => plans.slice(0, visiblePlansCount), [plans, visiblePlansCount]);
 
   useEffect(() => {
@@ -233,7 +244,6 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     setVisiblePlansCount(prev => Math.max(prev, activePlanIndex + 1, PLANS_PAGE_SIZE));
   }, [activePlanId, plans]);
 
-  const totalOccupied = totalSlots;
   const selectedGame = selectedPlan?.gameId ? gamesById[selectedPlan.gameId] : undefined;
   const attackSide = selectedGame?.attackSideId ? sidesById[selectedGame.attackSideId] : undefined;
   const defenseSide = selectedGame?.defenseSideId ? sidesById[selectedGame.defenseSideId] : undefined;
