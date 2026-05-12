@@ -21,6 +21,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Select } from '@/shared/ui/atoms/select';
+import { Tooltip } from '@/shared/ui/moleculas/tooltip';
 import { cn } from '@/shared/utils/cn';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
@@ -30,7 +31,16 @@ import { MessageEditor } from '@/features/chat/editor';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { getTokensFromLocalStorage } from '@/shared/utils/session';
 import dayjs from 'dayjs';
-import { ChevronDownIcon, ChevronUpIcon, CopyIcon, LoaderIcon, ShieldIcon, TrashIcon, UserIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CopyIcon,
+  EyeIcon,
+  LoaderIcon,
+  ShieldIcon,
+  TrashIcon,
+  UserIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -718,6 +728,34 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                       void updateSlotField(slot.id, { name: event.target.value || null })
                                     }
                                   />
+                                  {(slot.name ?? '').trim() ? (
+                                    <Tooltip
+                                      trigger={
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="ghost"
+                                          className="shrink-0 px-2"
+                                          aria-label="Переглянути повний текст типології">
+                                          <EyeIcon className="size-4" />
+                                        </Button>
+                                      }>
+                                      <span className="block max-h-48 max-w-[min(24rem,85vw)] overflow-y-auto whitespace-pre-wrap wrap-break-word text-left">
+                                        {slot.name ?? ''}
+                                      </span>
+                                    </Tooltip>
+                                  ) : (
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      className="shrink-0 px-2 opacity-40"
+                                      disabled
+                                      title="Немає тексту для перегляду"
+                                      aria-label="Немає тексту для перегляду">
+                                      <EyeIcon className="size-4" />
+                                    </Button>
+                                  )}
                                   <Button
                                     type="button"
                                     size="sm"
