@@ -9,6 +9,7 @@ export const ROUTES = {
   rules: '/rules',
   weekends: '/weekends',
   squads: '/squads',
+  squadById: (id: string) => `/squads/${id}`,
   replays: '/replays',
   missions: {
     root: '/missions',

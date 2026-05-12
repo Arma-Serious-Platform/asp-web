@@ -310,6 +310,10 @@ class ApiModel {
     });
   };
 
+  findSquadById = async (squadId: string) => {
+    return await this.instance.get<Squad>(`/squads/${squadId}`);
+  };
+
   inviteToSquad = async (dto: InviteToSquadDto) => {
     return await this.instance.post<SquadInvitation>(`/squads/invite/${dto.userId}`);
   };

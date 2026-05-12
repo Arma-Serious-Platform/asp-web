@@ -66,7 +66,7 @@ const SquadListingCard: FC<{
             </div>
 
             <div className="flex flex-col gap-2 items-end">
-              <Link href={`${ROUTES.squads}/${squad.id}`} className="block text-[11px] font-medium">
+              <Link href={ROUTES.squadById(squad.id)} className="block text-[11px] font-medium">
                 <Button
                   size="sm"
                   variant="secondary"
