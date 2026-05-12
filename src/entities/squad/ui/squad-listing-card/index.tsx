@@ -29,7 +29,7 @@ const SquadListingCard: FC<{
         </div>
         <div className="flex flex-col items-center gap-2 md:w-auto md:flex-shrink-0">
           <div className="overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-md shadow-black/50">
-            <Image
+            <img
               src={squad.logo?.url || '/images/avatar.jpg'}
               className="h-28 w-28 object-cover transition-transform duration-300 group-hover:scale-105 sm:h-32 sm:w-32"
               width={128}

@@ -88,7 +88,7 @@ class ApiModel {
 
   private setupInterceptors() {
     this.instance.interceptors.request.use(request => {
-      const token = getTokensFromLocalStorage().token;
+      const token = getTokensFromLocalStorage()?.token;
 
       if (token) {
         request.headers['Authorization'] = `Bearer ${token}`;
@@ -100,7 +100,7 @@ class ApiModel {
     createAuthRefreshInterceptor(
       this.instance,
       async failedRequest => {
-        const storedRefreshToken = getTokensFromLocalStorage().refreshToken || '';
+        const storedRefreshToken = getTokensFromLocalStorage()?.refreshToken || '';
 
         // Do not try to refresh on refresh/logout endpoints or when there is no refresh token
         if ((failedRequest?.config?.url && failedRequest.config.url.includes('refresh-token')) || !storedRefreshToken) {

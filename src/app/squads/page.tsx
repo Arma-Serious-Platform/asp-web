@@ -1,6 +1,10 @@
+'use client';
+
 import { LoaderIcon } from 'lucide-react';
 
-import { FC, Suspense } from 'react';
+import { FC, useEffect } from 'react';
+
+import { observer } from 'mobx-react-lite';
 
 import { Layout } from '@/widgets/layout';
 
@@ -23,12 +27,15 @@ const NoSquadsInformer: FC<{
   </div>
 );
 
-const SquadsPage = async () => {
-  const squads = await model.squads.init();
+const SquadsPage = observer(() => {
+  useEffect(() => {
+    void model.squads.init();
+  }, []);
 
-  const blueSquads = squads.filter(squad => squad.side?.type === SideType.BLUE);
-  const redSquads = squads.filter(squad => squad.side?.type === SideType.RED);
-  const unassignedSquads = squads.filter(squad => squad.side?.type === SideType.UNASSIGNED);
+  const isInitialLoading = model.squads.pagination.preloader.isLoading && model.squads.pagination.data.length === 0;
+  const blueSquads = model.squads.blueSquads;
+  const redSquads = model.squads.redSquads;
+  const unassignedSquads = model.squads.unassignedSquads;
 
   return (
     <Layout showHero className="w-full mx-auto">
@@ -46,7 +53,11 @@ const SquadsPage = async () => {
           <div className="pointer-events-none absolute -left-20 -top-32 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
           <div className="pointer-events-none absolute -right-24 -bottom-40 h-72 w-72 rounded-full bg-red-500/10 blur-3xl" />
 
-          <Suspense fallback={<LoaderIcon className="h-5 w-5 animate-spin text-zinc-300" />}>
+          {isInitialLoading ? (
+            <div className="relative flex min-h-[200px] items-center justify-center py-12">
+              <LoaderIcon className="h-8 w-8 animate-spin text-zinc-300" />
+            </div>
+          ) : (
             <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch">
               {/* BLUEFOR side */}
               <section className="flex w-full flex-col gap-3">
@@ -104,11 +115,11 @@ const SquadsPage = async () => {
                 </div>
               </section>
             </div>
-          </Suspense>
+          )}
         </div>
 
         {/* Independent squads */}
-        {unassignedSquads.length > 0 && (
+        {!isInitialLoading && unassignedSquads.length > 0 && (
           <section className="mb-4 mt-1 flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <span className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-zinc-500/60 to-transparent" />
@@ -129,6 +140,6 @@ const SquadsPage = async () => {
       </div>
     </Layout>
   );
-};
+});
 
 export default SquadsPage;
