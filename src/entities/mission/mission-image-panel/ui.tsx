@@ -11,7 +11,8 @@ import { UserNicknameText } from '@/entities/user/ui/user-text';
 
 export const MissionImagePanel: FC<{
   game: Game;
-}> = ({ game }) => {
+  showDescription?: boolean;
+}> = ({ game, showDescription = true }) => {
   return (
     <div className="lg:w-2/5 flex flex-col gap-4">
       <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-white/10 group">
@@ -57,14 +58,15 @@ export const MissionImagePanel: FC<{
         </div>
       </Card>
 
-      {/* Description Card */}
-      <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <InfoIcon className="size-4 text-lime-500" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Опис сценарію</span>
-        </div>
-        <p className="text-sm text-zinc-200 leading-relaxed">{game.mission.description}</p>
-      </Card>
+      {showDescription && (
+        <Card>
+          <div className="flex items-center gap-2 mb-3">
+            <InfoIcon className="size-4 text-lime-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Опис сценарію</span>
+          </div>
+          <p className="text-sm text-zinc-200 leading-relaxed">{game.mission.description}</p>
+        </Card>
+      )}
     </div>
   );
 };
