@@ -27,9 +27,10 @@ import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { MessageEditor } from '@/features/chat/editor';
+import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { getTokensFromLocalStorage } from '@/shared/utils/session';
 import dayjs from 'dayjs';
-import { CalendarIcon, ChevronDownIcon, ChevronUpIcon, LoaderIcon, ShieldIcon, UserIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon, LoaderIcon, ShieldIcon, TrashIcon, UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -65,6 +66,21 @@ const getGameHumanLabel = (date?: string, position?: number) => {
   return `${weekDay} ${normalizedPosition}-а`;
 };
 
+const copyToClipboard = async (text: string, options?: { successMessage?: string; emptyErrorMessage?: string }) => {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    toast.error(options?.emptyErrorMessage ?? 'Нічого копіювати');
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(trimmed);
+    toast.success(options?.successMessage ?? 'Скопійовано');
+  } catch {
+    toast.error('Не вдалося скопіювати');
+  }
+};
+
 export function HqPlans({ activePlanId }: HqPlansProps) {
   const router = useRouter();
   const currentUser = session.user.user;
@@ -80,6 +96,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
   const [isCommentSending, setIsCommentSending] = useState(false);
   const [visiblePlansCount, setVisiblePlansCount] = useState(PLANS_PAGE_SIZE);
   const socketRef = useRef<Socket | null>(null);
+  const deleteHqCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
 
   const hasAccess = Boolean(
     currentUser?.squad && [SideType.BLUE, SideType.RED].includes(currentUser?.squad?.side?.type as SideType),
@@ -295,6 +312,21 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     }
   };
 
+  const canDeleteHeadquartersComment = (comment: HeadquartersComment) =>
+    isAdmin || Boolean(currentUser?.id && comment.userId === currentUser.id);
+
+  const confirmDeleteHeadquartersComment = async (commentId: string) => {
+    try {
+      await api.deleteHeadquartersComment(commentId);
+      setComments(prev => prev.filter(item => item.id !== commentId));
+      toast.success('Коментар видалено');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося видалити коментар');
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const gamePlanId = selectedPlan?.id;
     if (!gamePlanId) {
@@ -396,6 +428,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
 
   return (
     <div className="container mx-auto my-6 flex flex-col gap-4 px-4">
+      <DeleteMissionCommentModal model={deleteHqCommentModel} onConfirm={confirmDeleteHeadquartersComment} />
       <div className="flex items-center gap-2 border-b border-white/10 pb-2">
         <h1 className="mr-4 text-lg font-semibold text-zinc-100">Штаб</h1>
         <Link href="/hq/plans">
@@ -455,9 +488,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                           </div>
                           <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-zinc-300">
                             <ShieldIcon className="size-3.5" />
-                            <span>
-                              {getGameHumanLabel(plan.game?.date, plan.game?.position)}
-                            </span>
+                            <span>{getGameHumanLabel(plan.game?.date, plan.game?.position)}</span>
                           </div>
                         </div>
                         <div className="shrink-0 text-right text-xs">
@@ -477,10 +508,12 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                         <div className="flex items-center gap-1.5">
                           <span className={cn('size-2 rounded-full', attackAppearance.dot)} />
                           <span className={cn('font-semibold', attackAppearance.text)}>
-                            {(game?.missionVersion?.attackSideName ?? sidesById[game?.attackSideId || '']?.name ?? '—') +
-                              ` (${game?.missionVersion?.attackSideSlots ?? '-'})`}
+                            {(game?.missionVersion?.attackSideName ??
+                              sidesById[game?.attackSideId || '']?.name ??
+                              '—') + ` (${game?.missionVersion?.attackSideSlots ?? '-'})`}
                           </span>
-                          <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', attackAppearance.badge)}>
+                          <span
+                            className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', attackAppearance.badge)}>
                             Атака
                           </span>
                         </div>
@@ -488,10 +521,12 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                         <div className="flex items-center gap-1.5">
                           <span className={cn('size-2 rounded-full', defenseAppearance.dot)} />
                           <span className={cn('font-semibold', defenseAppearance.text)}>
-                            {(game?.missionVersion?.defenseSideName ?? sidesById[game?.defenseSideId || '']?.name ?? '—') +
-                              ` (${game?.missionVersion?.defenseSideSlots ?? '-'})`}
+                            {(game?.missionVersion?.defenseSideName ??
+                              sidesById[game?.defenseSideId || '']?.name ??
+                              '—') + ` (${game?.missionVersion?.defenseSideSlots ?? '-'})`}
                           </span>
-                          <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', defenseAppearance.badge)}>
+                          <span
+                            className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', defenseAppearance.badge)}>
                             Оборона
                           </span>
                         </div>
@@ -593,7 +628,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
 
               <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                 <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                  Посилання на план | (
+                  Маркери або посилання на план |{' '}
                   <a
                     className="text-xs tracking-normal underline"
                     href="https://arma-plan-maker.com"
@@ -601,19 +636,36 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                     rel="noopener noreferrer">
                     Arma Plan Maker
                   </a>
-                  )
                 </div>
-                <Input
-                  value={selectedPlan.planUrl ?? ''}
-                  disabled={!canEditCommanderFields}
-                  placeholder="https://..."
-                  onChange={event => replacePlan({ ...selectedPlan, planUrl: event.target.value })}
-                  onBlur={event => {
-                    if (canEditCommanderFields) {
-                      void updatePlanUrl(event.target.value.trim());
-                    }
-                  }}
-                />
+                <div className="flex min-w-0 items-center gap-2">
+                  <Input
+                    className="min-w-0 flex-1"
+                    value={selectedPlan.planUrl ?? ''}
+                    disabled={!canEditCommanderFields}
+                    placeholder="https://..."
+                    onChange={event => replacePlan({ ...selectedPlan, planUrl: event.target.value })}
+                    onBlur={event => {
+                      if (canEditCommanderFields) {
+                        void updatePlanUrl(event.target.value.trim());
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="shrink-0 px-2"
+                    disabled={!selectedPlan.planUrl?.trim()}
+                    title="Копіювати посилання"
+                    aria-label="Копіювати посилання на план"
+                    onClick={() =>
+                      void copyToClipboard(selectedPlan.planUrl ?? '', {
+                        successMessage: 'Скопійовано',
+                      })
+                    }>
+                    <CopyIcon className="size-4" />
+                  </Button>
+                </div>
               </div>
 
               <div className="rounded-lg border border-white/10 bg-black/20 p-3">
@@ -655,15 +707,33 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                             <tr key={slot.id} className="border-b border-white/5 align-top">
                               <td className="px-2 py-2 text-zinc-100">{slot.slotNumber}</td>
                               <td className="px-2 py-2">
-                                <Input
-                                  value={slot.name ?? ''}
-                                  disabled={!canEditCommanderFields}
-                                  onChange={event => replaceSlot({ ...slot, name: event.target.value })}
-                                  onBlur={event =>
-                                    canEditCommanderFields &&
-                                    void updateSlotField(slot.id, { name: event.target.value || null })
-                                  }
-                                />
+                                <div className="flex min-w-0 items-center gap-2">
+                                  <Input
+                                    className="min-w-0 flex-1"
+                                    value={slot.name ?? ''}
+                                    disabled={!canEditCommanderFields}
+                                    onChange={event => replaceSlot({ ...slot, name: event.target.value })}
+                                    onBlur={event =>
+                                      canEditCommanderFields &&
+                                      void updateSlotField(slot.id, { name: event.target.value || null })
+                                    }
+                                  />
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    className="shrink-0 px-2"
+                                    disabled={!(slot.name ?? '').trim()}
+                                    title="Копіювати типологію"
+                                    aria-label="Копіювати типологію"
+                                    onClick={() =>
+                                      void copyToClipboard(slot.name ?? '', {
+                                        successMessage: 'Скопійовано',
+                                      })
+                                    }>
+                                    <CopyIcon className="size-4" />
+                                  </Button>
+                                </div>
                               </td>
                               <td className="px-2 py-2">
                                 <Input
@@ -808,21 +878,35 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                   <ul className="mb-3 flex flex-col gap-2">
                     {comments.map(comment => (
                       <li key={comment.id} className="rounded-md border border-white/10 bg-black/30 p-2">
-                        <div className="mb-1 flex items-center gap-2">
-                          <Avatar
-                            size="sm"
-                            toProfileId={comment.user?.id}
-                            src={comment.user?.avatar?.url ?? undefined}
-                            alt={comment.user?.nickname ?? ''}
-                          />
-                          {comment.user ? (
-                            <UserNicknameText user={comment.user as User} />
-                          ) : (
-                            <span className="text-sm text-zinc-300">Користувач</span>
+                        <div className="mb-1 flex items-start gap-2">
+                          <div className="flex min-w-0 flex-1 items-center gap-2">
+                            <Avatar
+                              size="sm"
+                              toProfileId={comment.user?.id}
+                              src={comment.user?.avatar?.url ?? undefined}
+                              alt={comment.user?.nickname ?? ''}
+                            />
+                            {comment.user ? (
+                              <UserNicknameText user={comment.user as User} />
+                            ) : (
+                              <span className="text-sm text-zinc-300">Користувач</span>
+                            )}
+                            <span className="text-xs text-zinc-500">
+                              {dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}
+                            </span>
+                          </div>
+                          {canDeleteHeadquartersComment(comment) && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="shrink-0 px-2"
+                              title="Видалити коментар"
+                              aria-label="Видалити коментар"
+                              onClick={() => deleteHqCommentModel.visibility.open({ comment })}>
+                              <TrashIcon className="size-4 text-red-400" />
+                            </Button>
                           )}
-                          <span className="text-xs text-zinc-500">
-                            {dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}
-                          </span>
                         </div>
                         <MessageContent message={comment.message as MissionCommentMessage} />
                       </li>
