@@ -21,7 +21,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Select } from '@/shared/ui/atoms/select';
-import { Tooltip } from '@/shared/ui/moleculas/tooltip';
+import { TooltipContent, TooltipPrimitive, TooltipProvider, TooltipTrigger } from '@/shared/ui/moleculas/tooltip';
 import { cn } from '@/shared/utils/cn';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
@@ -31,20 +31,11 @@ import { MessageEditor } from '@/features/chat/editor';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { getTokensFromLocalStorage } from '@/shared/utils/session';
 import dayjs from 'dayjs';
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  CopyIcon,
-  EyeIcon,
-  LoaderIcon,
-  ShieldIcon,
-  TrashIcon,
-  UserIcon,
-} from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon, LoaderIcon, ShieldIcon, TrashIcon, UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { io, Socket } from 'socket.io-client';
 
@@ -63,6 +54,32 @@ const weekDayByIndex: Record<number, string> = {
   5: "П'ятниця",
   6: 'Субота',
 };
+
+const joinSquadTags = (squads: Pick<Squad, 'tag'>[]) => squads.map(s => s.tag).join(', ');
+
+const tableFieldTooltipContentClass =
+  'block max-h-48 max-w-[min(24rem,85vw)] overflow-y-auto whitespace-pre-wrap wrap-break-word text-left';
+
+function TableCellTooltip({ text, children }: { text: string; children: ReactNode }) {
+  const display = text.trim() ? text : '—';
+  return (
+    <TooltipProvider delay={250}>
+      <TooltipPrimitive>
+        <TooltipTrigger
+          closeOnClick={false}
+          render={props => (
+            <div {...props} className={cn('block w-full min-w-0 text-left', props.className)}>
+              {children}
+            </div>
+          )}
+        />
+        <TooltipContent>
+          <span className={tableFieldTooltipContentClass}>{display}</span>
+        </TooltipContent>
+      </TooltipPrimitive>
+    </TooltipProvider>
+  );
+}
 
 const getGameHumanLabel = (date?: string, position?: number) => {
   const normalizedPosition = typeof position === 'number' ? position + 1 : null;
@@ -648,18 +665,6 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                   </a>
                 </div>
                 <div className="flex min-w-0 items-center gap-2">
-                  <Input
-                    className="min-w-0 flex-1"
-                    value={selectedPlan.planUrl ?? ''}
-                    disabled={!canEditCommanderFields}
-                    placeholder="https://..."
-                    onChange={event => replacePlan({ ...selectedPlan, planUrl: event.target.value })}
-                    onBlur={event => {
-                      if (canEditCommanderFields) {
-                        void updatePlanUrl(event.target.value.trim());
-                      }
-                    }}
-                  />
                   <Button
                     type="button"
                     size="sm"
@@ -675,6 +680,18 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                     }>
                     <CopyIcon className="size-4" />
                   </Button>
+                  <Input
+                    className="min-w-0 flex-1"
+                    value={selectedPlan.planUrl ?? ''}
+                    disabled={!canEditCommanderFields}
+                    placeholder="https://..."
+                    onChange={event => replacePlan({ ...selectedPlan, planUrl: event.target.value })}
+                    onBlur={event => {
+                      if (canEditCommanderFields) {
+                        void updatePlanUrl(event.target.value.trim());
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
@@ -695,17 +712,17 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                 </button>
                 {isSlotsOpen && (
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1200px] border-collapse text-left text-xs">
+                    <table className="w-fit border-collapse text-left text-xs">
                       <thead>
                         <tr className="border-b border-white/10 text-zinc-400">
                           <th className="px-2 py-2">Відділення</th>
-                          <th className="px-2 py-2">Типологія</th>
-                          <th className="px-2 py-2">Техніка, озброєння</th>
-                          <th className="px-2 py-2">Слоти</th>
-                          <th className="px-2 py-2">Бронювання</th>
+                          <th className="px-2 py-2 min-w-[380px]">Типологія</th>
+                          <th className="px-2 py-2 min-w-[400px]">Техніка, озброєння</th>
+                          <th className="px-2 py-2 min-w-[50px]">Слоти</th>
+                          <th className="px-2 py-2 min-w-[170px]">Бронювання</th>
                           <th className="px-2 py-2">Бажаючі</th>
-                          <th className="px-2 py-2">Старт</th>
-                          <th className="px-2 py-2">Коментар</th>
+                          <th className="px-2 py-2 min-w-[200px]">Спавн</th>
+                          <th className="px-2 py-2 min-w-[400px]">Коментар</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -715,11 +732,15 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                           );
                           return (
                             <tr key={slot.id} className="border-b border-white/5 align-top">
-                              <td className="px-2 py-2 text-zinc-100">{slot.slotNumber}</td>
+                              <td className="px-2 py-2 text-zinc-100">
+                                <TableCellTooltip text={String(slot.slotNumber)}>
+                                  <span>{slot.slotNumber}</span>
+                                </TableCellTooltip>
+                              </td>
                               <td className="px-2 py-2">
-                                <div className="flex min-w-0 items-center gap-2">
+                                <TableCellTooltip text={slot.name ?? ''}>
                                   <Input
-                                    className="min-w-0 flex-1"
+                                    className="min-w-0 w-full"
                                     value={slot.name ?? ''}
                                     disabled={!canEditCommanderFields}
                                     onChange={event => replaceSlot({ ...slot, name: event.target.value })}
@@ -728,95 +749,91 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                       void updateSlotField(slot.id, { name: event.target.value || null })
                                     }
                                   />
-                                  {(slot.name ?? '').trim() ? (
-                                    <Tooltip
-                                      trigger={
-                                        <Button
-                                          type="button"
-                                          size="sm"
-                                          variant="ghost"
-                                          className="shrink-0 px-2"
-                                          aria-label="Переглянути повний текст типології">
-                                          <EyeIcon className="size-4" />
-                                        </Button>
-                                      }>
-                                      <span className="block max-h-48 max-w-[min(24rem,85vw)] overflow-y-auto whitespace-pre-wrap wrap-break-word text-left">
-                                        {slot.name ?? ''}
-                                      </span>
-                                    </Tooltip>
-                                  ) : (
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="ghost"
-                                      className="shrink-0 px-2 opacity-40"
-                                      disabled
-                                      title="Немає тексту для перегляду"
-                                      aria-label="Немає тексту для перегляду">
-                                      <EyeIcon className="size-4" />
-                                    </Button>
-                                  )}
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    className="shrink-0 px-2"
-                                    disabled={!(slot.name ?? '').trim()}
-                                    title="Копіювати типологію"
-                                    aria-label="Копіювати типологію"
-                                    onClick={() =>
-                                      void copyToClipboard(slot.name ?? '', {
-                                        successMessage: 'Скопійовано',
-                                      })
-                                    }>
-                                    <CopyIcon className="size-4" />
-                                  </Button>
-                                </div>
+                                </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
-                                <Input
-                                  value={slot.weaponry ?? ''}
-                                  disabled={!canEditCommanderFields}
-                                  onChange={event => replaceSlot({ ...slot, weaponry: event.target.value })}
-                                  onBlur={event =>
-                                    canEditCommanderFields &&
-                                    void updateSlotField(slot.id, { weaponry: event.target.value || null })
-                                  }
-                                />
-                              </td>
-                              <td className="px-2 py-2">
-                                <NumericInput
-                                  value={String(slot.slotCount ?? 0)}
-                                  disabled={!canEditCommanderFields}
-                                  onChange={event => {
-                                    const value = event.target.value;
-                                    replaceSlot({ ...slot, slotCount: Number(value) || 0 });
-                                  }}
-                                  onBlur={event => {
-                                    if (canEditCommanderFields) {
-                                      const value = Number(event.target.value);
-                                      void updateSlotField(slot.id, {
-                                        slotCount: Number.isFinite(value) ? value : null,
-                                      });
+                                <TableCellTooltip text={slot.weaponry ?? ''}>
+                                  <Input
+                                    className="min-w-0 w-full"
+                                    value={slot.weaponry ?? ''}
+                                    disabled={!canEditCommanderFields}
+                                    onChange={event => replaceSlot({ ...slot, weaponry: event.target.value })}
+                                    onBlur={event =>
+                                      canEditCommanderFields &&
+                                      void updateSlotField(slot.id, { weaponry: event.target.value || null })
                                     }
-                                  }}
-                                />
+                                  />
+                                </TableCellTooltip>
+                              </td>
+                              <td className="px-2 py-2">
+                                <TableCellTooltip text={String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))}>
+                                  <NumericInput
+                                    className="min-w-0 w-full"
+                                    min={0}
+                                    max={99}
+                                    maxLength={2}
+                                    value={String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))}
+                                    disabled={!canEditCommanderFields}
+                                    onChange={event => {
+                                      const value = event.target.value;
+                                      const n = Number(value);
+                                      const clamped = Number.isFinite(n) ? Math.min(99, Math.max(0, n)) : 0;
+                                      replaceSlot({ ...slot, slotCount: clamped });
+                                    }}
+                                    onBlur={event => {
+                                      if (canEditCommanderFields) {
+                                        const n = Number(event.target.value);
+                                        const clamped = Number.isFinite(n)
+                                          ? Math.min(99, Math.max(0, Math.floor(n)))
+                                          : 0;
+                                        void updateSlotField(slot.id, {
+                                          slotCount: clamped,
+                                        });
+                                      }
+                                    }}
+                                  />
+                                </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
                                 {canEditCommanderFields ? (
-                                  <Select
-                                    multiple
-                                    localSearch
-                                    placeholder="Оберіть загони"
-                                    options={squadOptions}
-                                    value={slot.assignedSquads.map(squad => squad.id)}
-                                    onChange={value => {
-                                      void syncAssignedSquads(slot, value);
-                                    }}
-                                  />
+                                  <TableCellTooltip text={joinSquadTags(slot.assignedSquads)}>
+                                    <Select
+                                      multiple
+                                      localSearch
+                                      placeholder="Оберіть загони"
+                                      options={squadOptions}
+                                      value={slot.assignedSquads.map(squad => squad.id)}
+                                      onChange={value => {
+                                        void syncAssignedSquads(slot, value);
+                                      }}
+                                    />
+                                  </TableCellTooltip>
                                 ) : (
+                                  <TableCellTooltip text={joinSquadTags(slot.assignedSquads)}>
+                                    <div className="flex flex-wrap gap-2">
+                                      {slot.assignedSquads.map(squad => (
+                                        <div
+                                          key={squad.id}
+                                          className="flex items-center gap-1 rounded-md border border-white/10 bg-black/30 px-2 py-1">
+                                          <Image
+                                            src={squadsById[squad.id]?.logo?.url || '/images/avatar.jpg'}
+                                            width={16}
+                                            height={16}
+                                            alt={squad.tag}
+                                            className="size-4 rounded-full object-cover"
+                                            unoptimized={!squadsById[squad.id]?.logo?.url?.startsWith('https')}
+                                          />
+                                          <span className="text-xs text-zinc-200">{squad.tag}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </TableCellTooltip>
+                                )}
+                              </td>
+                              <td className="px-2 py-2">
+                                <TableCellTooltip text={joinSquadTags(slot.wantedSquads)}>
                                   <div className="flex flex-wrap gap-2">
-                                    {slot.assignedSquads.map(squad => (
+                                    {slot.wantedSquads.map(squad => (
                                       <div
                                         key={squad.id}
                                         className="flex items-center gap-1 rounded-md border border-white/10 bg-black/30 px-2 py-1">
@@ -832,26 +849,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                       </div>
                                     ))}
                                   </div>
-                                )}
-                              </td>
-                              <td className="px-2 py-2">
-                                <div className="flex flex-wrap gap-2">
-                                  {slot.wantedSquads.map(squad => (
-                                    <div
-                                      key={squad.id}
-                                      className="flex items-center gap-1 rounded-md border border-white/10 bg-black/30 px-2 py-1">
-                                      <Image
-                                        src={squadsById[squad.id]?.logo?.url || '/images/avatar.jpg'}
-                                        width={16}
-                                        height={16}
-                                        alt={squad.tag}
-                                        className="size-4 rounded-full object-cover"
-                                        unoptimized={!squadsById[squad.id]?.logo?.url?.startsWith('https')}
-                                      />
-                                      <span className="text-xs text-zinc-200">{squad.tag}</span>
-                                    </div>
-                                  ))}
-                                </div>
+                                </TableCellTooltip>
                                 {currentSquad && (
                                   <Button
                                     size="sm"
@@ -873,26 +871,32 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                 )}
                               </td>
                               <td className="px-2 py-2">
-                                <Input
-                                  value={slot.spawnPoint ?? ''}
-                                  disabled={!canEditCommanderFields}
-                                  onChange={event => replaceSlot({ ...slot, spawnPoint: event.target.value })}
-                                  onBlur={event =>
-                                    canEditCommanderFields &&
-                                    void updateSlotField(slot.id, { spawnPoint: event.target.value || null })
-                                  }
-                                />
+                                <TableCellTooltip text={slot.spawnPoint ?? ''}>
+                                  <Input
+                                    className="min-w-0 w-full"
+                                    value={slot.spawnPoint ?? ''}
+                                    disabled={!canEditCommanderFields}
+                                    onChange={event => replaceSlot({ ...slot, spawnPoint: event.target.value })}
+                                    onBlur={event =>
+                                      canEditCommanderFields &&
+                                      void updateSlotField(slot.id, { spawnPoint: event.target.value || null })
+                                    }
+                                  />
+                                </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
-                                <Input
-                                  value={slot.comment ?? ''}
-                                  disabled={!canEditCommanderFields}
-                                  onChange={event => replaceSlot({ ...slot, comment: event.target.value })}
-                                  onBlur={event =>
-                                    canEditCommanderFields &&
-                                    void updateSlotField(slot.id, { comment: event.target.value || null })
-                                  }
-                                />
+                                <TableCellTooltip text={slot.comment ?? ''}>
+                                  <Input
+                                    className="min-w-0 w-full"
+                                    value={slot.comment ?? ''}
+                                    disabled={!canEditCommanderFields}
+                                    onChange={event => replaceSlot({ ...slot, comment: event.target.value })}
+                                    onBlur={event =>
+                                      canEditCommanderFields &&
+                                      void updateSlotField(slot.id, { comment: event.target.value || null })
+                                    }
+                                  />
+                                </TableCellTooltip>
                               </td>
                             </tr>
                           );
