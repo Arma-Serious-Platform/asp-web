@@ -57,6 +57,35 @@ const weekDayByIndex: Record<number, string> = {
 
 const joinSquadTags = (squads: Pick<Squad, 'tag'>[]) => squads.map(s => s.tag).join(', ');
 
+const planListSkeletonPulse = 'animate-pulse rounded bg-zinc-600/35';
+
+function PlanListSkeleton() {
+  return (
+    <div className="flex min-w-max gap-2" aria-busy="true" aria-live="polite">
+      <span className="sr-only">Завантаження списку планів</span>
+      {Array.from({ length: PLANS_PAGE_SIZE }, (_, i) => (
+        <div
+          key={i}
+          className="w-[300px] shrink-0 rounded-md border border-white/10 bg-black/30 px-2 py-2">
+          <div className={cn('mb-1.5 aspect-video w-full', planListSkeletonPulse)} />
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className={cn('h-3.5 w-[88%] max-w-[220px]', planListSkeletonPulse)} />
+              <div className={cn('h-3 w-full', planListSkeletonPulse)} />
+            </div>
+            <div className={cn('h-8 w-14 shrink-0', planListSkeletonPulse)} />
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <div className={cn('h-4 min-w-0 flex-1', planListSkeletonPulse)} />
+            <div className={cn('h-4 w-6 shrink-0', planListSkeletonPulse)} />
+            <div className={cn('h-4 min-w-0 flex-1', planListSkeletonPulse)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const tableFieldTooltipContentClass =
   'block max-h-48 max-w-[min(24rem,85vw)] overflow-y-auto whitespace-pre-wrap wrap-break-word text-left';
 
@@ -484,9 +513,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
             Список планів (2 тижні)
           </div>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8 text-zinc-500">
-              <LoaderIcon className="size-4 animate-spin" />
-            </div>
+            <PlanListSkeleton />
           ) : plans.length === 0 ? (
             <div className="px-2 py-2 text-sm text-zinc-500">Плани не знайдено</div>
           ) : (
