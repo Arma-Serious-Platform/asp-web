@@ -1,8 +1,7 @@
 import { FC } from 'react';
-import { WeekendGame } from '@/features/weekend/model';
 import { Button } from '@/shared/ui/atoms/button';
 import { Card } from '@/shared/ui/atoms/card';
-import { EyeIcon, DownloadIcon, CalendarIcon, InfoIcon, UserIcon } from 'lucide-react';
+import { EyeIcon, DownloadIcon, CalendarIcon, InfoIcon, UserIcon, UserRoundCog } from 'lucide-react';
 import { Game } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 import Link from 'next/link';
@@ -48,13 +47,27 @@ export const MissionImagePanel: FC<{
         </Button>
       </div>
 
-      {/* Author Card */}
+      {/* Author & game admin */}
       <Card className="p-3">
-        <div className="flex items-center gap-3">
-          <UserIcon className="size-4 text-lime-500" />
-          <div className="flex items-center gap-0.5">
-            <UserNicknameText user={game.mission.author} />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <UserIcon className="mt-0.5 size-4 shrink-0 text-lime-500" />
+            <div className="min-w-0">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Автор</div>
+              <UserNicknameText user={game.mission.author} className="text-sm text-zinc-200" />
+            </div>
           </div>
+          {game.admin && (
+            <div className="flex items-start gap-3 border-t border-white/10 pt-2">
+              <UserRoundCog className="mt-0.5 size-4 shrink-0 text-lime-500" />
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                  Ігровий адміністратор
+                </div>
+                <UserNicknameText user={game.admin} className="text-sm text-zinc-200" />
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
