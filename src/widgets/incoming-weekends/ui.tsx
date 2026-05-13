@@ -5,12 +5,12 @@ import { Link } from '@/shared/ui/atoms/link';
 import { ROUTES } from '@/shared/config/routes';
 
 import { FC, useEffect } from 'react';
-import { CalendarIcon, ArrowRightIcon, MapIcon } from 'lucide-react';
-import classNames from 'classnames';
+import { CalendarIcon, ArrowRightIcon, MapIcon, ShieldIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { IncomingWeekendsModel } from './model';
-import { MissionGameSide } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
+import { cn } from '@/shared/utils/cn';
+import { resolveMissionSideColor } from '@/entities/mission/mission-side-colors';
 
 export const IncomingWeekends: FC<{
   model: IncomingWeekendsModel;
@@ -37,93 +37,126 @@ export const IncomingWeekends: FC<{
       <div className="absolute inset-0 bg-gradient-to-r from-lime-700/5 via-transparent to-lime-700/5" />
 
       {/* Content */}
-      <div className="relative z-10 w-full py-6 md:py-8">
+      <div className="relative z-10 w-full py-4 md:py-5">
         <div className="container mx-auto px-4">
-          <div className="paper rounded-xl p-4 md:p-6 max-w-5xl mx-auto">
+          <div className="paper rounded-lg p-3 md:p-4 max-w-5xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div className="flex items-center justify-between mb-2.5 flex-wrap gap-2">
               <div>
-                <div className="flex items-center gap-2 text-sm text-zinc-400 mb-1">
-                  <CalendarIcon className="size-4" />
+                <div className="mb-0.5 flex items-center gap-1.5 text-xs text-zinc-400">
+                  <CalendarIcon className="size-3.5 shrink-0" />
                   <span>{model.weekend?.name ?? ''}</span>
                 </div>
-                <h2 className="text-xl md:text-2xl font-bold text-white">Найближчі ігри</h2>
+                <h2 className="text-lg font-bold text-white md:text-xl">Найближчі ігри</h2>
               </div>
               <Link href={ROUTES.weekends}>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="h-8 gap-1 px-2.5 text-xs">
                   Всі анонси
-                  <ArrowRightIcon className="size-4" />
+                  <ArrowRightIcon className="size-3.5" />
                 </Button>
               </Link>
             </div>
 
             {/* Games Preview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcomingGames.map(game => (
-                <Link
-                  key={game.id}
-                  href={ROUTES.weekends}
-                  className="paper rounded-lg p-4 border border-white/10 hover:border-lime-700/50 transition-colors cursor-pointer">
-                  <div className="flex items-start gap-3">
-                    {/* Mission Image */}
-                    <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-white/10 shrink-0">
-                      <img
-                        src={game.mission.image?.url ?? ''}
-                        alt={game.mission.name ?? ''}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                    </div>
+            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3">
+              {upcomingGames.map(game => {
+                const attackColor = resolveMissionSideColor(game.missionVersion.attackSideType);
+                const defenseColor = resolveMissionSideColor(game.missionVersion.defenseSideType);
 
-                    {/* Game Info */}
-                    <div className="flex-1 min-w-0 flex flex-col gap-2">
-                      {/* Date and Island */}
-                      <div className="flex items-center gap-3 flex-wrap">
-                        {game.date && (
-                          <div className="flex items-center gap-2 text-sm text-zinc-400">
-                            <CalendarIcon className="size-4" />
-                            <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
-                          </div>
-                        )}
-                        {game.mission.island && (
-                          <div className="flex items-center gap-2 text-sm text-zinc-400">
-                            <MapIcon className="size-4" />
-                            <span>{game.mission.island.name}</span>
-                          </div>
-                        )}
+                return (
+                  <Link
+                    key={game.id}
+                    href={ROUTES.weekends}
+                    className="paper cursor-pointer rounded-md border border-white/10 p-2.5 transition-colors hover:border-lime-700/50 md:p-3">
+                    <div className="flex items-start gap-2">
+                      {/* Mission Image */}
+                      <div className="relative size-16 shrink-0 overflow-hidden rounded-md border border-white/10 md:size-18">
+                        <img
+                          src={game.mission.image?.url || '/images/avatar.jpg'}
+                          alt={game.mission.name ?? 'Місія'}
+                          className="size-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                       </div>
 
-                      {/* Sides */}
-                      <div className="flex items-center gap-2 text-sm flex-wrap">
-                        <span
-                          className={classNames('font-semibold', {
-                            'text-red-500': game.missionVersion.attackSideType === MissionGameSide.RED,
-                            'text-blue-500': game.missionVersion.attackSideType === MissionGameSide.BLUE,
-                          })}>
-                          {game.missionVersion.attackSideName}
-                        </span>
-                        <span className="text-zinc-500">({game.missionVersion.attackSideSlots})</span>
-                        <span className="text-zinc-500">vs</span>
-                        <span
-                          className={classNames('font-semibold', {
-                            'text-red-500': game.missionVersion.defenseSideType === MissionGameSide.RED,
-                            'text-blue-500': game.missionVersion.defenseSideType === MissionGameSide.BLUE,
-                          })}>
-                          {game.missionVersion.defenseSideName}
-                        </span>
-                        <span className="text-zinc-500">({game.missionVersion.defenseSideSlots})</span>
-                      </div>
+                      {/* Game Info */}
+                      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                        <h3 className="wrap-break-word text-sm font-bold leading-tight text-white md:text-base">
+                          {game.mission.name ?? `Гра ${game.position + 1}`}
+                        </h3>
 
-                      {/* Mission Description */}
-                      {game.mission.description && (
-                        <p className="text-xs text-zinc-400 line-clamp-2 mt-1">
-                          {game.mission.description}
-                        </p>
-                      )}
+                        {/* Date and Island */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                          {game.date && (
+                            <div className="flex items-center gap-1 text-xs text-zinc-400">
+                              <CalendarIcon className="size-3 shrink-0" />
+                              <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
+                            </div>
+                          )}
+                          {game.mission.island && (
+                            <div className="flex items-center gap-1 text-xs text-zinc-400">
+                              <MapIcon className="size-3 shrink-0" />
+                              <span>{game.mission.island.name}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Sides — same pattern as MissionDetails combatants */}
+                        <div className="rounded-md border border-white/10 bg-black/35 px-2 py-1.5">
+                          <div className="mb-1 flex items-center gap-1.5">
+                            <ShieldIcon className="size-3 shrink-0 text-lime-500" />
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+                              Сторони конфлікту
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                            <div className="flex min-w-0 items-center gap-1">
+                              <div className={cn('size-1.5 shrink-0 rounded-full', attackColor.dot)} />
+                              <span className={cn('truncate text-xs font-semibold', attackColor.text)}>
+                                {game.missionVersion.attackSideName}
+                              </span>
+                              <span className="shrink-0 text-[11px] text-zinc-500">
+                                ({game.missionVersion.attackSideSlots})
+                              </span>
+                              <span
+                                className={cn(
+                                  'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
+                                  attackColor.soft,
+                                )}>
+                                Атака
+                              </span>
+                            </div>
+                            <span className="shrink-0 text-[11px] font-bold text-zinc-500">vs</span>
+                            <div className="flex min-w-0 items-center gap-1">
+                              <div className={cn('size-1.5 shrink-0 rounded-full', defenseColor.dot)} />
+                              <span className={cn('truncate text-xs font-semibold', defenseColor.text)}>
+                                {game.missionVersion.defenseSideName}
+                              </span>
+                              <span className="shrink-0 text-[11px] text-zinc-500">
+                                ({game.missionVersion.defenseSideSlots})
+                              </span>
+                              <span
+                                className={cn(
+                                  'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
+                                  defenseColor.soft,
+                                )}>
+                                Оборона
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Mission Description */}
+                        {game.mission.description && (
+                          <p className="line-clamp-2 text-[11px] leading-snug text-zinc-400">
+                            {game.mission.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
