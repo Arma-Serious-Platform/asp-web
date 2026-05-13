@@ -85,12 +85,18 @@ const getGameHumanLabel = (date?: string, position?: number) => {
   const normalizedPosition = typeof position === 'number' ? position + 1 : null;
   const dayIndex = date ? dayjs(date).day() : null;
   const weekDay = dayIndex !== null && weekDayByIndex[dayIndex] ? weekDayByIndex[dayIndex] : 'Гра';
+  const datePart =
+    date && dayjs(date).isValid() ? ` (${dayjs(date).format('DD.MM.YYYY')})` : '';
 
-  if (normalizedPosition === null) {
-    return weekDay;
+  if (normalizedPosition !== null) {
+    return `${weekDay}, ${normalizedPosition}-а${datePart}`;
   }
 
-  return `${weekDay} ${normalizedPosition}-а`;
+  if (datePart) {
+    return `${weekDay}${datePart}`;
+  }
+
+  return weekDay;
 };
 
 const copyToClipboard = async (text: string, options?: { successMessage?: string; emptyErrorMessage?: string }) => {
@@ -493,7 +499,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                 const defenseAppearance = sideAppearance(defenseSideType);
 
                 return (
-                  <Link key={plan.id} href={`/hq/plans/${plan.id}`} className="block w-[260px] shrink-0">
+                  <Link key={plan.id} href={`/hq/plans/${plan.id}`} className="block w-[300px] shrink-0">
                     <div
                       className={cn(
                         'rounded-md border border-transparent bg-black/30 px-2 py-2 transition-colors',
@@ -513,9 +519,11 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                           <div className="truncate text-xs font-semibold text-zinc-100">
                             {plan.game?.mission?.name ?? `Гра #${plan.game?.position ?? '-'}`}
                           </div>
-                          <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-zinc-300">
-                            <ShieldIcon className="size-3.5" />
-                            <span>{getGameHumanLabel(plan.game?.date, plan.game?.position)}</span>
+                          <div className="mt-1 flex items-start gap-1 text-xs font-semibold text-zinc-300">
+                            <ShieldIcon className="mt-0.5 size-3.5 shrink-0" />
+                            <span className="min-w-0 wrap-break-word leading-snug">
+                              {getGameHumanLabel(plan.game?.date, plan.game?.position)}
+                            </span>
                           </div>
                         </div>
                         <div className="shrink-0 text-right text-xs">
@@ -563,7 +571,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                 );
               })}
               {visiblePlansCount < plans.length && (
-                <div className="flex w-[220px] shrink-0 items-center justify-center px-2 py-2 text-center text-xs text-zinc-500">
+                <div className="flex w-[260px] shrink-0 items-center justify-center px-2 py-2 text-center text-xs text-zinc-500">
                   Прокрутіть праворуч, щоб завантажити ще
                 </div>
               )}
