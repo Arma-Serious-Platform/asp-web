@@ -33,5 +33,6 @@ export const ROUTES = {
     sides: '/admin/sides',
     squads: '/admin/squads',
     weekends: '/admin/weekends',
+    islands: '/admin/islands',
   },
 } as const;

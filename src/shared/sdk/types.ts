@@ -348,6 +348,17 @@ export type Island = {
   updatedAt: string;
 };
 
+export type FindIslandsDto = PaginatedRequest<{
+  search?: string;
+}>;
+
+export type CreateIslandDto = {
+  name: string;
+  code: string;
+};
+
+export type UpdateIslandDto = Partial<Pick<Island, 'name' | 'code'>>;
+
 export type Mission = {
   id: string;
   name: string;

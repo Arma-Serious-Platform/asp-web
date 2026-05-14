@@ -26,7 +26,11 @@ export class SessionModel {
   }
 
   get isHasAdminPanelAccess() {
-    return [UserRole.OWNER, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
+    return [UserRole.OWNER, UserRole.GAME_ADMIN, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
+  }
+
+  get hasTechAdminAccess() {
+    return this.user?.user?.role === UserRole.TECH_ADMIN || this.user?.user?.role === UserRole.OWNER;
   }
 
   boot = async () => {
