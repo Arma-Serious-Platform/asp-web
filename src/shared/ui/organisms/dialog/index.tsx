@@ -2,10 +2,12 @@
 
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { useComposedRefs } from '@radix-ui/react-compose-refs';
 import { XIcon } from 'lucide-react';
 
 import { cn } from '@/shared/utils/cn';
 import { Button } from '../../atoms/button';
+import { DialogPortalTargetRefContext } from './portal-target-context';
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -36,25 +38,29 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
   );
 }
 
-function DialogContent({
-  className,
-  children,
-  showCloseButton = true,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean;
-}) {
+const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentProps<typeof DialogPrimitive.Content> & {
+    showCloseButton?: boolean;
+  }
+>(({ className, children, showCloseButton = true, ...props }, forwardedRef) => {
+  const portalTargetRef = React.useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(forwardedRef, portalTargetRef);
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
+        ref={composedRef}
         data-slot="dialog-content"
         className={cn(
           'bg-card data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
           className,
         )}
         {...props}>
-        {children}
+        <DialogPortalTargetRefContext.Provider value={portalTargetRef}>
+          {children}
+        </DialogPortalTargetRefContext.Provider>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
@@ -68,7 +74,8 @@ function DialogContent({
       </DialogPrimitive.Content>
     </DialogPortal>
   );
-}
+});
+DialogContent.displayName = 'DialogContent';
 
 function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
@@ -122,3 +129,4 @@ export {
   DialogTitle,
   DialogTrigger,
 };
+export { DialogPortalTargetRefContext, useDialogPortalTargetRef } from './portal-target-context';
