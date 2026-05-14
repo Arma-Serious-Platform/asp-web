@@ -7,7 +7,8 @@ import { Mission, MissionStatus, MissionVersion } from '@/shared/sdk/types';
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { PlusIcon, LoaderIcon, EditIcon } from 'lucide-react';
+import { PlusIcon, LoaderIcon, EditIcon, Trash2Icon } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { ROUTES } from '@/shared/config/routes';
 import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
 import { CreateUpdateMissionVersionModal } from '@/features/mission/create-update-version/ui';
@@ -21,6 +22,7 @@ import { CommentList } from '@/entities/comment';
 import { MessageEditor } from '@/features/chat/editor';
 import type { MissionComment } from '@/shared/sdk/types';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
+import { DeleteMissionModal, DeleteMissionModel } from '@/features/mission/delete-mission';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -30,6 +32,7 @@ const MissionDetailsPage = observer(() => {
   const [isLoading, setIsLoading] = useState(true);
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
   const deleteCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
+  const deleteMissionModel = useMemo(() => new DeleteMissionModel(), []);
 
   const isMissionAuthor = useMemo(() => {
     return session.user?.user?.id === mission?.authorId;
@@ -97,6 +100,17 @@ const MissionDetailsPage = observer(() => {
     setMission(response.data);
   };
 
+  const handleDeleteMission = async (id: string) => {
+    try {
+      await api.deleteMission(id);
+      toast.success('Місію видалено');
+      router.push(ROUTES.missions.root);
+    } catch {
+      toast.error('Не вдалося видалити місію');
+      throw new Error('Delete mission failed');
+    }
+  };
+
   const canDeleteComment = (comment: MissionComment) => {
     const currentUserId = session.user?.user?.id;
     const isCommentAuthor = Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
@@ -154,13 +168,12 @@ const MissionDetailsPage = observer(() => {
         model={deleteCommentModel}
         onConfirm={commentId => missionDetailsModel.commentModel.remove(missionId, commentId)}
       />
+      <DeleteMissionModal model={deleteMissionModel} onConfirm={handleDeleteMission} />
 
       <div className="container mx-auto my-6 w-full px-4">
         <Button variant="ghost" onClick={() => router.push(ROUTES.missions.root)} className="mb-4">
           ← Повернутися до списку
         </Button>
-
-        <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
 
         <div className="paper mx-auto flex w-full max-w-7xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:px-7 lg:py-6">
           {/* Header Section */}
@@ -184,23 +197,40 @@ const MissionDetailsPage = observer(() => {
 
             {/* Mission Info */}
             <div className="flex-1 flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0 flex-1">
                   <h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white mb-3">
                     {mission?.name}
                   </h1>
                   <p className="text-zinc-300 leading-relaxed">{mission.description}</p>
                 </div>
 
-                <View.Condition if={isMissionAuthor}>
-                  <Button
-                    onClick={handleMissionUpdate}
-                    variant="outline"
-                    className="flex items-center gap-2 hover:bg-white/10 transition-colors">
-                    <EditIcon className="size-4" />
-                    <span className="hidden sm:inline">Редагувати</span>
-                  </Button>
-                </View.Condition>
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <View.Condition if={isMissionAuthor}>
+                    <Button
+                      onClick={handleMissionUpdate}
+                      variant="outline"
+                      className="flex items-center gap-2 hover:bg-white/10 transition-colors">
+                      <EditIcon className="size-4" />
+                      <span className="hidden sm:inline">Редагувати</span>
+                    </Button>
+                  </View.Condition>
+                  <View.Condition if={session.hasTechAdminAccess}>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                      onClick={() =>
+                        deleteMissionModel.visibility.open({
+                          missionId: mission.id,
+                          missionName: mission.name,
+                        })
+                      }>
+                      <Trash2Icon className="size-4" />
+                      <span className="hidden sm:inline">Видалити місію</span>
+                    </Button>
+                  </View.Condition>
+                </div>
               </div>
             </div>
           </div>

@@ -456,6 +456,10 @@ class ApiModel {
     });
   };
 
+  deleteMission = async (id: string) => {
+    return await this.instance.delete<void>(`/missions/${id}`);
+  };
+
   createMissionVersion = async (missionId: string, dto: CreateMissionVersionDto) => {
     const formData = new FormData();
     if (dto.file) {
