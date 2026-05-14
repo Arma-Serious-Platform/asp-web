@@ -21,6 +21,7 @@ import { UserSquad } from '@/widgets/user/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
+import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
 import { ChangeSocials } from '@/features/user/change-socials';
 import { UserProfileModel } from './model';
 import { Preloader } from '@/shared/ui/atoms/preloader';
@@ -165,7 +166,15 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                         className="sm:col-span-2"
                         icon={<MailIcon className="size-4" />}
                         title="Електронна пошта"
-                        description={model.user?.email}
+                        description={
+                          model.user?.email ? (
+                            <RevealableBlurredText toggleAriaLabel="Показати або приховати електронну пошту">
+                              {model.user.email}
+                            </RevealableBlurredText>
+                          ) : (
+                            '—'
+                          )
+                        }
                       />
                     )}
 
