@@ -64,6 +64,34 @@ const normalizeChat = (value: unknown): Chat | null => {
   };
 };
 
+const directChatPairKey = (a: string, b: string) => (a < b ? `${a}::${b}` : `${b}::${a}`);
+
+/** Coalesces concurrent direct-chat creates for the same pair (e.g. React Strict Mode or parallel handlers). */
+const inflightDirectChatCreates = new Map<string, Promise<Chat>>();
+
+function createDirectChatOnce(userIdA: string, userIdB: string): Promise<Chat> {
+  const key = directChatPairKey(userIdA, userIdB);
+  const existing = inflightDirectChatCreates.get(key);
+  if (existing) return existing;
+
+  const created = api
+    .createChat({
+      type: ChatType.DIRECT,
+      userIds: [userIdA, userIdB],
+    })
+    .then(({ data }) => {
+      const chat = normalizeChat(data);
+      if (!chat) throw new Error('Invalid chat payload');
+      return chat;
+    })
+    .finally(() => {
+      inflightDirectChatCreates.delete(key);
+    });
+
+  inflightDirectChatCreates.set(key, created);
+  return created;
+}
+
 const normalizeChatMessage = (value: unknown, chatId: string): ChatMessage | null => {
   const record = normalizeRecord(value);
   if (typeof record.id !== 'string') return null;
@@ -301,12 +329,7 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
 
       setIsCreatingChat(true);
       try {
-        const { data } = await api.createChat({
-          type: ChatType.DIRECT,
-          userIds: [currentUserId, targetUser.id],
-        });
-        const chat = normalizeChat(data);
-        if (!chat) return;
+        const chat = await createDirectChatOnce(currentUserId, targetUser.id);
 
         setChats(prev => (prev.some(item => item.id === chat.id) ? prev : [chat, ...prev]));
         setUserByChatId(prev => ({ ...prev, [chat.id]: targetUser }));
@@ -365,12 +388,19 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
     try {
       const type = selectedOtherUserIds.length === 1 ? ChatType.DIRECT : ChatType.GROUP;
       const trimmedName = newChatName.trim();
-      const { data } = await api.createChat({
-        type,
-        userIds: selectedUserIdsForNewChat,
-        ...(trimmedName ? { name: trimmedName } : {}),
-      });
-      const chat = normalizeChat(data);
+
+      let chat: Chat | null = null;
+      if (type === ChatType.DIRECT) {
+        const otherId = selectedOtherUserIds[0];
+        chat = await createDirectChatOnce(currentUserId, otherId);
+      } else {
+        const { data } = await api.createChat({
+          type,
+          userIds: selectedUserIdsForNewChat,
+          ...(trimmedName ? { name: trimmedName } : {}),
+        });
+        chat = normalizeChat(data);
+      }
       if (!chat) return;
 
       setChats(prev => (prev.some(item => item.id === chat.id) ? prev : [chat, ...prev]));
@@ -509,8 +539,13 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
   }, [activeChatId, loadMessages]);
 
   useEffect(() => {
-    if (!initialUserId) return;
+    if (!initialUserId) {
+      handledInitialUserIdRef.current = null;
+      return;
+    }
     if (handledInitialUserIdRef.current === initialUserId) return;
+
+    handledInitialUserIdRef.current = initialUserId;
 
     const openDirectChat = async () => {
       try {
@@ -521,16 +556,16 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
           const { data } = await api.getUserByIdOrNickname(initialUserId);
           await addOrActivateDirectChat(data, false);
         }
-        handledInitialUserIdRef.current = initialUserId;
       } catch (error) {
         console.error(error);
+        handledInitialUserIdRef.current = null;
         toast.error('Не вдалося відкрити чат');
       } finally {
         onInitialUserHandled?.();
       }
     };
 
-    openDirectChat();
+    void openDirectChat();
   }, [addOrActivateDirectChat, allUsers, initialUserId, onInitialUserHandled]);
 
   const activeChatUser = activeChatId ? userByChatId[activeChatId] : undefined;

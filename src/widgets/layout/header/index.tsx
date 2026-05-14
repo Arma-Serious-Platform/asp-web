@@ -129,6 +129,17 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                 <UserNicknameText user={session.user?.user} link={false} />
               </Button>
             }>
+            <View.Condition if={session.isHasAdminPanelAccess}>
+              <NextLink href={ROUTES.admin.users}>
+                <Button
+                  align="left"
+                  size="sm"
+                  className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5">
+                  <ShieldUserIcon className="size-4" />
+                  <span>Адміністрування</span>
+                </Button>
+              </NextLink>
+            </View.Condition>
             <NextLink href={`${ROUTES.user.profile}?tab=profile`}>
               <Button
                 align="left"
@@ -160,17 +171,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                 </Button>
               </NextLink>
             )}
-            <View.Condition if={session.isHasAdminPanelAccess}>
-              <NextLink href={ROUTES.admin.users}>
-                <Button
-                  align="left"
-                  size="sm"
-                  className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5">
-                  <ShieldUserIcon className="size-4" />
-                  <span>Адміністрування</span>
-                </Button>
-              </NextLink>
-            </View.Condition>
+
             <button type="button" onClick={() => setLogoutDialogOpen(true)}>
               <Button
                 align="left"
