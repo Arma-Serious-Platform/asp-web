@@ -25,10 +25,14 @@ export class SessionModel {
     return this.user?.user?.squad && this.user?.user?.squad?.side?.type !== SideType.UNASSIGNED;
   }
 
+  /** Адмін-панель: OWNER, TECH_ADMIN, GAME_ADMIN (без MINI_ADMIN). */
   get isHasAdminPanelAccess() {
-    return [UserRole.OWNER, UserRole.GAME_ADMIN, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
+    return [UserRole.OWNER, UserRole.TECH_ADMIN, UserRole.GAME_ADMIN].includes(
+      this.user?.user?.role as UserRole,
+    );
   }
 
+  /** Загони, сторони, сервери, острови — лише супер-адмін або тех. адмін. */
   get hasTechAdminAccess() {
     return this.user?.user?.role === UserRole.TECH_ADMIN || this.user?.user?.role === UserRole.OWNER;
   }

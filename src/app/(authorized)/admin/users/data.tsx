@@ -73,6 +73,7 @@ export const columns: ColumnDef<User>[] = [
             <div className="flex flex-col w-fit gap-2">
               <View.Condition
                 if={
+                  session.hasTechAdminAccess &&
                   !((session.user?.user?.role as UserRole) === UserRole.OWNER && row.original.role === UserRole.OWNER)
                 }>
                 <Button
@@ -88,7 +89,7 @@ export const columns: ColumnDef<User>[] = [
                 </Button>
               </View.Condition>
 
-              <View.Condition if={row.original.isMissionReviewer}>
+              <View.Condition if={session.hasTechAdminAccess && row.original.isMissionReviewer}>
                 <Button
                   size="sm"
                   className="w-full"
@@ -105,7 +106,7 @@ export const columns: ColumnDef<User>[] = [
                 </Button>
               </View.Condition>
 
-              <View.Condition if={!row.original.isMissionReviewer}>
+              <View.Condition if={session.hasTechAdminAccess && !row.original.isMissionReviewer}>
                 <Button
                   size="sm"
                   className="w-full"

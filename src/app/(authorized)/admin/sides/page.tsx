@@ -1,5 +1,6 @@
 'use client';
 
+import { useTechAdminRoutesGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
 import { AdminSidebar } from '@/widgets/admin/sidebar';
 import { Layout } from '@/widgets/layout';
 import { observer } from 'mobx-react-lite';
@@ -13,6 +14,8 @@ import { Button } from '@/shared/ui/atoms/button';
 import { ManageServerModal } from '@/features/servers/manage/ui';
 
 const AdminPage = observer(() => {
+  useTechAdminRoutesGuard();
+
   useEffect(() => {
     sidesModel.sides.pagination.loadAll();
   }, []);

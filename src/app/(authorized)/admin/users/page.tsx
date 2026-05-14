@@ -3,6 +3,7 @@
 import { Input } from '@/shared/ui/atoms/input';
 import { AdminSidebar } from '@/widgets/admin/sidebar';
 import { Layout } from '@/widgets/layout';
+import { session } from '@/entities/session/model';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import { parseAsString, useQueryStates } from 'nuqs';
@@ -50,18 +51,22 @@ const AdminPage = observer(() => {
             usersModel.afterUnbanUser(user);
           }}
         />
-        <ChangeIsReviewerModal
-          model={usersModel.changeIsReviewerModel}
-          onSuccess={(userId, isMissionReviewer) => {
-            usersModel.afterChangeIsReviewer(userId, isMissionReviewer);
-          }}
-        />
-        <ChangeUserRoleModal
-          model={usersModel.changeUserRoleModel}
-          onSuccess={(userId, role) => {
-            usersModel.afterChangeRole(userId, role);
-          }}
-        />
+        {session.hasTechAdminAccess && (
+          <>
+            <ChangeIsReviewerModal
+              model={usersModel.changeIsReviewerModel}
+              onSuccess={(userId, isMissionReviewer) => {
+                usersModel.afterChangeIsReviewer(userId, isMissionReviewer);
+              }}
+            />
+            <ChangeUserRoleModal
+              model={usersModel.changeUserRoleModel}
+              onSuccess={(userId, role) => {
+                usersModel.afterChangeRole(userId, role);
+              }}
+            />
+          </>
+        )}
         <Input
           searchIcon
           placeholder="Пошук..."
