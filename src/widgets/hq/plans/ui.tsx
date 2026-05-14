@@ -64,9 +64,7 @@ function PlanListSkeleton() {
     <div className="flex min-w-max gap-2" aria-busy="true" aria-live="polite">
       <span className="sr-only">Завантаження списку планів</span>
       {Array.from({ length: PLANS_PAGE_SIZE }, (_, i) => (
-        <div
-          key={i}
-          className="w-[300px] shrink-0 rounded-md border border-white/10 bg-black/30 px-2 py-2">
+        <div key={i} className="w-[300px] shrink-0 rounded-md border border-white/10 bg-black/30 px-2 py-2">
           <div className={cn('mb-1.5 aspect-video w-full', planListSkeletonPulse)} />
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1 space-y-2">
@@ -114,8 +112,7 @@ const getGameHumanLabel = (date?: string, position?: number) => {
   const normalizedPosition = typeof position === 'number' ? position + 1 : null;
   const dayIndex = date ? dayjs(date).day() : null;
   const weekDay = dayIndex !== null && weekDayByIndex[dayIndex] ? weekDayByIndex[dayIndex] : 'Гра';
-  const datePart =
-    date && dayjs(date).isValid() ? ` (${dayjs(date).format('DD.MM.YYYY')})` : '';
+  const datePart = date && dayjs(date).isValid() ? ` (${dayjs(date).format('DD.MM.YYYY')})` : '';
 
   if (normalizedPosition !== null) {
     return `${weekDay}, ${normalizedPosition}-а${datePart}`;
@@ -558,7 +555,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                             <UserIcon className="size-3.5" />
                             {plan.gameCommanderId && usersById[plan.gameCommanderId] ? (
                               <span className="text-zinc-300">
-                                <UserNicknameText user={usersById[plan.gameCommanderId]} />
+                                <UserNicknameText link={false} user={usersById[plan.gameCommanderId]} />
                               </span>
                             ) : (
                               <span className="text-zinc-500">КС відсутній</span>

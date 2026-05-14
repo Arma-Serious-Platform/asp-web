@@ -67,10 +67,6 @@ const ChangeAvatarModal = observer(({ model, autoInputClick = false }: ChangeAva
                     movable: false,
                     resizable: false,
                   }}
-                  defaultSize={{
-                    height: 256,
-                    width: 256,
-                  }}
                   stencilSize={{
                     height: 256,
                     width: 256,

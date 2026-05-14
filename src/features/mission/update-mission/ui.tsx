@@ -173,10 +173,6 @@ const UpdateMissionModal: FC<
                   movable: false,
                   resizable: false,
                 }}
-                defaultSize={{
-                  height: 256,
-                  width: 455,
-                }}
                 stencilSize={{
                   height: 256,
                   width: 455,

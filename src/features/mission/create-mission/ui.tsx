@@ -152,10 +152,6 @@ const CreateMissionModal: FC<{
                     movable: false,
                     resizable: false,
                   }}
-                  defaultSize={{
-                    height: 256,
-                    width: 512,
-                  }}
                   stencilSize={{
                     height: 256,
                     width: 512,
