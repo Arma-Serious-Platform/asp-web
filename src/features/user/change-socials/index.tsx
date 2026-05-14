@@ -2,13 +2,13 @@
 
 import { FC, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { PencilIcon, CheckIcon, XIcon } from 'lucide-react';
+import { PencilIcon } from 'lucide-react';
 
 import { User, UpdateUserDto } from '@/shared/sdk/types';
 import { Input } from '@/shared/ui/atoms/input';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { SocialKeys } from './lib';
+import { SocialKeys, validateSocialUrl } from './lib';
 import { socialsConfig } from './data';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 
@@ -36,6 +36,17 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
 
   const [values, setValues] = useState<Record<SocialKeys, string>>(initialValues);
 
+  const fieldErrors = useMemo(() => {
+    const out: Partial<Record<SocialKeys, string>> = {};
+    (Object.keys(values) as SocialKeys[]).forEach(key => {
+      const msg = validateSocialUrl(key, values[key]);
+      if (msg) out[key] = msg;
+    });
+    return out;
+  }, [values]);
+
+  const hasValidationErrors = Object.keys(fieldErrors).length > 0;
+
   // Sync local state when user data changes
   // (e.g. after successful update & refetch)
   if (
@@ -54,11 +65,16 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
   if (!user) return null;
 
   const handleSave = async () => {
+    if (hasValidationErrors) {
+      return;
+    }
+
     const changes: Partial<Pick<UpdateUserDto, SocialKeys>> = {};
 
     (Object.keys(values) as SocialKeys[]).forEach(key => {
-      if (values[key] !== initialValues[key]) {
-        changes[key] = values[key];
+      const trimmed = values[key].trim();
+      if (trimmed !== (initialValues[key] ?? '').trim()) {
+        changes[key] = trimmed;
       }
     });
 
@@ -149,6 +165,7 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
                   label={social.label}
                   className="flex-1"
                   disabled={isSubmitting || isLoading}
+                  error={fieldErrors[social.key]}
                 />
               </div>
             ))}
@@ -162,7 +179,11 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
                 disabled={isSubmitting || isLoading}>
                 Скасувати
               </Button>
-              <Button type="button" size="sm" onClick={handleSave} disabled={isSubmitting || isLoading}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSave}
+                disabled={isSubmitting || isLoading || hasValidationErrors}>
                 Зберегти
               </Button>
             </div>
