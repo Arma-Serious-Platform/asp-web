@@ -55,6 +55,7 @@ const AdminIslandsPage = observer(() => {
 
         <Input
           searchIcon
+          autoFocus
           placeholder="Пошук за назвою або кодом..."
           className="mb-4 max-w-md"
           value={search}

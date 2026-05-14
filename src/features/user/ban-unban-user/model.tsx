@@ -27,7 +27,8 @@ export class BanUnbanUserModel {
 
       toast.success(`${this.visibility.payload?.user?.nickname} був заблокований`);
       this.visibility.close();
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast.error('Не вдалося заблокувати гравця');
     } finally {
       this.loader.stop();

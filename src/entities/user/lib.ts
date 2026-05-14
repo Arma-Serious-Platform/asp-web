@@ -1,9 +1,5 @@
 import { UserRole, UserStatus } from '@/shared/sdk/types';
 
-export const hasAccessToAdminPanel = (role?: UserRole) => {
-  return [UserRole.OWNER, UserRole.TECH_ADMIN].includes(role as UserRole);
-};
-
 /** Ukrainian labels for roles (admin panel and display) */
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.OWNER]: 'Керівництво',

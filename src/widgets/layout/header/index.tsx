@@ -160,7 +160,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                 </Button>
               </NextLink>
             )}
-            <View.Condition if={hasAccessToAdminPanel(session.user?.user?.role)}>
+            <View.Condition if={session.isHasAdminPanelAccess}>
               <NextLink href={ROUTES.admin.users}>
                 <Button
                   align="left"
