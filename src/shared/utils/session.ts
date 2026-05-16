@@ -1,5 +1,7 @@
 'use client';
 
+import { ROUTES } from '@/shared/config/routes';
+
 const LOCAL_STORAGE_KEYS = {
   token: 'token',
   refreshToken: 'refreshToken',
@@ -45,5 +47,15 @@ export const checkIsAuthenticated = () => {
 };
 
 export const redirectToLogin = () => {
-  window.location.href = `/`;
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const loginPath = ROUTES.auth.login;
+
+  if (window.location.pathname === loginPath) {
+    return;
+  }
+
+  window.location.href = loginPath;
 };

@@ -14,6 +14,7 @@ import { loginModel, LoginModel } from './model';
 import * as yup from 'yup';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { isAxiosError } from 'axios';
 
 const LoginForm: FC<{
   className?: string;
@@ -45,11 +46,18 @@ const LoginForm: FC<{
 
       router.push(`${ROUTES.user.profile}?tab=profile`);
     } catch (error) {
-      if (error?.response?.data?.message === 'Invalid credentials') {
+      if (!isAxiosError(error)) {
+        toast.error('Не вдалося увійти. Спробуйте ще раз.');
+        return;
+      }
+
+      const message = error.response?.data?.message;
+
+      if (message === 'Invalid credentials' || error.response?.status === 401) {
         form.setError('password', { message: 'Неправильний email або пароль' });
       }
 
-      if (error?.response?.data?.message === 'Activation token expired. Check your email for a new token') {
+      if (message === 'Activation token expired. Check your email for a new token') {
         toast.error(
           <div className="text-center">Аккаунт ще не активовано. На пошту надіслано посилання для активації</div>,
           {

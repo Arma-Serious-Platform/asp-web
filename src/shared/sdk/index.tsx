@@ -76,6 +76,17 @@ import {
   setTokensToLocalStorage,
 } from '../utils/session';
 
+const AUTH_REQUEST_PATHS_WITHOUT_TOKEN_REFRESH = [
+  '/users/login',
+  '/users/signup',
+  '/users/sign-up/confirm',
+  '/users/forgot-password',
+  '/users/reset-password',
+] as const;
+
+const isPublicAuthRequest = (url?: string) =>
+  Boolean(url && AUTH_REQUEST_PATHS_WITHOUT_TOKEN_REFRESH.some(path => url.includes(path)));
+
 class ApiModel {
   instance = axios.create({
     baseURL: env.apiUrl,
@@ -103,10 +114,24 @@ class ApiModel {
     createAuthRefreshInterceptor(
       this.instance,
       async failedRequest => {
+        const requestUrl = failedRequest?.config?.url ?? failedRequest?.response?.config?.url;
+
+        if (requestUrl?.includes('refresh-token')) {
+          clearTokensFromLocalStorage();
+          redirectToLogin();
+
+          return Promise.reject(failedRequest);
+        }
+
+        // Wrong credentials / sign-up errors must reach the form, not trigger a redirect.
+        if (isPublicAuthRequest(requestUrl)) {
+          return Promise.reject(failedRequest);
+        }
+
         const storedRefreshToken = getTokensFromLocalStorage()?.refreshToken || '';
 
-        // Do not try to refresh on refresh/logout endpoints or when there is no refresh token
-        if ((failedRequest?.config?.url && failedRequest.config.url.includes('refresh-token')) || !storedRefreshToken) {
+        // Do not try to refresh when there is no refresh token
+        if (!storedRefreshToken) {
           clearTokensFromLocalStorage();
           redirectToLogin();
 
