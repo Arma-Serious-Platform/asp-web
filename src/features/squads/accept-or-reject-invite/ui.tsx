@@ -3,32 +3,99 @@
 import { Button } from '@/shared/ui/atoms/button';
 import { Card } from '@/shared/ui/atoms/card';
 import { Preloader } from '@/shared/ui/atoms/preloader';
+import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AcceptOrRejectInviteModel, acceptOrRejectInviteModel } from './model';
 import { SquadInvitation } from '@/shared/sdk/types';
-import Image from 'next/image';
-import { CheckIcon, XIcon } from 'lucide-react';
+import { CheckIcon, LoaderIcon, XIcon } from 'lucide-react';
+
+const SquadInviteConfirmModal: FC<{
+  model: AcceptOrRejectInviteModel;
+  onAccept?: (invitation: SquadInvitation) => void | Promise<void>;
+  onReject?: (invitation: SquadInvitation) => void | Promise<void>;
+}> = observer(({ model, onAccept, onReject }) => {
+  const payload = model.confirmVisibility.payload;
+  const isAccept = payload?.action === 'accept';
+  const squadName = payload?.invitation.squad.name;
+
+  const handleConfirm = async () => {
+    if (!payload) return;
+
+    if (payload.action === 'accept') {
+      await model.acceptInvitation(payload.invitation.id, async invitation => {
+        await onAccept?.(invitation);
+        model.confirmVisibility.close();
+      });
+    } else {
+      await model.rejectInvitation(payload.invitation.id, async invitation => {
+        await onReject?.(invitation);
+        model.confirmVisibility.close();
+      });
+    }
+  };
+
+  return (
+    <Dialog open={model.confirmVisibility.isOpen} onOpenChange={model.confirmVisibility.switch}>
+      <DialogOverlay />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{isAccept ? 'Прийняти запрошення?' : 'Відхилити запрошення?'}</DialogTitle>
+        </DialogHeader>
+
+        {payload && (
+          <p className="text-sm text-zinc-400">
+            {isAccept ? (
+              <>
+                Ви приєднаєтесь до загону{' '}
+                <span className="font-medium text-zinc-200">{squadName}</span>. Підтвердити прийняття запрошення?
+              </>
+            ) : (
+              <>
+                Запрошення до загону <span className="font-medium text-zinc-200">{squadName}</span> буде відхилено.
+                Продовжити?
+              </>
+            )}
+          </p>
+        )}
+
+        <div className="mt-4 flex justify-between">
+          <Button
+            variant="outline"
+            onClick={() => model.confirmVisibility.close()}
+            disabled={model.loader.isLoading}>
+            Скасувати
+          </Button>
+          <Button
+            variant={isAccept ? 'default' : 'destructive'}
+            onClick={handleConfirm}
+            disabled={model.loader.isLoading}>
+            {model.loader.isLoading ? (
+              <>
+                <LoaderIcon className="size-4 animate-spin" />
+                {isAccept ? 'Прийняття...' : 'Відхилення...'}
+              </>
+            ) : isAccept ? (
+              'Прийняти'
+            ) : (
+              'Відхилити'
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+});
 
 const SquadInviteItem: FC<{
   invitation: SquadInvitation;
   model: AcceptOrRejectInviteModel;
-  onAccept?: (invitation: SquadInvitation) => void;
-  onReject?: (invitation: SquadInvitation) => void;
-}> = observer(({ invitation, model, onAccept, onReject }) => {
-  const handleAccept = () => {
-    model.acceptInvitation(invitation.id, onAccept);
-  };
-
-  const handleReject = () => {
-    model.rejectInvitation(invitation.id, onReject);
-  };
-
+}> = observer(({ invitation, model }) => {
   const isPending = invitation.status === 'PENDING';
 
   return (
     <Card className="flex gap-3 items-center !p-3">
-      <div className="overflow-hidden rounded-lg border border-white/10 bg-black/70 flex-shrink-0">
+      <div className="overflow-hidden rounded-lg border border-white/10 bg-black/70 shrink-0">
         <img
           src={invitation.squad.logo?.url || '/images/logo.webp'}
           alt={invitation.squad.name}
@@ -51,21 +118,23 @@ const SquadInviteItem: FC<{
       </div>
 
       {isPending && (
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex gap-2 shrink-0">
           <Button
             size="sm"
             variant="default"
-            onClick={handleAccept}
+            onClick={() => model.confirmVisibility.open({ invitation, action: 'accept' })}
             disabled={model.loader.isLoading}
-            className="h-8 px-3">
+            className="h-8 px-3"
+            aria-label="Прийняти запрошення">
             <CheckIcon className="size-4" />
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={handleReject}
+            onClick={() => model.confirmVisibility.open({ invitation, action: 'reject' })}
             disabled={model.loader.isLoading}
-            className="h-8 px-3">
+            className="h-8 px-3"
+            aria-label="Відхилити запрошення">
             <XIcon className="size-4" />
           </Button>
         </div>
@@ -84,8 +153,8 @@ const SquadInviteItem: FC<{
 export const SquadInviteList: FC<{
   invitations: SquadInvitation[];
   model?: AcceptOrRejectInviteModel;
-  onAccept?: (invitation: SquadInvitation) => void;
-  onReject?: (invitation: SquadInvitation) => void;
+  onAccept?: (invitation: SquadInvitation) => void | Promise<void>;
+  onReject?: (invitation: SquadInvitation) => void | Promise<void>;
 }> = observer(({ invitations, model = acceptOrRejectInviteModel, onAccept, onReject }) => {
   const pendingInvites = invitations.filter(inv => inv.status === 'PENDING');
 
@@ -94,23 +163,20 @@ export const SquadInviteList: FC<{
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
-        Запрошення до загонів ({pendingInvites.length})
-      </span>
-      <Preloader isLoading={model.loader.isLoading}>
-        <div className="flex flex-col gap-2">
-          {pendingInvites.map(invitation => (
-            <SquadInviteItem
-              key={invitation.id}
-              invitation={invitation}
-              model={model}
-              onAccept={onAccept}
-              onReject={onReject}
-            />
-          ))}
-        </div>
-      </Preloader>
-    </div>
+    <>
+      <SquadInviteConfirmModal model={model} onAccept={onAccept} onReject={onReject} />
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
+          Запрошення до загонів ({pendingInvites.length})
+        </span>
+        <Preloader isLoading={model.loader.isLoading}>
+          <div className="flex flex-col gap-2">
+            {pendingInvites.map(invitation => (
+              <SquadInviteItem key={invitation.id} invitation={invitation} model={model} />
+            ))}
+          </div>
+        </Preloader>
+      </div>
+    </>
   );
 });

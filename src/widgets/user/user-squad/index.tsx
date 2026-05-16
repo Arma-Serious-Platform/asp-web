@@ -3,7 +3,9 @@ import { User } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
 import Image from 'next/image';
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
+import { observer } from 'mobx-react-lite';
+import { session } from '@/entities/session/model';
 import { InviteToSquadModal } from '@/features/squads/invite-to-squad/ui';
 import { inviteToSquadModel } from '@/features/squads/invite-to-squad/model';
 import { View } from '@/features/view';
@@ -18,10 +20,16 @@ import { leaveFromSquadModel } from '@/features/squads/leave-from-squad/model';
 
 export const UserSquad: FC<{
   user: User | null;
-}> = ({ user }) => {
+  onSquadChanged?: () => void | Promise<void>;
+}> = observer(({ user, onSquadChanged }) => {
+  const refreshSquadState = useCallback(async () => {
+    await session.fetchMe();
+    await onSquadChanged?.();
+  }, [onSquadChanged]);
   if (!user) return null;
 
   const squad = user.squad;
+  const hasPendingInvites = (user.squadInvites ?? []).some(invite => invite.status === 'PENDING');
 
   if (!squad)
     return (
@@ -32,17 +40,12 @@ export const UserSquad: FC<{
         <Link href={ROUTES.squads} className="w-fit mx-auto">
           <Button>Загони проекту</Button>
         </Link>
-        <View.Condition if={user.squadInvites?.length > 0}>
+        <View.Condition if={hasPendingInvites}>
           <SquadInviteList
             invitations={user.squadInvites || []}
             model={acceptOrRejectInviteModel}
-            onAccept={invitation => {
-              // Optionally refresh the user data or show success message
-              // The user data should be refreshed to reflect the new squad membership
-            }}
-            onReject={invitation => {
-              // Optionally refresh the user data
-            }}
+            onAccept={refreshSquadState}
+            onReject={refreshSquadState}
           />
         </View.Condition>
       </div>
@@ -114,12 +117,7 @@ export const UserSquad: FC<{
         }}
       />
 
-      <LeaveFromSquadModal
-        model={leaveFromSquadModel}
-        onLeaveSuccess={() => {
-          // Optionally refresh the user data or show success message
-        }}
-      />
+      <LeaveFromSquadModal model={leaveFromSquadModel} onLeaveSuccess={refreshSquadState} />
 
       <div className="mt-2 flex flex-col gap-2">
         <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Склад загону</span>
@@ -163,4 +161,4 @@ export const UserSquad: FC<{
       </div>
     </div>
   );
-};
+});

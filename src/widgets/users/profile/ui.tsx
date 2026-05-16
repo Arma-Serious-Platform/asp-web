@@ -207,7 +207,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
                         Мій загін
                       </span>
-                      <UserSquad user={model.user} />
+                      <UserSquad user={model.user} onSquadChanged={() => model.init()} />
                     </div>
                   </View.Condition>
 
