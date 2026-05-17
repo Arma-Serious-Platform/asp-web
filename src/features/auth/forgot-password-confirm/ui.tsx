@@ -8,6 +8,7 @@ import { FC, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { forgotPasswordConfirmModel, ForgotPasswordConfirmModel } from './model';
 import * as yup from 'yup';
+import { passwordSchema } from '@/shared/lib/password-schema';
 
 import { FormDto } from './lib';
 import { toast } from 'react-hot-toast';
@@ -21,25 +22,7 @@ const ForgotPasswordConfirmForm: FC<{
 }> = observer(({ className, token, model = forgotPasswordConfirmModel }) => {
   const router = useRouter();
   const schema = yup.object().shape({
-    password: yup
-      .string()
-      .test('password', 'Пароль повинен містити хоча б одну цифру', value => {
-        return /\d/.test(value || '');
-      })
-      .test('password', 'Пароль повинен містити хоча б одну букву', value => {
-        return /[a-zA-Z]/.test(value || '');
-      })
-      .test('password', 'Пароль повинен містити хоча б один спеціальний символ', value => {
-        return /[!@#$%^&*]/.test(value || '');
-      })
-      .test('password', 'Пароль повинен містити хоча б одну велику букву', value => {
-        return /[A-Z]/.test(value || '');
-      })
-      .test('password', 'Пароль повинен містити хоча б одну маленьку букву', value => {
-        return /[a-z]/.test(value || '');
-      })
-      .min(8, 'Пароль повинен бути не менше 8 символів')
-      .required("Обов'язкове поле"),
+    password: passwordSchema,
     confirmPassword: yup
       .string()
       .oneOf([yup.ref('password'), null], 'Паролі не співпадають')

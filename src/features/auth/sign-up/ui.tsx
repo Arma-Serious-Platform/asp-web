@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { FC, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { signUpModel, SignUpModel } from './model';
+import { PASSWORD_REQUIREMENTS_HINT, passwordSchema } from '@/shared/lib/password-schema';
 import * as yup from 'yup';
 
 type FormData = SignUpDto & {
@@ -24,7 +25,7 @@ const SignUpForm: FC<{
   const schema = yup.object().shape({
     nickname: yup.string().min(3, 'Мінімум 3 символи').required("Обов'язкове поле"),
     email: yup.string().email('Неправильний формат email').required("Обов'язкове поле"),
-    password: yup.string().required("Обов'язкове поле"),
+    password: passwordSchema,
     rePassword: yup
       .string()
       .required("Обов'язкове поле")
@@ -41,7 +42,7 @@ const SignUpForm: FC<{
       password: '',
       rePassword: '',
     },
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
   });
 
   const { isValid, isSubmitting } = form.formState;
@@ -112,7 +113,10 @@ const SignUpForm: FC<{
           control={form.control}
           name="password"
           render={({ field }) => (
-            <Input {...field} type="password" label="Пароль" error={form.formState.errors.password?.message} />
+            <div className="flex flex-col gap-1">
+              <Input {...field} type="password" label="Пароль" error={form.formState.errors.password?.message} />
+              <p className="text-xs text-zinc-500">{PASSWORD_REQUIREMENTS_HINT}</p>
+            </div>
           )}
         />
 
