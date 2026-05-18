@@ -77,8 +77,8 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
       setSavedOptions(nextSavedOptions);
       onChange(nextSavedOptions.map(o => o.value) as never);
     } else {
-      setSavedOptions(isAlreadySelected ? [] : [option]);
-      onChange((value === option.value ? null : option.value) as never);
+      setSavedOptions([option]);
+      onChange(option.value as never);
     }
   };
 

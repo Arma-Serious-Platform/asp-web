@@ -458,6 +458,7 @@ class ApiModel {
     formData.append('name', dto.name);
     formData.append('description', dto.description);
     formData.append('islandId', dto.islandId);
+    formData.append('missionType', dto.missionType);
 
     return await this.instance.post<Mission>('/missions', formData, {
       headers: {
@@ -481,6 +482,10 @@ class ApiModel {
     }
     if (dto.description) {
       formData.append('description', dto.description);
+    }
+
+    if (dto.missionType) {
+      formData.append('missionType', dto.missionType);
     }
 
     return await this.instance.patch<Mission>(`/missions/${id}`, formData, {
