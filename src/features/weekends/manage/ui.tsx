@@ -39,6 +39,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import dayjs from 'dayjs';
+import { canAdminMission } from '@/entities/user/lib';
 
 const defaultGame: CreateGameDto = {
   date: '',
@@ -419,7 +420,7 @@ const ManageWeekendModal: FC<
 
   const missionOptions = model.missions.options;
   const sideOptions = model.sides.options.filter(s => s.label !== 'Unassigned');
-  const userOptions = mapUsersToSelectOptions(model.users.pagination.data);
+  const userOptions = mapUsersToSelectOptions(model.users.pagination.data.filter(canAdminMission));
 
   const getVersionOptionsForMission = (missionId: string) =>
     (missionVersionsCache[missionId] ?? []).map(v => ({ label: v.version, value: v.id }));

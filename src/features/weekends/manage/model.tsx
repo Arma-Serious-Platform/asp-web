@@ -27,9 +27,7 @@ export class ManageWeekendModel {
   init = async () => {
     await Promise.all([
       this.sides.pagination.loadAll(),
-      this.users.pagination.loadAll({
-        role: UserRole.GAME_ADMIN,
-      }),
+      this.users.pagination.loadAll(),
       this.missions.pagination.loadAll(),
     ]);
   };

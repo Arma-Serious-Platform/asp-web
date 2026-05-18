@@ -1,4 +1,4 @@
-import { FindUsersDto, UserRole, UserStatus } from '@/shared/sdk/types';
+import { FindUsersDto, User, UserRole, UserStatus } from '@/shared/sdk/types';
 
 /** Ukrainian labels for roles (admin panel and display) */
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
@@ -57,4 +57,8 @@ export const getUserStatusText = (status?: UserStatus) => {
     default:
       return 'Активний';
   }
+};
+
+export const canAdminMission = (user: User) => {
+  return user.role === UserRole.OWNER || user.role === UserRole.TECH_ADMIN || user.role === UserRole.GAME_ADMIN;
 };
