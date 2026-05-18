@@ -18,7 +18,7 @@ const sideAppearance = (sideType?: SideType) => {
     return { label: 'OPFOR', badge: 'bg-red-500/20 text-red-300 border-red-500/40', dot: 'bg-red-500' };
   }
   if (sideType === SideType.BLUE) {
-    return { label: 'BLUEFOR', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40', dot: 'bg-blue-500' };
+    return { label: 'BLUFOR', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40', dot: 'bg-blue-500' };
   }
   return { label: 'Незалежний', badge: 'bg-amber-500/15 text-amber-200 border-amber-400/35', dot: 'bg-amber-400' };
 };

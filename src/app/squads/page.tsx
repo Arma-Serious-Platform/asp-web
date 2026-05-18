@@ -23,7 +23,7 @@ const NoSquadsInformer: FC<{
       'text-blue-100/80 border-blue-500/40 bg-blue-500/5': type === SideType.BLUE,
       'text-red-100/80 border-red-500/40 bg-red-500/5': type === SideType.RED,
     })}>
-    Наразі немає загонів, закріплених за {type === SideType.BLUE ? 'BLUEFOR' : 'OPFOR'}.
+    Наразі немає загонів, закріплених за {type === SideType.BLUE ? 'BLUFOR' : 'OPFOR'}.
   </div>
 );
 
@@ -43,7 +43,7 @@ const SquadsPage = observer(() => {
         <header className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold leading-tight tracking-tight">Загони проєкту</h1>
           <p className="max-w-2xl text-sm text-zinc-300">
-            Сторони <span className="font-semibold text-blue-400">BLUEFOR</span> та{' '}
+            Сторони <span className="font-semibold text-blue-400">BLUFOR</span> та{' '}
             <span className="font-semibold text-red-400">OPFOR</span> протистоять одна одній. Незалежні загони мають
             менший пріоритет займання слотів перед початком гри.
           </p>
@@ -59,7 +59,7 @@ const SquadsPage = observer(() => {
             </div>
           ) : (
             <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch">
-              {/* BLUEFOR side */}
+              {/* BLUFOR side */}
               <section className="flex w-full flex-col gap-3">
                 <div className="flex items-center gap-2">
                   <span className="h-7 w-1 rounded-full bg-blue-500/70 shadow-[0_0_18px_rgba(59,130,246,0.8)]" />
@@ -68,7 +68,7 @@ const SquadsPage = observer(() => {
                       Сторона
                     </span>
                     <span className="text-xl font-semibold text-blue-200 drop-shadow-[0_0_12px_rgba(37,99,235,0.75)]">
-                      BLUEFOR
+                      BLUFOR
                     </span>
                   </div>
                 </div>
