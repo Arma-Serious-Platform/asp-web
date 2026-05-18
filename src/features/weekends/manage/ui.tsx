@@ -225,6 +225,8 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
           render={({ field: f }) => (
             <Select
               label="Ігровий адміністратор (опційно)"
+              localSearch
+              placeholder="Оберіть користувача"
               options={[{ label: '— Не обрано', value: '' }, ...userOptions]}
               value={f.value || ''}
               onChange={v => f.onChange(v === '' ? null : v)}
