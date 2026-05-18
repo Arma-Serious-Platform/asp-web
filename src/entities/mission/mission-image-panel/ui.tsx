@@ -34,7 +34,7 @@ export const MissionImagePanel: FC<{
       {/* Action Buttons */}
       <div className="flex gap-3">
         <Button asChild variant="default" className="flex-1">
-          <Link href={ROUTES.missions.id(game.mission.id)}>
+          <Link className="hover:text-white" href={ROUTES.missions.id(game.mission.id)}>
             <EyeIcon className="size-4" />
             Переглянути
           </Link>

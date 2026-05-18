@@ -12,7 +12,7 @@ import {
   InfoIcon,
 } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
-import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
+import { statusLabels, statusColors, statusTextColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { FC, useState } from 'react';
@@ -119,7 +119,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                           status,
                         });
                       }}>
-                      <CheckCircleIcon className={cn('size-4', statusColors[status])} />
+                      <CheckCircleIcon className={cn('size-4', statusTextColors[status])} />
                       {statusLabels[status]}
                     </Button>
                   ))}
