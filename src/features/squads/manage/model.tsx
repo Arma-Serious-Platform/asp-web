@@ -26,7 +26,7 @@ class ManageSquadModel {
 
   init = async () => {
     await this.sides.pagination.loadAll();
-    await this.users.pagination.init(findUsersWithoutSquadParams());
+    await this.users.pagination.loadAll(findUsersWithoutSquadParams());
   };
 
   createSquad = async (squad: CreateSquadDto, onSuccess?: (squad: Squad) => void) => {

@@ -280,18 +280,15 @@ const ManageSquadModal: FC<
                       {() => (
                         <Select
                           {...field}
-                          onSearch={search => {
-                            model.users.pagination.init(
-                              findUsersWithoutSquadParams({ search, take: 100 }),
-                            );
-                          }}
+                          localSearch
+                          placeholder="Оберіть лідера"
                           isLoading={model.users.pagination.preloader.isLoading}
                           label="Лідер загону"
                           options={withCurrentLeaderOption(
                             mapUsersToSelectOptions(model.users.pagination.data),
                             model.modal.payload?.squad?.leader,
                           )}
-                          error={form.formState.errors.sideId?.message}
+                          error={form.formState.errors.leaderId?.message}
                         />
                       )}
                     </Observer>
