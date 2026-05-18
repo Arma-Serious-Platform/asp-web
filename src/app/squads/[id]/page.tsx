@@ -7,6 +7,7 @@ import { SideType, Squad, User } from '@/shared/sdk/types';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
+import { TextWithLinks } from '@/shared/ui/moleculas/text-with-links';
 import { Layout } from '@/widgets/layout';
 import { ArrowLeftIcon, LoaderIcon, ShieldIcon, UsersRoundIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -123,7 +124,9 @@ export default function SquadDetailPage() {
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{squad.name}</h1>
                     {squad.description ? (
-                      <p className="max-w-3xl text-sm leading-relaxed text-zinc-300">{squad.description}</p>
+                      <p className="max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+                        <TextWithLinks text={squad.description} linkClassName="text-primary hover:text-primary/80" />
+                      </p>
                     ) : (
                       <p className="text-sm text-zinc-500">Опис загону не додано.</p>
                     )}

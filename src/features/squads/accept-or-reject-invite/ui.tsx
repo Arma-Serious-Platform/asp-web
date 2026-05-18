@@ -8,6 +8,7 @@ import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AcceptOrRejectInviteModel, acceptOrRejectInviteModel } from './model';
 import { SquadInvitation } from '@/shared/sdk/types';
+import { TextWithLinks } from '@/shared/ui/moleculas/text-with-links';
 import { CheckIcon, LoaderIcon, XIcon } from 'lucide-react';
 
 const SquadInviteConfirmModal: FC<{
@@ -113,7 +114,9 @@ const SquadInviteItem: FC<{
           </div>
         )}
         {invitation.squad.description && (
-          <p className="text-xs text-zinc-400 line-clamp-2">{invitation.squad.description}</p>
+          <p className="line-clamp-2 text-xs text-zinc-400">
+            <TextWithLinks text={invitation.squad.description} linkClassName="text-primary hover:text-primary/80" />
+          </p>
         )}
       </div>
 
