@@ -1,5 +1,6 @@
 import { session } from '@/entities/session/model';
 import { ChangeAvatarModel } from '@/features/user/change-avatar/model';
+import { ChangeNicknameModel } from '@/features/user/change-nickname/model';
 import { Loader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
 import { UpdateUserDto, User } from '@/shared/sdk/types';
@@ -19,6 +20,7 @@ class UserProfileModel {
   loader = new Loader();
   socialsLoader = new Loader();
   avatar = new ChangeAvatarModel();
+  nickname = new ChangeNicknameModel();
 
   get user() {
     return this.isOwnProfile ? session.user.user : this.otherUser;

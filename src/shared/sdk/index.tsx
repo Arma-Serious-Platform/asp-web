@@ -4,6 +4,7 @@ import axios from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import {
   BanUserDto,
+  ChangeNicknameDto,
   ChangePasswordDto,
   ConfirmForgotPasswordDto,
   CreateChatDto,
@@ -237,6 +238,10 @@ class ApiModel {
 
   updateMe = async (dto: UpdateUserDto) => {
     return await this.instance.patch<User>('/users/me', dto);
+  };
+
+  changeNickname = async (dto: ChangeNicknameDto) => {
+    return await this.instance.patch<User>('/users/me/change-nickname', dto);
   };
 
   getSteamLoginUrl = () => {

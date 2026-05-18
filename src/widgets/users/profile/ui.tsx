@@ -19,6 +19,7 @@ import { View } from '@/features/view';
 import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from '@/widgets/user/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
+import { ChangeNicknameModal, ProfileNickname } from '@/features/user/change-nickname';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
 import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
@@ -55,7 +56,12 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
 
   return (
     <>
-      {model.isOwnProfile && <ChangeAvatarModal model={model.avatar} autoInputClick />}
+      {model.isOwnProfile && (
+        <>
+          <ChangeAvatarModal model={model.avatar} autoInputClick />
+          <ChangeNicknameModal model={model.nickname} user={model.user} onSuccess={() => model.init()} />
+        </>
+      )}
 
       <div className="container relative mx-auto my-6 w-full px-4">
         <Preloader isLoading={model.loader.isLoading}>
@@ -109,14 +115,18 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
                       Основна інформація
                     </span>
-                    <div className="flex items-center gap-2 text-lg font-semibold text-white">
-                      <UserIcon className="size-5 text-primary" />
-                      <UserNicknameText
-                        user={model.user}
-                        tag={model?.user?.squad?.tag}
-                        sideType={model?.user?.squad?.side?.type}
-                      />
-                    </div>
+                    {model.isOwnProfile ? (
+                      <ProfileNickname user={model.user} model={model.nickname} />
+                    ) : (
+                      <div className="flex items-center gap-2 text-lg font-semibold text-white">
+                        <UserIcon className="size-5 text-primary" />
+                        <UserNicknameText
+                          user={model.user}
+                          tag={model?.user?.squad?.tag}
+                          sideType={model?.user?.squad?.side?.type}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <View.Condition if={model.isOwnProfile}>

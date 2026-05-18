@@ -139,6 +139,10 @@ export type User = {
   };
 };
 
+export type ChangeNicknameDto = {
+  nickname: string;
+};
+
 export type UpdateMeDto = {
   nickname?: string;
   email?: string;
