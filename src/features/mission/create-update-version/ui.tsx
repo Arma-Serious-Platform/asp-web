@@ -48,7 +48,11 @@ const createVersionSchema = (missionId: string) =>
     file: yup
       .mixed()
       .nullable()
-      .test('file-size', uploadFileSizeLimitMessage, value => !value || (value instanceof File && isValidUploadFileSize(value))),
+      .test(
+        'file-size',
+        uploadFileSizeLimitMessage,
+        value => !value || (value instanceof File && isValidUploadFileSize(value)),
+      ),
     attackScreenshots: yup.array().of(
       yup
         .mixed<File>()
@@ -282,7 +286,11 @@ const CreateUpdateMissionVersionModal: FC<{
   return (
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
-      <DialogContent className="min-w-[45vw] max-w-none max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="min-w-[45vw] max-w-none max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={e => e.preventDefault()}
+        onInteractOutside={e => e.preventDefault()}
+        onEscapeKeyDown={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{editingVersion ? 'Редагувати версію' : 'Створити нову версію'}</DialogTitle>
         </DialogHeader>
