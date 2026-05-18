@@ -44,7 +44,7 @@ export const UserNicknameText: FC<{
             'text-red-500': type === SideType.RED,
             'text-gray-500': type === SideType.UNASSIGNED,
           })}>
-          [{tag || user.squad?.tag}]
+          [{tag || user.squad?.tag}]{' '}
         </span>
         <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>{user.nickname}</span>
       </UserProfileLink>
