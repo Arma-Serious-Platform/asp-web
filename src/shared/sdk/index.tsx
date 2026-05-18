@@ -244,6 +244,10 @@ class ApiModel {
     return await this.instance.patch<User>('/users/me/change-nickname', dto);
   };
 
+  disconnectSteam = async () => {
+    return await this.instance.delete<User>('/users/me/steamId');
+  };
+
   getSteamLoginUrl = () => {
     const accessToken = window.localStorage.getItem('token') || '';
 

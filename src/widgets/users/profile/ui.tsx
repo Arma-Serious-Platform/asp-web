@@ -31,9 +31,7 @@ import { ProfileTab } from './lib';
 import { ProfileChat } from './chat';
 import { ROUTES } from '@/shared/config/routes';
 import { useRouter } from 'next/navigation';
-import { env } from '@/shared/config/env';
-import { api } from '@/shared/sdk';
-import { session } from '@/entities/session/model';
+import { ProfileSteamConnect } from '@/features/user/steam-connect/ui';
 
 type UserProfileProps = {
   model: UserProfileModel;
@@ -134,19 +132,11 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       icon={<IdCardIcon className="size-4" />}
                       title="Steam ID"
                       description={
-                        model.user?.steamId ? (
-                          model.user.steamId
-                        ) : (
-                          <Button
-                            size="sm"
-                            className="flex items-center text-xs gap-2 border-0 bg-linear-to-r from-[#171a21] via-[#1b2838] to-[#2a475e] text-white hover:from-[#1b2838] hover:via-[#2a475e] hover:to-[#66c0f4]"
-                            onClick={() => {
-                              window.location.href = api.getSteamLoginUrl();
-                            }}>
-                            <Image src="/images/steam-logo.svg" width={20} height={20} alt="Steam link" />
-                            Підключити Steam
-                          </Button>
-                        )
+                        <ProfileSteamConnect
+                          user={model.user}
+                          disconnectModel={model.steamDisconnect}
+                          onChanged={() => model.init()}
+                        />
                       }
                     />
                   </View.Condition>

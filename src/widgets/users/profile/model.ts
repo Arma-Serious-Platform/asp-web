@@ -1,6 +1,7 @@
 import { session } from '@/entities/session/model';
 import { ChangeAvatarModel } from '@/features/user/change-avatar/model';
 import { ChangeNicknameModel } from '@/features/user/change-nickname/model';
+import { DisconnectSteamModel } from '@/features/user/disconnect-steam/model';
 import { Loader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
 import { UpdateUserDto, User } from '@/shared/sdk/types';
@@ -21,6 +22,7 @@ class UserProfileModel {
   socialsLoader = new Loader();
   avatar = new ChangeAvatarModel();
   nickname = new ChangeNicknameModel();
+  steamDisconnect = new DisconnectSteamModel();
 
   get user() {
     return this.isOwnProfile ? session.user.user : this.otherUser;
