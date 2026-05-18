@@ -8,7 +8,7 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
 import { Layout } from '@/widgets/layout';
-import { ArrowLeftIcon, CrownIcon, LoaderIcon, ShieldIcon, UsersRoundIcon } from 'lucide-react';
+import { ArrowLeftIcon, LoaderIcon, ShieldIcon, UsersRoundIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -161,17 +161,20 @@ export default function SquadDetailPage() {
                 <UsersRoundIcon className="size-5 text-zinc-400" />
                 Учасники
               </h2>
-              {squad.members && squad.members.length > 0 ? (
-                <ul className="flex flex-col divide-y divide-white/10">
-                  {[...squad.members]
-                    .sort((a, b) => {
-                      if (a.id === squad.leaderId) return -1;
-                      if (b.id === squad.leaderId) return 1;
-                      return (a.nickname ?? '').localeCompare(b.nickname ?? '', 'uk');
-                    })
-                    .map(member => {
-                      const isLeader = member.id === squad.leaderId;
-                      return (
+              {(() => {
+                const members = Array.from(new Map((squad.members ?? []).map(member => [member.id, member])).values())
+                  .filter(member => member.id !== squad.leader?.id)
+                  .sort((a, b) => (a.nickname ?? '').localeCompare(b.nickname ?? '', 'uk'));
+
+                if (!members.length) {
+                  return <p className="text-sm text-zinc-500">Інших учасників немає.</p>;
+                }
+
+                return (
+                  <ul className="flex flex-col divide-y divide-white/10">
+                    {members
+                      .filter(member => member.id !== squad.leader?.id)
+                      .map(member => (
                         <li key={member.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
                           <Avatar
                             size="sm"
@@ -182,19 +185,11 @@ export default function SquadDetailPage() {
                           <div className="min-w-0 flex-1">
                             <UserNicknameText user={{ ...member, squad } as User} />
                           </div>
-                          {isLeader ? (
-                            <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-200">
-                              <CrownIcon className="size-3.5" />
-                              Командир
-                            </span>
-                          ) : null}
                         </li>
-                      );
-                    })}
-                </ul>
-              ) : (
-                <p className="text-sm text-zinc-500">Список учасників порожній.</p>
-              )}
+                      ))}
+                  </ul>
+                );
+              })()}
             </section>
           </>
         )}

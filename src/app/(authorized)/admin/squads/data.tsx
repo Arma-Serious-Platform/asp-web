@@ -64,7 +64,7 @@ export const columns: ColumnDef<Squad>[] = [
     accessorKey: 'members',
     header: () => <div>Учасників</div>,
     cell: ({ row }) => {
-      return <div>{row.original.activeCount || 0}</div>;
+      return <div>{row.original?._count?.members ?? 0}</div>;
     },
   },
 
