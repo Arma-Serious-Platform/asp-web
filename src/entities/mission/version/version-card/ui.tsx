@@ -2,15 +2,7 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import {
-  CalendarIcon,
-  UsersIcon,
-  DownloadIcon,
-  EditIcon,
-  CheckCircleIcon,
-  BanIcon,
-  InfoIcon,
-} from 'lucide-react';
+import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, BanIcon, InfoIcon } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, statusTextColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
@@ -24,10 +16,14 @@ import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 import { Tooltip } from '@/shared/ui/moleculas/tooltip';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
 
+/** Two side columns (w-72) + gap-3 — keeps compact cards from resizing when spoilers open */
+const COMPACT_CARD_WIDTH = 'w-[1/2]';
+
 type MissionVersionCardProps = {
   canEdit: boolean;
   version: MissionVersion;
   missionId: string;
+  fullWidth?: boolean;
   onEdit: (version: MissionVersion) => void;
   onChangeStatus: (params: { missionId: string; version: MissionVersion; status: MissionStatus }) => void;
 };
@@ -36,6 +32,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   version,
   missionId,
   canEdit,
+  fullWidth = false,
   onEdit,
   onChangeStatus,
 }) => {
@@ -75,7 +72,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   };
 
   return (
-    <div className="paper flex flex-col gap-4 rounded-xl border p-4 shadow-lg transition-all duration-300 hover:border-lime-500/50 relative">
+    <div
+      className={cn(
+        'paper relative flex flex-col gap-4 rounded-xl border p-4 shadow-lg transition-all duration-300 hover:border-lime-500/50',
+        fullWidth ? 'w-full' : cn(COMPACT_CARD_WIDTH, 'max-w-full self-start'),
+      )}>
       <div className="flex flex-col gap-4 pb-16">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -129,13 +130,17 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
         </div>
 
         {/* Sides */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className={cn('flex flex-col gap-3 sm:flex-row', fullWidth ? 'w-full' : COMPACT_CARD_WIDTH)}>
           {/* Attack Side */}
-          <div className="flex flex-col gap-3 p-4 rounded-lg bg-black/40 border border-white/5 flex-1 transition-colors hover:border-white/10">
+          <div
+            className={cn(
+              'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
+              fullWidth ? 'flex-1' : 'w-72 shrink-0',
+            )}>
             <div className="flex flex-col gap-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Атака</span>
               <div className="flex items-center justify-between">
-                <span className={cn('text-lg font-bold', sideTypeColors[version.attackSideType])}>
+                <span className={cn('text-base font-bold', sideTypeColors[version.attackSideType])}>
                   {version.attackSideName}
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -161,11 +166,15 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </div>
 
           {/* Defense Side */}
-          <div className="flex flex-col gap-3 p-4 rounded-lg bg-black/40 border border-white/5 flex-1 transition-colors hover:border-white/10">
+          <div
+            className={cn(
+              'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
+              fullWidth ? 'flex-1' : 'w-72 shrink-0',
+            )}>
             <div className="flex flex-col gap-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Оборона</span>
               <div className="flex items-center justify-between">
-                <span className={cn('text-lg font-bold', sideTypeColors[version.defenseSideType])}>
+                <span className={cn('text-base font-bold', sideTypeColors[version.defenseSideType])}>
                   {version.defenseSideName}
                 </span>
                 <div className="flex items-center gap-1.5">

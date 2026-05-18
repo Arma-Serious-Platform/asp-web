@@ -244,6 +244,7 @@ const MissionDetailsPage = observer(() => {
                 </h2>
               )}
               <MissionVersionCard
+                fullWidth
                 version={mission.missionVersions?.[0]}
                 missionId={missionId}
                 canEdit={isMissionAuthor || session.user?.isOwnerOrTech}
@@ -278,7 +279,7 @@ const MissionDetailsPage = observer(() => {
                 </View.Condition>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="flex flex-wrap items-start gap-4">
                 {mission?.missionVersions?.map(version => (
                   <MissionVersionCard
                     key={version.id}

@@ -36,9 +36,9 @@ export const WeaponrySection: FC<WeaponrySectionProps> = ({ weaponry, isOpen, se
           {weaponry.map((weaponryItem, index) => (
             <div key={weaponryItem.id || index} className="p-2 rounded bg-black/60 border border-white/5">
               <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <div
-                    className={cn('font-medium text-sm', {
+                    className={cn('break-words font-medium text-sm', {
                       'text-destructive': sideType === MissionGameSide.RED,
                       'text-green-400': sideType === MissionGameSide.GREEN,
                       'text-blue-400': sideType === MissionGameSide.BLUE,
