@@ -7,7 +7,7 @@ import { ChangeAvatarModel } from './model';
 import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogOverlay } from '@/shared/ui/organisms/dialog';
 import { Button } from '@/shared/ui/atoms/button';
 import { RefObject, useEffect, useRef, useState } from 'react';
-import { base64ToFile } from '@/shared/utils/file';
+import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 
 type ChangeAvatarModalProps = {
@@ -45,7 +45,7 @@ const ChangeAvatarModal = observer(({ model, autoInputClick = false }: ChangeAva
                 type="file"
                 disabled={model.loader.isLoading}
                 accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
-                onChange={e => setFile(e.target.files?.[0] || null)}
+                onChange={e => setFile(resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget))}
               />
 
               <Button
@@ -83,6 +83,8 @@ const ChangeAvatarModal = observer(({ model, autoInputClick = false }: ChangeAva
                     if (!base64) return;
 
                     const file = await base64ToFile(base64, 'avatar');
+
+                    if (!ensureValidUploadFile(file)) return;
 
                     model.changeAvatar(file);
                   }}>

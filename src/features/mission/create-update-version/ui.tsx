@@ -21,6 +21,13 @@ import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionVersion } from '@/shared/sdk/types';
 import { CreateUpdateMissionVersionModel, VersionFormData } from './model';
 import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
+import {
+  isValidUploadFileSize,
+  notifyOversizedUploadFiles,
+  rejectOversizedUploadFiles,
+  resolveUploadFileFromInput,
+  uploadFileSizeLimitMessage,
+} from '@/shared/utils/file';
 
 const sideTypeOptions = [
   { label: 'BLUE', value: MissionGameSide.BLUE },
@@ -38,9 +45,22 @@ const createVersionSchema = (missionId: string) =>
     defenseSideSlots: yup.number().required("Обов'язково").min(1),
     attackSideName: yup.string().required("Обов'язково"),
     defenseSideName: yup.string().required("Обов'язково"),
-    file: yup.mixed().nullable(),
-    attackScreenshots: yup.array().of(yup.mixed<File>().required()),
-    defenseScreenshots: yup.array().of(yup.mixed<File>().required()),
+    file: yup
+      .mixed()
+      .nullable()
+      .test('file-size', uploadFileSizeLimitMessage, value => !value || (value instanceof File && isValidUploadFileSize(value))),
+    attackScreenshots: yup.array().of(
+      yup
+        .mixed<File>()
+        .required()
+        .test('file-size', uploadFileSizeLimitMessage, file => file instanceof File && isValidUploadFileSize(file)),
+    ),
+    defenseScreenshots: yup.array().of(
+      yup
+        .mixed<File>()
+        .required()
+        .test('file-size', uploadFileSizeLimitMessage, file => file instanceof File && isValidUploadFileSize(file)),
+    ),
     removeAttackScreenshotIds: yup.array().of(yup.string().required()),
     removeDefenseScreenshotIds: yup.array().of(yup.string().required()),
     attackWeaponry: yup.array().of(
@@ -448,10 +468,14 @@ const CreateUpdateMissionVersionModal: FC<{
                   accept="image/*"
                   multiple
                   onChange={e => {
-                    const files = Array.from(e.target.files || []);
-                    if (!files.length) return;
+                    const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
+                    notifyOversizedUploadFiles(rejected);
+                    if (!accepted.length) {
+                      e.currentTarget.value = '';
+                      return;
+                    }
                     const current = versionForm.getValues('attackScreenshots');
-                    versionForm.setValue('attackScreenshots', [...current, ...files], { shouldValidate: true });
+                    versionForm.setValue('attackScreenshots', [...current, ...accepted], { shouldValidate: true });
                     e.currentTarget.value = '';
                   }}
                   className="invisible"
@@ -687,10 +711,14 @@ const CreateUpdateMissionVersionModal: FC<{
                   accept="image/*"
                   multiple
                   onChange={e => {
-                    const files = Array.from(e.target.files || []);
-                    if (!files.length) return;
+                    const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
+                    notifyOversizedUploadFiles(rejected);
+                    if (!accepted.length) {
+                      e.currentTarget.value = '';
+                      return;
+                    }
                     const current = versionForm.getValues('defenseScreenshots');
-                    versionForm.setValue('defenseScreenshots', [...current, ...files], { shouldValidate: true });
+                    versionForm.setValue('defenseScreenshots', [...current, ...accepted], { shouldValidate: true });
                     e.currentTarget.value = '';
                   }}
                   className="invisible"
@@ -781,7 +809,7 @@ const CreateUpdateMissionVersionModal: FC<{
                   ref={fileRef}
                   type="file"
                   accept=".pbo,.p3d"
-                  onChange={e => onChange(e.target.files?.[0] || null)}
+                  onChange={e => onChange(resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget))}
                   className="invisible"
                 />
                 {versionForm.formState.errors.file && (

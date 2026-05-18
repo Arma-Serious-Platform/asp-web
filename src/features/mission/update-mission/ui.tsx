@@ -19,7 +19,7 @@ import { LoaderIcon, UploadIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
 import { CropperRef, FixedCropper, ImageRestriction, FixedCropperRef } from 'react-advanced-cropper';
-import { base64ToFile } from '@/shared/utils/file';
+import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
 import { UpdateMissionModel, MissionFormData } from './model';
 import { Select } from '@/shared/ui/atoms/select';
 import { api } from '@/shared/sdk';
@@ -98,7 +98,7 @@ const UpdateMissionModal: FC<
   }, [model.visibility.isOpen, mission]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget);
     if (file) {
       setImagePreview(URL.createObjectURL(file));
       missionForm.setValue('image', null);
@@ -116,6 +116,7 @@ const UpdateMissionModal: FC<
         const base64 = cropperRef.current?.getCanvas()?.toDataURL();
         if (base64) {
           imageFile = await base64ToFile(base64, 'mission-image');
+          if (imageFile && !ensureValidUploadFile(imageFile)) return;
         }
       } else if (data.image) {
         imageFile = data.image;

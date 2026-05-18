@@ -22,6 +22,7 @@ import { Select } from '@/shared/ui/atoms/select';
 import { CropperRef, FixedCropper, FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
 import Image from 'next/image';
 import { Preloader } from '@/shared/ui/atoms/preloader';
+import { resolveUploadFileFromInput } from '@/shared/utils/file';
 
 const ManageSquadModal: FC<
   PropsWithChildren<{
@@ -180,7 +181,7 @@ const ManageSquadModal: FC<
                   type="file"
                   accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
                   disabled={model.loader.isLoading}
-                  onChange={e => setFile(e.target.files?.[0] || null)}
+                  onChange={e => setFile(resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget))}
                 />
 
                 {Boolean(image) && (
