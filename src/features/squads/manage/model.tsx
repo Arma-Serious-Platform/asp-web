@@ -1,3 +1,4 @@
+import { findUsersWithoutSquadParams } from '@/entities/user/lib';
 import { SideModel } from '@/entities/side/model';
 import { UserModel } from '@/entities/user/model';
 import { Loader } from '@/shared/model/loader';
@@ -25,10 +26,7 @@ class ManageSquadModel {
 
   init = async () => {
     await this.sides.pagination.loadAll();
-    await this.users.pagination.init({
-      take: 50,
-      skip: 0,
-    });
+    await this.users.pagination.init(findUsersWithoutSquadParams());
   };
 
   createSquad = async (squad: CreateSquadDto, onSuccess?: (squad: Squad) => void) => {

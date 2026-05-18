@@ -1,3 +1,4 @@
+import { findUsersWithoutSquadParams } from '@/entities/user/lib';
 import { UserModel } from '@/entities/user/model';
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
@@ -20,10 +21,7 @@ export class InviteToSquadModel {
   }>();
 
   init = async () => {
-    await this.users.pagination.init({
-      take: 50,
-      skip: 0,
-    });
+    await this.users.pagination.loadAll(findUsersWithoutSquadParams());
   };
 
   inviteToSquad = async (dto: InviteToSquadDto, onSuccess?: (invitation: SquadInvitation) => void) => {

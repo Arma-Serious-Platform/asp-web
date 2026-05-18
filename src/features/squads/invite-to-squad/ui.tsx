@@ -1,6 +1,6 @@
 'use client';
 
-import { UserModel } from '@/entities/user/model';
+import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { Button } from '@/shared/ui/atoms/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogOverlay } from '@/shared/ui/organisms/dialog';
 import { Preloader } from '@/shared/ui/atoms/preloader';
@@ -62,15 +62,10 @@ const InviteToSquadModal: FC<{
                     value={selectedUserId}
                     onChange={setSelectedUserId}
                     label="Користувач"
-                    onSearch={search => {
-                      model.users.pagination.init({
-                        search,
-                        skip: 0,
-                        take: 50,
-                      });
-                    }}
+                    localSearch
+                    placeholder="Оберіть користувача"
                     isLoading={model.users.pagination.preloader.isLoading}
-                    options={model.users.options}
+                    options={mapUsersToSelectOptions(model.users.pagination.data)}
                   />
                 )}
               </Observer>

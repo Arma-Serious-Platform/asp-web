@@ -13,7 +13,15 @@ import { ChevronDownIcon } from 'lucide-react';
 export type SelectOption = {
   label: string;
   value: string;
+  /** Custom row / trigger content; `label` is used for search and multi-select summary. */
+  content?: ReactNode;
+  /** Extra text for local search; defaults to `label`. */
+  searchText?: string;
 };
+
+const getOptionSearchText = (option: SelectOption) => (option.searchText ?? option.label).toLowerCase();
+
+const renderSelectOptionLabel = (option: SelectOption) => option.content ?? option.label;
 
 type BaseSelectProps = {
   options: SelectOption[];
@@ -78,7 +86,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
     return [
       ...options.filter(o => {
         if (localSearch) {
-          return o.label.toLowerCase().includes(searchValue.toLowerCase());
+          return getOptionSearchText(o).includes(searchValue.toLowerCase());
         }
 
         return true;
@@ -89,12 +97,20 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   }, [options, savedOptions, searchValue, localSearch]);
 
   const labelToDisplay = useMemo(() => {
-    return multiple
-      ? combinedOptions
-          .filter(v => value?.includes(v.value))
-          .map(v => v.label)
-          .join(', ')
-      : combinedOptions.find(v => v.value === value)?.label;
+    if (multiple) {
+      return combinedOptions
+        .filter(v => value?.includes(v.value))
+        .map(v => v.label)
+        .join(', ');
+    }
+
+    const selected = combinedOptions.find(v => v.value === value);
+
+    if (!selected) {
+      return null;
+    }
+
+    return selected.content ?? selected.label;
   }, [multiple, combinedOptions, value]);
 
   return (
@@ -113,10 +129,12 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
             )}
             <div
               className={cn(
-                'flex h-9 w-full cursor-pointer items-center rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 hover:border-lime-500 hover:bg-black/80 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40 disabled:cursor-not-allowed disabled:opacity-45',
+                'flex h-9 w-full min-w-0 cursor-pointer items-center rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 hover:border-lime-500 hover:bg-black/80 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40 disabled:cursor-not-allowed disabled:opacity-45',
                 { 'text-zinc-500': !value || !value.length },
               )}>
-              {labelToDisplay ? labelToDisplay : placeholder}
+              <span className="min-w-0 flex-1 truncate">
+                {labelToDisplay ? labelToDisplay : placeholder}
+              </span>
 
               <ChevronDownIcon className="size-4 ml-auto" />
             </div>
@@ -157,14 +175,14 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
                 onClick={() => onSelect(option)}
                 className={'cursor-pointer hover:bg-primary/15 px-2 py-1.5 text-sm'}>
                 {multiple ? (
-                  <div className="flex items-center gap-2">
-                    <Checkbox checked={value.some(v => v === option.value)} />
-                    {option.label}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Checkbox checked={value.some(v => v === option.value)} className="shrink-0" />
+                    <span className="min-w-0">{renderSelectOptionLabel(option)}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <Radio checked={value === option.value} />
-                    {option.label}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Radio checked={value === option.value} className="shrink-0" />
+                    <span className="min-w-0">{renderSelectOptionLabel(option)}</span>
                   </div>
                 )}
               </div>

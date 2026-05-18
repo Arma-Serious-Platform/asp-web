@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from '@/shared/sdk/types';
+import { FindUsersDto, UserRole, UserStatus } from '@/shared/sdk/types';
 
 /** Ukrainian labels for roles (admin panel and display) */
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
@@ -39,6 +39,14 @@ export const getUserRoleColor = (role?: UserRole, isMissionReviewer?: boolean) =
 
   return 'text-neutral-400';
 };
+
+/** Query params for user pickers (invite, new squad leader) — only users not in a squad yet. */
+export const findUsersWithoutSquadParams = (params: Partial<FindUsersDto> = {}): FindUsersDto => ({
+  hasSquad: false,
+  take: 50,
+  skip: 0,
+  ...params,
+});
 
 export const getUserStatusText = (status?: UserStatus) => {
   switch (status) {

@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState, useQueryStates } from 'nuqs';
 import { missionTypeOptions, statusOptions } from '@/entities/mission/lib';
+import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 
@@ -78,7 +79,7 @@ const MissionFilters = observer(
 
         <Select
           label="Автор"
-          options={model.userModel.options}
+          options={mapUsersToSelectOptions(model.userModel.pagination.data)}
           localSearch
           placeholder="Усі автори"
           value={filters.authorId || ''}

@@ -11,6 +11,8 @@ import { Observer, observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, RefObject, useEffect, useRef, useState } from 'react';
 import { ManageSquadModel } from './model';
 import { Input } from '@/shared/ui/atoms/input';
+import { findUsersWithoutSquadParams } from '@/entities/user/lib';
+import { mapUsersToSelectOptions, withCurrentLeaderOption } from '@/entities/user/ui/user-select-options';
 import { CreateSquadDto, Squad, UpdateSquadDto } from '@/shared/sdk/types';
 
 import { Controller, useForm } from 'react-hook-form';
@@ -278,15 +280,16 @@ const ManageSquadModal: FC<
                         <Select
                           {...field}
                           onSearch={search => {
-                            model.users.pagination.init({
-                              search,
-                              skip: 0,
-                              take: 100,
-                            });
+                            model.users.pagination.init(
+                              findUsersWithoutSquadParams({ search, take: 100 }),
+                            );
                           }}
                           isLoading={model.users.pagination.preloader.isLoading}
                           label="Лідер загону"
-                          options={model.users.options}
+                          options={withCurrentLeaderOption(
+                            mapUsersToSelectOptions(model.users.pagination.data),
+                            model.modal.payload?.squad?.leader,
+                          )}
                           error={form.formState.errors.sideId?.message}
                         />
                       )}

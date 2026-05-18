@@ -19,6 +19,7 @@ import { Controller, Resolver, useFieldArray, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Switch } from '@/shared/ui/atoms/switch';
+import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import toast from 'react-hot-toast';
 import { PlusIcon, TrashIcon, GripVerticalIcon } from 'lucide-react';
 import {
@@ -416,7 +417,7 @@ const ManageWeekendModal: FC<
 
   const missionOptions = model.missions.options;
   const sideOptions = model.sides.options.filter(s => s.label !== 'Unassigned');
-  const userOptions = model.users.options;
+  const userOptions = mapUsersToSelectOptions(model.users.pagination.data);
 
   const getVersionOptionsForMission = (missionId: string) =>
     (missionVersionsCache[missionId] ?? []).map(v => ({ label: v.version, value: v.id }));
@@ -468,7 +469,7 @@ const ManageWeekendModal: FC<
                   </div>
                 )}
               />
-              <Controller
+              {/* <Controller
                 control={form.control}
                 name="publishedAt"
                 render={({ field }) => (
@@ -478,7 +479,7 @@ const ManageWeekendModal: FC<
                     error={form.formState.errors.publishedAt?.message}
                   />
                 )}
-              />
+              /> */}
 
               <div className="border-t border-neutral-700 pt-4">
                 <div className="flex items-center justify-between mb-2">
