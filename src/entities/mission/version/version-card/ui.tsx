@@ -10,8 +10,6 @@ import {
   CheckCircleIcon,
   BanIcon,
   InfoIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
 } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
@@ -24,7 +22,7 @@ import { UniformSection } from './uniform-section';
 import { resolveUniformScreenshots } from './lib';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 import { Tooltip } from '@/shared/ui/moleculas/tooltip';
-import { Dialog, DialogContent, DialogOverlay } from '@/shared/ui/organisms/dialog';
+import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
 
 type MissionVersionCardProps = {
   canEdit: boolean;
@@ -220,43 +218,14 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
         </View.Condition>
       </div>
 
-      <Dialog open={hasPreview} onOpenChange={open => !open && handleClosePreview()}>
-        <DialogContent
-          showCloseButton={false}
-          className="w-[90vw] max-w-[90vw] h-[85vh] p-2 overflow-hidden flex items-center justify-center">
-          {previewScreenshotUrl && (
-            <div className="relative h-full w-full">
-              <div className="h-full w-full flex items-center justify-center overflow-hidden rounded">
-                <img
-                  src={previewScreenshotUrl}
-                  alt="Попередній перегляд скріншоту"
-                  className="max-h-full max-w-full w-auto h-auto object-contain"
-                />
-              </div>
-              {canNavigatePreview && (
-                <>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="absolute left-3 top-1/2 -translate-y-1/2"
-                    onClick={showPreviousScreenshot}>
-                    <ChevronLeftIcon className="size-5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                    onClick={showNextScreenshot}>
-                    <ChevronRightIcon className="size-5" />
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ScreenshotPreviewDialog
+        open={hasPreview}
+        onOpenChange={open => !open && handleClosePreview()}
+        imageUrl={previewScreenshotUrl}
+        canNavigate={canNavigatePreview}
+        onPrevious={showPreviousScreenshot}
+        onNext={showNextScreenshot}
+      />
     </div>
   );
 };
