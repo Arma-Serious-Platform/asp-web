@@ -162,7 +162,7 @@ const ManageSquadModal: FC<
       <Dialog open={model.modal.isOpen && model.modal?.payload?.mode !== 'delete'} onOpenChange={model.modal.switch}>
         <DialogOverlay />
         {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{isEdit ? 'Редагувати загін' : 'Створити загін'}</DialogTitle>
           </DialogHeader>
@@ -173,7 +173,7 @@ const ManageSquadModal: FC<
               model.users.pagination.preloader.isLoading ||
               model.sides.pagination.preloader.isLoading
             }>
-            <form className="flex flex-col gap-2 overflow-hidden" onSubmit={form.handleSubmit(onSubmit)}>
+            <form className="flex flex-col gap-2" onSubmit={form.handleSubmit(onSubmit)}>
               <div className="flex flex-col gap-2 ">
                 <input
                   ref={imageRef}
