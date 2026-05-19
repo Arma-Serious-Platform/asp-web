@@ -26,7 +26,6 @@ import Image from 'next/image';
 import { FC, useEffect, useState } from 'react';
 
 import { cn } from '@/shared/utils/cn';
-import { hasAccessToAdminPanel } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
 import { useRouter } from 'next/navigation';
@@ -35,6 +34,17 @@ import { UserNicknameText } from '@/entities/user/ui/user-text';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
+};
+
+const getFirstAdminRoute = () => {
+  if (session.canManageUsers) return ROUTES.admin.users;
+  if (session.canManageWeekends) return ROUTES.admin.weekends;
+  if (session.canManageIslands) return ROUTES.admin.islands;
+  if (session.canManageServers) return ROUTES.admin.servers;
+  if (session.canManageSquadsAndSides) return ROUTES.admin.squads;
+  if (session.canManageRules) return ROUTES.admin.rules;
+
+  return ROUTES.home;
 };
 
 const MainLinks: FC<{
@@ -130,7 +140,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
               </Button>
             }>
             <View.Condition if={session.isHasAdminPanelAccess}>
-              <NextLink href={ROUTES.admin.users}>
+              <NextLink href={getFirstAdminRoute()}>
                 <Button
                   align="left"
                   size="sm"
@@ -172,15 +182,15 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
               </NextLink>
             )}
 
-            <button type="button" onClick={() => setLogoutDialogOpen(true)}>
-              <Button
+            <Button
+              type="button"
+              onClick={() => setLogoutDialogOpen(true)}
                 align="left"
                 size="sm"
                 className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-red-300 hover:bg-red-600/20 hover:text-red-200">
                 <LogOutIcon className="size-4" />
                 <span>Вийти</span>
-              </Button>
-            </button>
+            </Button>
             <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
               <DialogContent showCloseButton>
                 <DialogHeader>

@@ -19,11 +19,9 @@ export class BanUnbanUserModel {
   async banUser(dto: BanUserDto, onSuccess?: (user: User) => void) {
     try {
       this.loader.start();
-      await api.banUser(dto);
+      const { data } = await api.banUser(dto);
 
-      if (onSuccess && this.visibility.payload?.user) {
-        onSuccess(this.visibility.payload.user);
-      }
+      onSuccess?.(data);
 
       toast.success(`${this.visibility.payload?.user?.nickname} був заблокований`);
       this.visibility.close();
@@ -35,14 +33,29 @@ export class BanUnbanUserModel {
     }
   }
 
-  async unbanUser(userId: string, onSuccess?: (user: User) => void) {
+  async permanentlyBanUser(userId: string, reason: string, onSuccess?: (user: User) => void) {
     try {
       this.loader.start();
-      await api.unbanUser(userId);
+      const { data } = await api.permanentlyBanUser(userId, reason);
 
-      if (onSuccess && this.visibility.payload?.user) {
-        onSuccess(this.visibility.payload.user);
-      }
+      onSuccess?.(data);
+
+      toast.success(`${this.visibility.payload?.user?.nickname} був заблокований назавжди`);
+      this.visibility.close();
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося заблокувати гравця назавжди');
+    } finally {
+      this.loader.stop();
+    }
+  }
+
+  async unbanUser(userId: string, reason?: string, onSuccess?: (user: User) => void) {
+    try {
+      this.loader.start();
+      const { data } = await api.unbanUser(userId, reason);
+
+      onSuccess?.(data);
 
       toast.success(`${this.visibility.payload?.user?.nickname} був розблокований`);
       this.visibility.close();
