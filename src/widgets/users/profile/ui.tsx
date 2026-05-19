@@ -122,6 +122,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                           user={model.user}
                           tag={model?.user?.squad?.tag}
                           sideType={model?.user?.squad?.side?.type}
+                          link={false}
                         />
                       </div>
                     )}

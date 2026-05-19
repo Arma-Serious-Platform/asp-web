@@ -108,6 +108,42 @@ function TableCellTooltip({ text, children }: { text: string; children: ReactNod
   );
 }
 
+function PlanCardSideName({
+  name,
+  slots,
+  className,
+}: {
+  name: string;
+  slots?: number | string | null;
+  className?: string;
+}) {
+  const displayName = name.trim() || '—';
+  const slotsLabel = slots ?? '-';
+
+  return (
+    <div className="flex min-w-0 items-center">
+      <TooltipProvider delay={250}>
+        <TooltipPrimitive>
+          <TooltipTrigger
+            closeOnClick={false}
+            render={props => (
+              <span {...props} className={cn('min-w-0 truncate font-semibold', className, props.className)}>
+                {displayName}
+              </span>
+            )}
+          />
+          <TooltipContent>
+            <span>
+              {displayName} ({slotsLabel})
+            </span>
+          </TooltipContent>
+        </TooltipPrimitive>
+      </TooltipProvider>
+      <span className={cn('shrink-0 font-semibold', className)}> ({slotsLabel})</span>
+    </div>
+  );
+}
+
 const getGameHumanLabel = (date?: string, position?: number) => {
   const normalizedPosition = typeof position === 'number' ? position + 1 : null;
   const dayIndex = date ? dayjs(date).day() : null;
@@ -566,29 +602,43 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                           </div>
                         </div>
                       </div>
-                      <div className="mt-1 flex items-center gap-2 text-[11px]">
-                        <div className="flex items-center gap-1.5">
-                          <span className={cn('size-2 rounded-full', attackAppearance.dot)} />
-                          <span className={cn('font-semibold', attackAppearance.text)}>
-                            {(game?.missionVersion?.attackSideName ??
+                      <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px]">
+                        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                          <span className={cn('size-2 shrink-0 rounded-full', attackAppearance.dot)} />
+                          <PlanCardSideName
+                            className={attackAppearance.text}
+                            name={
+                              game?.missionVersion?.attackSideName ??
                               sidesById[game?.attackSideId || '']?.name ??
-                              '—') + ` (${game?.missionVersion?.attackSideSlots ?? '-'})`}
-                          </span>
+                              '—'
+                            }
+                            slots={game?.missionVersion?.attackSideSlots}
+                          />
                           <span
-                            className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', attackAppearance.badge)}>
+                            className={cn(
+                              'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
+                              attackAppearance.badge,
+                            )}>
                             Атака
                           </span>
                         </div>
-                        <span className="text-zinc-500">vs</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className={cn('size-2 rounded-full', defenseAppearance.dot)} />
-                          <span className={cn('font-semibold', defenseAppearance.text)}>
-                            {(game?.missionVersion?.defenseSideName ??
+                        <span className="shrink-0 text-zinc-500">vs</span>
+                        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                          <span className={cn('size-2 shrink-0 rounded-full', defenseAppearance.dot)} />
+                          <PlanCardSideName
+                            className={defenseAppearance.text}
+                            name={
+                              game?.missionVersion?.defenseSideName ??
                               sidesById[game?.defenseSideId || '']?.name ??
-                              '—') + ` (${game?.missionVersion?.defenseSideSlots ?? '-'})`}
-                          </span>
+                              '—'
+                            }
+                            slots={game?.missionVersion?.defenseSideSlots}
+                          />
                           <span
-                            className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold', defenseAppearance.badge)}>
+                            className={cn(
+                              'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
+                              defenseAppearance.badge,
+                            )}>
                             Оборона
                           </span>
                         </div>
