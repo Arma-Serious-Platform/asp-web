@@ -19,14 +19,14 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import NextLink from 'next/link';
 
 import classNames from 'classnames';
-import { Loader2Icon, LogOutIcon, MapIcon, MenuIcon, ShieldUserIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react';
+import { ChevronDownIcon, Loader2Icon, LogOutIcon, MapIcon, MenuIcon, ShieldUserIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
 
 import { FC, useEffect, useState } from 'react';
 
 import { cn } from '@/shared/utils/cn';
-import { hasAccessToAdminPanel } from '@/entities/user/lib';
+import { getUserRoleText, hasAccessToAdminPanel } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
 import { useRouter } from 'next/navigation';
@@ -122,62 +122,80 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
       {session.isAuthorized && session.user?.user && !env.isLanding && (
         <>
           <Popover
-            className="flex flex-col gap-1 p-0 max-w-44"
+            className="flex flex-col p-1 w-48 border border-white/5 bg-neutral-900/90 backdrop-blur-md shadow-xl rounded-xl duration-300 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[state=open]:slide-in-from-top-2 data-[state=closed]:slide-out-to-top-2"
             trigger={
-              <Button className={cn('min-w-44 gap-3 border-none bg-transparent hover:bg-primary/50')}>
+              <button
+                type="button"
+                className="group flex items-center gap-2 px-2.5 py-1 rounded-md bg-transparent hover:bg-white/5 active:bg-white/10 data-[state=open]:bg-white/5 transition-all duration-200 cursor-pointer outline-hidden"
+              >
                 <Avatar size="sm" src={session.user?.user?.avatar?.url} />
-                <UserNicknameText user={session.user?.user} link={false} />
-              </Button>
+                <UserNicknameText user={session.user?.user} link={false} className="text-xs font-semibold tracking-wide text-zinc-200" />
+                <ChevronDownIcon className="size-3 text-zinc-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </button>
             }>
+            
+            {/* Minimalist Header with User Role */}
+            <div className="px-2 py-1 text-[9px] font-semibold text-zinc-500 uppercase tracking-wider">
+              {getUserRoleText(session.user?.user?.role, session.user?.user?.isMissionReviewer)}
+            </div>
+
+            <div className="h-px bg-white/5 my-0.5" />
+
             <View.Condition if={session.isHasAdminPanelAccess}>
-              <NextLink href={ROUTES.admin.users}>
+              <NextLink href={ROUTES.admin.users} className="w-full block">
                 <Button
+                  variant="ghost"
                   align="left"
-                  size="sm"
-                  className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5">
-                  <ShieldUserIcon className="size-4" />
+                  className="w-full border-none text-zinc-300 hover:text-zinc-100 hover:bg-white/5 px-2 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all duration-150">
+                  <ShieldUserIcon className="size-3.5 text-zinc-400" />
                   <span>Адміністрування</span>
                 </Button>
               </NextLink>
             </View.Condition>
-            <NextLink href={`${ROUTES.user.profile}?tab=profile`}>
+
+            <NextLink href={`${ROUTES.user.profile}?tab=profile`} className="w-full block">
               <Button
+                variant="ghost"
                 align="left"
-                size="sm"
-                className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5">
-                <UserIcon className="size-4" />
+                className="w-full border-none text-zinc-300 hover:text-zinc-100 hover:bg-white/5 px-2 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all duration-150">
+                <UserIcon className="size-3.5 text-zinc-400" />
                 <span>Профіль</span>
               </Button>
             </NextLink>
+
             {session.user?.user?.squad && (
-              <NextLink href={`${ROUTES.user.profile}?tab=squad`}>
+              <NextLink href={`${ROUTES.user.profile}?tab=squad`} className="w-full block">
                 <Button
+                  variant="ghost"
                   align="left"
-                  size="sm"
-                  className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5">
-                  <UsersIcon className="size-4" />
+                  className="w-full border-none text-zinc-300 hover:text-zinc-100 hover:bg-white/5 px-2 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all duration-150">
+                  <UsersIcon className="size-3.5 text-zinc-400" />
                   <span>Мій загін</span>
                 </Button>
               </NextLink>
             )}
+
             {Boolean(session.user?.user?._count?.missions) && session.user?.user?._count?.missions > 0 && (
-              <NextLink href={`${ROUTES.missions.root}?authorId=${session.user?.user?.id}`}>
+              <NextLink href={`${ROUTES.missions.root}?authorId=${session.user?.user?.id}`} className="w-full block">
                 <Button
+                  variant="ghost"
                   align="left"
-                  size="sm"
-                  className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-zinc-100 hover:bg-white/5">
-                  <MapIcon className="size-4" />
+                  className="w-full border-none text-zinc-300 hover:text-zinc-100 hover:bg-white/5 px-2 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all duration-150">
+                  <MapIcon className="size-3.5 text-zinc-400" />
                   <span>Мої місії</span>
                 </Button>
               </NextLink>
             )}
 
-            <button type="button" onClick={() => setLogoutDialogOpen(true)}>
+            {/* Subtle Divider before Log Out */}
+            <div className="h-px bg-white/5 my-0.5" />
+
+            <button type="button" onClick={() => setLogoutDialogOpen(true)} className="w-full block cursor-pointer">
               <Button
+                variant="ghost"
                 align="left"
-                size="sm"
-                className="flex w-full items-center gap-2 rounded-md bg-transparent px-2 py-1.5 text-sm font-medium text-red-300 hover:bg-red-600/20 hover:text-red-200">
-                <LogOutIcon className="size-4" />
+                className="w-full border-none text-red-400/90 hover:text-red-300 hover:bg-red-500/10 px-2 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all duration-150">
+                <LogOutIcon className="size-3.5 text-red-400/70" />
                 <span>Вийти</span>
               </Button>
             </button>
