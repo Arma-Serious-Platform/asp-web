@@ -240,6 +240,8 @@ export type FindUsersDto = PaginatedRequest<{
   status?: UserStatus;
   role?: UserRole;
   hasSquad?: boolean;
+  /** Filter users who have authored at least one mission */
+  hasMission?: boolean;
 }>;
 
 /** bannedUntil is sent as path param (ISO string). Required by API. */

@@ -48,6 +48,14 @@ export const findUsersWithoutSquadParams = (params: Partial<FindUsersDto> = {}):
   ...params,
 });
 
+/** Query params for mission author filter — only users who have created at least one mission. */
+export const findUsersWithMissionParams = (params: Partial<FindUsersDto> = {}): FindUsersDto => ({
+  hasMission: true,
+  take: 50,
+  skip: 0,
+  ...params,
+});
+
 export const getUserStatusText = (status?: UserStatus) => {
   switch (status) {
     case UserStatus.BANNED:
