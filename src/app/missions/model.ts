@@ -1,4 +1,5 @@
 import { MissionModel } from '@/entities/mission/model';
+import { findUsersWithMissionParams } from '@/entities/user/lib';
 import { UserModel } from '@/entities/user/model';
 import { FindMissionsDto } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
@@ -18,9 +19,7 @@ class MissionsPageModel {
     try {
       this.missionModel.getIslands();
       await this.missionModel.init(dto);
-      await this.userModel.pagination.loadAll({
-        take: 100,
-      });
+      await this.userModel.pagination.loadAll(findUsersWithMissionParams({ take: 100 }));
     } catch {
       toast.error('Не вдалося завантажити місії та острови');
     }
