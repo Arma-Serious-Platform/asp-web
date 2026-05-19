@@ -1,5 +1,6 @@
 'use client';
 
+import { getGamesInCurrentWeek } from '@/entities/weekend/lib';
 import { session } from '@/entities/session/model';
 import { ROUTES } from '@/shared/config/routes';
 import { env } from '@/shared/config/env';
@@ -15,7 +16,6 @@ import {
   Squad,
   User,
   UserRole,
-  Weekend,
 } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
@@ -183,7 +183,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
       setIsLoading(true);
       try {
         const [weekendsRes, usersRes, squadsRes, sidesRes] = await Promise.all([
-          api.findWeekends({ take: 2, skip: 0 }),
+          api.findWeekends({ take: 100, skip: 0 }),
           api.findUsers({ take: 1000, skip: 0 }),
           api.findSquads({ take: 1000, skip: 0 }),
           api.findSides({ take: 1000, skip: 0 }),
@@ -197,7 +197,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
         setSidesById(Object.fromEntries(sides.map(side => [side.id, side])));
 
         const weekends = weekendsRes.data.data ?? [];
-        const games = weekends.flatMap((weekend: Weekend) => weekend.games ?? []);
+        const games = getGamesInCurrentWeek(weekends);
         setGamesById(Object.fromEntries(games.map(game => [game.id, game])));
         const plansByGame = await Promise.allSettled(games.map(game => api.findHeadquartersPlansByGame(game.id)));
         const loadedPlans = plansByGame.flatMap(result =>
@@ -206,13 +206,16 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
 
         const filtered = loadedPlans
           .filter(plan => plan.side?.type === currentSide)
-          .sort((a, b) => dayjs(b.game?.date).valueOf() - dayjs(a.game?.date).valueOf());
+          .sort((a, b) => dayjs(a.game?.date).valueOf() - dayjs(b.game?.date).valueOf());
 
         setPlans(filtered);
         setVisiblePlansCount(PLANS_PAGE_SIZE);
 
-        if (!activePlanId && filtered[0]?.id) {
-          router.replace(`/hq/plans/${filtered[0].id}`);
+        if (!activePlanId && filtered.length > 0) {
+          const now = dayjs().startOf('day');
+          const defaultPlan =
+            filtered.find(plan => !dayjs(plan.game?.date).startOf('day').isBefore(now)) ?? filtered[0];
+          router.replace(`/hq/plans/${defaultPlan.id}`);
         }
       } catch (error) {
         console.error(error);
@@ -507,7 +510,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
             }
           }}>
           <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-            Список планів (2 тижні)
+            Список планів (тиждень)
           </div>
           {isLoading ? (
             <PlanListSkeleton />
