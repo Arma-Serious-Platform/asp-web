@@ -2,7 +2,7 @@ import { Hero } from '@/widgets/hero';
 import { Layout } from '@/widgets/layout';
 import { RulesMobileMenu } from './rules-mobile-menu';
 import { env } from '@/shared/config/env';
-import { RulesContentOverride } from './rules-content-override';
+import { RulesContentOverride } from './components/rules-content-override';
 
 const RulesPage = () => {
   return (

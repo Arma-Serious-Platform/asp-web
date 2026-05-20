@@ -1,6 +1,6 @@
 import { cn } from '@/shared/utils/cn';
 import { FC } from 'react';
-import { RuleSection } from './rules-data';
+import { RuleSection } from '../data';
 
 const RuleCategory: FC<React.PropsWithChildren> = ({ children }) => (
   <div className="paper flex flex-col gap-4 rounded-xl border px-4 py-5 shadow-xl">{children}</div>

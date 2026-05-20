@@ -2,7 +2,7 @@
 
 import { api } from '@/shared/sdk';
 import { FC, useEffect, useState } from 'react';
-import { DEFAULT_RULE_SECTIONS, parseRuleSections, RuleSection } from './rules-data';
+import { DEFAULT_RULE_SECTIONS, parseRuleSections, RuleSection } from '../data';
 import { RulesRenderer } from './rules-renderer';
 
 const RulesContentOverride: FC = () => {

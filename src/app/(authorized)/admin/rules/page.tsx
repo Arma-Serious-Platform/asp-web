@@ -7,7 +7,7 @@ import {
   parseRuleSections,
   RuleSection,
   serializeRuleSections,
-} from '@/app/rules/rules-data';
+} from '@/app/rules/data';
 import { api } from '@/shared/sdk';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
