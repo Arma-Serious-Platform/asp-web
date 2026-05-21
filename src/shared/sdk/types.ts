@@ -395,6 +395,7 @@ export type CreateMissionDto = {
   name: string;
   description: string;
   missionType: MissionType;
+  coauthorIds?: string[];
   image?: File;
 };
 
@@ -433,6 +434,7 @@ export type Mission = {
   };
   island: Island;
   author: User;
+  coauthors: User[];
   missionVersions: MissionVersion[];
   authorId: string;
   createdAt: string;

@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from 
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useEffect, useRef, FC, RefObject, useState } from 'react';
+import { useEffect, useMemo, useRef, FC, RefObject, useState } from 'react';
 import { LoaderIcon, UploadIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { CropperRef, FixedCropper, ImageRestriction, FixedCropperRef } from 'react-advanced-cropper';
@@ -15,9 +15,11 @@ import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from 
 import { CreateMissionModel, MissionFormData } from './model';
 import { Select } from '@/shared/ui/atoms/select';
 import { api } from '@/shared/sdk';
-import { Island, MissionType } from '@/shared/sdk/types';
+import { Island, MissionType, User } from '@/shared/sdk/types';
 import { Section } from '@/shared/ui/organisms/section';
 import { missionTypeLabels } from '@/entities/mission/lib';
+import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
+import { session } from '@/entities/session/model';
 
 const missionSchema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
@@ -27,6 +29,7 @@ const missionSchema = yup.object().shape({
     .mixed<MissionType>()
     .oneOf(Object.values(MissionType) as MissionType[])
     .required("Тип місії є обов'язковим"),
+  coauthorIds: yup.array(yup.string().required()).default([]),
 });
 
 const CreateMissionModal: FC<{
@@ -37,12 +40,19 @@ const CreateMissionModal: FC<{
   const cropperRef = useRef<CropperRef>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [islands, setIslands] = useState<Island[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoadingIslands, setIsLoadingIslands] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const currentUserId = session.user?.user?.id;
 
   const islandsOptions = islands.map(island => ({
     value: island.id,
     label: island.name,
   }));
+  const coauthorOptions = useMemo(
+    () => mapUsersToSelectOptions(users.filter(user => user.id !== currentUserId)),
+    [currentUserId, users],
+  );
 
   const missionForm = useForm<MissionFormData>({
     mode: 'onChange',
@@ -53,6 +63,7 @@ const CreateMissionModal: FC<{
       islandId: '',
       missionType: MissionType.SG,
       image: null,
+      coauthorIds: [],
     },
   });
 
@@ -69,14 +80,27 @@ const CreateMissionModal: FC<{
           setIsLoadingIslands(false);
         }
       };
+      const loadUsers = async () => {
+        try {
+          setIsLoadingUsers(true);
+          const response = await api.findUsers({ take: 1000, skip: 0 });
+          setUsers(response.data.data);
+        } catch (error) {
+          console.error('Failed to load users:', error);
+        } finally {
+          setIsLoadingUsers(false);
+        }
+      };
 
       loadIslands();
+      loadUsers();
       missionForm.reset({
         name: '',
         description: '',
         islandId: '',
         missionType: MissionType.SG,
         image: null,
+        coauthorIds: [],
       });
       setImagePreview('');
     }
@@ -121,6 +145,7 @@ const CreateMissionModal: FC<{
       islandId: '',
       missionType: MissionType.SG,
       image: null,
+      coauthorIds: [],
     });
   };
 
@@ -214,6 +239,23 @@ const CreateMissionModal: FC<{
                   value={field.value || null}
                   onChange={field.onChange}
                   error={missionForm.formState.errors.missionType?.message as string | undefined}
+                />
+              )}
+            />
+
+            <Controller
+              control={missionForm.control}
+              name="coauthorIds"
+              render={({ field }) => (
+                <Select
+                  multiple
+                  label="Співавтори"
+                  localSearch
+                  placeholder="Без співавторів"
+                  options={coauthorOptions}
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  isLoading={isLoadingUsers}
                 />
               )}
             />

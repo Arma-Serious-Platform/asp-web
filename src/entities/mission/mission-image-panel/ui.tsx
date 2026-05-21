@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 
 export const MissionImagePanel: FC<{
   game: Game;
@@ -20,7 +21,7 @@ export const MissionImagePanel: FC<{
           alt={game.mission.name}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
 
         {/* Image Overlay Info */}
         <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -53,8 +54,11 @@ export const MissionImagePanel: FC<{
           <div className="flex items-start gap-3">
             <UserIcon className="mt-0.5 size-4 shrink-0 text-lime-500" />
             <div className="min-w-0">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Автор</div>
-              <UserNicknameText user={game.mission.author} className="text-sm text-zinc-200" />
+              <MissionAuthorsText
+                mission={game.mission}
+                className="text-sm text-zinc-500"
+                userClassName="text-zinc-200"
+              />
             </div>
           </div>
           {game.admin && (

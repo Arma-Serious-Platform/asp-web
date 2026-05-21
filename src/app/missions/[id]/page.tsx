@@ -23,6 +23,7 @@ import { MessageEditor } from '@/features/chat/editor';
 import type { MissionComment } from '@/shared/sdk/types';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { DeleteMissionModal, DeleteMissionModel } from '@/features/mission/delete-mission';
+import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -33,10 +34,16 @@ const MissionDetailsPage = observer(() => {
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
   const deleteCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
   const deleteMissionModel = useMemo(() => new DeleteMissionModel(), []);
+  const currentUserId = session.user?.user?.id;
 
   const isMissionAuthor = useMemo(() => {
-    return session.user?.user?.id === mission?.authorId;
-  }, [session.user?.user?.id, mission?.authorId]);
+    return currentUserId === mission?.authorId;
+  }, [currentUserId, mission?.authorId]);
+  const isMissionCoauthor = useMemo(() => {
+    return Boolean(currentUserId && mission?.coauthors?.some(coauthor => coauthor.id === currentUserId));
+  }, [currentUserId, mission?.coauthors]);
+  const canEditMission = isMissionAuthor || isMissionCoauthor;
+  const canEditMissionVersion = canEditMission || session.user?.isOwnerOrTech;
 
   useEffect(() => {
     const loadMission = async () => {
@@ -179,7 +186,7 @@ const MissionDetailsPage = observer(() => {
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             {/* Mission Image */}
-            <div className="relative w-full md:w-64 aspect-video md:aspect-square overflow-hidden rounded-lg border border-white/10 flex-shrink-0">
+            <div className="relative w-full md:w-64 aspect-video md:aspect-square overflow-hidden rounded-lg border border-white/10 shrink-0">
               {mission.image?.url ? (
                 <Image
                   src={mission.image.url}
@@ -189,7 +196,7 @@ const MissionDetailsPage = observer(() => {
                   unoptimized={!mission.image.url.startsWith('https')}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
+                <div className="w-full h-full bg-linear-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
                   <span className="text-zinc-500 text-sm">Немає зображення</span>
                 </div>
               )}
@@ -203,10 +210,15 @@ const MissionDetailsPage = observer(() => {
                     {mission?.name}
                   </h1>
                   <p className="text-zinc-300 leading-relaxed">{mission.description}</p>
+                  <MissionAuthorsText
+                    mission={mission}
+                    className="mt-3 text-sm text-zinc-500"
+                    userClassName="text-zinc-300"
+                  />
                 </div>
 
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                  <View.Condition if={isMissionAuthor}>
+                  <View.Condition if={canEditMission}>
                     <Button
                       onClick={handleMissionUpdate}
                       variant="outline"
@@ -247,7 +259,7 @@ const MissionDetailsPage = observer(() => {
                 fullWidth
                 version={mission.missionVersions?.[0]}
                 missionId={missionId}
-                canEdit={isMissionAuthor || session.user?.isOwnerOrTech}
+                canEdit={canEditMissionVersion}
                 onEdit={handleEditVersion}
                 onChangeStatus={params => {
                   missionDetailsModel.changeMissionVersionStatusModel.visibility.open(params);
@@ -260,7 +272,7 @@ const MissionDetailsPage = observer(() => {
           <div className="border-t border-white/10 pt-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">Версії місії</h2>
-              <View.Condition if={isMissionAuthor}>
+              <View.Condition if={canEditMission}>
                 <Button variant="default" onClick={handleCreateVersion}>
                   <PlusIcon className="size-4" />
                   Створити версію
@@ -271,7 +283,7 @@ const MissionDetailsPage = observer(() => {
             {mission?.missionVersions?.length === 0 ? (
               <div className="paper flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 text-center">
                 <p className="text-zinc-400">Версій поки немає</p>
-                <View.Condition if={isMissionAuthor}>
+                <View.Condition if={canEditMission}>
                   <Button variant="default" onClick={handleCreateVersion}>
                     <PlusIcon className="size-4" />
                     Створити першу версію
@@ -283,7 +295,7 @@ const MissionDetailsPage = observer(() => {
                 {mission?.missionVersions?.map(version => (
                   <MissionVersionCard
                     key={version.id}
-                    canEdit={isMissionAuthor || session.user?.isOwnerOrTech}
+                    canEdit={canEditMissionVersion}
                     version={version}
                     missionId={missionId}
                     onEdit={handleEditVersion}

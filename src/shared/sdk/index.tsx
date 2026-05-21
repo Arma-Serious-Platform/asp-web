@@ -94,6 +94,19 @@ const AUTH_REQUEST_PATHS_WITHOUT_TOKEN_REFRESH = [
 const isPublicAuthRequest = (url?: string) =>
   Boolean(url && AUTH_REQUEST_PATHS_WITHOUT_TOKEN_REFRESH.some(path => url.includes(path)));
 
+const appendStringArrayToFormData = (formData: FormData, key: string, values?: string[]) => {
+  if (!values) return;
+
+  if (values.length === 0) {
+    formData.append(key, '[]');
+    return;
+  }
+
+  values.forEach((value, index) => {
+    formData.append(`${key}[${index}]`, value);
+  });
+};
+
 class ApiModel {
   instance = axios.create({
     baseURL: env.apiUrl,
@@ -497,6 +510,7 @@ class ApiModel {
     formData.append('description', dto.description);
     formData.append('islandId', dto.islandId);
     formData.append('missionType', dto.missionType);
+    appendStringArrayToFormData(formData, 'coauthorIds', dto.coauthorIds);
 
     return await this.instance.post<Mission>('/missions', formData, {
       headers: {
@@ -525,6 +539,8 @@ class ApiModel {
     if (dto.missionType) {
       formData.append('missionType', dto.missionType);
     }
+
+    appendStringArrayToFormData(formData, 'coauthorIds', dto.coauthorIds);
 
     return await this.instance.patch<Mission>(`/missions/${id}`, formData, {
       headers: {

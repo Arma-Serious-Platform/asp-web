@@ -68,14 +68,15 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   const [searchValue, setSearchValue] = useState('');
 
   const onSelect = (option: SelectOption) => {
-    const isAlreadySelected = savedOptions.some(o => o.value === option.value);
-
     if (multiple) {
-      const nextSavedOptions = isAlreadySelected
-        ? [...savedOptions.filter(o => o.value !== option.value)]
-        : [...savedOptions, option];
+      const currentValue = value as string[];
+      const nextValue = currentValue.includes(option.value)
+        ? currentValue.filter(v => v !== option.value)
+        : [...currentValue, option.value];
+      const nextSavedOptions = combinedOptions.filter(o => nextValue.includes(o.value));
+
       setSavedOptions(nextSavedOptions);
-      onChange(nextSavedOptions.map(o => o.value) as never);
+      onChange(nextValue as never);
     } else {
       setSavedOptions([option]);
       onChange(option.value as never);
@@ -129,8 +130,11 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
             )}
             <div
               className={cn(
-                'flex h-9 w-full min-w-0 cursor-pointer items-center rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 hover:border-lime-500 hover:bg-black/80 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40 disabled:cursor-not-allowed disabled:opacity-45',
-                { 'text-zinc-500': !value || !value.length },
+                'flex h-9 w-full min-w-0 cursor-pointer items-center rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 hover:border-lime-500 hover:bg-black/80 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40',
+                {
+                  'text-zinc-500': !value || !value.length,
+                  'cursor-not-allowed opacity-45 hover:border-neutral-700 hover:bg-black/70': disabled,
+                },
               )}>
               <span className="min-w-0 flex-1 truncate">
                 {labelToDisplay ? labelToDisplay : placeholder}

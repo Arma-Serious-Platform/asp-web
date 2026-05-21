@@ -10,6 +10,7 @@ export type MissionFormData = {
   description: string;
   islandId: string;
   missionType: MissionType;
+  coauthorIds: string[];
   image: File | null;
 };
 
@@ -31,6 +32,7 @@ export class CreateMissionModel {
         description: data.description,
         islandId: data.islandId,
         missionType: data.missionType,
+        coauthorIds: data.coauthorIds.length ? data.coauthorIds : undefined,
         image: imageFile,
       };
 

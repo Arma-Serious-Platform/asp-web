@@ -9,8 +9,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { EyeIcon, UsersIcon, LayersIcon, MilestoneIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
-import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { missionTypeLabels, statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
+import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 
 type SideInfoProps = {
   label: string;
@@ -56,11 +56,11 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
               unoptimized={!mission.image.url.startsWith('https')}
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
+            <div className="w-full h-full bg-linear-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
               <span className="text-zinc-500 text-sm">Немає зображення</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
           <div className="absolute top-3 left-3 flex items-center gap-2">
             <span className="px-2 py-1 rounded text-xs font-semibold border border-white/20 bg-black/40 text-white">
@@ -83,12 +83,12 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
           <div>
             <h3 className="text-xl font-bold text-white mb-1 line-clamp-2">{mission.name}</h3>
             <p className="text-sm text-zinc-400 line-clamp-2 mb-2">{mission.description}</p>
-            {mission.author && (
-              <div className="text-xs text-zinc-500">
-                <span className="text-zinc-500">Автор: </span>
-                <UserNicknameText user={mission.author} className="text-zinc-400" />
-              </div>
-            )}
+            <MissionAuthorsText
+              mission={mission}
+              className="text-xs text-zinc-500"
+              labelClassName="text-zinc-500"
+              userClassName="text-zinc-400"
+            />
             {mission.island && (
               <div className="text-xs text-zinc-500">
                 <span className="text-zinc-500">Карта: </span>
