@@ -34,7 +34,9 @@ export enum UserStatus {
 
 export enum UserRole {
   OWNER = 'OWNER',
+  SERVER_ADMIN = 'SERVER_ADMIN',
   TECH_ADMIN = 'TECH_ADMIN',
+  UVK = 'UVK',
   GAME_ADMIN = 'GAME_ADMIN',
   MINI_ADMIN = 'MINI_ADMIN',
   USER = 'USER',
@@ -117,6 +119,7 @@ export type User = {
   status: UserStatus;
   role: UserRole;
   steamId: string | null;
+  lastIp: string | null;
   isMissionReviewer: boolean;
   resetPasswordToken: string | null;
   resetPasswordTokenExpiresAt: Date | null;
@@ -134,13 +137,56 @@ export type User = {
   discordUrl?: string;
   twitchUrl?: string;
   youtubeUrl?: string;
-  _count?: {
-    missions: number;
-  };
+  _count?: Partial<Record<'missions' | 'warnings', number>>;
 };
 
 export type ChangeNicknameDto = {
   nickname: string;
+};
+
+export type ChangeUserNicknameDto = ChangeNicknameDto & {
+  userId: string;
+};
+
+export type CreateUserWarningDto = {
+  userId: string;
+  reason: string;
+};
+
+export type UserWarning = {
+  id: string;
+  userId: string;
+  adminId: string | null;
+  removedById?: string | null;
+  reason: string;
+  removeReason?: string | null;
+  removedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  admin?: Pick<User, 'id' | 'nickname'> | null;
+  removedBy?: Pick<User, 'id' | 'nickname'> | null;
+};
+
+export enum UserPunishmentType {
+  WARNING = 'WARNING',
+  WARNING_REMOVED = 'WARNING_REMOVED',
+  TEMP_BAN = 'TEMP_BAN',
+  PERMANENT_BAN = 'PERMANENT_BAN',
+  UNBAN = 'UNBAN',
+}
+
+export type UserPunishment = {
+  id: string;
+  userId: string;
+  adminId: string | null;
+  warningId: string | null;
+  type: UserPunishmentType;
+  reason: string | null;
+  bannedUntil: string | null;
+  createdAt: string;
+  updatedAt: string;
+  admin?: Pick<User, 'id' | 'nickname'> | null;
+  warning?: Pick<UserWarning, 'id' | 'reason' | 'removedAt' | 'removeReason'> | null;
 };
 
 export type UpdateMeDto = {
@@ -230,6 +276,14 @@ export type LoginResponse = {
   refreshToken: string;
 };
 
+export type RulesContent = {
+  content: string;
+};
+
+export type UpdateRulesDto = {
+  content: string;
+};
+
 export type ChangePasswordDto = {
   oldPassword: string;
   newPassword: string;
@@ -248,10 +302,12 @@ export type FindUsersDto = PaginatedRequest<{
 export type BanUserDto = {
   userId: string;
   bannedUntil: string | Date;
+  reason: string;
 };
 
 export type UnbanUserDto = {
   userId: string;
+  reason?: string;
 };
 
 /** Body for POST /users/change-role */

@@ -4,16 +4,16 @@ import { session } from '@/entities/session/model';
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
 import classNames from 'classnames';
-import { CalendarIcon, MapPin, ServerIcon, SwordIcon, UserIcon, UsersIcon } from 'lucide-react';
+import { CalendarIcon, MapPin, ScrollTextIcon, ServerIcon, SwordIcon, UserIcon, UsersIcon } from 'lucide-react';
+import { observer } from 'mobx-react-lite';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FC } from 'react';
-import { observer } from 'mobx-react-lite';
+import { FC, ReactNode } from 'react';
 
 const AdminSidebarItem: FC<{
   href: string;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }> = ({ href, label, icon }) => {
   const pathname = usePathname();
 
@@ -31,23 +31,28 @@ const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
   return (
     <aside className={classNames('flex flex-col gap-2 bg-card max-w-40 w-full', className)}>
       <div className="flex w-full gap-0.5">
-        {session.isHasAdminPanelAccess && (
-          <AdminSidebarItem href={ROUTES.admin.users} label="Гравці" icon={<UserIcon />} />
-        )}
-        {session.hasTechAdminAccess && (
+        {session.canManageUsers && <AdminSidebarItem href={ROUTES.admin.users} label="Гравці" icon={<UserIcon />} />}
+
+        {session.canManageSquadsAndSides && (
           <AdminSidebarItem href={ROUTES.admin.squads} label="Загони" icon={<UsersIcon />} />
         )}
-        {session.hasTechAdminAccess && (
+
+        {session.canManageSquadsAndSides && (
           <AdminSidebarItem href={ROUTES.admin.sides} label="Сторони" icon={<SwordIcon />} />
         )}
-        {session.hasTechAdminAccess && (
+
+        {session.canManageServers && (
           <AdminSidebarItem href={ROUTES.admin.servers} label="Сервери" icon={<ServerIcon />} />
         )}
-        {session.hasTechAdminAccess && (
-          <AdminSidebarItem href={ROUTES.admin.islands} label="Острови" icon={<MapPin />} />
-        )}
-        {session.isHasAdminPanelAccess && (
+
+        {session.canManageIslands && <AdminSidebarItem href={ROUTES.admin.islands} label="Острови" icon={<MapPin />} />}
+
+        {session.canManageWeekends && (
           <AdminSidebarItem href={ROUTES.admin.weekends} label="Анонси" icon={<CalendarIcon />} />
+        )}
+
+        {session.canManageRules && (
+          <AdminSidebarItem href={ROUTES.admin.rules} label="Правила" icon={<ScrollTextIcon />} />
         )}
       </div>
     </aside>

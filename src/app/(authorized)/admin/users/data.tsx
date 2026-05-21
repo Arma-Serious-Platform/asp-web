@@ -4,8 +4,16 @@ import { ROUTES } from '@/shared/config/routes';
 import { User, UserRole, UserStatus } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
-import { BanIcon, MoreHorizontalIcon, HandHeartIcon, SearchCodeIcon, ShieldIcon } from 'lucide-react';
-import Link from 'next/link';
+import {
+  BanIcon,
+  HandHeartIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  ScrollTextIcon,
+  SearchCodeIcon,
+  ShieldIcon,
+  TriangleAlertIcon,
+} from 'lucide-react';
 import { usersModel } from './model';
 import { observer } from 'mobx-react-lite';
 import { session } from '@/entities/session/model';
@@ -41,17 +49,56 @@ export const columns: ColumnDef<User>[] = [
     cell: observer(({ row }) => {
       return (
         <div>
-          <UserStatusText status={row.original.status} />
+          <UserStatusText status={row.original.status} bannedUntil={row.original.bannedUntil} />
         </div>
       );
     }),
   },
   {
-    accessorKey: 'steamUUID',
-    header: () => <div>STEAM UUID</div>,
+    accessorKey: 'warnings',
+    header: () => <div>Попередження</div>,
     cell: ({ row }) => {
-      return <div>{row.original.steamId || ''}</div>;
+      return <div>{row.original._count?.warnings ?? 0}</div>;
     },
+  },
+  {
+    accessorKey: 'email',
+    header: observer(() => {
+      if (!session.canSeeSensitiveUsersData) return null;
+
+      return <div>Email</div>;
+    }),
+    cell: observer(({ row }) => {
+      if (!session.canSeeSensitiveUsersData) return null;
+
+      return <div>{row.original.email || ''}</div>;
+    }),
+  },
+  {
+    accessorKey: 'steamUUID',
+    header: observer(() => {
+      if (!session.canSeeSensitiveUsersData) return null;
+
+      return <div>STEAM UUID</div>;
+    }),
+    cell: observer(({ row }) => {
+      if (!session.canSeeSensitiveUsersData) return null;
+
+      return <div>{row.original.steamId || ''}</div>;
+    }),
+  },
+  {
+    accessorKey: 'lastIp',
+    header: observer(() => {
+      if (!session.canSeeSensitiveUsersData) return null;
+
+      return <div>IP</div>;
+    }),
+    cell: observer(({ row }) => {
+      if (!session.canSeeSensitiveUsersData) return null;
+
+      return <div>{row.original.lastIp || ''}</div>;
+    }),
   },
   {
     accessorKey: 'actions',
@@ -73,7 +120,7 @@ export const columns: ColumnDef<User>[] = [
             <div className="flex flex-col w-fit gap-2">
               <View.Condition
                 if={
-                  session.hasTechAdminAccess &&
+                  session.canManageRoles &&
                   !((session.user?.user?.role as UserRole) === UserRole.OWNER && row.original.role === UserRole.OWNER)
                 }>
                 <Button
@@ -89,7 +136,7 @@ export const columns: ColumnDef<User>[] = [
                 </Button>
               </View.Condition>
 
-              <View.Condition if={session.hasTechAdminAccess && row.original.isMissionReviewer}>
+              <View.Condition if={session.canManageRoles && row.original.isMissionReviewer}>
                 <Button
                   size="sm"
                   className="w-full"
@@ -106,7 +153,7 @@ export const columns: ColumnDef<User>[] = [
                 </Button>
               </View.Condition>
 
-              <View.Condition if={session.hasTechAdminAccess && !row.original.isMissionReviewer}>
+              <View.Condition if={session.canManageRoles && !row.original.isMissionReviewer}>
                 <Button
                   size="sm"
                   className="w-full"
@@ -123,7 +170,55 @@ export const columns: ColumnDef<User>[] = [
                 </Button>
               </View.Condition>
 
-              <View.Condition if={row.original.status !== UserStatus.BANNED}>
+              <View.Condition if={session.canModerateUsers}>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  align="left"
+                  variant="secondary"
+                  onClick={() => {
+                    usersModel.adminChangeNicknameModel.visibility.open({
+                      user: row.original,
+                    });
+                  }}>
+                  <PencilIcon className="w-4 h-4" />
+                  Змінити позивний
+                </Button>
+              </View.Condition>
+
+              <View.Condition if={session.canModerateUsers}>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  align="left"
+                  variant="secondary"
+                  onClick={() => {
+                    usersModel.issueUserWarningModel.visibility.open({
+                      user: row.original,
+                    });
+                  }}>
+                  <TriangleAlertIcon className="w-4 h-4 text-amber-300" />
+                  Видати попередження
+                </Button>
+              </View.Condition>
+
+              <View.Condition if={session.canModerateUsers}>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  align="left"
+                  variant="secondary"
+                  onClick={() => {
+                    usersModel.punishmentHistoryModel.visibility.open({
+                      user: row.original,
+                    });
+                  }}>
+                  <ScrollTextIcon className="w-4 h-4 text-sky-300" />
+                  Історія покарань
+                </Button>
+              </View.Condition>
+
+              <View.Condition if={session.canModerateUsers && row.original.status !== UserStatus.BANNED}>
                 <Button
                   size="sm"
                   className="w-full"
@@ -139,7 +234,7 @@ export const columns: ColumnDef<User>[] = [
                 </Button>
               </View.Condition>
 
-              <View.Condition if={row.original.status === UserStatus.BANNED}>
+              <View.Condition if={session.canModerateUsers && row.original.status === UserStatus.BANNED}>
                 <Button
                   size="sm"
                   variant="secondary"
