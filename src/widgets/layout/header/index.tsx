@@ -26,7 +26,7 @@ import Image from 'next/image';
 import { FC, useEffect, useState } from 'react';
 
 import { cn } from '@/shared/utils/cn';
-import { getUserRoleText, hasAccessToAdminPanel } from '@/entities/user/lib';
+import { getUserRoleText } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
 import { useRouter } from 'next/navigation';
@@ -153,8 +153,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
             <div className="h-px bg-white/5 my-0.5" />
 
             <View.Condition if={session.isHasAdminPanelAccess}>
-              <NextLink href={ROUTES.admin.users} className="w-full block">
-              <NextLink href={getFirstAdminRoute()}>
+              <NextLink href={getFirstAdminRoute()} className="w-full block">
                 <Button
                   variant="ghost"
                   align="left"
@@ -205,14 +204,12 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
             <button type="button" onClick={() => setLogoutDialogOpen(true)} className="w-full block cursor-pointer">
               <Button
                 variant="ghost"
-            <Button
-              type="button"
-              onClick={() => setLogoutDialogOpen(true)}
                 align="left"
                 className="w-full border-none text-red-400/90 hover:text-red-300 hover:bg-red-500/10 px-2 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all duration-150">
                 <LogOutIcon className="size-3.5 text-red-400/70" />
                 <span>Вийти</span>
-            </Button>
+              </Button>
+            </button>
             <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
               <DialogContent showCloseButton>
                 <DialogHeader>
