@@ -37,6 +37,17 @@ export type HeaderProps = {
   enableScrollVisibility?: boolean;
 };
 
+const getFirstAdminRoute = () => {
+  if (session.canManageUsers) return ROUTES.admin.users;
+  if (session.canManageWeekends) return ROUTES.admin.weekends;
+  if (session.canManageIslands) return ROUTES.admin.islands;
+  if (session.canManageServers) return ROUTES.admin.servers;
+  if (session.canManageSquadsAndSides) return ROUTES.admin.squads;
+  if (session.canManageRules) return ROUTES.admin.rules;
+
+  return ROUTES.home;
+};
+
 const MainLinks: FC<{
   className?: string;
   activeClassName?: string;
@@ -143,6 +154,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
 
             <View.Condition if={session.isHasAdminPanelAccess}>
               <NextLink href={ROUTES.admin.users} className="w-full block">
+              <NextLink href={getFirstAdminRoute()}>
                 <Button
                   variant="ghost"
                   align="left"
@@ -193,12 +205,14 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
             <button type="button" onClick={() => setLogoutDialogOpen(true)} className="w-full block cursor-pointer">
               <Button
                 variant="ghost"
+            <Button
+              type="button"
+              onClick={() => setLogoutDialogOpen(true)}
                 align="left"
                 className="w-full border-none text-red-400/90 hover:text-red-300 hover:bg-red-500/10 px-2 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all duration-150">
                 <LogOutIcon className="size-3.5 text-red-400/70" />
                 <span>Вийти</span>
-              </Button>
-            </button>
+            </Button>
             <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
               <DialogContent showCloseButton>
                 <DialogHeader>

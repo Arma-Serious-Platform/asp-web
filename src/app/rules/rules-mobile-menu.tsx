@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { RULE_CATEGORIES } from './config';
+import { RULE_CATEGORIES } from './data';
 import { cn } from '@/shared/utils/cn';
 import { ListTreeIcon, XIcon } from 'lucide-react';
 

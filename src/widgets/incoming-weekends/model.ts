@@ -1,27 +1,10 @@
+import { pickClosestWeekend } from '@/entities/weekend/lib';
 import { WeekendModel } from '@/entities/weekend/model';
 import { makeAutoObservable } from 'mobx';
-import { Game, Weekend } from '@/shared/sdk/types';
+import { Game } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 
 const today = () => dayjs().startOf('day');
-
-/** Published weekend whose next game (today or later) is soonest. */
-const pickClosestWeekend = (weekends: Weekend[]): Weekend | null => {
-  let closest: { weekend: Weekend; daysUntil: number } | null = null;
-
-  for (const weekend of weekends) {
-    for (const game of weekend.games ?? []) {
-      const daysUntil = dayjs(game.date).startOf('day').diff(today(), 'day');
-      if (daysUntil < 0) continue;
-
-      if (!closest || daysUntil < closest.daysUntil) {
-        closest = { weekend, daysUntil };
-      }
-    }
-  }
-
-  return closest?.weekend ?? null;
-};
 
 export class IncomingWeekendsModel {
   constructor() {

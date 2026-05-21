@@ -1,6 +1,5 @@
 'use client';
 
-import { useTechAdminRoutesGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
 import { AdminSidebar } from '@/widgets/admin/sidebar';
 import { Layout } from '@/widgets/layout';
 import { ManageIslandModal } from '@/features/islands/manage/ui';
@@ -13,9 +12,11 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from 'react-use';
 import { columns } from './data';
 import { islandsAdminModel } from './model';
+import { session } from '@/entities/session/model';
+import { useAdminRouteGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
 
 const AdminIslandsPage = observer(() => {
-  useTechAdminRoutesGuard();
+  useAdminRouteGuard(session.canManageIslands);
   const [search, setSearch] = useState('');
   const [params, setParams] = useQueryStates({
     search: parseAsString.withDefault(''),

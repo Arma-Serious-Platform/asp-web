@@ -96,7 +96,7 @@ const ProfileNickname: FC<{
   return (
     <div className="flex items-center gap-2 text-lg font-semibold text-white">
       <UserIcon className="size-5 shrink-0 text-primary" />
-      <UserNicknameText user={user} tag={user.squad?.tag} sideType={user.squad?.side?.type} />
+      <UserNicknameText user={user} tag={user.squad?.tag} sideType={user.squad?.side?.type} link={false} />
       <Button
         type="button"
         variant="ghost"

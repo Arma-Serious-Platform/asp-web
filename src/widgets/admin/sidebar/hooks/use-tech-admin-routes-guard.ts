@@ -5,13 +5,25 @@ import { ROUTES } from '@/shared/config/routes';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-/** Redirects to `/admin/users` if the current user is not OWNER or TECH_ADMIN. */
-export function useTechAdminRoutesGuard() {
+export const getFirstAllowedAdminRoute = () => {
+  if (session.canManageUsers) return ROUTES.admin.users;
+  if (session.canManageWeekends) return ROUTES.admin.weekends;
+  if (session.canManageIslands) return ROUTES.admin.islands;
+  if (session.canManageServers) return ROUTES.admin.servers;
+  if (session.canManageSquadsAndSides) return ROUTES.admin.squads;
+  if (session.canManageRules) return ROUTES.admin.rules;
+
+  return ROUTES.home;
+};
+
+export function useAdminRouteGuard(canAccess: boolean) {
   const router = useRouter();
 
   useEffect(() => {
-    if (session.isAuthorized && !session.hasTechAdminAccess) {
-      router.replace(ROUTES.admin.users);
+    if (!session.isAuthorized) return;
+
+    if (!canAccess) {
+      router.replace(getFirstAllowedAdminRoute());
     }
-  }, [session.isAuthorized, session.user?.user?.role, router]);
+  }, [canAccess, router, session.isAuthorized, session.user?.user?.role]);
 }
