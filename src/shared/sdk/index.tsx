@@ -38,6 +38,7 @@ import {
   MissionVersion,
   PaginatedResponse,
   RefreshTokenDto,
+  RulesContent,
   Server,
   Side,
   SignUpDto,
@@ -48,14 +49,19 @@ import {
   UpdateMissionCommentDto,
   UpdateMissionDto,
   UpdateMissionVersionDto,
+  UpdateRulesDto,
   UpdateServerDto,
   UpdateSideDto,
   UpdateSquadDto,
   UpdateUserDto,
+  ChangeUserNicknameDto,
   ChangeUserRoleDto,
+  CreateUserWarningDto,
   UpdateWeekendDto,
   UserRole,
   User,
+  UserPunishment,
+  UserWarning,
   Weekend,
   HeadquartersGamePlan,
   UpdateHeadquartersGamePlanDto,
@@ -218,6 +224,14 @@ class ApiModel {
     return await this.instance.post('/users/change-password', dto);
   };
 
+  getRules = async () => {
+    return await this.instance.get<RulesContent>('/rules');
+  };
+
+  updateRules = async (dto: UpdateRulesDto) => {
+    return await this.instance.put<RulesContent>('/rules', dto);
+  };
+
   forgotPassword = async (dto: ForgotPasswordDto) => {
     return await this.instance.post('/users/forgot-password', dto);
   };
@@ -242,6 +256,10 @@ class ApiModel {
 
   changeNickname = async (dto: ChangeNicknameDto) => {
     return await this.instance.patch<User>('/users/me/change-nickname', dto);
+  };
+
+  changeUserNickname = async ({ userId, ...dto }: ChangeUserNicknameDto) => {
+    return await this.instance.patch<User>(`/users/${userId}/nickname`, dto);
   };
 
   disconnectSteam = async () => {
@@ -280,11 +298,15 @@ class ApiModel {
 
   banUser = async (dto: BanUserDto) => {
     const bannedUntil = typeof dto.bannedUntil === 'string' ? dto.bannedUntil : dto.bannedUntil.toISOString();
-    return await this.instance.post(`/users/ban/${dto.userId}/${bannedUntil}`);
+    return await this.instance.post<User>(`/users/ban/${dto.userId}/${bannedUntil}`, { reason: dto.reason });
   };
 
-  unbanUser = async (userId: string) => {
-    return await this.instance.post(`/users/unban/${userId}`);
+  permanentlyBanUser = async (userId: string, reason: string) => {
+    return await this.instance.post<User>(`/users/ban/${userId}/permanent`, { reason });
+  };
+
+  unbanUser = async (userId: string, reason?: string) => {
+    return await this.instance.post<User>(`/users/unban/${userId}`, { reason });
   };
 
   deleteUser = async (id: string) => {
@@ -300,6 +322,22 @@ class ApiModel {
 
   changeUserRole = async (dto: ChangeUserRoleDto) => {
     return await this.instance.post<User>('/users/change-role', dto);
+  };
+
+  createUserWarning = async ({ userId, ...dto }: CreateUserWarningDto) => {
+    return await this.instance.post<UserWarning>(`/users/${userId}/warnings`, dto);
+  };
+
+  findUserWarnings = async (userId: string) => {
+    return await this.instance.get<UserWarning[]>(`/users/${userId}/warnings`);
+  };
+
+  removeUserWarning = async (warningId: string, reason?: string) => {
+    return await this.instance.delete<UserWarning>(`/users/warnings/${warningId}`, { data: { reason } });
+  };
+
+  findUserPunishmentHistory = async (userId: string) => {
+    return await this.instance.get<UserPunishment[]>(`/users/${userId}/punishments`);
   };
 
   /* Squads */

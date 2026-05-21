@@ -18,7 +18,9 @@ import { USER_ROLE_LABELS } from '@/entities/user/lib';
 
 const ROLES_ORDER: UserRole[] = [
   UserRole.OWNER,
+  UserRole.SERVER_ADMIN,
   UserRole.TECH_ADMIN,
+  UserRole.UVK,
   UserRole.GAME_ADMIN,
   UserRole.MINI_ADMIN,
   UserRole.USER,

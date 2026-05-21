@@ -1,7 +1,7 @@
 import { SideType, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC, PropsWithChildren } from 'react';
-import { getUserRoleColor, getUserRoleText, getUserStatusText, hasAccessToAdminPanel } from '../../lib';
+import { getUserRoleColor, getUserRoleText, getUserStatusText } from '../../lib';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
@@ -79,6 +79,8 @@ export const UserStatusText: FC<{
 }> = ({ status, bannedUntil = null, className }) => {
   if (!status) return null;
 
+  const isPermanentBan = status === UserStatus.BANNED && !bannedUntil;
+
   return (
     <span
       className={classNames(
@@ -90,7 +92,8 @@ export const UserStatusText: FC<{
         className,
       )}>
       {getUserStatusText(status)}
-      {bannedUntil && <span className="text-red-500">{dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
+      {bannedUntil && <span className="text-red-500"> {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
+      {isPermanentBan && <span className="text-red-500"> назавжди</span>}
     </span>
   );
 };
