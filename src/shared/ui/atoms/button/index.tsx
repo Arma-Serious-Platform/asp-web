@@ -5,7 +5,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/shared/utils/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border text-sm font-semibold leading-none transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 shrink-0 [&_svg]:shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer',
   {
     variants: {
       variant: {
@@ -24,10 +24,10 @@ const buttonVariants = cva(
         right: 'justify-end',
       },
       size: {
-        default: 'h-9 px-4 py-2 has-[>svg]:px-3',
-        sm: 'h-8 gap-1.5 px-3 has-[>svg]:px-2.5 text-sm',
-        lg: 'h-10 px-6 has-[>svg]:px-4 text-lg',
-        icon: 'size-9',
+        default: 'py-2.5 px-5 has-[>svg]:px-4 text-sm',
+        sm: 'py-2 px-3.5 has-[>svg]:px-2.5 gap-1.5 text-sm',
+        lg: 'py-3.5 px-8 has-[>svg]:px-6 text-base md:text-lg',
+        icon: 'p-2.5 aspect-square',
       },
     },
     defaultVariants: {

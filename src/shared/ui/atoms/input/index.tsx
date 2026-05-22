@@ -72,7 +72,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative w-full">
         {searchIcon && (
-          <SearchIcon className={cn('absolute left-3 top-4.5 -translate-y-1/2 text-muted-foreground', 'h-4 w-4')} />
+          <SearchIcon className={cn('absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground', 'h-4 w-4')} />
         )}
 
         {label && (
@@ -97,7 +97,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             props.onBlur?.(e);
           }}
           className={cn(
-            'flex h-9 w-full rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40 disabled:cursor-not-allowed disabled:opacity-45',
+            'flex w-full rounded-md border border-neutral-700 bg-black/70 px-3 py-2.5 text-sm leading-none text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40 disabled:cursor-not-allowed disabled:opacity-45',
             {
               'pl-9': searchIcon,
             },

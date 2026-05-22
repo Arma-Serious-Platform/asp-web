@@ -270,7 +270,7 @@ export const MobileMenu = observer(() => {
           <button
             type="button"
             aria-label="Закрити меню"
-            className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-black/60 text-zinc-200 shadow-md transition-colors hover:bg-white/10"
+            className="inline-flex items-center justify-center rounded-full border border-white/10 bg-black/60 p-2 text-zinc-200 shadow-md transition-colors hover:bg-white/10"
             onClick={headerModel.mobileMenu.close}>
             <XIcon className="h-5 w-5" />
           </button>
@@ -286,10 +286,10 @@ export const MobileMenu = observer(() => {
             <div className="border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">
               Навігація
             </div>
-            <div className="mt-2 flex flex-col">
+            <div className="mt-2 flex flex-col gap-0.5">
               <MainLinks
-                className="block px-2 py-2 text-sm font-medium text-zinc-100 hover:bg-white/5 rounded-md"
-                activeClassName="bg-primary text-white rounded-md"
+                className="inline-flex items-center leading-none rounded-md px-3 py-2.5 text-sm font-semibold text-zinc-100 hover:bg-white/5"
+                activeClassName="bg-primary/90 text-white"
               />
             </div>
           </nav>
@@ -300,10 +300,10 @@ export const MobileMenu = observer(() => {
                 <div className="border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">
                   Обліковий запис
                 </div>
-                <div className="mt-3 flex flex-col gap-2">
+                <div className="mt-3 flex flex-col gap-1">
                   <AuthLinks
-                    className="block w-full rounded-md px-3 py-2 text-sm font-medium text-zinc-100 hover:bg-primary/80 hover:text-white text-center"
-                    activeClassName="bg-primary text-white rounded-md"
+                    className="inline-flex w-full items-center justify-center leading-none rounded-md px-3 py-2.5 text-sm font-semibold text-zinc-100 hover:bg-primary/80 hover:text-white"
+                    activeClassName="bg-primary/90 text-white"
                   />
                 </div>
               </div>
@@ -367,9 +367,9 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
         </Link>
 
         <div className="mx-auto flex items-center justify-between w-full max-lg:hidden">
-          <div className="mr-auto flex items-center justify-between gap-3">
+          <div className="mr-auto flex items-center justify-between gap-1">
             <MainLinks
-              className="rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex items-center leading-none rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-white/10 hover:text-white"
               activeClassName="bg-primary/90 text-white rounded-md"
             />
           </div>
@@ -380,7 +380,7 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
             <ScheduleInfo className="my-2 mx-auto hidden max-2xl:flex" version="short" />
 
             <AuthLinks
-              className="rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-primary/90 hover:text-white"
+              className="inline-flex items-center leading-none rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-primary/90 hover:text-white"
               activeClassName="bg-primary/90 text-white rounded-md"
             />
           </div>

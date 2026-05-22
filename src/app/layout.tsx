@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Roboto_Condensed } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 
 import './globals.css';
@@ -7,9 +7,9 @@ import { SessionProvider } from '@/entities/session/provider';
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
-const robotoCondensed = Roboto_Condensed({
-  variable: '--font-roboto-condensed',
-  subsets: ['latin'],
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin', 'cyrillic'],
 });
 
 export const metadata: Metadata = {
@@ -49,7 +49,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="VTG" />
         <link rel="manifest" href="/images/favicon/site.webmanifest" />
       </head>
-      <body className={`${robotoCondensed.variable} antialiased`}>
+      <body className={`${inter.variable} antialiased`}>
         <Toaster
           position="bottom-center"
           toastOptions={{
