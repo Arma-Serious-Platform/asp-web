@@ -216,14 +216,30 @@ export type Squad = {
     url: string;
   } | null;
   tag: string;
+  recruiting: boolean;
   leader: User;
   side: Side;
   invites: SquadInvitation[];
+  joinRequests?: SquadJoinRequest[];
   members: User[];
   _count: {
     members: number;
     invites: number;
+    joinRequests?: number;
   };
+};
+
+export type SquadJoinRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+
+export type SquadJoinRequest = {
+  id: string;
+  userId: string;
+  squadId: string;
+  status: SquadJoinRequestStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  squad: Squad;
+  user: User;
 };
 
 export type SquadInvitation = {
@@ -376,6 +392,15 @@ export type UpdateSquadDto = {
   description?: string;
   leaderId?: string;
   sideId?: string;
+  recruiting?: boolean;
+  activeCount?: number;
+  logo?: File;
+};
+
+export type UpdateMySquadDto = {
+  name?: string;
+  tag?: string;
+  recruiting?: boolean;
   activeCount?: number;
   logo?: File;
 };

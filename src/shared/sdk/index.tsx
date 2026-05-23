@@ -44,9 +44,11 @@ import {
   SignUpDto,
   Squad,
   SquadInvitation,
+  SquadJoinRequest,
   UpdateGameDto,
   UpdateIslandDto,
   UpdateMissionCommentDto,
+  UpdateMySquadDto,
   UpdateMissionDto,
   UpdateMissionVersionDto,
   UpdateRulesDto,
@@ -376,12 +378,28 @@ class ApiModel {
     const formData = new FormData();
 
     Object.entries(dto).forEach(([key, value]) => {
-      if (value) {
-        formData.append(key, typeof value === 'number' ? value.toString() : value);
+      if (value !== undefined && value !== null) {
+        formData.append(key, value instanceof File ? value : value.toString());
       }
     });
 
     return await this.instance.patch<Squad>(`/squads/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  };
+
+  updateMySquad = async (dto: UpdateMySquadDto) => {
+    const formData = new FormData();
+
+    Object.entries(dto).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value instanceof File ? value : value.toString());
+      }
+    });
+
+    return await this.instance.patch<Squad>('/squads/me', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -408,6 +426,22 @@ class ApiModel {
 
   squadInvitations = async () => {
     return await this.instance.get<SquadInvitation[]>('/squads/invitations');
+  };
+
+  squadJoinRequests = async () => {
+    return await this.instance.get<SquadJoinRequest[]>('/squads/join-requests');
+  };
+
+  requestToJoinSquad = async (squadId: string) => {
+    return await this.instance.post<SquadJoinRequest>(`/squads/join-requests/${squadId}`);
+  };
+
+  acceptSquadJoinRequest = async (requestId: string) => {
+    return await this.instance.post<SquadJoinRequest>(`/squads/join-requests/accept/${requestId}`);
+  };
+
+  rejectSquadJoinRequest = async (requestId: string) => {
+    return await this.instance.post<SquadJoinRequest>(`/squads/join-requests/reject/${requestId}`);
   };
 
   acceptSquadInvitation = async (invitationId: string) => {
