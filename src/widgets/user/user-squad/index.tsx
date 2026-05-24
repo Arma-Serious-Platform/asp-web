@@ -104,7 +104,7 @@ export const UserSquad: FC<{
       <div className="flex flex-col gap-2 justify-center">
         Ви одинак.
         <br />
-        Якщо бажаєте приєднатися до загону, оберіть загін зі списку та поспілкуйтеся з командиром.
+        Якщо бажаєте приєднатися до загону, оберіть загін зі списку та подайте заявку.
         <Link href={ROUTES.squads} className="w-fit mx-auto">
           <Button>Загони проекту</Button>
         </Link>
@@ -121,7 +121,9 @@ export const UserSquad: FC<{
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-white/10 bg-black/60 p-4 shadow-md">
-      <Dialog open={Boolean(leadershipTransferCandidate)} onOpenChange={open => !open && setLeadershipTransferCandidate(null)}>
+      <Dialog
+        open={Boolean(leadershipTransferCandidate)}
+        onOpenChange={open => !open && setLeadershipTransferCandidate(null)}>
         <DialogOverlay />
         <DialogContent>
           <DialogHeader>
@@ -135,7 +137,10 @@ export const UserSquad: FC<{
           </p>
 
           <div className="mt-4 flex justify-between gap-2">
-            <Button variant="outline" disabled={isTransferringLeadership} onClick={() => setLeadershipTransferCandidate(null)}>
+            <Button
+              variant="outline"
+              disabled={isTransferringLeadership}
+              onClick={() => setLeadershipTransferCandidate(null)}>
               Скасувати
             </Button>
             <Button variant="destructive" disabled={isTransferringLeadership} onClick={handleTransferLeadership}>
@@ -271,7 +276,9 @@ export const UserSquad: FC<{
                       </span>
 
                       {member.id === user.id && (
-                        <span className="text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap">(ви)</span>
+                        <span className="text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap">
+                          (ви)
+                        </span>
                       )}
 
                       {canChangeRoleForMember(member) && (
