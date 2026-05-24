@@ -1,204 +1,139 @@
-@import 'tailwindcss';
-@import 'react-advanced-cropper/dist/style.css';
+@import "tailwindcss";
+@import "react-advanced-cropper/dist/style.css";
+
 @theme {
-  --font-sans: var(--font-inter), sans-serif;
-  --color-card: #1f1f1f;
-  --color-primary: var(--color-lime-700);
+  --font-sans: "Inter", sans-serif;
+
+  --color-card:         #1f1f1f;
+  --color-primary:      #4d7c0f;
   --color-text-primary: #799a63;
-  --color-foreground: #ffffff;
-  --color-muted: #eee;
-  --color-destructive: #ff0000;
+  --color-foreground:   #ffffff;
+  --color-muted:        #eeeeee;
+  --color-destructive:  #ff0000;
 
-  /* Custom Legible Type Scale: minimum text size of 13px (xs) and 14px (sm) */
-  --font-size-xs: 0.8125rem; /* 13px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-base: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
-  --font-size-4xl: 2.25rem; /* 36px */
-  --font-size-5xl: 3rem; /* 48px */
+  --font-size-xs:   0.8125rem;
+  --font-size-sm:   0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg:   1.125rem;
+  --font-size-xl:   1.25rem;
+  --font-size-2xl:  1.5rem;
+  --font-size-3xl:  1.875rem;
+  --font-size-4xl:  2.25rem;
+  --font-size-5xl:  3rem;
 }
 
-@utility paper {
-  border-color: rgba(255, 255, 255, 0.1);
-  background-color: rgba(0, 0, 0, 0.4);
-  border-width: 1px;
-  border-style: solid;
-  border-radius: var(--radius-xl);
-  backdrop-filter: blur(10px);
-  backdrop-filter: blur(var(--blur-sm));
-}
-
-* {
-  scroll-behavior: smooth;
-  box-sizing: border-box;
-  scroll-padding-top: 80px;
-}
-
-body {
-  font-family: var(--font-sans);
-  color: var(--color-zinc-300); /* Soft light gray to prevent eye strain on dark background */
-  background: url('/images/bg.jpeg') no-repeat center center fixed;
-  background-size: cover;
-  line-height: 1.6;
-  font-size: var(--text-base); /* 16px */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Global Paragraph & List Elements */
-p, li, dd {
-  color: var(--color-zinc-300);
-  line-height: 1.6; /* Airier, highly legible line-height for body content */
-}
-
-/* Global Headings Reset & Type Scale */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  color: #ffffff; /* Keep titles high contrast crisp pure white as requested */
-  font-weight: 700;
-  line-height: 1.22; /* Sleek, tight line-height to avoid scattering multi-line headings */
-  letter-spacing: -0.025em;
-}
-
-h1 {
-  font-size: var(--text-3xl); /* 30px */
-  letter-spacing: -0.03em;
-}
-
-h2 {
-  font-size: var(--text-2xl); /* 24px */
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-h3 {
-  font-size: var(--text-xl); /* 20px */
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
-
-h4 {
-  font-size: var(--text-lg); /* 18px */
-  font-weight: 600;
-}
-
-h5 {
-  font-size: var(--text-base); /* 16px */
-  font-weight: 600;
-}
-
-h6 {
-  font-size: var(--text-sm); /* 14px */
-  font-weight: 600;
-}
-
-/* Mobile-First Adaptivity for Body and Headings */
-@media (max-width: 768px) {
-  body, p, li, dd {
-    font-size: 0.9375rem; /* 15px on mobile screens */
-    line-height: 1.55;
+@layer base {
+  :root {
+    --font-sans: var(--font-inter, "Inter"), sans-serif;
   }
 
-  h1 {
-    font-size: var(--text-2xl); /* scale down on mobile to prevent line-breaks */
-    letter-spacing: -0.02em;
-  }
-  
-  h2 {
-    font-size: var(--text-xl);
-    letter-spacing: -0.015em;
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
   }
 
-  h3 {
-    font-size: var(--text-lg);
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    color: var(--color-zinc-300);
+    background: url("/images/bg.jpeg") no-repeat center center fixed;
+    background-size: cover;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  h4 {
-    font-size: var(--text-base);
+  p, li, dd {
+    color: var(--color-zinc-300);
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.22;
+    letter-spacing: -0.025em;
+  }
+
+  h1 { font-size: var(--font-size-3xl);  letter-spacing: -0.03em; }
+  h2 { font-size: var(--font-size-2xl);  font-weight: 600; letter-spacing: -0.02em; }
+  h3 { font-size: var(--font-size-xl);   font-weight: 600; letter-spacing: -0.015em; }
+  h4 { font-size: var(--font-size-lg);   font-weight: 600; }
+  h5 { font-size: var(--font-size-base); font-weight: 600; }
+  h6 { font-size: var(--font-size-sm);   font-weight: 600; }
+
+  button, [data-slot="button"] {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    line-height: 1;
+  }
+
+  input, textarea, select {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-sm);
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+  }
+
+  textarea {
+    line-height: 1.6;
+    padding: 0.625rem 0.75rem;
+  }
+
+  a {
+    letter-spacing: 0.01em;
+    transition: color 0.15s ease, opacity 0.15s ease;
+  }
+
+  a:hover, a:active {
+    color: var(--color-text-primary);
+  }
+
+  ::-webkit-scrollbar       { width: 8px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #888; }
+
+  @media (max-width: 768px) {
+    body, p, li, dd {
+      font-size: 0.9375rem;
+      line-height: 1.55;
+    }
+
+    h1 { font-size: var(--font-size-2xl); letter-spacing: -0.02em; }
+    h2 { font-size: var(--font-size-xl);  letter-spacing: -0.015em; }
+    h3 { font-size: var(--font-size-lg); }
+    h4 { font-size: var(--font-size-base); }
   }
 }
 
-/* ============================================================
-   Context Element Enhancements
-   — No !important: components own their own styles.
-     These are base-layer defaults for bare HTML elements.
-   ============================================================ */
+@layer components {
+  .paper {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(var(--blur-sm, 4px));
+  }
 
-/* Buttons: pixel-perfect vertical centering via leading-none.
-   The Button atom already handles this; this covers bare <button> tags. */
-button,
-[data-slot="button"] {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1; /* = leading-none: collapses line-height so padding controls height */
-}
+  .label-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 
-/* Inputs & Textareas: consistent font, gentle tracking, airy line-height */
-input,
-textarea,
-select {
-  font-family: var(--font-sans);
-  font-size: 0.875rem; /* 14px — legible without competing with body copy */
-  letter-spacing: 0.01em;
-  line-height: 1.5;
-}
+  .text-body {
+    color: var(--color-zinc-300);
+    line-height: 1.6;
+  }
 
-/* Textarea specifically benefits from slightly more line-height for multi-line readability */
-textarea {
-  line-height: 1.6;
-  padding: 0.625rem 0.75rem; /* py-2.5 px-3 — mirrors the input padding */
-}
-
-/* Floating label badges (e.g. inside Input component) */
-.label-badge {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 0.75rem; /* 12px */
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-/* Links & Nav Elements Spacing */
-a {
-  font-family: var(--font-sans);
-  letter-spacing: 0.01em;
-  transition: color 0.15s ease, opacity 0.15s ease;
-}
-
-/* Global Premium Typography Overrides */
-.body-text,
-.description-text {
-  color: var(--color-zinc-300) !important;
-  line-height: 1.6 !important;
-}
-
-.heading-premium {
-  color: #ffffff !important;
-  line-height: 1.22 !important;
-  font-weight: 700 !important;
-}
-
-a:hover {
-  color: var(--color-text-primary);
-}
-
-a:active {
-  color: var(--color-text-primary);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #000000;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
+  .text-heading {
+    color: #ffffff;
+    font-weight: 700;
+    line-height: 1.22;
+  }
 }
