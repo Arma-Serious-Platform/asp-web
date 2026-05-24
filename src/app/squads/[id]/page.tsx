@@ -1,9 +1,12 @@
 'use client';
 
 import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { session } from '@/entities/session/model';
+import { getSquadSubleaders, sortSquadMembersByRole, SQUAD_ROLE_LABELS } from '@/entities/squad/lib';
+import { RequestToJoinSquadButton } from '@/features/squads/request-to-join/ui';
 import { ROUTES } from '@/shared/config/routes';
 import { api } from '@/shared/sdk';
-import { SideType, Squad, User } from '@/shared/sdk/types';
+import { SideType, Squad, SquadJoinRequest, SquadRole, User } from '@/shared/sdk/types';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
@@ -30,6 +33,7 @@ export default function SquadDetailPage() {
   const squadId = params?.id as string;
 
   const [squad, setSquad] = useState<Squad | null>(null);
+  const [joinRequests, setJoinRequests] = useState<SquadJoinRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -55,8 +59,35 @@ export default function SquadDetailPage() {
     void loadSquad();
   }, [loadSquad]);
 
+  const canRequestToJoin = Boolean(session.isAuthorized && session.user?.user && !session.user.user.squad);
+
+  useEffect(() => {
+    if (!canRequestToJoin) {
+      setJoinRequests([]);
+      return;
+    }
+
+    const loadJoinRequests = async () => {
+      try {
+        const { data } = await api.mySquadJoinRequests();
+        setJoinRequests(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    void loadJoinRequests();
+  }, [canRequestToJoin]);
+
   const sideType = squad?.side?.type;
   const appearance = sideAppearance(sideType);
+  const currentUserId = session.user?.user?.id;
+  const subleaders = getSquadSubleaders(squad?.members ?? []);
+  const pendingJoinRequest = squad
+    ? joinRequests.find(request => request.squadId === squad.id && request.status === 'PENDING') ??
+      squad.joinRequests?.find(request => request.userId === currentUserId && request.status === 'PENDING') ??
+      null
+    : null;
 
   return (
     <Layout className="w-full">
@@ -117,9 +148,18 @@ export default function SquadDetailPage() {
                       <span className="inline-flex items-center gap-1 text-xs text-zinc-500">
                         <UsersRoundIcon className="size-3.5" />
                         Учасників: {squad._count?.members ?? squad.members?.length ?? 0}
-                        {/* {typeof squad.activeCount === 'number' ? (
+                        {typeof squad.activeCount === 'number' ? (
                           <span className="text-zinc-600">· активних: {squad.activeCount}</span>
-                        ) : null} */}
+                        ) : null}
+                      </span>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full border px-2.5 py-0.5 text-xs',
+                          squad.recruiting
+                            ? 'border-lime-500/40 bg-lime-500/10 text-lime-200'
+                            : 'border-zinc-600/60 bg-zinc-800/60 text-zinc-400',
+                        )}>
+                        {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
                       </span>
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{squad.name}</h1>
@@ -131,6 +171,15 @@ export default function SquadDetailPage() {
                       <p className="text-sm text-zinc-500">Опис загону не додано.</p>
                     )}
                   </div>
+
+                  <RequestToJoinSquadButton
+                    squad={squad}
+                    pendingRequest={pendingJoinRequest}
+                    onRequestCreated={request =>
+                      setJoinRequests(current => [...current.filter(item => item.id !== request.id), request])
+                    }
+                    className="w-full sm:w-fit"
+                  />
 
                   <div className="rounded-lg border border-white/10 bg-black/25 p-4">
                     <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
@@ -155,6 +204,27 @@ export default function SquadDetailPage() {
                       </div>
                     </div>
                   </div>
+                  {subleaders.length > 0 && (
+                    <div className="rounded-lg border border-white/10 bg-black/25 p-4">
+                      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                        <ShieldIcon className="size-4 text-lime-400/90" />
+                        Заступники
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {subleaders.map(subleader => (
+                          <div key={subleader.id} className="flex items-center gap-3">
+                            <Avatar
+                              size="sm"
+                              toProfileId={subleader.nickname}
+                              src={subleader.avatar?.url ?? undefined}
+                              alt={subleader.nickname}
+                            />
+                            <UserNicknameText user={{ ...subleader, squad } as User} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -165,9 +235,11 @@ export default function SquadDetailPage() {
                 Учасники
               </h2>
               {(() => {
-                const members = Array.from(new Map((squad.members ?? []).map(member => [member.id, member])).values())
-                  .filter(member => member.id !== squad.leader?.id)
-                  .sort((a, b) => (a.nickname ?? '').localeCompare(b.nickname ?? '', 'uk'));
+                const members = sortSquadMembersByRole(
+                  Array.from(new Map((squad.members ?? []).map(member => [member.id, member])).values()).filter(
+                    member => member.id !== squad.leader?.id && member.squadRole !== SquadRole.SUBLEADER,
+                  ),
+                );
 
                 if (!members.length) {
                   return <p className="text-sm text-zinc-500">Інших учасників немає.</p>;
@@ -175,21 +247,22 @@ export default function SquadDetailPage() {
 
                 return (
                   <ul className="flex flex-col divide-y divide-white/10">
-                    {members
-                      .filter(member => member.id !== squad.leader?.id)
-                      .map(member => (
-                        <li key={member.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
-                          <Avatar
-                            size="sm"
-                            toProfileId={member.nickname}
-                            src={member.avatar?.url ?? undefined}
-                            alt={member.nickname}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <UserNicknameText user={{ ...member, squad } as User} />
-                          </div>
-                        </li>
-                      ))}
+                    {members.map(member => (
+                      <li key={member.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
+                        <Avatar
+                          size="sm"
+                          toProfileId={member.nickname}
+                          src={member.avatar?.url ?? undefined}
+                          alt={member.nickname}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <UserNicknameText user={{ ...member, squad } as User} />
+                        </div>
+                        <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                          {SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]}
+                        </span>
+                      </li>
+                    ))}
                   </ul>
                 );
               })()}

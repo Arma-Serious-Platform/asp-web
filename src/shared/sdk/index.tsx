@@ -44,15 +44,18 @@ import {
   SignUpDto,
   Squad,
   SquadInvitation,
+  SquadJoinRequest,
   UpdateGameDto,
   UpdateIslandDto,
   UpdateMissionCommentDto,
+  UpdateMySquadDto,
   UpdateMissionDto,
   UpdateMissionVersionDto,
   UpdateRulesDto,
   UpdateServerDto,
   UpdateSideDto,
   UpdateSquadDto,
+  UpdateSquadMemberRoleDto,
   UpdateUserDto,
   ChangeUserNicknameDto,
   ChangeUserRoleDto,
@@ -376,12 +379,28 @@ class ApiModel {
     const formData = new FormData();
 
     Object.entries(dto).forEach(([key, value]) => {
-      if (value) {
-        formData.append(key, typeof value === 'number' ? value.toString() : value);
+      if (value !== undefined && value !== null) {
+        formData.append(key, value instanceof File ? value : value.toString());
       }
     });
 
     return await this.instance.patch<Squad>(`/squads/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  };
+
+  updateMySquad = async (dto: UpdateMySquadDto) => {
+    const formData = new FormData();
+
+    Object.entries(dto).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value instanceof File ? value : value.toString());
+      }
+    });
+
+    return await this.instance.patch<Squad>('/squads/me', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -403,11 +422,37 @@ class ApiModel {
   };
 
   inviteToSquad = async (dto: InviteToSquadDto) => {
-    return await this.instance.post<SquadInvitation>(`/squads/invite/${dto.userId}`);
+    return await this.instance.post<SquadInvitation>(`/squads/invite/${dto.userId}`, {
+      squadRole: dto.squadRole,
+    });
+  };
+
+  updateSquadMemberRole = async ({ userId, role }: UpdateSquadMemberRoleDto) => {
+    return await this.instance.patch<User>(`/squads/members/${userId}/role`, { role });
   };
 
   squadInvitations = async () => {
     return await this.instance.get<SquadInvitation[]>('/squads/invitations');
+  };
+
+  squadJoinRequests = async () => {
+    return await this.instance.get<SquadJoinRequest[]>('/squads/join-requests');
+  };
+
+  mySquadJoinRequests = async () => {
+    return await this.instance.get<SquadJoinRequest[]>('/squads/join-requests/my');
+  };
+
+  requestToJoinSquad = async (squadId: string) => {
+    return await this.instance.post<SquadJoinRequest>(`/squads/join-requests/${squadId}`);
+  };
+
+  acceptSquadJoinRequest = async (requestId: string) => {
+    return await this.instance.post<SquadJoinRequest>(`/squads/join-requests/accept/${requestId}`);
+  };
+
+  rejectSquadJoinRequest = async (requestId: string) => {
+    return await this.instance.post<SquadJoinRequest>(`/squads/join-requests/reject/${requestId}`);
   };
 
   acceptSquadInvitation = async (invitationId: string) => {
@@ -420,6 +465,10 @@ class ApiModel {
 
   kickFromSquad = async (userId: string) => {
     return await this.instance.post<void>(`/squads/kick/${userId}`);
+  };
+
+  transferSquadLeadership = async (userId: string) => {
+    return await this.instance.post<void>(`/squads/leader/${userId}`);
   };
 
   leaveFromSquad = async (newLeaderId?: string) => {

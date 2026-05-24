@@ -42,8 +42,8 @@ const MissionDetailsPage = observer(() => {
   const isMissionCoauthor = useMemo(() => {
     return Boolean(currentUserId && mission?.coauthors?.some(coauthor => coauthor.id === currentUserId));
   }, [currentUserId, mission?.coauthors]);
-  const canEditMission = isMissionAuthor || isMissionCoauthor;
-  const canEditMissionVersion = canEditMission || session.user?.isOwnerOrTech;
+  const canEditMission = isMissionAuthor || isMissionCoauthor || session.canManageMissions;
+  const canEditMissionVersion = canEditMission;
 
   useEffect(() => {
     const loadMission = async () => {
@@ -227,7 +227,7 @@ const MissionDetailsPage = observer(() => {
                       <span className="hidden sm:inline">Редагувати</span>
                     </Button>
                   </View.Condition>
-                  <View.Condition if={session.hasTechAdminAccess}>
+                  <View.Condition if={session.canManageMissions}>
                     <Button
                       type="button"
                       variant="destructive"
