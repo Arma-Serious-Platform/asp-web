@@ -67,20 +67,14 @@ export const resolveUniformScreenshots = (version: MissionVersion) => {
 
   const attackFromShared = getSideScreenshotsFromSharedList(sharedScreenshots, 'attack', version.attackSideType);
   const defenseFromShared = getSideScreenshotsFromSharedList(sharedScreenshots, 'defense', version.defenseSideType);
-  const allSharedScreenshots = normalizeScreenshotList(sharedScreenshots);
 
   return {
-    attack:
-      attackUniformScreenshots.length > 0
-        ? attackUniformScreenshots
-        : attackFromShared.length > 0
-          ? attackFromShared
-          : allSharedScreenshots,
+    attack: attackUniformScreenshots.length > 0 ? attackUniformScreenshots : attackFromShared,
     defense:
       defenseUniformScreenshots.length > 0
         ? defenseUniformScreenshots
         : defenseFromShared.length > 0
           ? defenseFromShared
-          : allSharedScreenshots,
+          : [],
   };
 };

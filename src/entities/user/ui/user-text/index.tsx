@@ -39,7 +39,7 @@ export const UserNicknameText: FC<{
     const TAG = user?.squadRole === SquadRole.RECRUIT ? `[~${user.squad?.tag}~] ` : `[${tag || user.squad?.tag}] `;
 
     return (
-      <UserProfileLink link={link} className={className} user={user}>
+      <UserProfileLink link={link} className={cn(className, 'whitespace-nowrap')} user={user}>
         <span
           className={classNames({
             'text-blue-500': type === SideType.BLUE,
