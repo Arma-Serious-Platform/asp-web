@@ -1,4 +1,5 @@
 import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { getSquadSubleaders } from '@/entities/squad/lib';
 import { RequestToJoinSquadButton } from '@/features/squads/request-to-join/ui';
 import { ROUTES } from '@/shared/config/routes';
 import { Squad, SquadJoinRequest } from '@/shared/sdk/types';
@@ -16,6 +17,8 @@ const SquadListingCard: FC<{
   onJoinRequestCreated?: (request: SquadJoinRequest) => void | Promise<void>;
 }> = ({ squad, align = 'left', pendingJoinRequest, onJoinRequestCreated }) => {
   if (!squad) return null;
+
+  const subleaders = getSquadSubleaders(squad.members ?? []);
 
   return (
     <div
@@ -75,6 +78,19 @@ const SquadListingCard: FC<{
                 className="max-w-[180px] truncate text-sm font-medium text-zinc-100 hover:text-emerald-300 hover:underline"
                 user={{ ...squad.leader, squad: squad }}
               />
+              {subleaders.length > 0 && (
+                <div className="mt-1 flex flex-col gap-1">
+                  <span className="text-xs uppercase tracking-widest text-zinc-500">Заступники</span>
+                  <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs">
+                    {subleaders.map((subleader, index) => (
+                      <span key={subleader.id} className="text-zinc-300">
+                        <UserNicknameText user={{ ...subleader, squad }} className="text-zinc-300" />
+                        {index < subleaders.length - 1 && <span className="text-zinc-600">,</span>}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-2 items-end">

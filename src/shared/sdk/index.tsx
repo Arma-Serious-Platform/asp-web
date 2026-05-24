@@ -467,6 +467,10 @@ class ApiModel {
     return await this.instance.post<void>(`/squads/kick/${userId}`);
   };
 
+  transferSquadLeadership = async (userId: string) => {
+    return await this.instance.post<void>(`/squads/leader/${userId}`);
+  };
+
   leaveFromSquad = async (newLeaderId?: string) => {
     return await this.instance.post<void>(`/squads/leave`, { newLeaderId });
   };

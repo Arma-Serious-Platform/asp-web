@@ -22,9 +22,10 @@ import { UpdateMySquadForm } from '@/features/squads/update-my-squad/ui';
 import { SquadJoinRequestsModel } from '@/features/squads/join-requests/model';
 import { SquadJoinRequestList } from '@/features/squads/join-requests/ui';
 import { cn } from '@/shared/utils/cn';
-import { SQUAD_MEMBER_ROLE_OPTIONS, SQUAD_ROLE_LABELS } from '@/entities/squad/lib';
+import { SQUAD_MEMBER_ROLE_OPTIONS, SQUAD_ROLE_LABELS, sortSquadMembersByRole } from '@/entities/squad/lib';
 import { Select } from '@/shared/ui/atoms/select';
 import toast from 'react-hot-toast';
+import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 
 type SquadProfileSubtab = 'members' | 'settings' | 'requests';
 
@@ -34,6 +35,8 @@ export const UserSquad: FC<{
 }> = observer(({ user, onSquadChanged }) => {
   const [subtab, setSubtab] = useState<SquadProfileSubtab>('members');
   const [changingRoleUserId, setChangingRoleUserId] = useState<string | null>(null);
+  const [leadershipTransferCandidate, setLeadershipTransferCandidate] = useState<User | null>(null);
+  const [isTransferringLeadership, setIsTransferringLeadership] = useState(false);
   const joinRequestsModel = useMemo(() => new SquadJoinRequestsModel(), []);
 
   const refreshSquadState = useCallback(async () => {
@@ -79,6 +82,23 @@ export const UserSquad: FC<{
     [refreshSquadState],
   );
 
+  const handleTransferLeadership = useCallback(async () => {
+    if (!leadershipTransferCandidate) return;
+
+    try {
+      setIsTransferringLeadership(true);
+      await api.transferSquadLeadership(leadershipTransferCandidate.id);
+      toast.success('Лідерство передано');
+      setLeadershipTransferCandidate(null);
+      await refreshSquadState();
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Не вдалося передати лідерство';
+      toast.error(errorMessage);
+    } finally {
+      setIsTransferringLeadership(false);
+    }
+  }, [leadershipTransferCandidate, refreshSquadState]);
+
   if (!squad)
     return (
       <div className="flex flex-col gap-2 justify-center">
@@ -101,6 +121,30 @@ export const UserSquad: FC<{
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-white/10 bg-black/60 p-4 shadow-md">
+      <Dialog open={Boolean(leadershipTransferCandidate)} onOpenChange={open => !open && setLeadershipTransferCandidate(null)}>
+        <DialogOverlay />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Передати лідерство?</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-zinc-400">
+            Ви передасте лідерство загону користувачу{' '}
+            <span className="font-semibold text-zinc-200">{leadershipTransferCandidate?.nickname}</span>. Після цього ви
+            втратите права лідера.
+          </p>
+
+          <div className="mt-4 flex justify-between gap-2">
+            <Button variant="outline" disabled={isTransferringLeadership} onClick={() => setLeadershipTransferCandidate(null)}>
+              Скасувати
+            </Button>
+            <Button variant="destructive" disabled={isTransferringLeadership} onClick={handleTransferLeadership}>
+              Передати лідерство
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex gap-4">
         <div className="overflow-hidden rounded-lg border border-white/10 bg-black/70">
           <Image
@@ -204,7 +248,10 @@ export const UserSquad: FC<{
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Склад загону</span>
             {Array.isArray(squad.members) && squad.members.length > 0 ? (
               <ul className="flex flex-col gap-2">
-                {squad.members.map(member => (
+                {[
+                  ...squad.members.filter(member => member.id === squad.leader?.id),
+                  ...sortSquadMembersByRole(squad.members.filter(member => member.id !== squad.leader?.id)),
+                ].map(member => (
                   <li
                     key={member.id}
                     className="flex items-center gap-3 rounded-lg border border-white/10 bg-black/40 p-2 hover:bg-black/60 transition-colors">
@@ -236,6 +283,17 @@ export const UserSquad: FC<{
                             disabled={changingRoleUserId === member.id}
                           />
                         </div>
+                      )}
+
+                      {isLeader && member.squadRole === SquadRole.SUBLEADER && member.id !== user.id && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={cn(!canChangeRoleForMember(member) && 'ml-auto')}
+                          disabled={isTransferringLeadership}
+                          onClick={() => setLeadershipTransferCandidate(member)}>
+                          Передати лідерство
+                        </Button>
                       )}
 
                       {isLeader && member.id !== user.id && member.id !== squad.leader?.id && (
