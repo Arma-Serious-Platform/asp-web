@@ -55,6 +55,7 @@ import {
   UpdateServerDto,
   UpdateSideDto,
   UpdateSquadDto,
+  UpdateSquadMemberRoleDto,
   UpdateUserDto,
   ChangeUserNicknameDto,
   ChangeUserRoleDto,
@@ -421,7 +422,13 @@ class ApiModel {
   };
 
   inviteToSquad = async (dto: InviteToSquadDto) => {
-    return await this.instance.post<SquadInvitation>(`/squads/invite/${dto.userId}`);
+    return await this.instance.post<SquadInvitation>(`/squads/invite/${dto.userId}`, {
+      squadRole: dto.squadRole,
+    });
+  };
+
+  updateSquadMemberRole = async ({ userId, role }: UpdateSquadMemberRoleDto) => {
+    return await this.instance.patch<User>(`/squads/members/${userId}/role`, { role });
   };
 
   squadInvitations = async () => {
@@ -430,6 +437,10 @@ class ApiModel {
 
   squadJoinRequests = async () => {
     return await this.instance.get<SquadJoinRequest[]>('/squads/join-requests');
+  };
+
+  mySquadJoinRequests = async () => {
+    return await this.instance.get<SquadJoinRequest[]>('/squads/join-requests/my');
   };
 
   requestToJoinSquad = async (squadId: string) => {

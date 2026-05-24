@@ -68,7 +68,7 @@ export default function SquadDetailPage() {
 
     const loadJoinRequests = async () => {
       try {
-        const { data } = await api.squadJoinRequests();
+        const { data } = await api.mySquadJoinRequests();
         setJoinRequests(data);
       } catch (error) {
         console.error(error);

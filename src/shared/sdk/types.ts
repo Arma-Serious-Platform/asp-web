@@ -42,6 +42,13 @@ export enum UserRole {
   USER = 'USER',
 }
 
+export enum SquadRole {
+  MEMBER = 'MEMBER',
+  HQ = 'HQ',
+  SUBLEADER = 'SUBLEADER',
+  RECRUIT = 'RECRUIT',
+}
+
 export enum SoldierAbility {
   COMMANDER = 'COMMANDER',
   MEDIC = 'MEDIC',
@@ -133,6 +140,7 @@ export type User = {
   leadingSquad: Squad | null;
   squadInvites: SquadInvitation[];
   squad: Squad | null;
+  squadRole?: SquadRole | null;
   telegramUrl?: string;
   discordUrl?: string;
   twitchUrl?: string;
@@ -247,6 +255,7 @@ export type SquadInvitation = {
   userId: string;
   squadId: string;
   status: SquadInviteStatus;
+  squadRole?: SquadRole;
   createdAt: Date;
   updatedAt: Date;
   squad: Squad;
@@ -373,6 +382,12 @@ export type FindSquadsDto = PaginatedRequest<{
 
 export type InviteToSquadDto = {
   userId: string;
+  squadRole?: SquadRole.MEMBER | SquadRole.RECRUIT;
+};
+
+export type UpdateSquadMemberRoleDto = {
+  userId: string;
+  role: SquadRole;
 };
 
 export type CreateSquadDto = {

@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 
 import { UserModel } from '@/entities/user/model';
-import { LoginResponse, SideType, UserRole } from '@/shared/sdk/types';
+import { LoginResponse, SideType, SquadRole, UserRole } from '@/shared/sdk/types';
 import { Preloader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
 import { getTokensFromLocalStorage, setTokensToLocalStorage } from '@/shared/utils/session';
@@ -101,7 +101,15 @@ export class SessionModel {
   }
 
   get canAccessHeadquarters() {
-    return this.user?.user?.squad && this.user?.user?.squad?.side?.type !== SideType.UNASSIGNED;
+    const user = this.user?.user;
+    const squad = user?.squad;
+    const squadRole = user?.squadRole;
+
+    return Boolean(
+      squad &&
+        squad.side?.type !== SideType.UNASSIGNED &&
+        (squad.leaderId === user?.id || squadRole === SquadRole.SUBLEADER || squadRole === SquadRole.HQ),
+    );
   }
 
   boot = async () => {

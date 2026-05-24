@@ -1,11 +1,12 @@
 import { ROUTES } from '@/shared/config/routes';
-import { User } from '@/shared/sdk/types';
+import { SquadRole, User } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
 import Image from 'next/image';
 import { FC, useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { session } from '@/entities/session/model';
+import { api } from '@/shared/sdk';
 import { InviteToSquadModal } from '@/features/squads/invite-to-squad/ui';
 import { inviteToSquadModel } from '@/features/squads/invite-to-squad/model';
 import { View } from '@/features/view';
@@ -21,6 +22,9 @@ import { UpdateMySquadForm } from '@/features/squads/update-my-squad/ui';
 import { SquadJoinRequestsModel } from '@/features/squads/join-requests/model';
 import { SquadJoinRequestList } from '@/features/squads/join-requests/ui';
 import { cn } from '@/shared/utils/cn';
+import { SQUAD_MEMBER_ROLE_OPTIONS, SQUAD_ROLE_LABELS } from '@/entities/squad/lib';
+import { Select } from '@/shared/ui/atoms/select';
+import toast from 'react-hot-toast';
 
 type SquadProfileSubtab = 'members' | 'settings' | 'requests';
 
@@ -29,6 +33,7 @@ export const UserSquad: FC<{
   onSquadChanged?: () => void | Promise<void>;
 }> = observer(({ user, onSquadChanged }) => {
   const [subtab, setSubtab] = useState<SquadProfileSubtab>('members');
+  const [changingRoleUserId, setChangingRoleUserId] = useState<string | null>(null);
   const joinRequestsModel = useMemo(() => new SquadJoinRequestsModel(), []);
 
   const refreshSquadState = useCallback(async () => {
@@ -40,6 +45,39 @@ export const UserSquad: FC<{
   const squad = user.squad;
   const hasPendingInvites = (user.squadInvites ?? []).some(invite => invite.status === 'PENDING');
   const isLeader = user.id === squad?.leader?.id;
+  const isSubleader = user.squadRole === SquadRole.SUBLEADER;
+  const canManageSquadMembers = isLeader || isSubleader;
+  const roleOptions = isLeader
+    ? SQUAD_MEMBER_ROLE_OPTIONS
+    : SQUAD_MEMBER_ROLE_OPTIONS.filter(option => option.value !== SquadRole.SUBLEADER);
+
+  const canChangeRoleForMember = useCallback(
+    (member: User) => {
+      if (!squad || !canManageSquadMembers) return false;
+      if (member.id === user.id || member.id === squad.leader?.id) return false;
+      if (isSubleader && member.squadRole === SquadRole.SUBLEADER) return false;
+
+      return true;
+    },
+    [canManageSquadMembers, isSubleader, squad, user.id],
+  );
+
+  const handleChangeMemberRole = useCallback(
+    async (member: User, role: SquadRole) => {
+      try {
+        setChangingRoleUserId(member.id);
+        await api.updateSquadMemberRole({ userId: member.id, role });
+        toast.success('Роль учасника оновлено');
+        await refreshSquadState();
+      } catch (error: any) {
+        const errorMessage = error?.response?.data?.message || 'Не вдалося оновити роль учасника';
+        toast.error(errorMessage);
+      } finally {
+        setChangingRoleUserId(null);
+      }
+    },
+    [refreshSquadState],
+  );
 
   if (!squad)
     return (
@@ -98,7 +136,7 @@ export const UserSquad: FC<{
           </div>
 
           <div className="flex gap-2">
-            {isLeader && (
+            {canManageSquadMembers && (
               <>
                 <Button
                   size="sm"
@@ -111,7 +149,7 @@ export const UserSquad: FC<{
                 <InviteToSquadModal
                   model={inviteToSquadModel}
                   onInviteSuccess={() => {
-                    // Optionally refresh the user data or show success message
+                    void refreshSquadState();
                   }}
                 />
               </>
@@ -179,13 +217,30 @@ export const UserSquad: FC<{
                         className="text-sm text-zinc-200"
                         link={true}
                       />
+                      <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                        {member.id === squad.leader?.id
+                          ? 'Лідер'
+                          : SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]}
+                      </span>
+
                       {member.id === user.id && (
                         <span className="text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap">(ви)</span>
                       )}
 
-                      {isLeader && member.id !== user.id && (
+                      {canChangeRoleForMember(member) && (
+                        <div className="ml-auto w-40">
+                          <Select
+                            value={member.squadRole ?? SquadRole.MEMBER}
+                            onChange={value => value && handleChangeMemberRole(member, value as SquadRole)}
+                            options={roleOptions}
+                            disabled={changingRoleUserId === member.id}
+                          />
+                        </div>
+                      )}
+
+                      {isLeader && member.id !== user.id && member.id !== squad.leader?.id && (
                         <Button
-                          className="ml-auto"
+                          className={cn(!canChangeRoleForMember(member) && 'ml-auto')}
                           size="sm"
                           variant="destructive"
                           onClick={() => {
