@@ -153,12 +153,12 @@ const CreateMissionModal: FC<{
   return (
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
-      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
+      <DialogContent className="w-[min(calc(100vw-2rem),64rem)] max-h-[90vh] overflow-visible">
         <DialogHeader>
           <DialogTitle>Створити місію</DialogTitle>
         </DialogHeader>
-        <form className="flex flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
-          <div className="flex flex-col gap-4">
+        <form className="flex min-h-0 flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
+          <div className="flex max-h-[calc(90vh-9rem)] flex-col gap-4 overflow-y-auto pr-2">
             <div className="flex flex-col gap-4">
               <input
                 ref={imageRef}
@@ -218,6 +218,7 @@ const CreateMissionModal: FC<{
                 <Select
                   label="Карта"
                   localSearch
+                  resultsClassName="max-h-[150px] overflow-y-auto"
                   options={islandsOptions}
                   value={field.value || null}
                   onChange={field.onChange}
@@ -251,6 +252,7 @@ const CreateMissionModal: FC<{
                 <Select
                   multiple
                   label="Співавтори"
+                  resultsClassName="max-h-[150px] overflow-y-auto"
                   localSearch
                   placeholder="Без співавторів"
                   options={coauthorOptions}

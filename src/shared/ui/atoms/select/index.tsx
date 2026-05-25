@@ -74,6 +74,10 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   const shouldCloseOnSelect = closeOnSelect ?? !multiple;
 
   const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setSearchValue('');
+    }
+
     setIsOpen(open);
     onOpenChange?.(open);
   };
@@ -98,6 +102,10 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
     }
   };
 
+  const allKnownOptions = useMemo(() => {
+    return [...options, ...savedOptions.filter(o => !options.some(o2 => o2.value === o.value))];
+  }, [options, savedOptions]);
+
   const combinedOptions = useMemo(() => {
     return [
       ...options.filter(o => {
@@ -114,20 +122,20 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
 
   const labelToDisplay = useMemo(() => {
     if (multiple) {
-      return combinedOptions
+      return allKnownOptions
         .filter(v => value?.includes(v.value))
         .map(v => v.label)
         .join(', ');
     }
 
-    const selected = combinedOptions.find(v => v.value === value);
+    const selected = allKnownOptions.find(v => v.value === value);
 
     if (!selected) {
       return null;
     }
 
     return selected.content ?? selected.label;
-  }, [multiple, combinedOptions, value]);
+  }, [multiple, allKnownOptions, value]);
 
   return (
     <Popover
@@ -170,6 +178,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
       <div className="flex flex-col w-full max-h-[calc(50vh)] overflow-y-auto">
         {(onSearch || localSearch) && (
           <Input
+            value={searchValue}
             className="border-t-0 border-b border-x-0 outline-0"
             placeholder="Пошук"
             searchIcon
