@@ -1,4 +1,4 @@
-import { SideType, User, UserRole, UserStatus } from '@/shared/sdk/types';
+import { SideType, SquadRole, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC, PropsWithChildren } from 'react';
 import { getUserRoleColor, getUserRoleText, getUserStatusText } from '../../lib';
@@ -36,15 +36,17 @@ export const UserNicknameText: FC<{
   if ((tag && sideType) || user?.squad?.tag) {
     const type = sideType || user?.squad?.side?.type;
 
+    const TAG = user?.squadRole === SquadRole.RECRUIT ? `[~${user.squad?.tag}~] ` : `[${tag || user.squad?.tag}] `;
+
     return (
-      <UserProfileLink link={link} className={className} user={user}>
+      <UserProfileLink link={link} className={cn(className, 'whitespace-nowrap')} user={user}>
         <span
           className={classNames({
             'text-blue-500': type === SideType.BLUE,
             'text-red-500': type === SideType.RED,
             'text-gray-500': type === SideType.UNASSIGNED,
           })}>
-          [{tag || user.squad?.tag}]{' '}
+          {TAG}
         </span>
         <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>{user.nickname}</span>
       </UserProfileLink>

@@ -1,6 +1,9 @@
 import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { getSquadSubleaders } from '@/entities/squad/lib';
+import { SpecializationBadges } from '@/entities/specialization/ui/specialization-badges';
+import { RequestToJoinSquadButton } from '@/features/squads/request-to-join/ui';
 import { ROUTES } from '@/shared/config/routes';
-import { Squad } from '@/shared/sdk/types';
+import { Squad, SquadJoinRequest } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
 import { UsersRoundIcon, UserStarIcon } from 'lucide-react';
@@ -11,8 +14,12 @@ import { FC } from 'react';
 const SquadListingCard: FC<{
   squad: Squad | null;
   align?: 'left' | 'right';
-}> = ({ squad, align = 'left' }) => {
+  pendingJoinRequest?: SquadJoinRequest | null;
+  onJoinRequestCreated?: (request: SquadJoinRequest) => void | Promise<void>;
+}> = ({ squad, align = 'left', pendingJoinRequest, onJoinRequestCreated }) => {
   if (!squad) return null;
+
+  const subleaders = getSquadSubleaders(squad.members ?? []);
 
   return (
     <div
@@ -20,14 +27,14 @@ const SquadListingCard: FC<{
         'items-start text-left': align === 'left',
         'items-end text-right': align === 'right',
       })}>
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500/40 via-cyan-500/20 to-purple-500/40 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-60" />
+      <div className="absolute inset-0 rounded-2xl bg-linear-to-r from-emerald-500/40 via-cyan-500/20 to-purple-500/40 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-60" />
 
-      <div className="relative flex w-full flex-col items-stretch gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/0 to-black/50 p-3 shadow-lg shadow-black/40 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:bg-black/70 md:flex-row">
+      <div className="relative flex w-full flex-col items-stretch gap-4 rounded-2xl border border-white/10 bg-linear-to-br from-white/5 via-white/0 to-black/50 p-3 shadow-lg shadow-black/40 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:bg-black/70 md:flex-row">
         <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-neutral-700/80 bg-black/80 px-2.5 py-1 text-[11px] font-medium text-zinc-100 md:right-3 md:top-3">
           <UsersRoundIcon className="size-3 text-zinc-400" />
           <span className="text-xs font-medium">Гравців: {squad?._count?.members ?? 0}</span>
         </div>
-        <div className="flex flex-col items-center gap-2 md:w-auto md:flex-shrink-0">
+        <div className="flex flex-col items-center gap-2 md:w-auto md:shrink-0">
           <div className="overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-md shadow-black/50">
             <img
               src={squad.logo?.url || '/images/avatar.jpg'}
@@ -48,7 +55,16 @@ const SquadListingCard: FC<{
               <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                 Загін
               </span>
-              <span className="h-[1px] flex-1 bg-gradient-to-r from-white/40 via-white/10 to-transparent" />
+              <span
+                className={cn(
+                  'rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em]',
+                  squad.recruiting
+                    ? 'border-lime-500/35 bg-lime-500/10 text-lime-200'
+                    : 'border-zinc-600/60 bg-zinc-800/60 text-zinc-400',
+                )}>
+                {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
+              </span>
+              <span className="h-px flex-1 bg-linear-to-r from-white/40 via-white/10 to-transparent" />
             </div>
             <div className="text-xl font-semibold tracking-tight text-white">{squad.name}</div>
           </div>
@@ -63,6 +79,21 @@ const SquadListingCard: FC<{
                 className="max-w-[180px] truncate text-sm font-medium text-zinc-100 hover:text-emerald-300 hover:underline"
                 user={{ ...squad.leader, squad: squad }}
               />
+              <SpecializationBadges specializations={squad.leader?.specializations} compact />
+              {subleaders.length > 0 && (
+                <div className="mt-1 flex flex-col gap-1">
+                  <span className="text-xs uppercase tracking-widest text-zinc-500">Заступники</span>
+                  <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs">
+                    {subleaders.map((subleader, index) => (
+                      <div key={subleader.id} className="flex min-w-0 flex-wrap items-center gap-1 text-zinc-300">
+                        <UserNicknameText user={{ ...subleader, squad }} className="text-zinc-300" />
+                        <SpecializationBadges specializations={subleader.specializations} compact />
+                        {index < subleaders.length - 1 && <span className="text-zinc-600">,</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-2 items-end">
@@ -74,6 +105,12 @@ const SquadListingCard: FC<{
                   Переглянути
                 </Button>
               </Link>
+              <RequestToJoinSquadButton
+                squad={squad}
+                pendingRequest={pendingJoinRequest}
+                onRequestCreated={onJoinRequestCreated}
+                className="w-full justify-center rounded-sm px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]"
+              />
             </div>
           </div>
         </div>

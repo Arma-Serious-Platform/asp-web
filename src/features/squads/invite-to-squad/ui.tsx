@@ -8,19 +8,22 @@ import { Select } from '@/shared/ui/atoms/select';
 import { FC, useEffect, useState } from 'react';
 import { observer, Observer } from 'mobx-react-lite';
 import { InviteToSquadModel, inviteToSquadModel } from './model';
-import { SquadInvitation } from '@/shared/sdk/types';
+import { SquadInvitation, SquadRole } from '@/shared/sdk/types';
+import { SQUAD_INVITE_ROLE_OPTIONS } from '@/entities/squad/lib';
 
 const InviteToSquadModal: FC<{
   model?: InviteToSquadModel;
   onInviteSuccess?: (invitation: SquadInvitation) => void;
 }> = observer(({ model = inviteToSquadModel, onInviteSuccess }) => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<SquadRole.MEMBER | SquadRole.RECRUIT>(SquadRole.MEMBER);
 
   useEffect(() => {
     if (model.visibility.isOpen) {
       model.init();
     } else {
       setSelectedUserId(null);
+      setSelectedRole(SquadRole.MEMBER);
       model.reset();
     }
   }, [model.visibility.isOpen]);
@@ -33,6 +36,7 @@ const InviteToSquadModal: FC<{
     model.inviteToSquad(
       {
         userId: selectedUserId,
+        squadRole: selectedRole,
       },
       onInviteSuccess,
     );
@@ -69,6 +73,12 @@ const InviteToSquadModal: FC<{
                   />
                 )}
               </Observer>
+              <Select
+                value={selectedRole}
+                onChange={value => setSelectedRole((value || SquadRole.MEMBER) as SquadRole.MEMBER | SquadRole.RECRUIT)}
+                label="Роль"
+                options={SQUAD_INVITE_ROLE_OPTIONS}
+              />
             </div>
 
             <div className="flex justify-between mt-4">

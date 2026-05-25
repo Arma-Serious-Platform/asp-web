@@ -35,6 +35,8 @@ type BaseSelectProps = {
   resultsClassName?: string;
   placeholder?: string;
   onSearch?: (value: string) => void;
+  closeOnSelect?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 type SingleSelectProps = BaseSelectProps & {
@@ -62,10 +64,19 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   placeholder,
   resultsClassName,
   onSearch,
+  closeOnSelect,
+  onOpenChange,
   onChange,
 }) => {
   const [savedOptions, setSavedOptions] = useState<SelectOption[]>([]);
   const [searchValue, setSearchValue] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const shouldCloseOnSelect = closeOnSelect ?? !multiple;
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    onOpenChange?.(open);
+  };
 
   const onSelect = (option: SelectOption) => {
     if (multiple) {
@@ -80,6 +91,10 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
     } else {
       setSavedOptions([option]);
       onChange(option.value as never);
+    }
+
+    if (shouldCloseOnSelect) {
+      handleOpenChange(false);
     }
   };
 
@@ -116,6 +131,8 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
 
   return (
     <Popover
+      open={isOpen}
+      onChange={handleOpenChange}
       className="p-0"
       disabled={disabled}
       trigger={

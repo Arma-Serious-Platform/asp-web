@@ -2,7 +2,7 @@
 
 import { LoaderIcon } from 'lucide-react';
 
-import { FC, useEffect } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 import { observer } from 'mobx-react-lite';
 
@@ -11,9 +11,10 @@ import { Layout } from '@/widgets/layout';
 import { SquadListingCard } from '@/entities/squad/ui/squad-listing-card';
 
 import { model } from './model';
-import { SideType } from '@/shared/sdk/types';
-import { Hero } from '@/widgets/hero';
+import { SideType, Squad, SquadJoinRequest } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
+import { session } from '@/entities/session/model';
+import { api } from '@/shared/sdk';
 
 const NoSquadsInformer: FC<{
   type: SideType;
@@ -28,8 +29,45 @@ const NoSquadsInformer: FC<{
 );
 
 const SquadsPage = observer(() => {
+  const [joinRequests, setJoinRequests] = useState<SquadJoinRequest[]>([]);
+
   useEffect(() => {
     void model.squads.init();
+  }, []);
+
+  const currentUserId = session.user?.user?.id;
+  const canRequestToJoin = Boolean(session.isAuthorized && session.user?.user && !session.user.user.squad);
+
+  useEffect(() => {
+    if (!canRequestToJoin) {
+      setJoinRequests([]);
+      return;
+    }
+
+    const loadJoinRequests = async () => {
+      try {
+        const { data } = await api.mySquadJoinRequests();
+        setJoinRequests(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    void loadJoinRequests();
+  }, [canRequestToJoin]);
+
+  const getPendingRequestForSquad = useCallback(
+    (squad: Squad) =>
+      joinRequests.find(request => request.squadId === squad.id && request.status === 'PENDING') ??
+      squad.joinRequests?.find(
+        request => request.userId === currentUserId && request.status === 'PENDING',
+      ) ??
+      null,
+    [currentUserId, joinRequests],
+  );
+
+  const handleJoinRequestCreated = useCallback((request: SquadJoinRequest) => {
+    setJoinRequests(current => [...current.filter(item => item.id !== request.id), request]);
   }, []);
 
   const isInitialLoading = model.squads.pagination.preloader.isLoading && model.squads.pagination.data.length === 0;
@@ -76,7 +114,12 @@ const SquadsPage = observer(() => {
                 <div className="flex flex-col gap-3">
                   {blueSquads.length === 0 && <NoSquadsInformer type={SideType.BLUE} />}
                   {blueSquads.map(squad => (
-                    <SquadListingCard key={squad.id} squad={squad} />
+                    <SquadListingCard
+                      key={squad.id}
+                      squad={squad}
+                      pendingJoinRequest={getPendingRequestForSquad(squad)}
+                      onJoinRequestCreated={handleJoinRequestCreated}
+                    />
                   ))}
                 </div>
               </section>
@@ -84,12 +127,12 @@ const SquadsPage = observer(() => {
               {/* VS divider */}
               <div className="my-2 flex items-center justify-center lg:my-0 lg:px-6">
                 <div className="relative flex flex-col items-center justify-center gap-2">
-                  <span className="hidden h-24 w-px bg-gradient-to-b from-blue-400/50 via-zinc-500/60 to-red-400/70 lg:block" />
+                  <span className="hidden h-24 w-px bg-linear-to-b from-blue-400/50 via-zinc-500/60 to-red-400/70 lg:block" />
                   <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-200 shadow-[0_0_30px_rgba(0,0,0,0.85)]">
-                    <span className="absolute inset-[2px] rounded-full bg-gradient-to-br from-blue-500/20 to-red-500/25" />
+                    <span className="absolute inset-[2px] rounded-full bg-linear-to-br from-blue-500/20 to-red-500/25" />
                     <span className="relative">VS</span>
                   </div>
-                  <span className="hidden h-24 w-px bg-gradient-to-b from-red-400/70 to-blue-400/50 lg:block" />
+                  <span className="hidden h-24 w-px bg-linear-to-b from-red-400/70 to-blue-400/50 lg:block" />
                 </div>
               </div>
 
@@ -110,7 +153,13 @@ const SquadsPage = observer(() => {
                 <div className="flex flex-col gap-3">
                   {redSquads.length === 0 && <NoSquadsInformer type={SideType.RED} />}
                   {redSquads.map(squad => (
-                    <SquadListingCard key={squad.id} squad={squad} align="right" />
+                    <SquadListingCard
+                      key={squad.id}
+                      squad={squad}
+                      align="right"
+                      pendingJoinRequest={getPendingRequestForSquad(squad)}
+                      onJoinRequestCreated={handleJoinRequestCreated}
+                    />
                   ))}
                 </div>
               </section>
@@ -122,16 +171,20 @@ const SquadsPage = observer(() => {
         {!isInitialLoading && unassignedSquads.length > 0 && (
           <section className="mb-4 mt-1 flex flex-col gap-3">
             <div className="flex items-center gap-3">
-              <span className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-zinc-500/60 to-transparent" />
+              <span className="h-px flex-1 bg-linear-to-r from-transparent via-zinc-500/60 to-transparent" />
               <div className="rounded-full border border-amber-400/35 bg-amber-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-100 shadow-[0_0_18px_rgba(251,191,36,0.55)]">
                 Незалежні загони
               </div>
-              <span className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-zinc-500/60 to-transparent" />
+              <span className="h-px flex-1 bg-linear-to-r from-transparent via-zinc-500/60 to-transparent" />
             </div>
             <div className="paper flex flex-wrap gap-3 rounded-xl border p-4 shadow-lg">
               {unassignedSquads.map(squad => (
                 <div key={squad.id} className="w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]">
-                  <SquadListingCard squad={squad} />
+                  <SquadListingCard
+                    squad={squad}
+                    pendingJoinRequest={getPendingRequestForSquad(squad)}
+                    onJoinRequestCreated={handleJoinRequestCreated}
+                  />
                 </div>
               ))}
             </div>

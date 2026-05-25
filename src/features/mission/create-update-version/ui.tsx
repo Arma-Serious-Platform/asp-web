@@ -19,7 +19,7 @@ import { useEffect, useRef, useState, FC } from 'react';
 import { PlusIcon, LoaderIcon, UploadIcon, TrashIcon, MinusIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionVersion } from '@/shared/sdk/types';
-import { CreateUpdateMissionVersionModel, VersionFormData } from './model';
+import { CreateUpdateMissionVersionModel, VersionFormData, WeaponryFormItem } from './model';
 import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
 import {
   isValidUploadFileSize,
@@ -88,6 +88,33 @@ const createVersionSchema = (missionId: string) =>
 const incrementVersion = (version: string, totalVersions: number): string => {
   return `v${totalVersions + 1}.0`;
 };
+
+const downloadFileFromUrl = async (url: string, fileName: string) => {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to download ${url}`);
+  }
+
+  const blob = await response.blob();
+
+  return new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+};
+
+const mapWeaponryByType = (version: MissionVersion, sideType: MissionGameSide): WeaponryFormItem[] =>
+  (version.weaponry || [])
+    .filter(w => w.type === sideType)
+    .map(w => ({
+      name: w.name,
+      description: w.description || '',
+      count: w.count,
+      type: w.type,
+    }));
+
+const getLatestMissionVersion = (versions: MissionVersion[]) =>
+  versions.reduce((latest, version) =>
+    new Date(version.createdAt).getTime() > new Date(latest.createdAt).getTime() ? version : latest,
+  );
 
 const LocalScreenshotPreview: FC<{ file: File }> = ({ file }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -170,23 +197,8 @@ const CreateUpdateMissionVersionModal: FC<{
 
     if (editingVersion) {
       // Editing existing version
-      const attackWeaponry = (editingVersion.weaponry || [])
-        .filter(w => w.type === editingVersion.attackSideType)
-        .map(w => ({
-          name: w.name,
-          description: w.description || '',
-          count: w.count,
-          type: w.type,
-        }));
-
-      const defenseWeaponry = (editingVersion.weaponry || [])
-        .filter(w => w.type === editingVersion.defenseSideType)
-        .map(w => ({
-          name: w.name,
-          description: w.description || '',
-          count: w.count,
-          type: w.type,
-        }));
+      const attackWeaponry = mapWeaponryByType(editingVersion, editingVersion.attackSideType);
+      const defenseWeaponry = mapWeaponryByType(editingVersion, editingVersion.defenseSideType);
 
       versionForm.reset({
         version: editingVersion.version,
@@ -211,9 +223,11 @@ const CreateUpdateMissionVersionModal: FC<{
       prevDefenseSideType.current = editingVersion.defenseSideType;
     } else if (mission.missionVersions?.length > 0) {
       // Creating new version - autofill from previous
-      const previousVersion = mission.missionVersions[mission.missionVersions.length - 1];
+      const previousVersion = getLatestMissionVersion(mission.missionVersions);
 
       const newVersion = incrementVersion(previousVersion.version, mission.missionVersions.length);
+      const attackWeaponry = mapWeaponryByType(previousVersion, previousVersion.attackSideType);
+      const defenseWeaponry = mapWeaponryByType(previousVersion, previousVersion.defenseSideType);
 
       versionForm.reset({
         version: newVersion,
@@ -229,12 +243,36 @@ const CreateUpdateMissionVersionModal: FC<{
         defenseScreenshots: [],
         removeAttackScreenshotIds: [],
         removeDefenseScreenshotIds: [],
-        attackWeaponry: [],
-        defenseWeaponry: [],
+        attackWeaponry,
+        defenseWeaponry,
       });
 
       prevAttackSideType.current = previousVersion.attackSideType;
       prevDefenseSideType.current = previousVersion.defenseSideType;
+
+      const previousScreenshots = resolveUniformScreenshots(previousVersion);
+
+      Promise.all([
+        Promise.all(
+          previousScreenshots.attack.map((screenshot, index) =>
+            downloadFileFromUrl(screenshot.url, `${newVersion}-attack-uniform-${index + 1}-${screenshot.id}.jpg`),
+          ),
+        ),
+        Promise.all(
+          previousScreenshots.defense.map((screenshot, index) =>
+            downloadFileFromUrl(screenshot.url, `${newVersion}-defense-uniform-${index + 1}-${screenshot.id}.jpg`),
+          ),
+        ),
+      ])
+        .then(([attackScreenshots, defenseScreenshots]) => {
+          if (!model.visibility.isOpen || model.visibility.payload?.version) return;
+
+          versionForm.setValue('attackScreenshots', attackScreenshots, { shouldValidate: true });
+          versionForm.setValue('defenseScreenshots', defenseScreenshots, { shouldValidate: true });
+        })
+        .catch(error => {
+          console.error('Failed to copy previous mission version screenshots:', error);
+        });
     } else {
       // Reset to defaults if no previous versions
       versionForm.reset({
