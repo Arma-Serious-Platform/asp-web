@@ -1,6 +1,5 @@
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { getSquadSubleaders } from '@/entities/squad/lib';
-import { SpecializationBadges } from '@/entities/specialization/ui/specialization-badges';
 import { RequestToJoinSquadButton } from '@/features/squads/request-to-join/ui';
 import { ROUTES } from '@/shared/config/routes';
 import { Squad, SquadJoinRequest } from '@/shared/sdk/types';
@@ -32,7 +31,9 @@ const SquadListingCard: FC<{
       <div className="relative flex w-full flex-col items-stretch gap-4 rounded-2xl border border-white/10 bg-linear-to-br from-white/5 via-white/0 to-black/50 p-3 shadow-lg shadow-black/40 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:bg-black/70 md:flex-row">
         <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-neutral-700/80 bg-black/80 px-2.5 py-1 text-[11px] font-medium text-zinc-100 md:right-3 md:top-3">
           <UsersRoundIcon className="size-3 text-zinc-400" />
-          <span className="text-xs font-medium">Гравців: {squad?._count?.members ?? 0}</span>
+          <span className="text-xs font-medium">
+            Активних: {squad.activeCount ?? 0}/{squad?._count?.members ?? squad.members?.length ?? 0}
+          </span>
         </div>
         <div className="flex flex-col items-center gap-2 md:w-auto md:shrink-0">
           <div className="overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-md shadow-black/50">
@@ -76,10 +77,9 @@ const SquadListingCard: FC<{
                 <span className="text-xs uppercase tracking-widest text-zinc-500">Командир</span>
               </div>
               <UserNicknameText
-                className="max-w-[180px] truncate text-sm font-medium text-zinc-100 hover:text-emerald-300 hover:underline"
+                className="max-w-[180px] truncate text-sm font-medium text-zinc-100 hover:text-emerald-300 hover:underline text-left"
                 user={{ ...squad.leader, squad: squad }}
               />
-              <SpecializationBadges specializations={squad.leader?.specializations} compact />
               {subleaders.length > 0 && (
                 <div className="mt-1 flex flex-col gap-1">
                   <span className="text-xs uppercase tracking-widest text-zinc-500">Заступники</span>
@@ -87,7 +87,6 @@ const SquadListingCard: FC<{
                     {subleaders.map((subleader, index) => (
                       <div key={subleader.id} className="flex min-w-0 flex-wrap items-center gap-1 text-zinc-300">
                         <UserNicknameText user={{ ...subleader, squad }} className="text-zinc-300" />
-                        <SpecializationBadges specializations={subleader.specializations} compact />
                         {index < subleaders.length - 1 && <span className="text-zinc-600">,</span>}
                       </div>
                     ))}

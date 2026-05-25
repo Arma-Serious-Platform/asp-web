@@ -28,6 +28,15 @@ const NoSquadsInformer: FC<{
   </div>
 );
 
+const getSideSquadStats = (squads: Squad[]) =>
+  squads.reduce(
+    (stats, squad) => ({
+      active: stats.active + (squad.activeCount ?? 0),
+      total: stats.total + (squad._count?.members ?? squad.members?.length ?? 0),
+    }),
+    { active: 0, total: 0 },
+  );
+
 const SquadsPage = observer(() => {
   const [joinRequests, setJoinRequests] = useState<SquadJoinRequest[]>([]);
 
@@ -74,6 +83,8 @@ const SquadsPage = observer(() => {
   const blueSquads = model.squads.blueSquads;
   const redSquads = model.squads.redSquads;
   const unassignedSquads = model.squads.unassignedSquads;
+  const blueStats = getSideSquadStats(blueSquads);
+  const redStats = getSideSquadStats(redSquads);
 
   return (
     <Layout showHero className="w-full mx-auto">
@@ -96,9 +107,8 @@ const SquadsPage = observer(() => {
               <LoaderIcon className="h-8 w-8 animate-spin text-zinc-300" />
             </div>
           ) : (
-            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch">
-              {/* BLUFOR side */}
-              <section className="flex w-full flex-col gap-3">
+            <div className="relative flex flex-col gap-6">
+              <div className="grid items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
                 <div className="flex items-center gap-2">
                   <span className="h-7 w-1 rounded-full bg-blue-500/70 shadow-[0_0_18px_rgba(59,130,246,0.8)]" />
                   <div className="flex flex-col">
@@ -110,34 +120,18 @@ const SquadsPage = observer(() => {
                     </span>
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-3">
-                  {blueSquads.length === 0 && <NoSquadsInformer type={SideType.BLUE} />}
-                  {blueSquads.map(squad => (
-                    <SquadListingCard
-                      key={squad.id}
-                      squad={squad}
-                      pendingJoinRequest={getPendingRequestForSquad(squad)}
-                      onJoinRequestCreated={handleJoinRequestCreated}
-                    />
-                  ))}
+                <div className="relative flex items-center justify-center rounded-full border border-white/15 bg-black/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 shadow-[0_0_30px_rgba(0,0,0,0.85)] backdrop-blur-xl">
+                  <span className="absolute inset-[2px] rounded-full bg-linear-to-r from-blue-500/20 via-white/5 to-red-500/25" />
+                  <span className="relative whitespace-nowrap">
+                    <span className="text-blue-200">
+                      {blueStats.active}/{blueStats.total}
+                    </span>
+                    <span className="mx-2 text-zinc-400">VS</span>
+                    <span className="text-red-200">
+                      {redStats.active}/{redStats.total}
+                    </span>
+                  </span>
                 </div>
-              </section>
-
-              {/* VS divider */}
-              <div className="my-2 flex items-center justify-center lg:my-0 lg:px-6">
-                <div className="relative flex flex-col items-center justify-center gap-2">
-                  <span className="hidden h-24 w-px bg-linear-to-b from-blue-400/50 via-zinc-500/60 to-red-400/70 lg:block" />
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-200 shadow-[0_0_30px_rgba(0,0,0,0.85)]">
-                    <span className="absolute inset-[2px] rounded-full bg-linear-to-br from-blue-500/20 to-red-500/25" />
-                    <span className="relative">VS</span>
-                  </div>
-                  <span className="hidden h-24 w-px bg-linear-to-b from-red-400/70 to-blue-400/50 lg:block" />
-                </div>
-              </div>
-
-              {/* OPFOR side */}
-              <section className="flex w-full flex-col gap-3">
                 <div className="flex items-center justify-end gap-2">
                   <div className="flex flex-col text-right">
                     <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-red-300/80">
@@ -149,20 +143,40 @@ const SquadsPage = observer(() => {
                   </div>
                   <span className="h-7 w-1 rounded-full bg-red-500/70 shadow-[0_0_18px_rgba(239,68,68,0.9)]" />
                 </div>
+              </div>
 
-                <div className="flex flex-col gap-3">
-                  {redSquads.length === 0 && <NoSquadsInformer type={SideType.RED} />}
-                  {redSquads.map(squad => (
-                    <SquadListingCard
-                      key={squad.id}
-                      squad={squad}
-                      align="right"
-                      pendingJoinRequest={getPendingRequestForSquad(squad)}
-                      onJoinRequestCreated={handleJoinRequestCreated}
-                    />
-                  ))}
-                </div>
-              </section>
+              <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+                {/* BLUFOR side */}
+                <section className="flex w-full flex-col gap-3">
+                  <div className="flex flex-col gap-3">
+                    {blueSquads.length === 0 && <NoSquadsInformer type={SideType.BLUE} />}
+                    {blueSquads.map(squad => (
+                      <SquadListingCard
+                        key={squad.id}
+                        squad={squad}
+                        pendingJoinRequest={getPendingRequestForSquad(squad)}
+                        onJoinRequestCreated={handleJoinRequestCreated}
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                {/* OPFOR side */}
+                <section className="flex w-full flex-col gap-3">
+                  <div className="flex flex-col gap-3">
+                    {redSquads.length === 0 && <NoSquadsInformer type={SideType.RED} />}
+                    {redSquads.map(squad => (
+                      <SquadListingCard
+                        key={squad.id}
+                        squad={squad}
+                        align="right"
+                        pendingJoinRequest={getPendingRequestForSquad(squad)}
+                        onJoinRequestCreated={handleJoinRequestCreated}
+                      />
+                    ))}
+                  </div>
+                </section>
+              </div>
             </div>
           )}
         </div>
