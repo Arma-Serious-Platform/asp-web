@@ -19,6 +19,7 @@ import { observer } from 'mobx-react-lite';
 import { session } from '@/entities/session/model';
 import { View } from '@/features/view';
 import { Popover } from '@/shared/ui/moleculas/popover';
+import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -71,7 +72,16 @@ export const columns: ColumnDef<User>[] = [
     cell: observer(({ row }) => {
       if (!session.canSeeSensitiveUsersData) return null;
 
-      return <div>{row.original.email || ''}</div>;
+      return row.original.email ? (
+        <RevealableBlurredText
+          className="inline-flex min-w-0 flex-nowrap gap-x-1"
+          textClassName="flex-none"
+          toggleAriaLabel="Показати або приховати електронну пошту">
+          {row.original.email}
+        </RevealableBlurredText>
+      ) : (
+        <div>—</div>
+      );
     }),
   },
   {
