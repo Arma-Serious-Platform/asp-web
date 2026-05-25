@@ -1,10 +1,10 @@
 'use client';
 
-import { ChangeEvent, FC, RefObject, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FC, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { LoaderIcon, UploadIcon } from 'lucide-react';
-import { CropperRef, FixedCropper, FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
+import { FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
 
 import { session } from '@/entities/session/model';
 import { api } from '@/shared/sdk';
@@ -13,6 +13,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Switch } from '@/shared/ui/atoms/switch';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
+import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
 
 type UpdateMySquadFormProps = {
@@ -22,7 +23,7 @@ type UpdateMySquadFormProps = {
 
 export const UpdateMySquadForm: FC<UpdateMySquadFormProps> = ({ squad, onUpdated }) => {
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const cropperRef = useRef<CropperRef>(null);
+  const cropperRef = useRef<FixedCropperRef>(null);
   const [name, setName] = useState(squad.name);
   const [tag, setTag] = useState(squad.tag);
   const [activeCount, setActiveCount] = useState(squad.activeCount?.toString() ?? '0');
@@ -148,8 +149,8 @@ export const UpdateMySquadForm: FC<UpdateMySquadFormProps> = ({ squad, onUpdated
 
           <div className="flex flex-col gap-3 overflow-hidden">
             {logoToCropPreview && (
-              <FixedCropper
-                ref={cropperRef as RefObject<FixedCropperRef>}
+              <CropperWithZoom
+                ref={cropperRef}
                 className="h-64 rounded-sm"
                 src={logoToCropPreview}
                 imageRestriction={ImageRestriction.stencil}

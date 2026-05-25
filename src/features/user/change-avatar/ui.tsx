@@ -1,14 +1,15 @@
 'use client';
 
 import { observer } from 'mobx-react-lite';
-import { CropperRef, FixedCropper, ImageRestriction, FixedCropperRef } from 'react-advanced-cropper';
+import { FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
 
 import { ChangeAvatarModel } from './model';
 import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogOverlay } from '@/shared/ui/organisms/dialog';
 import { Button } from '@/shared/ui/atoms/button';
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
 import { Preloader } from '@/shared/ui/atoms/preloader';
+import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 
 type ChangeAvatarModalProps = {
   model: ChangeAvatarModel;
@@ -17,7 +18,7 @@ type ChangeAvatarModalProps = {
 
 const ChangeAvatarModal = observer(({ model, autoInputClick = false }: ChangeAvatarModalProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const cropperRef = useRef<CropperRef>(null);
+  const cropperRef = useRef<FixedCropperRef>(null);
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState('');
 
@@ -56,8 +57,8 @@ const ChangeAvatarModal = observer(({ model, autoInputClick = false }: ChangeAva
               </Button>
 
               {image && (
-                <FixedCropper
-                  ref={cropperRef as RefObject<FixedCropperRef>}
+                <CropperWithZoom
+                  ref={cropperRef}
                   className="h-64"
                   src={image}
                   imageRestriction={ImageRestriction.stencil}

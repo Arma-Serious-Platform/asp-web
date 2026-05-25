@@ -7,16 +7,17 @@ import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from 
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useEffect, useMemo, useRef, FC, RefObject, useState } from 'react';
+import { useEffect, useMemo, useRef, FC, useState } from 'react';
 import { LoaderIcon, UploadIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
-import { CropperRef, FixedCropper, ImageRestriction, FixedCropperRef } from 'react-advanced-cropper';
+import { FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
 import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
 import { CreateMissionModel, MissionFormData } from './model';
 import { Select } from '@/shared/ui/atoms/select';
 import { api } from '@/shared/sdk';
 import { Island, MissionType, User } from '@/shared/sdk/types';
 import { Section } from '@/shared/ui/organisms/section';
+import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 import { missionTypeLabels } from '@/entities/mission/lib';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { session } from '@/entities/session/model';
@@ -37,7 +38,7 @@ const CreateMissionModal: FC<{
   onSuccess?: (missionId: string) => void;
 }> = observer(({ model, onSuccess }) => {
   const imageRef = useRef<HTMLInputElement>(null);
-  const cropperRef = useRef<CropperRef>(null);
+  const cropperRef = useRef<FixedCropperRef>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [islands, setIslands] = useState<Island[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -167,8 +168,8 @@ const CreateMissionModal: FC<{
                 className="hidden"
               />
               {imagePreview && (
-                <FixedCropper
-                  ref={cropperRef as RefObject<FixedCropperRef>}
+                <CropperWithZoom
+                  ref={cropperRef}
                   className="h-64 rounded-lg"
                   src={imagePreview}
                   imageRestriction={ImageRestriction.stencil}

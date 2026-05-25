@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from '@/shared/ui/organisms/dialog';
 import { Observer, observer } from 'mobx-react-lite';
-import { FC, PropsWithChildren, RefObject, useEffect, useRef, useState } from 'react';
+import { FC, PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { ManageSquadModel } from './model';
 import { Input } from '@/shared/ui/atoms/input';
 import { findUsersWithoutSquadParams } from '@/entities/user/lib';
@@ -19,9 +19,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Select } from '@/shared/ui/atoms/select';
-import { CropperRef, FixedCropper, FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
+import { FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
 import Image from 'next/image';
 import { Preloader } from '@/shared/ui/atoms/preloader';
+import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 import { resolveUploadFileFromInput } from '@/shared/utils/file';
 
 const ManageSquadModal: FC<
@@ -79,7 +80,7 @@ const ManageSquadModal: FC<
   });
 
   const imageRef = useRef<HTMLInputElement>(null);
-  const cropperRef = useRef<CropperRef>(null);
+  const cropperRef = useRef<FixedCropperRef>(null);
   const isEdit = Boolean(model.modal.payload?.squad?.id);
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState('');
@@ -185,8 +186,8 @@ const ManageSquadModal: FC<
                 />
 
                 {Boolean(image) && (
-                  <FixedCropper
-                    ref={cropperRef as RefObject<FixedCropperRef>}
+                  <CropperWithZoom
+                    ref={cropperRef}
                     className="h-64 rounded-sm"
                     src={image}
                     imageRestriction={ImageRestriction.stencil}

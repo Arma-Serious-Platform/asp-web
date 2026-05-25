@@ -1,8 +1,8 @@
 'use client';
 
-import { ChangeEvent, FC, RefObject, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FC, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { CropperRef, FixedCropper, FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
+import { FixedCropperRef, ImageRestriction } from 'react-advanced-cropper';
 import { LoaderIcon, UploadIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 
@@ -11,6 +11,7 @@ import { Specialization } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
+import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
 
 type ManageSpecializationModalProps = {
@@ -23,7 +24,7 @@ type ManageSpecializationModalProps = {
 export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = observer(
   ({ model, onCreateSuccess, onUpdateSuccess, onDeleteSuccess }) => {
     const iconInputRef = useRef<HTMLInputElement>(null);
-    const cropperRef = useRef<CropperRef>(null);
+    const cropperRef = useRef<FixedCropperRef>(null);
     const specialization = model.modal.payload?.specialization;
     const isEdit = Boolean(specialization?.id);
 
@@ -144,8 +145,8 @@ export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = obs
 
             <div className="flex flex-col gap-3 overflow-hidden">
               {iconToCropPreview && (
-                <FixedCropper
-                  ref={cropperRef as RefObject<FixedCropperRef>}
+                <CropperWithZoom
+                  ref={cropperRef}
                   className="h-64 rounded-sm"
                   src={iconToCropPreview}
                   imageRestriction={ImageRestriction.stencil}
