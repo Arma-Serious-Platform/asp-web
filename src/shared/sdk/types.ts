@@ -141,11 +141,24 @@ export type User = {
   squadInvites: SquadInvitation[];
   squad: Squad | null;
   squadRole?: SquadRole | null;
+  specializations?: Specialization[];
   telegramUrl?: string;
   discordUrl?: string;
   twitchUrl?: string;
   youtubeUrl?: string;
   _count?: Partial<Record<'missions' | 'warnings', number>>;
+};
+
+export type Specialization = {
+  id: string;
+  name: string;
+  color?: string | null;
+  icon?: {
+    id: string;
+    url: string;
+  } | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type ChangeNicknameDto = {
@@ -388,6 +401,24 @@ export type InviteToSquadDto = {
 export type UpdateSquadMemberRoleDto = {
   userId: string;
   role: SquadRole;
+};
+
+export type CreateSpecializationDto = {
+  name: string;
+  color?: string;
+  icon?: File;
+};
+
+export type UpdateSpecializationDto = {
+  id: string;
+  name?: string;
+  color?: string;
+  icon?: File;
+};
+
+export type SetUserSpecializationsDto = {
+  userId: string;
+  specializationIds: string[];
 };
 
 export type CreateSquadDto = {

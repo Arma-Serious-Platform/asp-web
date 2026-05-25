@@ -12,6 +12,7 @@ export const getFirstAllowedAdminRoute = () => {
   if (session.canManageServers) return ROUTES.admin.servers;
   if (session.canManageSquadsAndSides) return ROUTES.admin.squads;
   if (session.canManageRules) return ROUTES.admin.rules;
+  if (session.canManageSpecializations) return ROUTES.admin.specializations;
 
   return ROUTES.home;
 };

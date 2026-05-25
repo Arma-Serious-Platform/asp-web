@@ -1,9 +1,9 @@
 import { ROUTES } from '@/shared/config/routes';
-import { SquadRole, User } from '@/shared/sdk/types';
+import { Specialization, SquadRole, User } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
 import Image from 'next/image';
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { session } from '@/entities/session/model';
 import { api } from '@/shared/sdk';
@@ -26,8 +26,17 @@ import { SQUAD_MEMBER_ROLE_OPTIONS, SQUAD_ROLE_LABELS, sortSquadMembersByRole } 
 import { Select } from '@/shared/ui/atoms/select';
 import toast from 'react-hot-toast';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
+import { SpecializationBadges, SpecializationOptionContent } from '@/entities/specialization/ui/specialization-badges';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/shared/ui/organisms/drawer';
 
 type SquadProfileSubtab = 'members' | 'settings' | 'requests';
+
+const areStringArraysEqual = (first: string[], second: string[]) => {
+  if (first.length !== second.length) return false;
+
+  const secondSet = new Set(second);
+  return first.every(value => secondSet.has(value));
+};
 
 export const UserSquad: FC<{
   user: User | null;
@@ -35,6 +44,11 @@ export const UserSquad: FC<{
 }> = observer(({ user, onSquadChanged }) => {
   const [subtab, setSubtab] = useState<SquadProfileSubtab>('members');
   const [changingRoleUserId, setChangingRoleUserId] = useState<string | null>(null);
+  const [changingSpecializationsUserId, setChangingSpecializationsUserId] = useState<string | null>(null);
+  const [draftSpecializationIdsByUserId, setDraftSpecializationIdsByUserId] = useState<Record<string, string[]>>({});
+  const [specializations, setSpecializations] = useState<Specialization[]>([]);
+  const [specializationsLoading, setSpecializationsLoading] = useState(false);
+  const [managedMemberId, setManagedMemberId] = useState<string | null>(null);
   const [leadershipTransferCandidate, setLeadershipTransferCandidate] = useState<User | null>(null);
   const [isTransferringLeadership, setIsTransferringLeadership] = useState(false);
   const joinRequestsModel = useMemo(() => new SquadJoinRequestsModel(), []);
@@ -46,6 +60,7 @@ export const UserSquad: FC<{
   if (!user) return null;
 
   const squad = user.squad;
+  const managedMember = squad?.members?.find(member => member.id === managedMemberId) ?? null;
   const hasPendingInvites = (user.squadInvites ?? []).some(invite => invite.status === 'PENDING');
   const isLeader = user.id === squad?.leader?.id;
   const isSubleader = user.squadRole === SquadRole.SUBLEADER;
@@ -53,6 +68,42 @@ export const UserSquad: FC<{
   const roleOptions = isLeader
     ? SQUAD_MEMBER_ROLE_OPTIONS
     : SQUAD_MEMBER_ROLE_OPTIONS.filter(option => option.value !== SquadRole.SUBLEADER);
+  const specializationOptions = useMemo(
+    () =>
+      specializations.map(specialization => ({
+        label: specialization.name,
+        value: specialization.id,
+        content: <SpecializationOptionContent specialization={specialization} />,
+      })),
+    [specializations],
+  );
+  const managedMemberSavedSpecializationIds =
+    managedMember?.specializations?.map(specialization => specialization.id) ?? [];
+  const managedMemberSelectedSpecializationIds = managedMember
+    ? (draftSpecializationIdsByUserId[managedMember.id] ?? managedMemberSavedSpecializationIds)
+    : [];
+
+  useEffect(() => {
+    if (!canManageSquadMembers) {
+      setSpecializations([]);
+      return;
+    }
+
+    const loadSpecializations = async () => {
+      try {
+        setSpecializationsLoading(true);
+        const { data } = await api.findSpecializations();
+        setSpecializations(data);
+      } catch (error) {
+        console.error(error);
+        toast.error('Не вдалося завантажити спеціалізації');
+      } finally {
+        setSpecializationsLoading(false);
+      }
+    };
+
+    void loadSpecializations();
+  }, [canManageSquadMembers]);
 
   const canChangeRoleForMember = useCallback(
     (member: User) => {
@@ -98,6 +149,27 @@ export const UserSquad: FC<{
       setIsTransferringLeadership(false);
     }
   }, [leadershipTransferCandidate, refreshSquadState]);
+
+  const handleChangeMemberSpecializations = useCallback(
+    async (member: User, specializationIds: string[]) => {
+      try {
+        setChangingSpecializationsUserId(member.id);
+        await api.setUserSpecializations({ userId: member.id, specializationIds });
+        toast.success('Спеціалізації учасника оновлено');
+        await refreshSquadState();
+      } catch (error: any) {
+        const errorMessage = error?.response?.data?.message || 'Не вдалося оновити спеціалізації учасника';
+        toast.error(errorMessage);
+      } finally {
+        setDraftSpecializationIdsByUserId(current => {
+          const { [member.id]: _removed, ...rest } = current;
+          return rest;
+        });
+        setChangingSpecializationsUserId(null);
+      }
+    },
+    [refreshSquadState],
+  );
 
   if (!squad)
     return (
@@ -228,6 +300,132 @@ export const UserSquad: FC<{
 
       <LeaveFromSquadModal model={leaveFromSquadModel} onLeaveSuccess={refreshSquadState} />
 
+      <Drawer open={Boolean(managedMember)} onOpenChange={open => !open && setManagedMemberId(null)}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Керування учасником</DrawerTitle>
+          </DrawerHeader>
+
+          {managedMember && (
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 p-3">
+                <Avatar src={managedMember.avatar?.url} alt={managedMember.nickname || managedMember.id} size="md" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <UserNicknameText
+                      user={managedMember}
+                      tag={squad.tag}
+                      sideType={squad.side?.type}
+                      className="text-base text-zinc-100"
+                      link={true}
+                    />
+                    {managedMember.id === user.id && (
+                      <span className="text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap">
+                        (ви)
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                      {managedMember.id === squad.leader?.id
+                        ? 'Лідер'
+                        : SQUAD_ROLE_LABELS[managedMember.squadRole ?? SquadRole.MEMBER]}
+                    </span>
+                    <SpecializationBadges specializations={managedMember.specializations} compact />
+                  </div>
+                </div>
+              </div>
+
+              {canChangeRoleForMember(managedMember) && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Роль у загоні</span>
+                  <Select
+                    value={managedMember.squadRole ?? SquadRole.MEMBER}
+                    onChange={value => value && handleChangeMemberRole(managedMember, value as SquadRole)}
+                    options={roleOptions}
+                    disabled={changingRoleUserId === managedMember.id}
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Спеціалізації</span>
+                <Select
+                  multiple
+                  closeOnSelect={false}
+                  value={managedMemberSelectedSpecializationIds}
+                  onChange={value =>
+                    setDraftSpecializationIdsByUserId(current => ({
+                      ...current,
+                      [managedMember.id]: value,
+                    }))
+                  }
+                  onOpenChange={open => {
+                    if (open) {
+                      setDraftSpecializationIdsByUserId(current => ({
+                        ...current,
+                        [managedMember.id]: managedMemberSavedSpecializationIds,
+                      }));
+                      return;
+                    }
+
+                    const nextSpecializationIds = draftSpecializationIdsByUserId[managedMember.id];
+                    if (
+                      nextSpecializationIds &&
+                      !areStringArraysEqual(managedMemberSavedSpecializationIds, nextSpecializationIds)
+                    ) {
+                      void handleChangeMemberSpecializations(managedMember, nextSpecializationIds);
+                    } else {
+                      setDraftSpecializationIdsByUserId(current => {
+                        const { [managedMember.id]: _removed, ...rest } = current;
+                        return rest;
+                      });
+                    }
+                  }}
+                  options={specializationOptions}
+                  placeholder="Оберіть спеціалізації"
+                  localSearch
+                  isLoading={specializationsLoading}
+                  disabled={
+                    specializationsLoading ||
+                    changingSpecializationsUserId === managedMember.id ||
+                    specializationOptions.length === 0
+                  }
+                />
+                <p className="text-xs text-zinc-500">Зміни збережуться після закриття списку спеціалізацій.</p>
+              </div>
+
+              <div className="mt-auto flex flex-col gap-2 border-t border-white/10 pt-4">
+                {isLeader && managedMember.squadRole === SquadRole.SUBLEADER && managedMember.id !== user.id && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={isTransferringLeadership}
+                    onClick={() => {
+                      setManagedMemberId(null);
+                      setLeadershipTransferCandidate(managedMember);
+                    }}>
+                    Передати лідерство
+                  </Button>
+                )}
+
+                {isLeader && managedMember.id !== user.id && managedMember.id !== squad.leader?.id && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      setManagedMemberId(null);
+                      kickFromSquadModel.visibility.open({ user: managedMember });
+                    }}>
+                    Вилучити із загону
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
+
       {isLeader && (
         <div className="flex flex-wrap gap-2 border-t border-white/10 pt-4">
           {[
@@ -269,49 +467,25 @@ export const UserSquad: FC<{
                         className="text-sm text-zinc-200"
                         link={true}
                       />
-                      <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
-                        {member.id === squad.leader?.id
-                          ? 'Лідер'
-                          : SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]}
-                      </span>
-
                       {member.id === user.id && (
                         <span className="text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap">
                           (ви)
                         </span>
                       )}
+                      <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                        {member.id === squad.leader?.id
+                          ? 'Лідер'
+                          : SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]}
+                      </span>
+                      <SpecializationBadges specializations={member.specializations} compact />
 
-                      {canChangeRoleForMember(member) && (
-                        <div className="ml-auto w-40">
-                          <Select
-                            value={member.squadRole ?? SquadRole.MEMBER}
-                            onChange={value => value && handleChangeMemberRole(member, value as SquadRole)}
-                            options={roleOptions}
-                            disabled={changingRoleUserId === member.id}
-                          />
-                        </div>
-                      )}
-
-                      {isLeader && member.squadRole === SquadRole.SUBLEADER && member.id !== user.id && (
+                      {canManageSquadMembers && (
                         <Button
                           size="sm"
-                          variant="outline"
-                          className={cn(!canChangeRoleForMember(member) && 'ml-auto')}
-                          disabled={isTransferringLeadership}
-                          onClick={() => setLeadershipTransferCandidate(member)}>
-                          Передати лідерство
-                        </Button>
-                      )}
-
-                      {isLeader && member.id !== user.id && member.id !== squad.leader?.id && (
-                        <Button
-                          className={cn(!canChangeRoleForMember(member) && 'ml-auto')}
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            kickFromSquadModel.visibility.open({ user: member });
-                          }}>
-                          Вилучити
+                          variant="secondary"
+                          className="ml-auto"
+                          onClick={() => setManagedMemberId(member.id)}>
+                          Керувати
                         </Button>
                       )}
                     </div>

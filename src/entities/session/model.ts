@@ -51,6 +51,12 @@ export class SessionModel {
     );
   }
 
+  get canManageSpecializations() {
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(
+      this.user?.user?.role as UserRole,
+    );
+  }
+
   get canManageSquadsAndSides() {
     return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN].includes(
       this.user?.user?.role as UserRole,
@@ -74,7 +80,8 @@ export class SessionModel {
       this.canManageIslands ||
       this.canManageServers ||
       this.canManageSquadsAndSides ||
-      this.canManageRules
+      this.canManageRules ||
+      this.canManageSpecializations
     );
   }
 

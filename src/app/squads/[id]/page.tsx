@@ -3,6 +3,7 @@
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { session } from '@/entities/session/model';
 import { getSquadSubleaders, sortSquadMembersByRole, SQUAD_ROLE_LABELS } from '@/entities/squad/lib';
+import { SpecializationBadges } from '@/entities/specialization/ui/specialization-badges';
 import { RequestToJoinSquadButton } from '@/features/squads/request-to-join/ui';
 import { ROUTES } from '@/shared/config/routes';
 import { api } from '@/shared/sdk';
@@ -83,10 +84,12 @@ export default function SquadDetailPage() {
   const appearance = sideAppearance(sideType);
   const currentUserId = session.user?.user?.id;
   const subleaders = getSquadSubleaders(squad?.members ?? []);
+  const specializationCount =
+    squad?.members?.reduce((count, member) => count + (member.specializations?.length ?? 0), 0) ?? 0;
   const pendingJoinRequest = squad
-    ? joinRequests.find(request => request.squadId === squad.id && request.status === 'PENDING') ??
+    ? (joinRequests.find(request => request.squadId === squad.id && request.status === 'PENDING') ??
       squad.joinRequests?.find(request => request.userId === currentUserId && request.status === 'PENDING') ??
-      null
+      null)
     : null;
 
   return (
@@ -151,6 +154,7 @@ export default function SquadDetailPage() {
                         {typeof squad.activeCount === 'number' ? (
                           <span className="text-zinc-600">· активних: {squad.activeCount}</span>
                         ) : null}
+                        <span className="text-zinc-600">· спеціалізацій: {specializationCount}</span>
                       </span>
                       <span
                         className={cn(
@@ -201,6 +205,11 @@ export default function SquadDetailPage() {
                             <span className="text-zinc-500">—</span>
                           )}
                         </div>
+                        <SpecializationBadges
+                          specializations={squad.leader?.specializations}
+                          className="mt-1"
+                          compact
+                        />
                       </div>
                     </div>
                   </div>
@@ -219,7 +228,10 @@ export default function SquadDetailPage() {
                               src={subleader.avatar?.url ?? undefined}
                               alt={subleader.nickname}
                             />
-                            <UserNicknameText user={{ ...subleader, squad } as User} />
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <UserNicknameText user={{ ...subleader, squad } as User} />
+                              <SpecializationBadges specializations={subleader.specializations} compact />
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -255,8 +267,9 @@ export default function SquadDetailPage() {
                           src={member.avatar?.url ?? undefined}
                           alt={member.nickname}
                         />
-                        <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                           <UserNicknameText user={{ ...member, squad } as User} />
+                          <SpecializationBadges specializations={member.specializations} compact />
                         </div>
                         <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
                           {SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]}
