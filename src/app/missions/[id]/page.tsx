@@ -24,6 +24,7 @@ import type { MissionComment } from '@/shared/sdk/types';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { DeleteMissionModal, DeleteMissionModel } from '@/features/mission/delete-mission';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
+import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -31,6 +32,8 @@ const MissionDetailsPage = observer(() => {
   const missionId = params.id as string;
   const [mission, setMission] = useState<Mission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [versionToDelete, setVersionToDelete] = useState<MissionVersion | null>(null);
+  const [isDeletingVersion, setIsDeletingVersion] = useState(false);
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
   const deleteCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
   const deleteMissionModel = useMemo(() => new DeleteMissionModel(), []);
@@ -44,6 +47,7 @@ const MissionDetailsPage = observer(() => {
   }, [currentUserId, mission?.coauthors]);
   const canEditMission = isMissionAuthor || isMissionCoauthor || session.canManageMissions;
   const canEditMissionVersion = canEditMission;
+  const canDeleteMissionVersion = session.canManageMissions;
 
   useEffect(() => {
     const loadMission = async () => {
@@ -118,6 +122,22 @@ const MissionDetailsPage = observer(() => {
     }
   };
 
+  const handleDeleteVersion = async () => {
+    if (!versionToDelete) return;
+
+    try {
+      setIsDeletingVersion(true);
+      await api.deleteMissionVersion(missionId, versionToDelete.id);
+      toast.success('Версію місії видалено');
+      setVersionToDelete(null);
+      await handleVersionSaved();
+    } catch {
+      toast.error('Не вдалося видалити версію місії');
+    } finally {
+      setIsDeletingVersion(false);
+    }
+  };
+
   const canDeleteComment = (comment: MissionComment) => {
     const currentUserId = session.user?.user?.id;
     const isCommentAuthor = Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
@@ -176,6 +196,28 @@ const MissionDetailsPage = observer(() => {
         onConfirm={commentId => missionDetailsModel.commentModel.remove(missionId, commentId)}
       />
       <DeleteMissionModal model={deleteMissionModel} onConfirm={handleDeleteMission} />
+      <Dialog open={Boolean(versionToDelete)} onOpenChange={open => !open && setVersionToDelete(null)}>
+        <DialogOverlay />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Видалити версію місії?</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-zinc-400">
+            Версія «<span className="font-medium text-zinc-200">{versionToDelete?.version}</span>» буде видалена
+            назавжди. Цю дію неможливо скасувати.
+          </p>
+
+          <div className="mt-4 flex justify-between gap-2">
+            <Button variant="outline" disabled={isDeletingVersion} onClick={() => setVersionToDelete(null)}>
+              Скасувати
+            </Button>
+            <Button variant="destructive" disabled={isDeletingVersion} onClick={handleDeleteVersion}>
+              {isDeletingVersion ? 'Видалення...' : 'Видалити версію'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="container mx-auto my-6 w-full px-4">
         <Button variant="ghost" onClick={() => router.push(ROUTES.missions.root)} className="mb-4">
@@ -260,7 +302,9 @@ const MissionDetailsPage = observer(() => {
                 version={mission.missionVersions?.[0]}
                 missionId={missionId}
                 canEdit={canEditMissionVersion}
+                canDelete={canDeleteMissionVersion}
                 onEdit={handleEditVersion}
+                onDelete={setVersionToDelete}
                 onChangeStatus={params => {
                   missionDetailsModel.changeMissionVersionStatusModel.visibility.open(params);
                 }}
@@ -291,14 +335,17 @@ const MissionDetailsPage = observer(() => {
                 </View.Condition>
               </div>
             ) : (
-              <div className="flex flex-wrap items-start gap-4">
+              <div className="flex flex-col gap-4">
                 {mission?.missionVersions?.map(version => (
                   <MissionVersionCard
                     key={version.id}
+                    fullWidth
                     canEdit={canEditMissionVersion}
+                    canDelete={canDeleteMissionVersion}
                     version={version}
                     missionId={missionId}
                     onEdit={handleEditVersion}
+                    onDelete={setVersionToDelete}
                     onChangeStatus={params => {
                       missionDetailsModel.changeMissionVersionStatusModel.visibility.open(params);
                     }}

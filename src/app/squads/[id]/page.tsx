@@ -84,8 +84,24 @@ export default function SquadDetailPage() {
   const appearance = sideAppearance(sideType);
   const currentUserId = session.user?.user?.id;
   const subleaders = getSquadSubleaders(squad?.members ?? []);
-  const specializationCount =
-    squad?.members?.reduce((count, member) => count + (member.specializations?.length ?? 0), 0) ?? 0;
+  const specializationStats = Array.from(
+    (squad?.members ?? [])
+      .flatMap(member => member.specializations ?? [])
+      .reduce((stats, specialization) => {
+        const current = stats.get(specialization.id);
+
+        stats.set(specialization.id, {
+          id: specialization.id,
+          name: specialization.name,
+          color: specialization.color,
+          icon: specialization.icon,
+          count: (current?.count ?? 0) + 1,
+        });
+
+        return stats;
+      }, new Map<string, { id: string; name: string; color?: string | null; icon?: { url: string } | null; count: number }>())
+      .values(),
+  ).sort((first, second) => first.name.localeCompare(second.name, 'uk'));
   const pendingJoinRequest = squad
     ? (joinRequests.find(request => request.squadId === squad.id && request.status === 'PENDING') ??
       squad.joinRequests?.find(request => request.userId === currentUserId && request.status === 'PENDING') ??
@@ -132,6 +148,36 @@ export default function SquadDetailPage() {
                   <div className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-1 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
                     {squad.tag}
                   </div>
+                  {specializationStats.length > 0 && (
+                    <div className="flex w-full max-w-[220px] flex-col gap-1">
+                      {specializationStats.map(stat => (
+                        <span
+                          key={stat.id}
+                          className="inline-flex items-center justify-center gap-1 rounded-full border bg-black/35 px-2 py-0.5 text-xs font-semibold lg:justify-start"
+                          style={{ borderColor: stat.color || '#84cc16', color: stat.color || '#84cc16' }}>
+                          {stat.icon?.url ? (
+                            <Image
+                              src={stat.icon.url}
+                              alt=""
+                              width={14}
+                              height={14}
+                              className="size-3.5 rounded-full object-cover"
+                              unoptimized={!stat.icon.url.startsWith('https')}
+                            />
+                          ) : (
+                            <span
+                              className="size-1.5 rounded-full"
+                              style={{ backgroundColor: stat.color || '#84cc16' }}
+                              aria-hidden
+                            />
+                          )}
+                          <span className="truncate">
+                            {stat.name}: {stat.count}
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-6">
@@ -154,7 +200,6 @@ export default function SquadDetailPage() {
                         {typeof squad.activeCount === 'number' ? (
                           <span className="text-zinc-600">· активних: {squad.activeCount}</span>
                         ) : null}
-                        <span className="text-zinc-600">· спеціалізацій: {specializationCount}</span>
                       </span>
                       <span
                         className={cn(

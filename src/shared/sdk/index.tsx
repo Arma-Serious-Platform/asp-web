@@ -791,6 +791,10 @@ class ApiModel {
     });
   };
 
+  deleteMissionVersion = async (missionId: string, versionId: string) => {
+    return await this.instance.delete<void>(`/missions/${missionId}/versions/${versionId}`);
+  };
+
   /* Mission comments */
 
   findMissionComments = async (dto: FindMissionCommentsDto = {}) => {

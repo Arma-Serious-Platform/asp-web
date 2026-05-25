@@ -2,7 +2,7 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, BanIcon, InfoIcon } from 'lucide-react';
+import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, InfoIcon, Trash2Icon } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, statusTextColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
@@ -25,6 +25,8 @@ type MissionVersionCardProps = {
   missionId: string;
   fullWidth?: boolean;
   onEdit: (version: MissionVersion) => void;
+  canDelete?: boolean;
+  onDelete?: (version: MissionVersion) => void;
   onChangeStatus: (params: { missionId: string; version: MissionVersion; status: MissionStatus }) => void;
 };
 
@@ -34,6 +36,8 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   canEdit,
   fullWidth = false,
   onEdit,
+  canDelete,
+  onDelete,
   onChangeStatus,
 }) => {
   const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(false);
@@ -90,14 +94,13 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 <span>Версія {version.version} потребує змін. Перезалийте файл або створіть нову версію.</span>
               </Tooltip>
             </View.Condition>
-            <View.Condition
-              if={!session.user?.user?.isMissionReviewer || version.status !== MissionStatus.PENDING_APPROVAL}>
+            <View.Condition if={!session.canReviewMissions || version.status !== MissionStatus.PENDING_APPROVAL}>
               <span className={cn('px-2 py-0.5 rounded text-xs font-semibold border', statusColors[version.status])}>
                 {statusLabels[version.status]}
               </span>
             </View.Condition>
 
-            <View.Condition if={session.user?.user?.isMissionReviewer || session.user.isOwnerOrTech}>
+            <View.Condition if={session.canReviewMissions}>
               <Popover
                 asChild
                 className="p-4 flex flex-col gap-2 w-fit"
@@ -225,6 +228,15 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
             {version.file?.url ? '' : 'Редагувати'}
           </Button>
         </View.Condition>
+        {/* <View.Condition if={Boolean(canDelete)}>
+          <Button
+            variant="destructive"
+            size="default"
+            className={cn(!version.file?.url && !canEdit && 'w-full')}
+            onClick={() => onDelete?.(version)}>
+            <Trash2Icon className="size-4" />
+          </Button>
+        </View.Condition> */}
       </div>
 
       <ScreenshotPreviewDialog
