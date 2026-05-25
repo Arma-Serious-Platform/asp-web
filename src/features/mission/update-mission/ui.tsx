@@ -180,12 +180,12 @@ const UpdateMissionModal: FC<
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[min(calc(100vw-2rem),64rem)] max-h-[90vh] overflow-visible">
         <DialogHeader>
           <DialogTitle>Редагувати місію</DialogTitle>
         </DialogHeader>
-        <form className="flex flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
-          <div className="flex flex-col gap-4">
+        <form className="flex min-h-0 flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
+          <div className="flex max-h-[calc(90vh-9rem)] flex-col gap-4 overflow-y-auto pr-2">
             <input
               ref={imageRef}
               type="file"
@@ -212,18 +212,18 @@ const UpdateMissionModal: FC<
               />
             )}
             {!imagePreview && mission.image?.url && (
-              <div className="relative w-full aspect-video overflow-hidden rounded-lg border border-white/10">
+              <div className="relative aspect-2/1 w-full overflow-hidden rounded-lg border border-white/10 bg-black/80">
                 <Image
                   src={mission.image.url}
                   alt="Current image"
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   unoptimized={!mission.image.url.startsWith('https')}
                 />
               </div>
             )}
             {!imagePreview && !mission.image?.url && (
-              <div className="relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/80 flex items-center justify-center">
+              <div className="relative flex aspect-2/1 w-full items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/80">
                 <span className="text-zinc-500 text-sm">Немає зображення</span>
               </div>
             )}
@@ -238,84 +238,86 @@ const UpdateMissionModal: FC<
               <UploadIcon className="size-4" />
               {imagePreview || mission.image?.url ? 'Обрати інше зображення' : 'Обрати зображення'}
             </Button>
-          </div>
 
-          <Controller
-            control={missionForm.control}
-            name="name"
-            render={({ field }) => (
-              <Input {...field} label="Назва місії" error={missionForm.formState.errors.name?.message} />
-            )}
-          />
+            <Controller
+              control={missionForm.control}
+              name="name"
+              render={({ field }) => (
+                <Input {...field} label="Назва місії" error={missionForm.formState.errors.name?.message} />
+              )}
+            />
 
-          <Controller
-            control={missionForm.control}
-            name="islandId"
-            render={({ field }) => (
-              <Select
-                label="Карта"
-                localSearch
-                options={islandsOptions}
-                value={field.value || null}
-                onChange={field.onChange}
-                isLoading={isLoadingIslands}
-                error={missionForm.formState.errors.islandId?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={missionForm.control}
-            name="missionType"
-            render={({ field }) => (
-              <Select
-                label="Тип місії"
-                options={[
-                  { value: MissionType.SG, label: missionTypeLabels[MissionType.SG] },
-                  { value: MissionType.mini, label: missionTypeLabels[MissionType.mini] },
-                ]}
-                value={field.value || null}
-                onChange={field.onChange}
-                error={missionForm.formState.errors.missionType?.message as string | undefined}
-              />
-            )}
-          />
-
-          <Controller
-            control={missionForm.control}
-            name="coauthorIds"
-            render={({ field }) => (
-              <div className="flex flex-col gap-2">
+            <Controller
+              control={missionForm.control}
+              name="islandId"
+              render={({ field }) => (
                 <Select
-                  multiple
-                  label="Співавтори"
+                  label="Карта"
                   localSearch
-                  placeholder="Без співавторів"
-                  options={coauthorOptions}
-                  value={field.value || []}
+                  resultsClassName="max-h-[150px] overflow-y-auto"
+                  options={islandsOptions}
+                  value={field.value || null}
                   onChange={field.onChange}
-                  isLoading={isLoadingUsers}
-                  disabled={!canUpdateCoauthors}
+                  isLoading={isLoadingIslands}
+                  error={missionForm.formState.errors.islandId?.message}
                 />
-                {!canUpdateCoauthors && (
-                  <p className="text-xs text-zinc-500">Співавторів може змінювати лише автор місії.</p>
-                )}
-              </div>
-            )}
-          />
+              )}
+            />
 
-          <Controller
-            control={missionForm.control}
-            name="description"
-            render={({ field }) => (
-              <Textarea
-                {...field}
-                label="Опис місії"
-                rows={6}
-                error={missionForm.formState.errors.description?.message}
-              />
-            )}
-          />
+            <Controller
+              control={missionForm.control}
+              name="missionType"
+              render={({ field }) => (
+                <Select
+                  label="Тип місії"
+                  options={[
+                    { value: MissionType.SG, label: missionTypeLabels[MissionType.SG] },
+                    { value: MissionType.mini, label: missionTypeLabels[MissionType.mini] },
+                  ]}
+                  value={field.value || null}
+                  onChange={field.onChange}
+                  error={missionForm.formState.errors.missionType?.message as string | undefined}
+                />
+              )}
+            />
+
+            <Controller
+              control={missionForm.control}
+              name="coauthorIds"
+              render={({ field }) => (
+                <div className="flex flex-col gap-2">
+                  <Select
+                    multiple
+                    label="Співавтори"
+                    localSearch
+                  resultsClassName="max-h-[150px] overflow-y-auto"
+                    placeholder="Без співавторів"
+                    options={coauthorOptions}
+                    value={field.value || []}
+                    onChange={field.onChange}
+                    isLoading={isLoadingUsers}
+                    disabled={!canUpdateCoauthors}
+                  />
+                  {!canUpdateCoauthors && (
+                    <p className="text-xs text-zinc-500">Співавторів може змінювати лише автор місії.</p>
+                  )}
+                </div>
+              )}
+            />
+
+            <Controller
+              control={missionForm.control}
+              name="description"
+              render={({ field }) => (
+                <Textarea
+                  {...field}
+                  label="Опис місії"
+                  rows={6}
+                  error={missionForm.formState.errors.description?.message}
+                />
+              )}
+            />
+          </div>
 
           <div className="flex justify-between pt-4">
             <Button type="button" variant="outline" onClick={handleClose}>
