@@ -68,9 +68,7 @@ const SquadsPage = observer(() => {
   const getPendingRequestForSquad = useCallback(
     (squad: Squad) =>
       joinRequests.find(request => request.squadId === squad.id && request.status === 'PENDING') ??
-      squad.joinRequests?.find(
-        request => request.userId === currentUserId && request.status === 'PENDING',
-      ) ??
+      squad.joinRequests?.find(request => request.userId === currentUserId && request.status === 'PENDING') ??
       null,
     [currentUserId, joinRequests],
   );
@@ -169,7 +167,7 @@ const SquadsPage = observer(() => {
                       <SquadListingCard
                         key={squad.id}
                         squad={squad}
-                        align="right"
+                        align="left"
                         pendingJoinRequest={getPendingRequestForSquad(squad)}
                         onJoinRequestCreated={handleJoinRequestCreated}
                       />
