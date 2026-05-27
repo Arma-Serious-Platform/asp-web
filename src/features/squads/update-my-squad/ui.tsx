@@ -182,7 +182,7 @@ export const UpdateMySquadForm: FC<UpdateMySquadFormProps> = ({ squad, onUpdated
       <div className="flex flex-col gap-4 rounded-xl border border-white/10 bg-black/40 p-4">
         <div className="flex flex-col gap-1">
           <div className="text-sm font-semibold text-white">Налаштування загону</div>
-          <p className="text-xs text-zinc-500">Ці поля може змінювати тільки лідер загону.</p>
+          <p className="text-xs text-zinc-500">Ці поля може змінювати лідер або заступник загону.</p>
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row">
@@ -205,14 +205,24 @@ export const UpdateMySquadForm: FC<UpdateMySquadFormProps> = ({ squad, onUpdated
                 unoptimized={!logoSrc.startsWith('https')}
               />
             </div>
-            <Button type="button" size="sm" variant="outline" disabled={isSaving} onClick={() => logoInputRef.current?.click()}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={isSaving}
+              onClick={() => logoInputRef.current?.click()}>
               <UploadIcon className="size-4" />
               Змінити лого
             </Button>
           </div>
 
           <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2">
-            <Input label="Назва загону" value={name} disabled={isSaving} onChange={event => setName(event.target.value)} />
+            <Input
+              label="Назва загону"
+              value={name}
+              disabled={isSaving}
+              onChange={event => setName(event.target.value)}
+            />
             <Input label="Тег загону" value={tag} disabled={isSaving} onChange={event => setTag(event.target.value)} />
             <NumericInput
               label="Активних учасників"

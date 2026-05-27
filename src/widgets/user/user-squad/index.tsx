@@ -65,6 +65,8 @@ export const UserSquad: FC<{
   const isLeader = user.id === squad?.leader?.id;
   const isSubleader = user.squadRole === SquadRole.SUBLEADER;
   const canManageSquadMembers = isLeader || isSubleader;
+  const pendingJoinRequestsCount =
+    squad?.joinRequests?.filter(request => request.status === 'PENDING').length ?? squad?._count.joinRequests ?? 0;
   const roleOptions = isLeader
     ? SQUAD_MEMBER_ROLE_OPTIONS
     : SQUAD_MEMBER_ROLE_OPTIONS.filter(option => option.value !== SquadRole.SUBLEADER);
@@ -106,6 +108,17 @@ export const UserSquad: FC<{
   }, [canManageSquadMembers]);
 
   const canChangeRoleForMember = useCallback(
+    (member: User) => {
+      if (!squad || !canManageSquadMembers) return false;
+      if (member.id === user.id || member.id === squad.leader?.id) return false;
+      if (isSubleader && member.squadRole === SquadRole.SUBLEADER) return false;
+
+      return true;
+    },
+    [canManageSquadMembers, isSubleader, squad, user.id],
+  );
+
+  const canKickMember = useCallback(
     (member: User) => {
       if (!squad || !canManageSquadMembers) return false;
       if (member.id === user.id || member.id === squad.leader?.id) return false;
@@ -409,7 +422,7 @@ export const UserSquad: FC<{
                   </Button>
                 )}
 
-                {isLeader && managedMember.id !== user.id && managedMember.id !== squad.leader?.id && (
+                {canKickMember(managedMember) && (
                   <Button
                     size="sm"
                     variant="destructive"
@@ -426,7 +439,7 @@ export const UserSquad: FC<{
         </DrawerContent>
       </Drawer>
 
-      {isLeader && (
+      {canManageSquadMembers && (
         <div className="flex flex-wrap gap-2 border-t border-white/10 pt-4">
           {[
             { id: 'members' as const, label: 'Склад' },
@@ -439,14 +452,23 @@ export const UserSquad: FC<{
               size="sm"
               variant={subtab === tab.id ? 'default' : 'secondary'}
               onClick={() => setSubtab(tab.id)}>
-              {tab.label}
+              <span>{tab.label}</span>
+              {tab.id === 'requests' && pendingJoinRequestsCount > 0 && (
+                <span
+                  className={cn(
+                    'inline-flex size-5 items-center justify-center rounded-full border border-white/20 bg-primary px-1.5 py-0.5 text-[10px] font-semibold leading-none text-zinc-100',
+                    subtab === tab.id ? 'bg-black/70' : 'bg-primary',
+                  )}>
+                  {pendingJoinRequestsCount}
+                </span>
+              )}
             </Button>
           ))}
         </div>
       )}
 
       <div className="mt-2 flex flex-col gap-2">
-        {(!isLeader || subtab === 'members') && (
+        {(!canManageSquadMembers || subtab === 'members') && (
           <>
             <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Склад загону</span>
             {Array.isArray(squad.members) && squad.members.length > 0 ? (
@@ -498,9 +520,11 @@ export const UserSquad: FC<{
           </>
         )}
 
-        {isLeader && subtab === 'settings' && <UpdateMySquadForm squad={squad} onUpdated={refreshSquadState} />}
+        {canManageSquadMembers && subtab === 'settings' && (
+          <UpdateMySquadForm squad={squad} onUpdated={refreshSquadState} />
+        )}
 
-        {isLeader && subtab === 'requests' && (
+        {canManageSquadMembers && subtab === 'requests' && (
           <SquadJoinRequestList model={joinRequestsModel} onChanged={refreshSquadState} />
         )}
       </div>
