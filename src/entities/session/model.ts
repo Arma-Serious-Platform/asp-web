@@ -28,45 +28,31 @@ export class SessionModel {
   }
 
   get canManageWeekends() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(this.user?.user?.role as UserRole);
   }
 
   get canManageIslands() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get canManageServers() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get canManageRules() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get canManageSpecializations() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get canManageSquadsAndSides() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get canManageMissions() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(this.user?.user?.role as UserRole);
   }
 
   get canReviewMissions() {
@@ -86,21 +72,15 @@ export class SessionModel {
   }
 
   get canModerateUsers() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.GAME_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.GAME_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get canPermanentlyBanUsers() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get canSeeSensitiveUsersData() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(
-      this.user?.user?.role as UserRole,
-    );
+    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
   }
 
   get hasTechAdminAccess() {
@@ -114,8 +94,8 @@ export class SessionModel {
 
     return Boolean(
       squad &&
-        squad.side?.type !== SideType.UNASSIGNED &&
-        (squad.leaderId === user?.id || squadRole === SquadRole.SUBLEADER || squadRole === SquadRole.HQ),
+      squad.side?.type !== SideType.UNASSIGNED &&
+      (squad.leader?.id === user?.id || squadRole === SquadRole.SUBLEADER || squadRole === SquadRole.HQ),
     );
   }
 
