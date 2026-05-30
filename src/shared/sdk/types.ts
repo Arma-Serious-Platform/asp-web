@@ -146,6 +146,7 @@ export type User = {
   discordUrl?: string;
   twitchUrl?: string;
   youtubeUrl?: string;
+  tiktokUrl?: string;
   _count?: Partial<Record<'missions' | 'warnings', number>>;
 };
 
@@ -218,6 +219,7 @@ export type UpdateMeDto = {
   discordUrl?: string;
   youtubeUrl?: string;
   twitchUrl?: string;
+  tiktokUrl?: string;
 };
 
 /** @deprecated Use UpdateMeDto for PATCH /users/me */
@@ -238,6 +240,11 @@ export type Squad = {
   } | null;
   tag: string;
   recruiting: boolean;
+  telegramUrl?: string;
+  discordUrl?: string;
+  youtubeUrl?: string;
+  twitchUrl?: string;
+  tiktokUrl?: string;
   leader: User;
   side: Side;
   invites: SquadInvitation[];
@@ -441,6 +448,11 @@ export type UpdateSquadDto = {
   recruiting?: boolean;
   activeCount?: number;
   logo?: File;
+  telegramUrl?: string;
+  discordUrl?: string;
+  youtubeUrl?: string;
+  twitchUrl?: string;
+  tiktokUrl?: string;
 };
 
 export type UpdateMySquadDto = {
@@ -449,6 +461,11 @@ export type UpdateMySquadDto = {
   recruiting?: boolean;
   activeCount?: number;
   logo?: File;
+  telegramUrl?: string;
+  discordUrl?: string;
+  youtubeUrl?: string;
+  twitchUrl?: string;
+  tiktokUrl?: string;
 };
 
 export type FindMissionsDto = PaginatedRequest<{

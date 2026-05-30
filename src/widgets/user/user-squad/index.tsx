@@ -28,6 +28,7 @@ import toast from 'react-hot-toast';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { SpecializationBadges, SpecializationOptionContent } from '@/entities/specialization/ui/specialization-badges';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/shared/ui/organisms/drawer';
+import { ChangeSocials } from '@/features/user/change-socials';
 
 type SquadProfileSubtab = 'members' | 'settings' | 'requests';
 
@@ -267,6 +268,7 @@ export const UserSquad: FC<{
                 {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
               </span>
             </div>
+            <ChangeSocials socials={squad} readonly onChange={() => undefined} />
           </div>
 
           <div className="flex gap-2">

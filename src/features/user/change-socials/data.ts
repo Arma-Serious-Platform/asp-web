@@ -9,25 +9,31 @@ export const socialsConfig: {
   {
     key: 'telegramUrl',
     label: 'Telegram',
-    placeholder: 'https://t.me/...',
+    placeholder: 'username або channel',
     icon: '/images/social/telegram.svg',
   },
   {
     key: 'discordUrl',
     label: 'Discord',
-    placeholder: 'https://discord.gg/...',
+    placeholder: 'invite-code або users/...',
     icon: '/images/social/discord.svg',
   },
   {
     key: 'twitchUrl',
     label: 'Twitch',
-    placeholder: 'https://twitch.tv/...',
+    placeholder: 'channel',
     icon: '/images/social/twitch.svg',
   },
   {
     key: 'youtubeUrl',
     label: 'YouTube',
-    placeholder: 'https://youtube.com/...',
+    placeholder: '@channel або channel/...',
     icon: '/images/social/youtube.svg',
+  },
+  {
+    key: 'tiktokUrl',
+    label: 'TikTok',
+    placeholder: '@profile',
+    icon: '/images/social/tiktok.svg',
   },
 ];

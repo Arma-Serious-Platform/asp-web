@@ -4,34 +4,44 @@ import { FC, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { PencilIcon } from 'lucide-react';
 
-import { User, UpdateUserDto } from '@/shared/sdk/types';
 import { Input } from '@/shared/ui/atoms/input';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { SocialKeys, validateSocialUrl } from './lib';
+import { buildSocialUrl, getSocialProfileValue, SocialKeys, validateSocialProfileValue } from './lib';
 import { socialsConfig } from './data';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 
+type SocialValues = Partial<Record<SocialKeys, string | null>>;
+
 type ChangeSocialsProps = {
-  user: User | null;
+  socials?: SocialValues | null;
+  user?: SocialValues | null;
   className?: string;
   isLoading?: boolean;
   readonly?: boolean;
-  onChange: (changes: Partial<Pick<UpdateUserDto, SocialKeys>>) => Promise<void> | void;
+  onChange: (changes: Partial<Record<SocialKeys, string>>) => Promise<void> | void;
 };
 
-const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, readonly = false, onChange }) => {
+const ChangeSocials: FC<ChangeSocialsProps> = ({ socials, user, className, isLoading, readonly = false, onChange }) => {
   const [isEdit, setIsEdit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const socialValues = socials ?? user ?? null;
 
   const initialValues = useMemo<Record<SocialKeys, string>>(
     () => ({
-      telegramUrl: user?.telegramUrl ?? '',
-      discordUrl: user?.discordUrl ?? '',
-      twitchUrl: user?.twitchUrl ?? '',
-      youtubeUrl: user?.youtubeUrl ?? '',
+      telegramUrl: getSocialProfileValue('telegramUrl', socialValues?.telegramUrl),
+      discordUrl: getSocialProfileValue('discordUrl', socialValues?.discordUrl),
+      twitchUrl: getSocialProfileValue('twitchUrl', socialValues?.twitchUrl),
+      youtubeUrl: getSocialProfileValue('youtubeUrl', socialValues?.youtubeUrl),
+      tiktokUrl: getSocialProfileValue('tiktokUrl', socialValues?.tiktokUrl),
     }),
-    [user?.telegramUrl, user?.discordUrl, user?.twitchUrl, user?.youtubeUrl],
+    [
+      socialValues?.telegramUrl,
+      socialValues?.discordUrl,
+      socialValues?.twitchUrl,
+      socialValues?.youtubeUrl,
+      socialValues?.tiktokUrl,
+    ],
   );
 
   const [values, setValues] = useState<Record<SocialKeys, string>>(initialValues);
@@ -39,7 +49,7 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
   const fieldErrors = useMemo(() => {
     const out: Partial<Record<SocialKeys, string>> = {};
     (Object.keys(values) as SocialKeys[]).forEach(key => {
-      const msg = validateSocialUrl(key, values[key]);
+      const msg = validateSocialProfileValue(key, values[key]);
       if (msg) out[key] = msg;
     });
     return out;
@@ -49,12 +59,7 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
 
   // Sync local state when user data changes
   // (e.g. after successful update & refetch)
-  if (
-    values.telegramUrl !== initialValues.telegramUrl ||
-    values.discordUrl !== initialValues.discordUrl ||
-    values.twitchUrl !== initialValues.twitchUrl ||
-    values.youtubeUrl !== initialValues.youtubeUrl
-  ) {
+  if (socialsConfig.some(social => values[social.key] !== initialValues[social.key])) {
     // Do not sync while editing; only sync when not in edit mode
     if (!isEdit && !isSubmitting) {
       // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -62,19 +67,19 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
     }
   }
 
-  if (!user) return null;
+  if (!socialValues) return null;
 
   const handleSave = async () => {
     if (hasValidationErrors) {
       return;
     }
 
-    const changes: Partial<Pick<UpdateUserDto, SocialKeys>> = {};
+    const changes: Partial<Record<SocialKeys, string>> = {};
 
     (Object.keys(values) as SocialKeys[]).forEach(key => {
       const trimmed = values[key].trim();
       if (trimmed !== (initialValues[key] ?? '').trim()) {
-        changes[key] = trimmed;
+        changes[key] = buildSocialUrl(key, trimmed);
       }
     });
 
@@ -97,14 +102,14 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ user, className, isLoading, rea
     setIsEdit(false);
   };
 
-  const hasAnySocial = Object.values(initialValues).some(Boolean);
+  const hasAnySocial = socialsConfig.some(social => Boolean(socialValues[social.key]));
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-3">
           {socialsConfig.map(social => {
-            const url = initialValues[social.key];
+            const url = socialValues[social.key];
 
             if (!url && !isEdit) return null;
 

@@ -15,6 +15,8 @@ import { Switch } from '@/shared/ui/atoms/switch';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
+import { ChangeSocials } from '@/features/user/change-socials';
+import { SocialKeys } from '@/features/user/change-socials/lib';
 
 type UpdateMySquadFormProps = {
   squad: Squad;
@@ -99,6 +101,22 @@ export const UpdateMySquadForm: FC<UpdateMySquadFormProps> = ({ squad, onUpdated
       await onUpdated?.(data);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || 'Не вдалося оновити загін';
+      toast.error(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleChangeSocials = async (changes: Partial<Record<SocialKeys, string>>) => {
+    try {
+      setIsSaving(true);
+      const { data } = await api.updateMySquad(changes);
+
+      toast.success('Соціальні мережі загону оновлено');
+      await session.fetchMe();
+      await onUpdated?.(data);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Не вдалося оновити соціальні мережі загону';
       toast.error(errorMessage);
     } finally {
       setIsSaving(false);
@@ -235,6 +253,13 @@ export const UpdateMySquadForm: FC<UpdateMySquadFormProps> = ({ squad, onUpdated
               <Switch checked={recruiting} disabled={isSaving} onCheckedChange={setRecruiting} />
             </label>
           </div>
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
+            Соціальні мережі загону
+          </div>
+          <ChangeSocials socials={squad} isLoading={isSaving} onChange={handleChangeSocials} />
         </div>
 
         <div className="flex justify-end">

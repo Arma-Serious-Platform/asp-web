@@ -4,6 +4,7 @@ import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { session } from '@/entities/session/model';
 import { getSquadSubleaders, sortSquadMembersByRole, SQUAD_ROLE_LABELS } from '@/entities/squad/lib';
 import { SpecializationBadges } from '@/entities/specialization/ui/specialization-badges';
+import { ChangeSocials } from '@/features/user/change-socials';
 import { RequestToJoinSquadButton } from '@/features/squads/request-to-join/ui';
 import { ROUTES } from '@/shared/config/routes';
 import { api } from '@/shared/sdk';
@@ -219,6 +220,7 @@ export default function SquadDetailPage() {
                     ) : (
                       <p className="text-sm text-zinc-500">Опис загону не додано.</p>
                     )}
+                    <ChangeSocials socials={squad} readonly onChange={() => undefined} />
                   </div>
 
                   <RequestToJoinSquadButton
