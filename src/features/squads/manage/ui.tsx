@@ -13,9 +13,9 @@ import { ManageSquadModel } from './model';
 import { Input } from '@/shared/ui/atoms/input';
 import { findUsersWithoutSquadParams } from '@/entities/user/lib';
 import { mapUsersToSelectOptions, withCurrentLeaderOption } from '@/entities/user/ui/user-select-options';
-import { CreateSquadDto, Squad, UpdateSquadDto } from '@/shared/sdk/types';
+import { Squad, UpdateSquadDto } from '@/shared/sdk/types';
 
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, Resolver, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Select } from '@/shared/ui/atoms/select';
@@ -24,6 +24,14 @@ import Image from 'next/image';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 import { resolveUploadFileFromInput } from '@/shared/utils/file';
+
+type ManageSquadFormDto = {
+  name: string;
+  tag: string;
+  leaderId: string;
+  sideId: string;
+  activeCount?: number;
+};
 
 const ManageSquadModal: FC<
   PropsWithChildren<{
@@ -34,7 +42,7 @@ const ManageSquadModal: FC<
     onDeleteSuccess?: (squad: Squad) => void;
   }>
 > = observer(({ model, children, existedSquads = [], onCreateSuccess, onUpdateSuccess, onDeleteSuccess }) => {
-  const form = useForm<CreateSquadDto>({
+  const form = useForm<ManageSquadFormDto>({
     mode: 'onChange',
     resolver: yupResolver(
       yup.object().shape({
@@ -62,18 +70,16 @@ const ManageSquadModal: FC<
             },
             otherwise: schema => schema,
           }),
-        description: yup.string().required("Опис є обов'язковим"),
         leaderId: yup.string().required("Лідер є обов'язковим"),
         sideId: yup.string().required("Сторона є обов'язковою"),
       }),
-    ),
+    ) as Resolver<ManageSquadFormDto>,
     context: {
       existedSquads,
     },
     defaultValues: {
       name: '',
       tag: '',
-      description: '',
       leaderId: '',
       sideId: '',
     },
@@ -88,7 +94,7 @@ const ManageSquadModal: FC<
   const { tag, sideId } = form.watch();
   const { isValid } = form.formState;
 
-  const onSubmit = async (data: CreateSquadDto) => {
+  const onSubmit = async (data: ManageSquadFormDto) => {
     if (isEdit) {
       const dto: UpdateSquadDto = {
         id: model.modal.payload?.squad?.id || '',
@@ -104,10 +110,6 @@ const ManageSquadModal: FC<
 
       if (data.tag !== model.modal.payload?.squad?.tag) {
         dto.tag = data.tag;
-      }
-
-      if (data.description !== model.modal.payload?.squad?.description) {
-        dto.description = data.description;
       }
 
       if (data.leaderId !== model.modal.payload?.squad?.leader?.id) {
@@ -142,7 +144,6 @@ const ManageSquadModal: FC<
 
       form.setValue('name', model.modal.payload?.squad?.name || '');
       form.setValue('tag', model.modal.payload?.squad?.tag || '');
-      form.setValue('description', model.modal.payload?.squad?.description || '');
       form.setValue('leaderId', model.modal.payload?.squad?.leader?.id || '');
       form.setValue('sideId', model.modal.payload?.squad?.side?.id || '');
       form.setValue('activeCount', model.modal.payload?.squad?.activeCount || 0);
@@ -244,14 +245,6 @@ const ManageSquadModal: FC<
 
                       <span className="text-sm text-neutral-500">Тег буде виглядати так: [{tag}]</span>
                     </div>
-                  )}
-                />
-
-                <Controller
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <Input {...field} label="Опис загону" error={form.formState.errors.description?.message} />
                   )}
                 />
 

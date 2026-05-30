@@ -8,8 +8,8 @@ import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AcceptOrRejectInviteModel, acceptOrRejectInviteModel } from './model';
 import { SquadInvitation } from '@/shared/sdk/types';
-import { TextWithLinks } from '@/shared/ui/moleculas/text-with-links';
 import { CheckIcon, LoaderIcon, XIcon } from 'lucide-react';
+import { MessageContent } from '@/entities/comment/lexical-message';
 
 const SquadInviteConfirmModal: FC<{
   model: AcceptOrRejectInviteModel;
@@ -95,7 +95,7 @@ const SquadInviteItem: FC<{
   const isPending = invitation.status === 'PENDING';
 
   return (
-    <Card className="flex gap-3 items-center !p-3">
+    <Card className="flex gap-3 items-center p-3!">
       <div className="overflow-hidden rounded-lg border border-white/10 bg-black/70 shrink-0">
         <img
           src={invitation.squad.logo?.url || '/images/logo.webp'}
@@ -114,9 +114,9 @@ const SquadInviteItem: FC<{
           </div>
         )}
         {invitation.squad.description && (
-          <p className="line-clamp-2 text-xs text-zinc-400">
-            <TextWithLinks text={invitation.squad.description} linkClassName="text-primary hover:text-primary/80" />
-          </p>
+          <div className="line-clamp-2 text-xs text-zinc-400">
+            <MessageContent message={invitation.squad.description} />
+          </div>
         )}
       </div>
 
@@ -144,7 +144,7 @@ const SquadInviteItem: FC<{
       )}
 
       {!isPending && (
-        <div className="text-xs text-zinc-500 uppercase tracking-[0.1em]">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest">
           {invitation.status === 'ACCEPTED' && 'Прийнято'}
           {invitation.status === 'REJECTED' && 'Відхилено'}
         </div>

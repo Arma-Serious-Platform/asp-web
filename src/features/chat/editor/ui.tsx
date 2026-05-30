@@ -18,6 +18,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
 import { ToolbarPlugin } from './toolbar';
 import { RichTextBehaviorPlugin } from './rich-text-plugin';
+import { MissionCommentMessage } from '@/shared/sdk/types';
 
 export type MessageEditorSubmitPayload = {
   /** Plain text for validation/fallback */
@@ -28,10 +29,13 @@ export type MessageEditorSubmitPayload = {
 
 export type MessageEditorProps = {
   onSubmit: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
+  initialState?: MissionCommentMessage | null;
   placeholder?: string;
   maxCharacters?: number;
   className?: string;
   disabled?: boolean;
+  submitLabel?: string;
+  clearOnSubmit?: boolean;
 };
 
 const DEFAULT_MAX_CHARACTERS = 250;
@@ -40,14 +44,50 @@ function onError(error: Error) {
   console.error('Lexical MessageEditor:', error);
 }
 
+function createPlainTextEditorState(text: string) {
+  return {
+    root: {
+      children: [
+        {
+          children: [
+            {
+              detail: 0,
+              format: 0,
+              mode: 'normal',
+              style: '',
+              text,
+              type: 'text',
+              version: 1,
+            },
+          ],
+          direction: null,
+          format: '',
+          indent: 0,
+          type: 'paragraph',
+          version: 1,
+        },
+      ],
+      direction: null,
+      format: '',
+      indent: 0,
+      type: 'root',
+      version: 1,
+    },
+  };
+}
+
 function InnerEditor({
   onSubmit,
   maxCharacters,
   disabled,
+  submitLabel,
+  clearOnSubmit,
 }: {
   onSubmit: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
   maxCharacters: number;
   disabled?: boolean;
+  submitLabel: string;
+  clearOnSubmit: boolean;
 }) {
   const [editor] = useLexicalComposerContext();
 
@@ -66,9 +106,11 @@ function InnerEditor({
     if (text.length > maxCharacters) return;
     const lexicalState = state.toJSON() as unknown as Record<string, unknown>;
     await Promise.resolve(onSubmit({ text, lexicalState }));
-    editor.update(() => {
-      $getRoot().clear();
-    });
+    if (clearOnSubmit) {
+      editor.update(() => {
+        $getRoot().clear();
+      });
+    }
   };
 
   return (
@@ -81,7 +123,7 @@ function InnerEditor({
         onClick={handleSubmit}
         disabled={disabled}
         aria-label="Send">
-        Відправити
+        {submitLabel}
         <SendHorizontalIcon className="size-4" />
       </Button>
     </div>
@@ -90,16 +132,27 @@ function InnerEditor({
 
 export function MessageEditor({
   onSubmit,
+  initialState,
   placeholder = 'Напишіть повідомлення...',
   maxCharacters = DEFAULT_MAX_CHARACTERS,
   className,
   disabled = false,
+  submitLabel = 'Відправити',
+  clearOnSubmit = true,
 }: MessageEditorProps) {
   const initialConfig = {
     namespace: 'MessageEditor',
     theme: newMessageAreaTheme,
     onError,
     nodes: [OverflowNode, LinkNode, YouTubeEmbedNode],
+    editorState:
+      initialState && typeof initialState === 'object'
+        ? JSON.stringify(initialState)
+        : typeof initialState === 'string'
+          ? initialState.trim().startsWith('{')
+            ? initialState
+            : JSON.stringify(createPlainTextEditorState(initialState))
+          : undefined,
   };
 
   return (
@@ -142,7 +195,13 @@ export function MessageEditor({
             </div>
           )}
         />
-        <InnerEditor onSubmit={onSubmit} maxCharacters={maxCharacters} disabled={disabled} />
+        <InnerEditor
+          onSubmit={onSubmit}
+          maxCharacters={maxCharacters}
+          disabled={disabled}
+          submitLabel={submitLabel}
+          clearOnSubmit={clearOnSubmit}
+        />
       </LexicalComposer>
     </div>
   );

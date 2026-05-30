@@ -191,13 +191,14 @@ const SquadsPage = observer(() => {
             </div>
             <div className="paper flex flex-wrap gap-3 rounded-xl border p-4 shadow-lg">
               {unassignedSquads.map(squad => (
-                <div key={squad.id} className="w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]">
-                  <SquadListingCard
-                    squad={squad}
-                    pendingJoinRequest={getPendingRequestForSquad(squad)}
-                    onJoinRequestCreated={handleJoinRequestCreated}
-                  />
-                </div>
+                <SquadListingCard
+                  key={squad.id}
+                  className="w-1/2 mx-auto"
+                  squad={squad}
+                  align="left"
+                  pendingJoinRequest={getPendingRequestForSquad(squad)}
+                  onJoinRequestCreated={handleJoinRequestCreated}
+                />
               ))}
             </div>
           </section>

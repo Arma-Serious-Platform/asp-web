@@ -13,22 +13,33 @@ import { FC } from 'react';
 const SquadListingCard: FC<{
   squad: Squad | null;
   align?: 'left' | 'right';
+  className?: string;
+  fitContent?: boolean;
   pendingJoinRequest?: SquadJoinRequest | null;
   onJoinRequestCreated?: (request: SquadJoinRequest) => void | Promise<void>;
-}> = ({ squad, align = 'left', pendingJoinRequest, onJoinRequestCreated }) => {
+}> = ({ squad, align = 'left', className, fitContent = false, pendingJoinRequest, onJoinRequestCreated }) => {
   if (!squad) return null;
 
   const subleaders = getSquadSubleaders(squad.members ?? []);
 
   return (
     <div
-      className={cn('group relative w-full transition-all duration-200', {
-        'items-start text-left': align === 'left',
-        'items-end text-right': align === 'right',
-      })}>
+      className={cn(
+        'group relative transition-all duration-200',
+        fitContent ? 'w-full max-w-full sm:w-md' : 'w-full',
+        {
+          'items-start text-left': align === 'left',
+          'items-end text-right': align === 'right',
+        },
+        className,
+      )}>
       <div className="absolute inset-0 rounded-2xl bg-linear-to-r from-emerald-500/40 via-cyan-500/20 to-purple-500/40 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-60" />
 
-      <div className="relative flex w-full flex-col items-stretch gap-4 rounded-2xl border border-white/10 bg-linear-to-br from-white/5 via-white/0 to-black/50 p-3 shadow-lg shadow-black/40 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:bg-black/70 md:flex-row">
+      <div
+        className={cn(
+          'relative flex flex-col items-stretch gap-4 rounded-2xl border border-white/10 bg-linear-to-br from-white/5 via-white/0 to-black/50 p-3 shadow-lg shadow-black/40 backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:bg-black/70 md:flex-row',
+          fitContent ? 'w-full max-w-full sm:w-md' : 'w-full',
+        )}>
         <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full border border-neutral-700/80 bg-black/80 px-2.5 py-1 text-[11px] font-medium text-zinc-100 md:right-3 md:top-3">
           <UsersRoundIcon className="size-3 text-zinc-400" />
           <span className="text-xs font-medium">

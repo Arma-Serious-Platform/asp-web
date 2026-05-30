@@ -225,6 +225,8 @@ export type UpdateMeDto = {
 /** @deprecated Use UpdateMeDto for PATCH /users/me */
 export type UpdateUserDto = UpdateMeDto;
 
+export type SquadDescription = MissionCommentMessage | string;
+
 export type Squad = {
   id: string;
   name: string;
@@ -233,7 +235,7 @@ export type Squad = {
   createdAt: Date;
   updatedAt: Date;
   activeCount: number;
-  description: string | null;
+  description: SquadDescription | null;
   logo: {
     id: string;
     url: string;
@@ -431,7 +433,7 @@ export type SetUserSpecializationsDto = {
 export type CreateSquadDto = {
   name: string;
   tag: string;
-  description: string;
+  description?: SquadDescription;
   leaderId: string;
   sideId: string;
   activeCount?: number;
@@ -442,7 +444,7 @@ export type UpdateSquadDto = {
   id: string;
   name?: string;
   tag?: string;
-  description?: string;
+  description?: SquadDescription;
   leaderId?: string;
   sideId?: string;
   recruiting?: boolean;
@@ -458,6 +460,7 @@ export type UpdateSquadDto = {
 export type UpdateMySquadDto = {
   name?: string;
   tag?: string;
+  description?: SquadDescription;
   recruiting?: boolean;
   activeCount?: number;
   logo?: File;
@@ -682,7 +685,7 @@ export type UpdateGameDto = {
 /* Mission comments */
 
 /** Lexical editor state / JSON content (object) */
-export type MissionCommentMessage = Record<string, unknown>;
+export type MissionCommentMessage = Record<string, unknown> | string;
 
 export type MissionComment = {
   id: string;

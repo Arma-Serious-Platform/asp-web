@@ -114,6 +114,17 @@ const appendStringArrayToFormData = (formData: FormData, key: string, values?: s
   });
 };
 
+const appendFormDataValue = (formData: FormData, key: string, value: unknown) => {
+  if (value === undefined || value === null) return;
+
+  if (value instanceof File) {
+    formData.append(key, value);
+    return;
+  }
+
+  formData.append(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
+};
+
 class ApiModel {
   instance = axios.create({
     baseURL: env.apiUrl,
@@ -369,7 +380,7 @@ class ApiModel {
     }
     formData.append('name', dto.name);
     formData.append('tag', dto.tag);
-    formData.append('description', dto.description);
+    appendFormDataValue(formData, 'description', dto.description);
     formData.append('leaderId', dto.leaderId);
     formData.append('sideId', dto.sideId);
     return await this.instance.post<Squad>('/squads', formData, {
@@ -382,11 +393,7 @@ class ApiModel {
   updateSquad = async ({ id, ...dto }: UpdateSquadDto) => {
     const formData = new FormData();
 
-    Object.entries(dto).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value instanceof File ? value : value.toString());
-      }
-    });
+    Object.entries(dto).forEach(([key, value]) => appendFormDataValue(formData, key, value));
 
     return await this.instance.patch<Squad>(`/squads/${id}`, formData, {
       headers: {
@@ -398,11 +405,7 @@ class ApiModel {
   updateMySquad = async (dto: UpdateMySquadDto) => {
     const formData = new FormData();
 
-    Object.entries(dto).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value instanceof File ? value : value.toString());
-      }
-    });
+    Object.entries(dto).forEach(([key, value]) => appendFormDataValue(formData, key, value));
 
     return await this.instance.patch<Squad>('/squads/me', formData, {
       headers: {
