@@ -18,6 +18,7 @@ import {
   UserRole,
 } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
+import { FormReadonlyField } from '@/shared/ui/atoms/form-readonly-field';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Select } from '@/shared/ui/atoms/select';
@@ -43,6 +44,10 @@ type HqPlansProps = {
   activePlanId?: string;
 };
 
+type SlotDraftField = keyof Pick<HeadquartersSlot, 'name' | 'weaponry' | 'slotCount' | 'spawnPoint' | 'comment'>;
+type SlotDrafts = Record<string, Partial<Record<SlotDraftField, string>>>;
+type WantedSlotOverrides = Record<string, boolean>;
+
 const normalizeSlotCount = (value: number | null | undefined) => (typeof value === 'number' ? value : 0);
 const PLANS_PAGE_SIZE = 8;
 const weekDayByIndex: Record<number, string> = {
@@ -56,6 +61,8 @@ const weekDayByIndex: Record<number, string> = {
 };
 
 const joinSquadTags = (squads: Pick<Squad, 'tag'>[]) => squads.map(s => s.tag).join(', ');
+
+const areSamePayload = <T,>(a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
 
 const planListSkeletonPulse = 'animate-pulse rounded bg-zinc-600/35';
 
@@ -190,7 +197,11 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
   const [isCommentSending, setIsCommentSending] = useState(false);
   const [visiblePlansCount, setVisiblePlansCount] = useState(PLANS_PAGE_SIZE);
+  const [slotDrafts, setSlotDrafts] = useState<SlotDrafts>({});
+  const [planUrlDraft, setPlanUrlDraft] = useState<string | null>(null);
+  const [wantedSlotOverrides, setWantedSlotOverrides] = useState<WantedSlotOverrides>({});
   const socketRef = useRef<Socket | null>(null);
+  const wantedSlotOverrideTimeoutsRef = useRef<Record<string, number>>({});
   const deleteHqCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
 
   const hasAccess = Boolean(
@@ -205,6 +216,21 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
   const selectedCommander = selectedPlan?.gameCommanderId ? usersById[selectedPlan.gameCommanderId] : null;
   const isCommander = Boolean(currentUser?.id && selectedPlan?.gameCommanderId === currentUser.id);
   const canEditCommanderFields = isCommander;
+
+  useEffect(() => {
+    setPlanUrlDraft(null);
+    setSlotDrafts({});
+    setWantedSlotOverrides({});
+  }, [selectedPlan?.id]);
+
+  useEffect(
+    () => () => {
+      Object.values(wantedSlotOverrideTimeoutsRef.current).forEach(timeoutId => {
+        window.clearTimeout(timeoutId);
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!hasAccess) {
@@ -265,21 +291,77 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
   }, [currentSide, hasAccess, router]);
 
   const replacePlan = (nextPlan: HeadquartersGamePlan) => {
-    setPlans(prev => prev.map(item => (item.id === nextPlan.id ? nextPlan : item)));
+    setPlans(prev =>
+      prev.map(item => (item.id === nextPlan.id ? (areSamePayload(item, nextPlan) ? item : nextPlan) : item)),
+    );
   };
 
   const replaceSlot = (slot: HeadquartersSlot) => {
-    if (!selectedPlan) return;
-    replacePlan({
-      ...selectedPlan,
-      slots: selectedPlan.slots.map(item => (item.id === slot.id ? slot : item)),
+    setPlans(prev =>
+      prev.map(plan => {
+        const slotIndex = plan.slots.findIndex(item => item.id === slot.id);
+        if (slotIndex === -1 || areSamePayload(plan.slots[slotIndex], slot)) {
+          return plan;
+        }
+
+        const slots = [...plan.slots];
+        slots[slotIndex] = slot;
+
+        return {
+          ...plan,
+          slots,
+        };
+      }),
+    );
+  };
+
+  const setSlotDraft = (slotId: string, field: SlotDraftField, value: string) => {
+    setSlotDrafts(prev => ({
+      ...prev,
+      [slotId]: {
+        ...prev[slotId],
+        [field]: value,
+      },
+    }));
+  };
+
+  const clearSlotDrafts = (slotId: string, fields: SlotDraftField[]) => {
+    setSlotDrafts(prev => {
+      const current = prev[slotId];
+      if (!current) return prev;
+
+      const next = { ...current };
+      fields.forEach(field => {
+        delete next[field];
+      });
+
+      if (Object.keys(next).length === 0) {
+        const { [slotId]: _removed, ...rest } = prev;
+        return rest;
+      }
+
+      return {
+        ...prev,
+        [slotId]: next,
+      };
     });
   };
 
-  const updateSlotField = async (slotId: string, dto: Parameters<typeof api.updateHeadquartersSlot>[1]) => {
+  const getSlotTextDraft = (slot: HeadquartersSlot, field: Exclude<SlotDraftField, 'slotCount'>) =>
+    slotDrafts[slot.id]?.[field] ?? slot[field] ?? '';
+
+  const getSlotCountDraft = (slot: HeadquartersSlot) =>
+    slotDrafts[slot.id]?.slotCount ?? String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)));
+
+  const updateSlotField = async (
+    slotId: string,
+    dto: Parameters<typeof api.updateHeadquartersSlot>[1],
+    draftFields = Object.keys(dto) as SlotDraftField[],
+  ) => {
     try {
       const { data } = await api.updateHeadquartersSlot(slotId, dto);
       replaceSlot(data);
+      clearSlotDrafts(slotId, draftFields);
     } catch (error) {
       console.error(error);
       toast.error('Не вдалося оновити слот');
@@ -291,6 +373,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     try {
       const { data } = await api.updateHeadquartersPlan(selectedPlan.id, { planUrl: value || null });
       replacePlan(data);
+      setPlanUrlDraft(null);
     } catch (error) {
       console.error(error);
       toast.error('Не вдалося оновити посилання на план');
@@ -367,6 +450,58 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     if (sideType === SideType.BLUE) return 'text-blue-400';
     if (sideType === SideType.RED) return 'text-red-400';
     return 'text-zinc-300';
+  };
+
+  const clearWantedSlotOverride = (slotId: string) => {
+    const timeoutId = wantedSlotOverrideTimeoutsRef.current[slotId];
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+      delete wantedSlotOverrideTimeoutsRef.current[slotId];
+    }
+
+    setWantedSlotOverrides(prev => {
+      if (!(slotId in prev)) return prev;
+
+      const next = { ...prev };
+      delete next[slotId];
+      return next;
+    });
+  };
+
+  const scheduleWantedSlotOverrideClear = (slotId: string) => {
+    const existingTimeoutId = wantedSlotOverrideTimeoutsRef.current[slotId];
+    if (existingTimeoutId) {
+      window.clearTimeout(existingTimeoutId);
+    }
+
+    wantedSlotOverrideTimeoutsRef.current[slotId] = window.setTimeout(() => {
+      clearWantedSlotOverride(slotId);
+    }, 500);
+  };
+
+  const getWantedSquadsForSlot = (slot: HeadquartersSlot) => {
+    const override = wantedSlotOverrides[slot.id];
+    if (override === undefined || !currentSquad) {
+      return slot.wantedSquads;
+    }
+
+    const hasCurrentSquad = slot.wantedSquads.some(squad => squad.id === currentSquad.id);
+
+    if (override) {
+      return hasCurrentSquad
+        ? slot.wantedSquads
+        : [
+            ...slot.wantedSquads,
+            {
+              id: currentSquad.id,
+              name: currentSquad.name,
+              tag: currentSquad.tag,
+              logo: currentSquad.logo,
+            },
+          ];
+    }
+
+    return slot.wantedSquads.filter(squad => squad.id !== currentSquad.id);
   };
 
   const sideAppearance = (sideType?: SideType) => {
@@ -765,18 +900,27 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                     }>
                     <CopyIcon className="size-4" />
                   </Button>
-                  <Input
-                    className="min-w-0 flex-1"
-                    value={selectedPlan.planUrl ?? ''}
-                    disabled={!canEditCommanderFields}
-                    placeholder="https://..."
-                    onChange={event => replacePlan({ ...selectedPlan, planUrl: event.target.value })}
-                    onBlur={event => {
-                      if (canEditCommanderFields) {
+                  {canEditCommanderFields ? (
+                    <Input
+                      className="min-w-0 flex-1"
+                      value={planUrlDraft ?? selectedPlan.planUrl ?? ''}
+                      placeholder="https://..."
+                      onChange={event => setPlanUrlDraft(event.target.value)}
+                      onBlur={event => {
                         void updatePlanUrl(event.target.value.trim());
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  ) : selectedPlan.planUrl?.trim() ? (
+                    <a
+                      className="min-w-0 flex-1 truncate rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-lime-300 underline-offset-4 hover:underline"
+                      href={selectedPlan.planUrl}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      {selectedPlan.planUrl}
+                    </a>
+                  ) : (
+                    <FormReadonlyField className="min-w-0 flex-1" value="" />
+                  )}
                 </div>
               </div>
 
@@ -812,9 +956,12 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                       </thead>
                       <tbody>
                         {selectedPlan.slots.map(slot => {
+                          const wantedSquads = getWantedSquadsForSlot(slot);
                           const isWantedByMySquad = Boolean(
-                            currentSquad && slot.wantedSquads.some(squad => squad.id === currentSquad.id),
+                            currentSquad && wantedSquads.some(squad => squad.id === currentSquad.id),
                           );
+                          const isWantedUpdating = slot.id in wantedSlotOverrides;
+
                           return (
                             <tr key={slot.id} className="border-b border-white/5 align-top">
                               <td className="px-2 py-2 text-zinc-100">
@@ -823,60 +970,76 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                 </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
-                                <TableCellTooltip text={slot.name ?? ''}>
-                                  <Input
-                                    className="min-w-0 w-full"
-                                    value={slot.name ?? ''}
-                                    disabled={!canEditCommanderFields}
-                                    onChange={event => replaceSlot({ ...slot, name: event.target.value })}
-                                    onBlur={event =>
-                                      canEditCommanderFields &&
-                                      void updateSlotField(slot.id, { name: event.target.value || null })
-                                    }
-                                  />
+                                <TableCellTooltip
+                                  text={canEditCommanderFields ? getSlotTextDraft(slot, 'name') : slot.name ?? ''}>
+                                  {canEditCommanderFields ? (
+                                    <Input
+                                      className="min-w-0 w-full"
+                                      value={getSlotTextDraft(slot, 'name')}
+                                      onChange={event => setSlotDraft(slot.id, 'name', event.target.value)}
+                                      onBlur={event =>
+                                        void updateSlotField(slot.id, { name: event.target.value || null }, ['name'])
+                                      }
+                                    />
+                                  ) : (
+                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.name ?? ''} />
+                                  )}
                                 </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
-                                <TableCellTooltip text={slot.weaponry ?? ''}>
-                                  <Input
-                                    className="min-w-0 w-full"
-                                    value={slot.weaponry ?? ''}
-                                    disabled={!canEditCommanderFields}
-                                    onChange={event => replaceSlot({ ...slot, weaponry: event.target.value })}
-                                    onBlur={event =>
-                                      canEditCommanderFields &&
-                                      void updateSlotField(slot.id, { weaponry: event.target.value || null })
-                                    }
-                                  />
+                                <TableCellTooltip
+                                  text={canEditCommanderFields ? getSlotTextDraft(slot, 'weaponry') : slot.weaponry ?? ''}>
+                                  {canEditCommanderFields ? (
+                                    <Input
+                                      className="min-w-0 w-full"
+                                      value={getSlotTextDraft(slot, 'weaponry')}
+                                      onChange={event => setSlotDraft(slot.id, 'weaponry', event.target.value)}
+                                      onBlur={event =>
+                                        void updateSlotField(slot.id, { weaponry: event.target.value || null }, [
+                                          'weaponry',
+                                        ])
+                                      }
+                                    />
+                                  ) : (
+                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.weaponry ?? ''} />
+                                  )}
                                 </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
-                                <TableCellTooltip text={String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))}>
-                                  <NumericInput
-                                    className="min-w-0 w-full"
-                                    min={0}
-                                    max={99}
-                                    maxLength={2}
-                                    value={String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))}
-                                    disabled={!canEditCommanderFields}
-                                    onChange={event => {
-                                      const value = event.target.value;
-                                      const n = Number(value);
-                                      const clamped = Number.isFinite(n) ? Math.min(99, Math.max(0, n)) : 0;
-                                      replaceSlot({ ...slot, slotCount: clamped });
-                                    }}
-                                    onBlur={event => {
-                                      if (canEditCommanderFields) {
+                                <TableCellTooltip
+                                  text={
+                                    canEditCommanderFields
+                                      ? getSlotCountDraft(slot)
+                                      : String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))
+                                  }>
+                                  {canEditCommanderFields ? (
+                                    <NumericInput
+                                      className="min-w-0 w-full"
+                                      min={0}
+                                      max={99}
+                                      maxLength={2}
+                                      value={getSlotCountDraft(slot)}
+                                      onChange={event => setSlotDraft(slot.id, 'slotCount', event.target.value)}
+                                      onBlur={event => {
                                         const n = Number(event.target.value);
                                         const clamped = Number.isFinite(n)
                                           ? Math.min(99, Math.max(0, Math.floor(n)))
                                           : 0;
-                                        void updateSlotField(slot.id, {
-                                          slotCount: clamped,
-                                        });
-                                      }
-                                    }}
-                                  />
+                                        void updateSlotField(
+                                          slot.id,
+                                          {
+                                            slotCount: clamped,
+                                          },
+                                          ['slotCount'],
+                                        );
+                                      }}
+                                    />
+                                  ) : (
+                                    <FormReadonlyField
+                                      className="text-center"
+                                      value={String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))}
+                                    />
+                                  )}
                                 </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
@@ -916,9 +1079,9 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                 )}
                               </td>
                               <td className="px-2 py-2">
-                                <TableCellTooltip text={joinSquadTags(slot.wantedSquads)}>
+                                <TableCellTooltip text={joinSquadTags(wantedSquads)}>
                                   <div className="flex flex-wrap gap-2">
-                                    {slot.wantedSquads.map(squad => (
+                                    {wantedSquads.map(squad => (
                                       <div
                                         key={squad.id}
                                         className="flex items-center gap-1 rounded-md border border-white/10 bg-black/30 px-2 py-1">
@@ -940,13 +1103,22 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                     size="sm"
                                     variant="outline"
                                     className="mt-2"
+                                    disabled={isWantedUpdating}
                                     onClick={async () => {
+                                      const nextWantedState = !isWantedByMySquad;
+                                      setWantedSlotOverrides(prev => ({
+                                        ...prev,
+                                        [slot.id]: nextWantedState,
+                                      }));
+
                                       try {
-                                        const { data } = isWantedByMySquad
-                                          ? await api.unassignHeadquartersSlotWantedSquad(slot.id)
-                                          : await api.assignHeadquartersSlotWantedSquad(slot.id);
+                                        const { data } = nextWantedState
+                                          ? await api.assignHeadquartersSlotWantedSquad(slot.id)
+                                          : await api.unassignHeadquartersSlotWantedSquad(slot.id);
                                         replaceSlot(data);
+                                        scheduleWantedSlotOverrideClear(slot.id);
                                       } catch (error) {
+                                        clearWantedSlotOverride(slot.id);
                                         console.error(error);
                                         toast.error('Не вдалося змінити список бажаючих');
                                       }
@@ -956,31 +1128,43 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
                                 )}
                               </td>
                               <td className="px-2 py-2">
-                                <TableCellTooltip text={slot.spawnPoint ?? ''}>
-                                  <Input
-                                    className="min-w-0 w-full"
-                                    value={slot.spawnPoint ?? ''}
-                                    disabled={!canEditCommanderFields}
-                                    onChange={event => replaceSlot({ ...slot, spawnPoint: event.target.value })}
-                                    onBlur={event =>
-                                      canEditCommanderFields &&
-                                      void updateSlotField(slot.id, { spawnPoint: event.target.value || null })
-                                    }
-                                  />
+                                <TableCellTooltip
+                                  text={
+                                    canEditCommanderFields ? getSlotTextDraft(slot, 'spawnPoint') : slot.spawnPoint ?? ''
+                                  }>
+                                  {canEditCommanderFields ? (
+                                    <Input
+                                      className="min-w-0 w-full"
+                                      value={getSlotTextDraft(slot, 'spawnPoint')}
+                                      onChange={event => setSlotDraft(slot.id, 'spawnPoint', event.target.value)}
+                                      onBlur={event =>
+                                        void updateSlotField(slot.id, { spawnPoint: event.target.value || null }, [
+                                          'spawnPoint',
+                                        ])
+                                      }
+                                    />
+                                  ) : (
+                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.spawnPoint ?? ''} />
+                                  )}
                                 </TableCellTooltip>
                               </td>
                               <td className="px-2 py-2">
-                                <TableCellTooltip text={slot.comment ?? ''}>
-                                  <Input
-                                    className="min-w-0 w-full"
-                                    value={slot.comment ?? ''}
-                                    disabled={!canEditCommanderFields}
-                                    onChange={event => replaceSlot({ ...slot, comment: event.target.value })}
-                                    onBlur={event =>
-                                      canEditCommanderFields &&
-                                      void updateSlotField(slot.id, { comment: event.target.value || null })
-                                    }
-                                  />
+                                <TableCellTooltip
+                                  text={canEditCommanderFields ? getSlotTextDraft(slot, 'comment') : slot.comment ?? ''}>
+                                  {canEditCommanderFields ? (
+                                    <Input
+                                      className="min-w-0 w-full"
+                                      value={getSlotTextDraft(slot, 'comment')}
+                                      onChange={event => setSlotDraft(slot.id, 'comment', event.target.value)}
+                                      onBlur={event =>
+                                        void updateSlotField(slot.id, { comment: event.target.value || null }, [
+                                          'comment',
+                                        ])
+                                      }
+                                    />
+                                  ) : (
+                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.comment ?? ''} />
+                                  )}
                                 </TableCellTooltip>
                               </td>
                             </tr>
