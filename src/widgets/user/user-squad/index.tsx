@@ -27,7 +27,7 @@ import { Select } from '@/shared/ui/atoms/select';
 import toast from 'react-hot-toast';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { SpecializationBadges, SpecializationOptionContent } from '@/entities/specialization/ui/specialization-badges';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/shared/ui/organisms/drawer';
+import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/shared/ui/organisms/drawer';
 import { ChangeSocials } from '@/features/user/change-socials';
 
 type SquadProfileSubtab = 'members' | 'settings' | 'requests';
@@ -50,6 +50,7 @@ export const UserSquad: FC<{
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [specializationsLoading, setSpecializationsLoading] = useState(false);
   const [managedMemberId, setManagedMemberId] = useState<string | null>(null);
+  const [draftSquadRole, setDraftSquadRole] = useState<SquadRole | null>(null);
   const [leadershipTransferCandidate, setLeadershipTransferCandidate] = useState<User | null>(null);
   const [isTransferringLeadership, setIsTransferringLeadership] = useState(false);
   const joinRequestsModel = useMemo(() => new SquadJoinRequestsModel(), []);
@@ -85,6 +86,7 @@ export const UserSquad: FC<{
   const managedMemberSelectedSpecializationIds = managedMember
     ? (draftSpecializationIdsByUserId[managedMember.id] ?? managedMemberSavedSpecializationIds)
     : [];
+  const managedMemberSelectedRole = draftSquadRole ?? managedMember?.squadRole ?? SquadRole.MEMBER;
 
   useEffect(() => {
     if (!canManageSquadMembers) {
@@ -107,6 +109,19 @@ export const UserSquad: FC<{
 
     void loadSpecializations();
   }, [canManageSquadMembers]);
+
+  useEffect(() => {
+    if (!managedMember) {
+      setDraftSquadRole(null);
+      return;
+    }
+
+    setDraftSquadRole(managedMember.squadRole ?? SquadRole.MEMBER);
+    setDraftSpecializationIdsByUserId(current => ({
+      ...current,
+      [managedMember.id]: managedMember.specializations?.map(specialization => specialization.id) ?? [],
+    }));
+  }, [managedMember?.id]);
 
   const canChangeRoleForMember = useCallback(
     (member: User) => {
@@ -184,6 +199,47 @@ export const UserSquad: FC<{
     },
     [refreshSquadState],
   );
+
+  const handleCloseManagedMemberDrawer = useCallback(() => {
+    setManagedMemberId(null);
+    setDraftSquadRole(null);
+  }, []);
+
+  const handleSaveManagedMember = useCallback(async () => {
+    if (!managedMember) return;
+
+    const savedRole = managedMember.squadRole ?? SquadRole.MEMBER;
+    const selectedRole = draftSquadRole ?? savedRole;
+
+    if (canChangeRoleForMember(managedMember) && selectedRole !== savedRole) {
+      await handleChangeMemberRole(managedMember, selectedRole);
+    }
+
+    if (!areStringArraysEqual(managedMemberSavedSpecializationIds, managedMemberSelectedSpecializationIds)) {
+      await handleChangeMemberSpecializations(managedMember, managedMemberSelectedSpecializationIds);
+    }
+
+    handleCloseManagedMemberDrawer();
+  }, [
+    canChangeRoleForMember,
+    draftSquadRole,
+    handleChangeMemberRole,
+    handleChangeMemberSpecializations,
+    handleCloseManagedMemberDrawer,
+    managedMember,
+    managedMemberSavedSpecializationIds,
+    managedMemberSelectedSpecializationIds,
+  ]);
+
+  const hasManagedMemberChanges =
+    Boolean(managedMember) &&
+    ((managedMember &&
+      canChangeRoleForMember(managedMember) &&
+      managedMemberSelectedRole !== (managedMember.squadRole ?? SquadRole.MEMBER)) ||
+      !areStringArraysEqual(managedMemberSavedSpecializationIds, managedMemberSelectedSpecializationIds));
+  const isSavingManagedMember =
+    Boolean(managedMember) &&
+    (changingRoleUserId === managedMember?.id || changingSpecializationsUserId === managedMember?.id);
 
   if (!squad)
     return (
@@ -315,128 +371,119 @@ export const UserSquad: FC<{
 
       <LeaveFromSquadModal model={leaveFromSquadModel} onLeaveSuccess={refreshSquadState} />
 
-      <Drawer open={Boolean(managedMember)} onOpenChange={open => !open && setManagedMemberId(null)}>
+      <Drawer open={Boolean(managedMember)} onOpenChange={open => !open && handleCloseManagedMemberDrawer()}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Керування учасником</DrawerTitle>
           </DrawerHeader>
 
           {managedMember && (
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 p-3">
-                <Avatar src={managedMember.avatar?.url} alt={managedMember.nickname || managedMember.id} size="md" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <UserNicknameText
-                      user={managedMember}
-                      tag={squad.tag}
-                      sideType={squad.side?.type}
-                      className="text-base text-zinc-100"
-                      link={true}
-                    />
-                    {managedMember.id === user.id && (
-                      <span className="text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap">
-                        (ви)
+            <>
+              <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 p-3">
+                  <Avatar src={managedMember.avatar?.url} alt={managedMember.nickname || managedMember.id} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <UserNicknameText
+                        user={managedMember}
+                        tag={squad.tag}
+                        sideType={squad.side?.type}
+                        className="text-base text-zinc-100"
+                        link={true}
+                      />
+                      {managedMember.id === user.id && (
+                        <span className="text-[10px] uppercase tracking-[0.16em] text-primary whitespace-nowrap">
+                          (ви)
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                        {managedMember.id === squad.leader?.id
+                          ? 'Лідер'
+                          : SQUAD_ROLE_LABELS[managedMember.squadRole ?? SquadRole.MEMBER]}
                       </span>
-                    )}
+                      <SpecializationBadges specializations={managedMember.specializations} compact />
+                    </div>
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
-                      {managedMember.id === squad.leader?.id
-                        ? 'Лідер'
-                        : SQUAD_ROLE_LABELS[managedMember.squadRole ?? SquadRole.MEMBER]}
+                </div>
+
+                {canChangeRoleForMember(managedMember) && (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                      Роль у загоні
                     </span>
-                    <SpecializationBadges specializations={managedMember.specializations} compact />
+                    <Select
+                      value={managedMemberSelectedRole}
+                      onChange={value => value && setDraftSquadRole(value as SquadRole)}
+                      options={roleOptions}
+                      disabled={isSavingManagedMember}
+                    />
                   </div>
-                </div>
-              </div>
+                )}
 
-              {canChangeRoleForMember(managedMember) && (
                 <div className="flex flex-col gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Роль у загоні</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Спеціалізації</span>
                   <Select
-                    value={managedMember.squadRole ?? SquadRole.MEMBER}
-                    onChange={value => value && handleChangeMemberRole(managedMember, value as SquadRole)}
-                    options={roleOptions}
-                    disabled={changingRoleUserId === managedMember.id}
-                  />
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Спеціалізації</span>
-                <Select
-                  multiple
-                  closeOnSelect={false}
-                  value={managedMemberSelectedSpecializationIds}
-                  onChange={value =>
-                    setDraftSpecializationIdsByUserId(current => ({
-                      ...current,
-                      [managedMember.id]: value,
-                    }))
-                  }
-                  onOpenChange={open => {
-                    if (open) {
+                    multiple
+                    closeOnSelect={false}
+                    value={managedMemberSelectedSpecializationIds}
+                    onChange={value =>
                       setDraftSpecializationIdsByUserId(current => ({
                         ...current,
-                        [managedMember.id]: managedMemberSavedSpecializationIds,
-                      }));
-                      return;
+                        [managedMember.id]: value,
+                      }))
                     }
+                    options={specializationOptions}
+                    placeholder="Оберіть спеціалізації"
+                    localSearch
+                    isLoading={specializationsLoading}
+                    disabled={specializationsLoading || isSavingManagedMember || specializationOptions.length === 0}
+                  />
+                  <p className="text-xs text-zinc-500">Зміни збережуться після натискання кнопки “Зберегти”.</p>
+                </div>
 
-                    const nextSpecializationIds = draftSpecializationIdsByUserId[managedMember.id];
-                    if (
-                      nextSpecializationIds &&
-                      !areStringArraysEqual(managedMemberSavedSpecializationIds, nextSpecializationIds)
-                    ) {
-                      void handleChangeMemberSpecializations(managedMember, nextSpecializationIds);
-                    } else {
-                      setDraftSpecializationIdsByUserId(current => {
-                        const { [managedMember.id]: _removed, ...rest } = current;
-                        return rest;
-                      });
-                    }
-                  }}
-                  options={specializationOptions}
-                  placeholder="Оберіть спеціалізації"
-                  localSearch
-                  isLoading={specializationsLoading}
-                  disabled={
-                    specializationsLoading ||
-                    changingSpecializationsUserId === managedMember.id ||
-                    specializationOptions.length === 0
-                  }
-                />
-                <p className="text-xs text-zinc-500">Зміни збережуться після закриття списку спеціалізацій.</p>
+                <div className="flex flex-wrap w-full gap-2 border-t border-white/10 pt-4">
+                  {isLeader && managedMember.squadRole === SquadRole.SUBLEADER && managedMember.id !== user.id && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={isTransferringLeadership || isSavingManagedMember}
+                      onClick={() => {
+                        handleCloseManagedMemberDrawer();
+                        setLeadershipTransferCandidate(managedMember);
+                      }}>
+                      Передати лідерство
+                    </Button>
+                  )}
+
+                  {canKickMember(managedMember) && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={isSavingManagedMember}
+                      onClick={() => {
+                        handleCloseManagedMemberDrawer();
+                        kickFromSquadModel.visibility.open({ user: managedMember });
+                      }}>
+                      Вилучити із загону
+                    </Button>
+                  )}
+                </div>
               </div>
 
-              <div className="mt-auto flex flex-col gap-2 border-t border-white/10 pt-4">
-                {isLeader && managedMember.squadRole === SquadRole.SUBLEADER && managedMember.id !== user.id && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={isTransferringLeadership}
-                    onClick={() => {
-                      setManagedMemberId(null);
-                      setLeadershipTransferCandidate(managedMember);
-                    }}>
-                    Передати лідерство
-                  </Button>
-                )}
-
-                {canKickMember(managedMember) && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      setManagedMemberId(null);
-                      kickFromSquadModel.visibility.open({ user: managedMember });
-                    }}>
-                    Вилучити із загону
-                  </Button>
-                )}
-              </div>
-            </div>
+              <DrawerFooter className="border-t border-white/10 pt-4">
+                <Button type="button" variant="outline" onClick={handleCloseManagedMemberDrawer}>
+                  Скасувати
+                </Button>
+                <Button
+                  type="button"
+                  disabled={!hasManagedMemberChanges || isSavingManagedMember}
+                  onClick={handleSaveManagedMember}>
+                  Зберегти
+                </Button>
+              </DrawerFooter>
+            </>
           )}
         </DrawerContent>
       </Drawer>
