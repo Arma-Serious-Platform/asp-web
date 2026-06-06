@@ -10,6 +10,43 @@ import { observer } from 'mobx-react-lite';
 import { ROUTES } from '@/shared/config/routes';
 import { Link } from '@/shared/ui/atoms/link';
 import { Button } from '@/shared/ui/atoms/button';
+import { CONFIRM_SIGN_UP_MESSAGES } from './model';
+
+const ConfirmSignUpError = observer(() => {
+  switch (confirmSignUpModel.errorMessage) {
+    case CONFIRM_SIGN_UP_MESSAGES.expiredTokenNewSent:
+      return (
+        <>
+          <p>Термін дії посилання для підтвердження минув.</p>
+          <p>Ми надіслали нове посилання на вашу електронну пошту.</p>
+        </>
+      );
+    case CONFIRM_SIGN_UP_MESSAGES.alreadyConfirmed:
+      return (
+        <>
+          <p>Аккаунт вже підтверджений.</p>
+          <p>Тепер ви можете авторизуватися.</p>
+          <Link className="mt-4" href={ROUTES.auth.login}>
+            <Button size="lg">Авторизуватися</Button>
+          </Link>
+        </>
+      );
+    case CONFIRM_SIGN_UP_MESSAGES.invalidToken:
+      return (
+        <>
+          <p>Нажаль, посилання не валідне.</p>
+          <p>Спробуйте авторизуватися повторно, щоб отримати новий лист підтвердження.</p>
+        </>
+      );
+    default:
+      return (
+        <>
+          <p>Не вдалося підтвердити аккаунт.</p>
+          <p>Спробуйте авторизуватися повторно.</p>
+        </>
+      );
+  }
+});
 
 const ConfirmSignUpContent = observer(() => {
   const searchParams = useSearchParams();
@@ -18,7 +55,7 @@ const ConfirmSignUpContent = observer(() => {
 
   useEffect(() => {
     if (!token) {
-      confirmSignUpModel.setSuccess(false);
+      confirmSignUpModel.setFailure(CONFIRM_SIGN_UP_MESSAGES.invalidToken);
 
       return;
     }
@@ -35,8 +72,7 @@ const ConfirmSignUpContent = observer(() => {
       </View.Condition>
       <View.Condition if={confirmSignUpModel.isSuccess === false}>
         <div className="flex flex-col gap-2 text-center">
-          <p>Нажаль, посилання не валідне.</p>
-          <p>Спробуйте авторизуватися повторно.</p>
+          <ConfirmSignUpError />
         </div>
       </View.Condition>
       <View.Condition if={confirmSignUpModel.isSuccess}>

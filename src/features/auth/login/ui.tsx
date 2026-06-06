@@ -16,6 +16,11 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { isAxiosError } from 'axios';
 
+const LOGIN_CONFIRMATION_MESSAGES = {
+  confirmEmail: 'Please confirm your email before logging in',
+  expiredTokenNewSent: 'Activation token expired. New token sent to your email',
+} as const;
+
 const LoginForm: FC<{
   className?: string;
   model?: LoginModel;
@@ -31,7 +36,7 @@ const LoginForm: FC<{
       email: '',
       password: '',
     },
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
   });
 
   const { isValid, isSubmitting } = form.formState;
@@ -57,11 +62,34 @@ const LoginForm: FC<{
         form.setError('password', { message: 'Неправильний email або пароль' });
       }
 
-      if (message === 'Activation token expired. Check your email for a new token') {
+      if (message === LOGIN_CONFIRMATION_MESSAGES.confirmEmail) {
         toast.error(
-          <div className="text-center">Аккаунт ще не активовано. На пошту надіслано посилання для активації</div>,
+          <div className="text-left">
+            Аккаунт ще не активовано.
+            <br />
+            <br />
+            На пошту надіслано посилання для активації. У вас є 10 хвилин для активації аккаунту. <br />
+            <br />
+            Якщо ви не активуєте аккаунт за цей час, вам необхідно буде спробувати авторизуватися заново для відправки
+            нового листа.
+          </div>,
           {
-            duration: 5000,
+            duration: 15000,
+          },
+        );
+      }
+
+      if (message === LOGIN_CONFIRMATION_MESSAGES.expiredTokenNewSent) {
+        toast.error(
+          <div className="text-left">
+            Попереднє посилання для активації вже не дійсне.
+            <br />
+            <br />
+            Ми надіслали новий лист для підтвердження на вашу електронну пошту. У вас є 10 хвилин для активації
+            аккаунту.
+          </div>,
+          {
+            duration: 15000,
           },
         );
       }
