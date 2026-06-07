@@ -52,7 +52,11 @@ const EMOJI_GRID = [
   '💪',
 ];
 
-export function ToolbarPlugin() {
+type ToolbarPluginProps = {
+  textFormattingOnly?: boolean;
+};
+
+export function ToolbarPlugin({ textFormattingOnly = false }: ToolbarPluginProps) {
   const [editor] = useLexicalComposerContext();
   const [activeFormats, setActiveFormats] = useState<Set<Format>>(new Set());
   const [linkOpen, setLinkOpen] = useState(false);
@@ -160,103 +164,107 @@ export function ToolbarPlugin() {
         icon={<UnderlineIcon className="size-4" />}
       />
 
-      <div className="mx-1 w-px self-stretch bg-white/10" aria-hidden />
+      {!textFormattingOnly && (
+        <>
+          <div className="mx-1 w-px self-stretch bg-white/10" aria-hidden />
 
-      <Popover
-        open={linkOpen}
-        onChange={setLinkOpen}
-        trigger={
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0"
-            aria-label="Insert link"
-            title="Insert link">
-            <LinkIcon className="size-4" />
-          </Button>
-        }
-        className="w-64">
-        <label className="text-muted-foreground mb-1 block text-xs">URL</label>
-        <input
-          type="url"
-          value={linkUrl}
-          onChange={e => setLinkUrl(e.target.value)}
-          placeholder="https://..."
-          className="border-border bg-background placeholder:text-muted-foreground w-full rounded-md border px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-lime-500"
-          onKeyDown={e => e.key === 'Enter' && applyLink()}
-        />
-        <p className="text-muted-foreground mt-1 text-xs">Select text first, then add link.</p>
-        <Button type="button" size="sm" className="mt-2 w-full" onClick={applyLink}>
-          Apply link
-        </Button>
-      </Popover>
-
-      <Popover
-        open={emojiOpen}
-        onChange={setEmojiOpen}
-        trigger={
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0"
-            aria-label="Insert emoji"
-            title="Insert emoji">
-            <SmileIcon className="size-4" />
-          </Button>
-        }
-        className="w-56 p-1">
-        <div className="grid grid-cols-5 gap-0.5">
-          {EMOJI_GRID.map(emoji => (
-            <button
-              key={emoji}
-              type="button"
-              className="hover:bg-white/10 rounded p-1 text-lg leading-none transition-colors"
-              onClick={() => insertEmoji(emoji)}
-              aria-label={`Insert ${emoji}`}>
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </Popover>
-
-      <Dialog open={youtubeOpen} onOpenChange={setYoutubeOpen}>
-        <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0"
-            aria-label="Вставте посилання на YouTube відео"
-            title="Вставте посилання на YouTube відео">
-            <VideoIcon className="size-4" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Додайте YouTube посилання</DialogTitle>
-          </DialogHeader>
-          <div>
-            <label className="text-muted-foreground mb-1 block text-sm">Посилання на YouTube відео</label>
+          <Popover
+            open={linkOpen}
+            onChange={setLinkOpen}
+            trigger={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                aria-label="Insert link"
+                title="Insert link">
+                <LinkIcon className="size-4" />
+              </Button>
+            }
+            className="w-64">
+            <label className="text-muted-foreground mb-1 block text-xs">URL</label>
             <input
               type="url"
-              value={youtubeUrl}
-              onChange={e => setYoutubeUrl(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
-              className="border-border bg-background placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-lime-500"
+              value={linkUrl}
+              onChange={e => setLinkUrl(e.target.value)}
+              placeholder="https://..."
+              className="border-border bg-background placeholder:text-muted-foreground w-full rounded-md border px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-lime-500"
+              onKeyDown={e => e.key === 'Enter' && applyLink()}
             />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setYoutubeOpen(false)}>
-              Скасувати
+            <p className="text-muted-foreground mt-1 text-xs">Select text first, then add link.</p>
+            <Button type="button" size="sm" className="mt-2 w-full" onClick={applyLink}>
+              Apply link
             </Button>
-            <Button type="button" onClick={insertYouTube} disabled={!extractYouTubeVideoId(youtubeUrl)}>
-              Додати відео
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </Popover>
+
+          <Popover
+            open={emojiOpen}
+            onChange={setEmojiOpen}
+            trigger={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                aria-label="Insert emoji"
+                title="Insert emoji">
+                <SmileIcon className="size-4" />
+              </Button>
+            }
+            className="w-56 p-1">
+            <div className="grid grid-cols-5 gap-0.5">
+              {EMOJI_GRID.map(emoji => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className="hover:bg-white/10 rounded p-1 text-lg leading-none transition-colors"
+                  onClick={() => insertEmoji(emoji)}
+                  aria-label={`Insert ${emoji}`}>
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </Popover>
+
+          <Dialog open={youtubeOpen} onOpenChange={setYoutubeOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                aria-label="Вставте посилання на YouTube відео"
+                title="Вставте посилання на YouTube відео">
+                <VideoIcon className="size-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Додайте YouTube посилання</DialogTitle>
+              </DialogHeader>
+              <div>
+                <label className="text-muted-foreground mb-1 block text-sm">Посилання на YouTube відео</label>
+                <input
+                  type="url"
+                  value={youtubeUrl}
+                  onChange={e => setYoutubeUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="border-border bg-background placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-lime-500"
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setYoutubeOpen(false)}>
+                  Скасувати
+                </Button>
+                <Button type="button" onClick={insertYouTube} disabled={!extractYouTubeVideoId(youtubeUrl)}>
+                  Додати відео
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Mission, MissionGameSide } from '@/shared/sdk/types';
+import { Mission, MissionGameSide, State } from '@/shared/sdk/types';
 import { Card } from '@/shared/ui/atoms/card';
 import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
@@ -11,6 +11,7 @@ import { EyeIcon, UsersIcon, LayersIcon, MilestoneIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { missionTypeLabels, statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
+import { MessageContent } from '@/entities/comment/lexical-message';
 
 type SideInfoProps = {
   label: string;
@@ -41,7 +42,6 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
       : null;
 
   const totalSlots = lastVersion ? lastVersion.attackSideSlots + lastVersion.defenseSideSlots : 0;
-
   return (
     <Card className="group hover:border-lime-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-lime-500/10">
       <div className="flex flex-col gap-4">
@@ -66,6 +66,11 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
             <span className="px-2 py-1 rounded text-xs font-semibold border border-white/20 bg-black/40 text-white">
               {missionTypeLabels[mission.missionType]}
             </span>
+            {mission.state === State.ARCHIVED && (
+              <span className="rounded border border-zinc-500/50 bg-zinc-900/90 px-2 py-1 text-xs font-semibold text-zinc-300">
+                Архів
+              </span>
+            )}
           </div>
 
           {/* Status Badge */}
@@ -82,7 +87,11 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
         <div className="flex flex-col gap-3">
           <div>
             <h3 className="text-xl font-bold text-white mb-1 line-clamp-2">{mission.name}</h3>
-            <p className="text-sm text-zinc-400 line-clamp-2 mb-2">{mission.description}</p>
+            <MessageContent
+              message={mission.description}
+              textOnly
+              className="mb-2 line-clamp-2 text-sm text-zinc-400 [&_p]:inline"
+            />
             <MissionAuthorsText
               mission={mission}
               className="text-xs text-zinc-500"

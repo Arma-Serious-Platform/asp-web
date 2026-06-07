@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
 
-import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon, MapIcon } from 'lucide-react';
+import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon, MapIcon, ClockIcon, CloudSunIcon } from 'lucide-react';
 import { Card } from '@/shared/ui/atoms/card';
 import classNames from 'classnames';
 import { Game, SideType } from '@/shared/sdk/types';
@@ -32,6 +32,7 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
   const defenseColor = resolveMissionSideColor(resolvedDefenseSideType);
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
+  const hasVersionMeta = Boolean(game.missionVersion.inGameTime || game.missionVersion.weather);
 
   const handleOpenPreview = (screenshots: { id: string; url: string }[], startIndex: number) => {
     setPreviewScreenshots(screenshots);
@@ -75,6 +76,29 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
           )}
         </div>
       </div>
+
+      {hasVersionMeta && (
+        <Card>
+          <div className="flex items-center gap-2 mb-3">
+            <ClockIcon className="size-4 text-lime-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Умови місії</span>
+          </div>
+          <div className="flex flex-wrap gap-3 text-sm text-zinc-300">
+            {game.missionVersion.inGameTime && (
+              <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-2">
+                <ClockIcon className="size-4 text-lime-500" />
+                <span>Ігровий час: {dayjs(game.missionVersion.inGameTime).format('HH:mm')}</span>
+              </div>
+            )}
+            {game.missionVersion.weather && (
+              <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-2">
+                <CloudSunIcon className="size-4 text-lime-500" />
+                <span>Погода: {game.missionVersion.weather}</span>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Combatants Card */}
       <Card>

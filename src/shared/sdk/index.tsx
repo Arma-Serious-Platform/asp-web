@@ -63,6 +63,7 @@ import {
   UpdateUserDto,
   ChangeUserNicknameDto,
   ChangeUserRoleDto,
+  ChangeMissionStateDto,
   CreateUserWarningDto,
   UpdateWeekendDto,
   UserRole,
@@ -614,7 +615,7 @@ class ApiModel {
     }
 
     formData.append('name', dto.name);
-    formData.append('description', dto.description);
+    appendFormDataValue(formData, 'description', dto.description);
     formData.append('islandId', dto.islandId);
     formData.append('missionType', dto.missionType);
     appendStringArrayToFormData(formData, 'coauthorIds', dto.coauthorIds);
@@ -640,7 +641,7 @@ class ApiModel {
       formData.append('name', dto.name);
     }
     if (dto.description) {
-      formData.append('description', dto.description);
+      appendFormDataValue(formData, 'description', dto.description);
     }
 
     if (dto.missionType) {
@@ -658,6 +659,10 @@ class ApiModel {
 
   deleteMission = async (id: string) => {
     return await this.instance.delete<void>(`/missions/${id}`);
+  };
+
+  changeMissionState = async (id: string, dto: ChangeMissionStateDto) => {
+    return await this.instance.patch<Mission>(`/missions/${id}/state`, dto);
   };
 
   createMissionVersion = async (missionId: string, dto: CreateMissionVersionDto) => {
@@ -701,6 +706,10 @@ class ApiModel {
     if (dto.rating !== undefined) {
       formData.append('rating', dto.rating.toString());
     }
+
+    appendFormDataValue(formData, 'inGameTime', dto.inGameTime);
+    appendFormDataValue(formData, 'weather', dto.weather);
+    appendFormDataValue(formData, 'changelog', dto.changelog);
 
     return await this.instance.post<MissionVersion>(`/missions/${missionId}/versions`, formData, {
       headers: {
@@ -780,6 +789,10 @@ class ApiModel {
     if (dto.rating !== undefined) {
       formData.append('rating', dto.rating.toString());
     }
+
+    appendFormDataValue(formData, 'inGameTime', dto.inGameTime);
+    appendFormDataValue(formData, 'weather', dto.weather);
+    appendFormDataValue(formData, 'changelog', dto.changelog);
 
     return await this.instance.patch<MissionVersion>(`/missions/${missionId}/versions/${versionId}`, formData, {
       headers: {

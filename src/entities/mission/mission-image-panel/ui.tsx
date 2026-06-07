@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
+import { MessageContent } from '@/entities/comment/lexical-message';
 
 export const MissionImagePanel: FC<{
   game: Game;
@@ -81,7 +82,11 @@ export const MissionImagePanel: FC<{
             <InfoIcon className="size-4 text-lime-500" />
             <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Опис сценарію</span>
           </div>
-          <p className="text-sm text-zinc-200 leading-relaxed">{game.mission.description}</p>
+          <MessageContent
+            message={game.mission.description}
+            textOnly
+            className="text-sm leading-relaxed text-zinc-200"
+          />
         </Card>
       )}
     </div>

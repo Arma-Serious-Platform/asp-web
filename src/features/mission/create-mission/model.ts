@@ -1,13 +1,13 @@
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
-import { CreateMissionDto, MissionType } from '@/shared/sdk/types';
+import { CreateMissionDto, MissionCommentMessage, MissionType } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
 export type MissionFormData = {
   name: string;
-  description: string;
+  description: MissionCommentMessage | null;
   islandId: string;
   missionType: MissionType;
   coauthorIds: string[];
@@ -29,7 +29,7 @@ export class CreateMissionModel {
 
       const dto: CreateMissionDto = {
         name: data.name,
-        description: data.description,
+        description: data.description as MissionCommentMessage,
         islandId: data.islandId,
         missionType: data.missionType,
         coauthorIds: data.coauthorIds.length ? data.coauthorIds : undefined,

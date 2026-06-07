@@ -5,6 +5,8 @@ import {
   Mission,
   MissionGameSide,
   MissionVersion,
+  MissionCommentMessage,
+  State,
   CreateMissionVersionDto,
   UpdateMissionVersionDto,
   CreateMissionWeaponryDto,
@@ -35,6 +37,21 @@ export type VersionFormData = {
   removeDefenseScreenshotIds: string[];
   attackWeaponry: WeaponryFormItem[];
   defenseWeaponry: WeaponryFormItem[];
+  inGameTime: string;
+  weather: string;
+  changelog: MissionCommentMessage | null;
+};
+
+const buildInGameTimeDate = (time: string) => {
+  if (!time) return null;
+
+  const [hours, minutes] = time.split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+
+  return date.toISOString();
 };
 
 export class CreateUpdateMissionVersionModel {
@@ -54,8 +71,12 @@ export class CreateUpdateMissionVersionModel {
     try {
       this.loader.start();
 
-      const { missionId, version } = this.visibility.payload || {};
+      const { missionId, mission, version } = this.visibility.payload || {};
       if (!missionId) return;
+
+      if (mission?.state === State.ARCHIVED) {
+        throw new Error('Неможливо створювати або редагувати версії архівованої місії');
+      }
 
       const weaponry: CreateMissionWeaponryDto[] = [
         ...data.attackWeaponry.map(w => ({
@@ -71,6 +92,8 @@ export class CreateUpdateMissionVersionModel {
           type: w.type,
         })),
       ];
+      const inGameTime = buildInGameTimeDate(data.inGameTime);
+      const weather = data.weather.trim() || null;
 
       if (version) {
         // Update existing version
@@ -89,6 +112,9 @@ export class CreateUpdateMissionVersionModel {
             data.removeAttackScreenshotIds.length > 0 ? data.removeAttackScreenshotIds : undefined,
           removeDefenseScreenshotIds:
             data.removeDefenseScreenshotIds.length > 0 ? data.removeDefenseScreenshotIds : undefined,
+          inGameTime,
+          weather,
+          changelog: data.changelog,
         };
 
         if (data.file) {
@@ -116,6 +142,9 @@ export class CreateUpdateMissionVersionModel {
           attackScreenshots: data.attackScreenshots.length > 0 ? data.attackScreenshots : undefined,
           defenseScreenshots: data.defenseScreenshots.length > 0 ? data.defenseScreenshots : undefined,
           weaponry: weaponry.length > 0 ? weaponry : undefined,
+          inGameTime,
+          weather,
+          changelog: data.changelog,
         });
         toast.success('Версію місії створено');
       }

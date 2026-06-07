@@ -1,4 +1,4 @@
-import { MissionStatus, MissionGameSide, MissionType } from '@/shared/sdk/types';
+import { MissionStatus, MissionGameSide, MissionType, State } from '@/shared/sdk/types';
 
 export const statusLabels: Record<MissionStatus, string> = {
   [MissionStatus.APPROVED]: 'Перевірено',
@@ -44,4 +44,15 @@ export const missionTypeOptions = [
   { label: 'Всі типи', value: '' },
   { label: missionTypeLabels[MissionType.SG], value: MissionType.SG },
   { label: missionTypeLabels[MissionType.mini], value: MissionType.mini },
+];
+
+export const stateLabels: Record<State, string> = {
+  [State.ACTIVE]: 'Активні',
+  [State.ARCHIVED]: 'Архівовані',
+};
+
+export const stateOptions = [
+  { label: 'Всі стани', value: '' },
+  { label: stateLabels[State.ACTIVE], value: State.ACTIVE },
+  { label: stateLabels[State.ARCHIVED], value: State.ARCHIVED },
 ];

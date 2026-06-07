@@ -3,11 +3,11 @@
 import { Layout } from '@/widgets/layout';
 import { Button } from '@/shared/ui/atoms/button';
 import { api } from '@/shared/sdk';
-import { Mission, MissionStatus, MissionVersion } from '@/shared/sdk/types';
+import { Mission, MissionStatus, MissionVersion, State, UserRole } from '@/shared/sdk/types';
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { PlusIcon, LoaderIcon, EditIcon, Trash2Icon } from 'lucide-react';
+import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon, LoaderIcon, EditIcon, Trash2Icon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/shared/config/routes';
 import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
@@ -23,8 +23,10 @@ import { MessageEditor } from '@/features/chat/editor';
 import type { MissionComment } from '@/shared/sdk/types';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { DeleteMissionModal, DeleteMissionModel } from '@/features/mission/delete-mission';
+import { ChangeMissionStateModal } from '@/features/mission/change-mission-state';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
+import { MessageContent } from '@/entities/comment/lexical-message';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -45,9 +47,15 @@ const MissionDetailsPage = observer(() => {
   const isMissionCoauthor = useMemo(() => {
     return Boolean(currentUserId && mission?.coauthors?.some(coauthor => coauthor.id === currentUserId));
   }, [currentUserId, mission?.coauthors]);
+  const isMissionArchived = mission?.state === State.ARCHIVED;
   const canEditMission = isMissionAuthor || isMissionCoauthor || session.canManageMissions;
-  const canEditMissionVersion = canEditMission;
+  const canEditMissionVersion = canEditMission && !isMissionArchived;
+  const canChangeMissionVersionStatus = session.canReviewMissions && !isMissionArchived;
   const canDeleteMissionVersion = session.canManageMissions;
+  const canChangeMissionState =
+    isMissionAuthor ||
+    isMissionCoauthor ||
+    [UserRole.OWNER, UserRole.UVK].includes(session.user?.user?.role as UserRole);
 
   useEffect(() => {
     const loadMission = async () => {
@@ -77,6 +85,11 @@ const MissionDetailsPage = observer(() => {
 
   const handleCreateVersion = () => {
     if (!mission) return;
+    if (mission.state === State.ARCHIVED) {
+      toast.error('Неможливо створити версію для архівованої місії');
+      return;
+    }
+
     missionDetailsModel.createUpdateMissionVersionModel.visibility.open({
       missionId,
       mission,
@@ -85,6 +98,11 @@ const MissionDetailsPage = observer(() => {
 
   const handleEditVersion = (version: MissionVersion) => {
     if (!mission) return;
+    if (mission.state === State.ARCHIVED) {
+      toast.error('Неможливо редагувати версію архівованої місії');
+      return;
+    }
+
     missionDetailsModel.createUpdateMissionVersionModel.visibility.open({
       missionId,
       mission,
@@ -122,6 +140,16 @@ const MissionDetailsPage = observer(() => {
     }
   };
 
+  const handleChangeMissionState = () => {
+    if (!mission) return;
+
+    const nextState = mission.state === State.ARCHIVED ? State.ACTIVE : State.ARCHIVED;
+    missionDetailsModel.changeMissionStateModel.visibility.open({
+      mission,
+      state: nextState,
+    });
+  };
+
   const handleDeleteVersion = async () => {
     if (!versionToDelete) return;
 
@@ -140,7 +168,9 @@ const MissionDetailsPage = observer(() => {
 
   const canDeleteComment = (comment: MissionComment) => {
     const currentUserId = session.user?.user?.id;
-    const isCommentAuthor = Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
+    const isCommentAuthor = Boolean(
+      currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId),
+    );
 
     return session.isHasAdminPanelAccess || isCommentAuthor;
   };
@@ -191,6 +221,12 @@ const MissionDetailsPage = observer(() => {
         onSuccess={handleVersionSaved}
       />
       <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
+      <ChangeMissionStateModal
+        model={missionDetailsModel.changeMissionStateModel}
+        onSuccess={state =>
+          setMission(currentMission => (currentMission ? { ...currentMission, state } : currentMission))
+        }
+      />
       <DeleteMissionCommentModal
         model={deleteCommentModel}
         onConfirm={commentId => missionDetailsModel.commentModel.remove(missionId, commentId)}
@@ -251,7 +287,12 @@ const MissionDetailsPage = observer(() => {
                   <h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white mb-3">
                     {mission?.name}
                   </h1>
-                  <p className="text-zinc-300 leading-relaxed">{mission.description}</p>
+                  {mission.state === State.ARCHIVED && (
+                    <span className="mb-3 inline-flex w-fit rounded border border-zinc-500/50 bg-zinc-900 px-2 py-1 text-xs font-semibold text-zinc-300">
+                      Архівовано
+                    </span>
+                  )}
+                  <MessageContent message={mission.description} textOnly />
                   <MissionAuthorsText
                     mission={mission}
                     className="mt-3 text-sm text-zinc-500"
@@ -269,6 +310,22 @@ const MissionDetailsPage = observer(() => {
                       <span className="hidden sm:inline">Редагувати</span>
                     </Button>
                   </View.Condition>
+                  <View.Condition if={canChangeMissionState}>
+                    <Button
+                      type="button"
+                      onClick={handleChangeMissionState}
+                      variant="outline"
+                      className="flex items-center gap-2 hover:bg-white/10 transition-colors">
+                      {mission.state === State.ARCHIVED ? (
+                        <ArchiveRestoreIcon className="size-4" />
+                      ) : (
+                        <ArchiveIcon className="size-4" />
+                      )}
+                      <span className="hidden sm:inline">
+                        {mission.state === State.ARCHIVED ? 'Розархівувати' : 'Архівувати'}
+                      </span>
+                    </Button>
+                  </View.Condition>
                   <View.Condition if={session.canManageMissions}>
                     <Button
                       type="button"
@@ -281,7 +338,7 @@ const MissionDetailsPage = observer(() => {
                         })
                       }>
                       <Trash2Icon className="size-4" />
-                      <span className="hidden sm:inline">Видалити місію</span>
+                      <span className="hidden sm:inline">Видалити</span>
                     </Button>
                   </View.Condition>
                 </div>
@@ -303,6 +360,7 @@ const MissionDetailsPage = observer(() => {
                 missionId={missionId}
                 canEdit={canEditMissionVersion}
                 canDelete={canDeleteMissionVersion}
+                canChangeStatus={canChangeMissionVersionStatus}
                 onEdit={handleEditVersion}
                 onDelete={setVersionToDelete}
                 onChangeStatus={params => {
@@ -315,8 +373,15 @@ const MissionDetailsPage = observer(() => {
           {/* Versions Section */}
           <div className="border-t border-white/10 pt-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Версії місії</h2>
-              <View.Condition if={canEditMission}>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Версії місії</h2>
+                {isMissionArchived && (
+                  <p className="mt-1 text-sm text-zinc-500">
+                    Місія в архіві: створення та редагування версій недоступне.
+                  </p>
+                )}
+              </div>
+              <View.Condition if={canEditMissionVersion}>
                 <Button variant="default" onClick={handleCreateVersion}>
                   <PlusIcon className="size-4" />
                   Створити версію
@@ -327,7 +392,7 @@ const MissionDetailsPage = observer(() => {
             {mission?.missionVersions?.length === 0 ? (
               <div className="paper flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 text-center">
                 <p className="text-zinc-400">Версій поки немає</p>
-                <View.Condition if={canEditMission}>
+                <View.Condition if={canEditMissionVersion}>
                   <Button variant="default" onClick={handleCreateVersion}>
                     <PlusIcon className="size-4" />
                     Створити першу версію
@@ -342,6 +407,7 @@ const MissionDetailsPage = observer(() => {
                     fullWidth
                     canEdit={canEditMissionVersion}
                     canDelete={canDeleteMissionVersion}
+                    canChangeStatus={canChangeMissionVersionStatus}
                     version={version}
                     missionId={missionId}
                     onEdit={handleEditVersion}

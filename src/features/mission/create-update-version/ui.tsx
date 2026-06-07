@@ -2,7 +2,6 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
-import { Textarea } from '@/shared/ui/atoms/textarea';
 import { Select } from '@/shared/ui/atoms/select';
 import {
   Dialog,
@@ -21,6 +20,7 @@ import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionVersion } from '@/shared/sdk/types';
 import { CreateUpdateMissionVersionModel, VersionFormData, WeaponryFormItem } from './model';
 import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
+import { MessageEditor } from '@/features/chat/editor';
 import {
   isValidUploadFileSize,
   notifyOversizedUploadFiles,
@@ -83,6 +83,9 @@ const createVersionSchema = (missionId: string) =>
         type: yup.string().required(),
       }),
     ),
+    inGameTime: yup.string().default(''),
+    weather: yup.string().default(''),
+    changelog: yup.mixed().nullable().default(null),
   });
 
 const incrementVersion = (version: string, totalVersions: number): string => {
@@ -115,6 +118,15 @@ const getLatestMissionVersion = (versions: MissionVersion[]) =>
   versions.reduce((latest, version) =>
     new Date(version.createdAt).getTime() > new Date(latest.createdAt).getTime() ? version : latest,
   );
+
+const getTimeInputValue = (value?: string | null) => {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
 
 const LocalScreenshotPreview: FC<{ file: File }> = ({ file }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -169,6 +181,9 @@ const CreateUpdateMissionVersionModal: FC<{
       removeDefenseScreenshotIds: [],
       attackWeaponry: [],
       defenseWeaponry: [],
+      inGameTime: '',
+      weather: '',
+      changelog: null,
     },
   });
 
@@ -216,6 +231,9 @@ const CreateUpdateMissionVersionModal: FC<{
         removeDefenseScreenshotIds: [],
         attackWeaponry,
         defenseWeaponry,
+        inGameTime: getTimeInputValue(editingVersion.inGameTime),
+        weather: editingVersion.weather ?? '',
+        changelog: editingVersion.changelog ?? null,
       });
 
       // Initialize refs to current values to prevent reset on first render
@@ -245,6 +263,9 @@ const CreateUpdateMissionVersionModal: FC<{
         removeDefenseScreenshotIds: [],
         attackWeaponry,
         defenseWeaponry,
+        inGameTime: getTimeInputValue(previousVersion.inGameTime),
+        weather: previousVersion.weather ?? '',
+        changelog: null,
       });
 
       prevAttackSideType.current = previousVersion.attackSideType;
@@ -291,6 +312,9 @@ const CreateUpdateMissionVersionModal: FC<{
         removeDefenseScreenshotIds: [],
         attackWeaponry: [],
         defenseWeaponry: [],
+        inGameTime: '',
+        weather: '',
+        changelog: null,
       });
 
       // Initialize refs to current values
@@ -343,6 +367,52 @@ const CreateUpdateMissionVersionModal: FC<{
                 placeholder="v1.0"
                 error={versionForm.formState.errors.version?.message}
               />
+            )}
+          />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Controller
+              control={versionForm.control}
+              name="inGameTime"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  type="time"
+                  label="Ігровий час"
+                  value={field.value || ''}
+                  placeholder="HH:mm"
+                />
+              )}
+            />
+            <Controller
+              control={versionForm.control}
+              name="weather"
+              render={({ field }) => (
+                <Input {...field} label="Погода" value={field.value || ''} placeholder="Напр. дощ, туман, ясно" />
+              )}
+            />
+          </div>
+
+          <Controller
+            control={versionForm.control}
+            name="changelog"
+            render={({ field }) => (
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-zinc-300">Список змін (опційно)</label>
+                <MessageEditor
+                  key={
+                    model.visibility.isOpen
+                      ? `mission-version-changelog-${editingVersion?.id ?? 'new'}-${editingVersion?.updatedAt ?? ''}`
+                      : 'mission-version-changelog-closed'
+                  }
+                  initialState={field.value}
+                  placeholder="Що змінилось у цій версії..."
+                  maxCharacters={2000}
+                  showSubmit={false}
+                  textFormattingOnly
+                  onChange={({ text, lexicalState }) => field.onChange(text ? lexicalState : null)}
+                />
+              </div>
             )}
           />
 

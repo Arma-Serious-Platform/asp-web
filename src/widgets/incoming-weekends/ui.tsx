@@ -5,12 +5,13 @@ import { Link } from '@/shared/ui/atoms/link';
 import { ROUTES } from '@/shared/config/routes';
 
 import { FC, useEffect } from 'react';
-import { CalendarIcon, ArrowRightIcon, MapIcon, ShieldIcon } from 'lucide-react';
+import { CalendarIcon, ArrowRightIcon, MapIcon, ShieldIcon, ClockIcon, CloudSunIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { IncomingWeekendsModel } from './model';
 import dayjs from 'dayjs';
 import { cn } from '@/shared/utils/cn';
 import { resolveMissionSideColor } from '@/entities/mission/mission-side-colors';
+import { MessageContent } from '@/entities/comment/lexical-message';
 
 export const IncomingWeekends: FC<{
   model: IncomingWeekendsModel;
@@ -29,12 +30,12 @@ export const IncomingWeekends: FC<{
   return (
     <div className="w-full relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-black/95" />
+      <div className="absolute inset-0 bg-linear-to-br from-black/95 via-black/90 to-black/95" />
       <div
         className='absolute inset-0 bg-[url("/images/hero.jpg")] bg-cover bg-center bg-no-repeat opacity-10'
         style={{ backgroundAttachment: 'fixed' }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-lime-700/5 via-transparent to-lime-700/5" />
+      <div className="absolute inset-0 bg-linear-to-r from-lime-700/5 via-transparent to-lime-700/5" />
 
       {/* Content */}
       <div className="relative z-10 w-full py-4 md:py-5">
@@ -76,7 +77,7 @@ export const IncomingWeekends: FC<{
                           alt={game.mission.name ?? 'Місія'}
                           className="size-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
                       </div>
 
                       {/* Game Info */}
@@ -97,6 +98,18 @@ export const IncomingWeekends: FC<{
                             <div className="flex items-center gap-1 text-xs text-zinc-400">
                               <MapIcon className="size-3 shrink-0" />
                               <span>{game.mission.island.name}</span>
+                            </div>
+                          )}
+                          {game.missionVersion.inGameTime && (
+                            <div className="flex items-center gap-1 text-xs text-zinc-400">
+                              <ClockIcon className="size-3 shrink-0" />
+                              <span>{dayjs(game.missionVersion.inGameTime).format('HH:mm')}</span>
+                            </div>
+                          )}
+                          {game.missionVersion.weather && (
+                            <div className="flex items-center gap-1 text-xs text-zinc-400">
+                              <CloudSunIcon className="size-3 shrink-0" />
+                              <span>{game.missionVersion.weather}</span>
                             </div>
                           )}
                         </div>
@@ -148,9 +161,11 @@ export const IncomingWeekends: FC<{
 
                         {/* Mission Description */}
                         {game.mission.description && (
-                          <p className="line-clamp-2 text-[11px] leading-snug text-zinc-400">
-                            {game.mission.description}
-                          </p>
+                          <MessageContent
+                            message={game.mission.description}
+                            textOnly
+                            className="line-clamp-2 text-[11px] leading-snug text-zinc-400 [&_p]:inline"
+                          />
                         )}
                       </div>
                     </div>

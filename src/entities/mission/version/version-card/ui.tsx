@@ -2,7 +2,17 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { CalendarIcon, UsersIcon, DownloadIcon, EditIcon, CheckCircleIcon, InfoIcon, Trash2Icon } from 'lucide-react';
+import {
+  CalendarIcon,
+  CloudSunIcon,
+  ClockIcon,
+  UsersIcon,
+  DownloadIcon,
+  EditIcon,
+  CheckCircleIcon,
+  InfoIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, statusTextColors, sideTypeColors } from '@/entities/mission/lib';
 import { View } from '@/features/view';
@@ -15,6 +25,7 @@ import { resolveUniformScreenshots } from './lib';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 import { Tooltip } from '@/shared/ui/moleculas/tooltip';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
+import { MessageContent } from '@/entities/comment/lexical-message';
 
 /** Two side columns (w-72) + gap-3 — keeps compact cards from resizing when spoilers open */
 const COMPACT_CARD_WIDTH = 'w-[1/2]';
@@ -26,6 +37,7 @@ type MissionVersionCardProps = {
   fullWidth?: boolean;
   onEdit: (version: MissionVersion) => void;
   canDelete?: boolean;
+  canChangeStatus?: boolean;
   onDelete?: (version: MissionVersion) => void;
   onChangeStatus: (params: { missionId: string; version: MissionVersion; status: MissionStatus }) => void;
 };
@@ -37,6 +49,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   fullWidth = false,
   onEdit,
   canDelete,
+  canChangeStatus = true,
   onDelete,
   onChangeStatus,
 }) => {
@@ -54,6 +67,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
   const canNavigatePreview = (previewScreenshots?.length || 0) > 1;
+  const hasVersionMeta = Boolean(version.inGameTime || version.weather);
 
   const handleOpenPreview = (screenshots: NonNullable<MissionVersion['attackScreenshots']>, startIndex: number) => {
     setPreviewScreenshots(screenshots);
@@ -100,7 +114,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               </span>
             </View.Condition>
 
-            <View.Condition if={session.canReviewMissions}>
+            <View.Condition if={session.canReviewMissions && canChangeStatus}>
               <Popover
                 asChild
                 className="p-4 flex flex-col gap-2 w-fit"
@@ -133,6 +147,30 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
         </div>
 
         {/* Sides */}
+        {hasVersionMeta && (
+          <div className="flex flex-wrap gap-3 rounded-lg border border-white/5 bg-black/30 px-3 py-2 text-sm text-zinc-300">
+            {version.inGameTime && (
+              <div className="flex items-center gap-2">
+                <ClockIcon className="size-4 text-lime-500" />
+                <span>{dayjs(version.inGameTime).format('HH:mm')}</span>
+              </div>
+            )}
+            {version.weather && (
+              <div className="flex items-center gap-2">
+                <CloudSunIcon className="size-4 text-lime-500" />
+                <span>{version.weather}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {version.changelog && (
+          <div className="rounded-lg border border-white/5 bg-black/30 p-3">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Список змін</div>
+            <MessageContent message={version.changelog} textOnly />
+          </div>
+        )}
+
         <div className={cn('flex flex-col gap-3 sm:flex-row', fullWidth ? 'w-full' : COMPACT_CARD_WIDTH)}>
           {/* Attack Side */}
           <div

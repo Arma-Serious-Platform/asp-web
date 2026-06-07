@@ -5,7 +5,7 @@ import { MissionCard } from '@/entities/mission/ui/mission-card';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
-import { MissionStatus, MissionType } from '@/shared/sdk/types';
+import { MissionStatus, MissionType, State } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 
 import { observer } from 'mobx-react-lite';
@@ -17,7 +17,7 @@ import { CreateMissionModal } from '@/features/mission/create-mission/ui';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState, useQueryStates } from 'nuqs';
-import { missionTypeOptions, statusOptions } from '@/entities/mission/lib';
+import { missionTypeOptions, stateOptions, statusOptions } from '@/entities/mission/lib';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
@@ -25,11 +25,13 @@ import { session } from '@/entities/session/model';
 type MissionFiltersState = {
   search: string | null;
   status: MissionStatus | null;
+  state: State | null;
   islandId: string | null;
   authorId: string | null;
   minSlots: number | null;
   maxSlots: number | null;
   missionType: MissionType | null;
+  orderType: 'asc' | 'desc';
 };
 
 type MissionFiltersProps = {
@@ -56,6 +58,16 @@ const MissionFilters = observer(
         />
 
         <Select
+          label="Сортування"
+          options={[
+            { label: 'Спочатку новіші', value: 'desc' },
+            { label: 'Спочатку старіші', value: 'asc' },
+          ]}
+          value={filters.orderType}
+          onChange={value => setFilters({ orderType: value === 'asc' ? 'asc' : 'desc' })}
+        />
+
+        <Select
           label="Тип місії"
           options={missionTypeOptions}
           value={filters.missionType || ''}
@@ -73,6 +85,17 @@ const MissionFilters = observer(
           onChange={value =>
             setFilters({
               status: value ? (value as MissionStatus) : null,
+            })
+          }
+        />
+
+        <Select
+          label="Стан"
+          options={stateOptions}
+          value={filters.state || ''}
+          onChange={value =>
+            setFilters({
+              state: value ? (value as State) : null,
             })
           }
         />
@@ -141,15 +164,18 @@ const MissionsPageContent = observer(() => {
   const [filters, setFiltersState] = useQueryStates({
     search: parseAsString,
     status: parseAsStringEnum(Object.values(MissionStatus)),
+    state: parseAsStringEnum(Object.values(State)),
     islandId: parseAsString,
     authorId: parseAsString,
     minSlots: parseAsInteger,
     maxSlots: parseAsInteger,
     missionType: parseAsStringEnum(Object.values(MissionType)),
+    orderType: parseAsStringEnum(['asc', 'desc']).withDefault('desc'),
   });
 
   const isFilterApplied = useMemo(() => {
-    return Object.values(filters).some(value =>
+    const { orderType, ...filterValues } = filters;
+    return Object.values(filterValues).some(value =>
       value !== undefined && typeof value === 'number' ? true : Boolean(value),
     );
   }, [filters]);
@@ -162,11 +188,14 @@ const MissionsPageContent = observer(() => {
     model.missionModel.pagination.init({
       authorId: filters.authorId || undefined,
       status: filters.status || undefined,
+      state: filters.state || undefined,
       islandId: filters.islandId || undefined,
       search: filters.search || undefined,
       minSlots: filters.minSlots ?? undefined,
       maxSlots: filters.maxSlots ?? undefined,
       missionType: filters.missionType || undefined,
+      orderBy: 'createdAt',
+      orderType: filters.orderType,
       skip: 0,
       take: 25,
     });
@@ -177,16 +206,20 @@ const MissionsPageContent = observer(() => {
     void setFiltersState({
       search: null,
       status: null,
+      state: null,
       islandId: null,
       authorId: null,
       minSlots: null,
       maxSlots: null,
       missionType: null,
+      orderType: 'desc',
     });
 
     model.missionModel.pagination.init({
       skip: 0,
       take: 25,
+      orderBy: 'createdAt',
+      orderType: 'desc',
     });
     setMobileFiltersOpen(false);
   };
@@ -195,11 +228,14 @@ const MissionsPageContent = observer(() => {
     model.init({
       authorId: filters.authorId || undefined,
       status: filters.status || undefined,
+      state: filters.state || undefined,
       islandId: filters.islandId || undefined,
       search: filters.search || undefined,
       minSlots: filters.minSlots ?? undefined,
       maxSlots: filters.maxSlots ?? undefined,
       missionType: filters.missionType || undefined,
+      orderBy: 'createdAt',
+      orderType: filters.orderType,
       take: 25,
     });
   }, []);

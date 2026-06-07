@@ -7,9 +7,10 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { CharacterLimitPlugin } from '@lexical/react/LexicalCharacterLimitPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LinkNode } from '@lexical/link';
 import { OverflowNode } from '@lexical/overflow';
-import { $getRoot } from 'lexical';
+import { $getRoot, EditorState } from 'lexical';
 import { newMessageAreaTheme } from './theme';
 import { YouTubeEmbedNode } from './youtube-node';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
@@ -28,7 +29,8 @@ export type MessageEditorSubmitPayload = {
 };
 
 export type MessageEditorProps = {
-  onSubmit: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
+  onSubmit?: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
+  onChange?: (payload: MessageEditorSubmitPayload) => void;
   initialState?: MissionCommentMessage | null;
   placeholder?: string;
   maxCharacters?: number;
@@ -36,6 +38,8 @@ export type MessageEditorProps = {
   disabled?: boolean;
   submitLabel?: string;
   clearOnSubmit?: boolean;
+  showSubmit?: boolean;
+  textFormattingOnly?: boolean;
 };
 
 const DEFAULT_MAX_CHARACTERS = 250;
@@ -83,7 +87,7 @@ function InnerEditor({
   submitLabel,
   clearOnSubmit,
 }: {
-  onSubmit: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
+  onSubmit?: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
   maxCharacters: number;
   disabled?: boolean;
   submitLabel: string;
@@ -92,6 +96,8 @@ function InnerEditor({
   const [editor] = useLexicalComposerContext();
 
   const handleSubmit = async () => {
+    if (!onSubmit) return;
+
     let text = '';
     let hasStructure = false;
     const state = editor.getEditorState();
@@ -130,8 +136,21 @@ function InnerEditor({
   );
 }
 
+const getSubmitPayload = (state: EditorState): MessageEditorSubmitPayload => {
+  let text = '';
+  state.read(() => {
+    text = $getRoot().getTextContent().trim();
+  });
+
+  return {
+    text,
+    lexicalState: state.toJSON() as unknown as Record<string, unknown>,
+  };
+};
+
 export function MessageEditor({
   onSubmit,
+  onChange,
   initialState,
   placeholder = 'Напишіть повідомлення...',
   maxCharacters = DEFAULT_MAX_CHARACTERS,
@@ -139,6 +158,8 @@ export function MessageEditor({
   disabled = false,
   submitLabel = 'Відправити',
   clearOnSubmit = true,
+  showSubmit = true,
+  textFormattingOnly = false,
 }: MessageEditorProps) {
   const initialConfig = {
     namespace: 'MessageEditor',
@@ -161,7 +182,7 @@ export function MessageEditor({
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextBehaviorPlugin />
         <LinkPlugin />
-        <ToolbarPlugin />
+        <ToolbarPlugin textFormattingOnly={textFormattingOnly} />
         <div className="relative min-h-[80px] flex-1">
           <RichTextPlugin
             contentEditable={
@@ -195,13 +216,16 @@ export function MessageEditor({
             </div>
           )}
         />
-        <InnerEditor
-          onSubmit={onSubmit}
-          maxCharacters={maxCharacters}
-          disabled={disabled}
-          submitLabel={submitLabel}
-          clearOnSubmit={clearOnSubmit}
-        />
+        {onChange && <OnChangePlugin onChange={state => onChange(getSubmitPayload(state))} />}
+        {showSubmit && (
+          <InnerEditor
+            onSubmit={onSubmit}
+            maxCharacters={maxCharacters}
+            disabled={disabled}
+            submitLabel={submitLabel}
+            clearOnSubmit={clearOnSubmit}
+          />
+        )}
       </LexicalComposer>
     </div>
   );

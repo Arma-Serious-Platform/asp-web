@@ -1,13 +1,13 @@
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
-import { Mission, MissionType, UpdateMissionDto } from '@/shared/sdk/types';
+import { Mission, MissionCommentMessage, MissionType, UpdateMissionDto } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
 export type MissionFormData = {
   name: string;
-  description: string;
+  description: MissionCommentMessage | null;
   islandId: string;
   missionType: MissionType;
   coauthorIds: string[];
@@ -49,8 +49,8 @@ export class UpdateMissionModel {
         dto.name = data.name;
       }
 
-      if (data.description !== mission.description) {
-        dto.description = data.description;
+      if (JSON.stringify(data.description) !== JSON.stringify(mission.description)) {
+        dto.description = data.description as MissionCommentMessage;
       }
 
       if (data.islandId !== mission?.island?.id) {

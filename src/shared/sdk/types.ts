@@ -20,6 +20,11 @@ export enum MissionType {
   mini = 'mini',
 }
 
+export enum State {
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED',
+}
+
 export enum SideType {
   BLUE = 'BLUE',
   RED = 'RED',
@@ -474,17 +479,20 @@ export type UpdateMySquadDto = {
 export type FindMissionsDto = PaginatedRequest<{
   search?: string;
   status?: MissionStatus;
+  state?: State;
   authorId?: string;
   islandId?: string;
   minSlots?: number;
   maxSlots?: number;
   missionType?: MissionType;
+  orderBy?: 'createdAt';
+  orderType?: 'asc' | 'desc';
 }>;
 
 export type CreateMissionDto = {
   islandId: string;
   name: string;
-  description: string;
+  description: MissionCommentMessage;
   missionType: MissionType;
   coauthorIds?: string[];
   image?: File;
@@ -493,6 +501,10 @@ export type CreateMissionDto = {
 export type UpdateMissionDto = {
   id: string;
 } & Partial<CreateMissionDto>;
+
+export type ChangeMissionStateDto = {
+  state: State;
+};
 
 export type Island = {
   id: string;
@@ -516,8 +528,9 @@ export type UpdateIslandDto = Partial<Pick<Island, 'name' | 'code'>>;
 export type Mission = {
   id: string;
   name: string;
-  description: string;
+  description: MissionCommentMessage;
   missionType: MissionType;
+  state: State;
   imageId: string | null;
   image?: {
     id: string;
@@ -552,6 +565,9 @@ export type MissionVersion = {
   weaponry?: MissionWeaponry[];
   attackScreenshots?: MissionVersionScreenshot[];
   defenseScreenshots?: MissionVersionScreenshot[];
+  inGameTime?: string | null;
+  weather?: string | null;
+  changelog?: MissionCommentMessage | null;
   status: MissionStatus;
   createdAt: string;
   updatedAt: string;
@@ -593,6 +609,9 @@ export type CreateMissionVersionDto = {
   defenseScreenshots?: File[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
+  inGameTime?: string | Date | null;
+  weather?: string | null;
+  changelog?: MissionCommentMessage | null;
 };
 
 export type UpdateMissionVersionDto = {
@@ -610,6 +629,9 @@ export type UpdateMissionVersionDto = {
   removeDefenseScreenshotIds?: string[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
+  inGameTime?: string | Date | null;
+  weather?: string | null;
+  changelog?: MissionCommentMessage | null;
 };
 
 /* Weekends & Games */

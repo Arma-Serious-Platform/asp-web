@@ -2,7 +2,6 @@
 
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
-import { Textarea } from '@/shared/ui/atoms/textarea';
 import {
   Dialog,
   DialogContent,
@@ -28,10 +27,14 @@ import { missionTypeLabels } from '@/entities/mission/lib';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { session } from '@/entities/session/model';
 import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
+import { MessageEditor } from '@/features/chat/editor';
+import { getMessageText } from '@/entities/comment/lexical-message';
 
 const missionSchema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
-  description: yup.string().required("Опис є обов'язковим"),
+  description: yup
+    .mixed()
+    .test('required-description', "Опис є обов'язковим", value => Boolean(value && getMessageText(value as any).trim())),
   islandId: yup.string().required("Карта є обов'язковою"),
   missionType: yup
     .mixed<MissionType>()
@@ -77,7 +80,7 @@ const UpdateMissionModal: FC<
     resolver: yupResolver(missionSchema) as any,
     defaultValues: {
       name: '',
-      description: '',
+      description: null,
       islandId: '',
       missionType: MissionType.SG,
       image: null,
@@ -309,12 +312,25 @@ const UpdateMissionModal: FC<
               control={missionForm.control}
               name="description"
               render={({ field }) => (
-                <Textarea
-                  {...field}
-                  label="Опис місії"
-                  rows={6}
-                  error={missionForm.formState.errors.description?.message}
-                />
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-zinc-300">Опис місії</label>
+                  <MessageEditor
+                    key={
+                      model.visibility.isOpen
+                        ? `update-mission-description-${mission.id}-${mission.updatedAt}`
+                        : 'update-mission-description-closed'
+                    }
+                    initialState={field.value}
+                    placeholder="Опишіть місію..."
+                    maxCharacters={2000}
+                    showSubmit={false}
+                    textFormattingOnly
+                    onChange={({ lexicalState }) => field.onChange(lexicalState)}
+                  />
+                  {missionForm.formState.errors.description?.message && (
+                    <p className="text-sm text-red-400">{missionForm.formState.errors.description.message}</p>
+                  )}
+                </div>
               )}
             />
           </div>

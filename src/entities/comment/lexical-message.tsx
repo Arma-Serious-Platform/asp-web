@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import type { JSX } from 'react';
 import { MissionCommentMessage } from '@/shared/sdk/types';
 import { YOUTUBE_EMBED_TYPE } from '@/features/chat/editor/youtube-node';
+import { cn } from '@/shared/utils/cn';
 
 type SerializedNode = Record<string, unknown> & {
   type?: string;
@@ -13,6 +14,11 @@ type SerializedNode = Record<string, unknown> & {
   value?: string;
   url?: string;
   videoId?: string;
+  format?: number | string;
+};
+
+type RenderOptions = {
+  textOnly?: boolean;
 };
 
 /** Normalize message: parse JSON string, or return as-is */
@@ -69,7 +75,7 @@ function getNodeChildren(node: SerializedNode): SerializedNode[] {
   return raw.filter((c): c is SerializedNode => typeof c === 'object' && c !== null && 'type' in c);
 }
 
-function renderNode(node: SerializedNode, key: number | string): ReactNode {
+function renderNode(node: SerializedNode, key: number | string, options: RenderOptions = {}): ReactNode {
   if (!node || typeof node !== 'object') return null;
   const type = node.type as string | undefined;
   const children = getNodeChildren(node);
@@ -78,21 +84,42 @@ function renderNode(node: SerializedNode, key: number | string): ReactNode {
     case 'root':
       return (
         <span key={key} className="contents">
-          {children.map((child, i) => renderNode(child, i))}
+          {children.map((child, i) => renderNode(child, i, options))}
         </span>
       );
     case 'paragraph':
       return (
         <p key={key} className="mb-1 last:mb-0">
-          {children.map((child, i) => renderNode(child, i))}
+          {children.map((child, i) => renderNode(child, i, options))}
         </p>
       );
     case 'text': {
       const value = typeof node.text === 'string' ? node.text : typeof node.value === 'string' ? node.value : '';
-      return <span key={key}>{value}</span>;
+      const numericFormat = typeof node.format === 'number' ? node.format : 0;
+      const stringFormat = typeof node.format === 'string' ? node.format : '';
+
+      return (
+        <span
+          key={key}
+          className={cn(
+            (numericFormat & 1) !== 0 || stringFormat.includes('bold') ? 'font-bold' : '',
+            (numericFormat & 2) !== 0 || stringFormat.includes('italic') ? 'italic' : '',
+            (numericFormat & 8) !== 0 || stringFormat.includes('underline') ? 'underline' : '',
+          )}>
+          {value}
+        </span>
+      );
     }
     case 'link':
     case 'autolink': {
+      if (options.textOnly) {
+        return (
+          <span key={key}>
+            {children.length ? children.map((child, i) => renderNode(child, i, options)) : null}
+          </span>
+        );
+      }
+
       const url = typeof node.url === 'string' ? node.url : '#';
       const safeUrl = url.startsWith('http') ? url : url.startsWith('mailto:') ? url : `https://${url}`;
       return (
@@ -102,11 +129,13 @@ function renderNode(node: SerializedNode, key: number | string): ReactNode {
           target="_blank"
           rel="noopener noreferrer"
           className="text-lime-400 underline break-all">
-          {children.length ? children.map((child, i) => renderNode(child, i)) : safeUrl}
+          {children.length ? children.map((child, i) => renderNode(child, i, options)) : safeUrl}
         </a>
       );
     }
     case YOUTUBE_EMBED_TYPE: {
+      if (options.textOnly) return null;
+
       const videoId = typeof node.videoId === 'string' ? node.videoId : '';
       if (!videoId) return null;
       const embedUrl = `https://www.youtube.com/embed/${videoId}`;
@@ -127,7 +156,7 @@ function renderNode(node: SerializedNode, key: number | string): ReactNode {
     default:
       return (
         <span key={key} className="contents">
-          {children.map((child, i) => renderNode(child, i))}
+          {children.map((child, i) => renderNode(child, i, options))}
         </span>
       );
   }
@@ -158,13 +187,21 @@ export function getMessageText(message: MissionCommentMessage): string {
   return '—';
 }
 
-export function MessageContent({ message }: { message: MissionCommentMessage }): JSX.Element {
+export function MessageContent({
+  message,
+  textOnly = false,
+  className,
+}: {
+  message: MissionCommentMessage;
+  textOnly?: boolean;
+  className?: string;
+}): JSX.Element {
   if (isLexicalState(message)) {
     const children = getRootChildren(message);
     if (children.length === 0) return <span className="text-zinc-500">—</span>;
     return (
-      <div className="break-words text-base text-zinc-300 whitespace-pre-wrap [&_p]:whitespace-pre-wrap">
-        {children.map((node, i) => renderNode(node as SerializedNode, i))}
+      <div className={cn('wrap-break-word text-base text-zinc-300 whitespace-pre-wrap [&_p]:whitespace-pre-wrap', className)}>
+        {children.map((node, i) => renderNode(node as SerializedNode, i, { textOnly }))}
       </div>
     );
   }
@@ -172,5 +209,5 @@ export function MessageContent({ message }: { message: MissionCommentMessage }):
   const text = getMessageText(message);
   if (!text) return <span className="text-zinc-500">—</span>;
 
-  return <div className="break-words text-base text-zinc-300 whitespace-pre-wrap">{text}</div>;
+  return <div className={cn('wrap-break-word text-base text-zinc-300 whitespace-pre-wrap', className)}>{text}</div>;
 }
