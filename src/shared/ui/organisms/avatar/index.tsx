@@ -13,7 +13,7 @@ export const Avatar: FC<{
   return (
     <div
       className={cn(
-        'bg-gray-200 overflow-hidden rounded-full relative',
+        'bg-gray-200 overflow-hidden rounded-full shrink-0 relative',
         size === 'lg' && 'w-12 h-12',
         size === 'md' && 'w-10 h-10',
         size === 'sm' && 'w-8 h-8',
