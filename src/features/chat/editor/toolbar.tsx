@@ -12,8 +12,18 @@ import {
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
 import { TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
 import { useCallback, useEffect, useState } from 'react';
-import { BoldIcon, ItalicIcon, UnderlineIcon, LinkIcon, SmileIcon, VideoIcon } from 'lucide-react';
+import {
+  BoldIcon,
+  ItalicIcon,
+  ListIcon,
+  ListOrderedIcon,
+  UnderlineIcon,
+  LinkIcon,
+  SmileIcon,
+  VideoIcon,
+} from 'lucide-react';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
 import { Popover } from '@/shared/ui/moleculas/popover';
@@ -54,9 +64,10 @@ const EMOJI_GRID = [
 
 type ToolbarPluginProps = {
   textFormattingOnly?: boolean;
+  allowLists?: boolean;
 };
 
-export function ToolbarPlugin({ textFormattingOnly = false }: ToolbarPluginProps) {
+export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false }: ToolbarPluginProps) {
   const [editor] = useLexicalComposerContext();
   const [activeFormats, setActiveFormats] = useState<Set<Format>>(new Set());
   const [linkOpen, setLinkOpen] = useState(false);
@@ -99,6 +110,14 @@ export function ToolbarPlugin({ textFormattingOnly = false }: ToolbarPluginProps
 
   const applyFormat = (format: Format) => {
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+  };
+
+  const insertUnorderedList = () => {
+    editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+  };
+
+  const insertOrderedList = () => {
+    editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
   };
 
   const insertEmoji = (emoji: string) => {
@@ -163,6 +182,19 @@ export function ToolbarPlugin({ textFormattingOnly = false }: ToolbarPluginProps
         onPress={() => applyFormat('underline')}
         icon={<UnderlineIcon className="size-4" />}
       />
+
+      {allowLists && (
+        <>
+          <div className="mx-1 w-px self-stretch bg-white/10" aria-hidden />
+          <FormatButton format="unordered list" active={false} onPress={insertUnorderedList} icon={<ListIcon className="size-4" />} />
+          <FormatButton
+            format="ordered list"
+            active={false}
+            onPress={insertOrderedList}
+            icon={<ListOrderedIcon className="size-4" />}
+          />
+        </>
+      )}
 
       {!textFormattingOnly && (
         <>

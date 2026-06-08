@@ -15,6 +15,7 @@ type SerializedNode = Record<string, unknown> & {
   url?: string;
   videoId?: string;
   format?: number | string;
+  listType?: string;
 };
 
 type RenderOptions = {
@@ -153,6 +154,22 @@ function renderNode(node: SerializedNode, key: number | string, options: RenderO
     }
     case 'linebreak':
       return <br key={key} />;
+    case 'list': {
+      const isOrdered = node.listType === 'number';
+      const ListTag = isOrdered ? 'ol' : 'ul';
+
+      return (
+        <ListTag key={key} className={cn('my-1 pl-5', isOrdered ? 'list-decimal' : 'list-disc')}>
+          {children.map((child, i) => renderNode(child, i, options))}
+        </ListTag>
+      );
+    }
+    case 'listitem':
+      return (
+        <li key={key} className="my-0.5">
+          {children.map((child, i) => renderNode(child, i, options))}
+        </li>
+      );
     default:
       return (
         <span key={key} className="contents">
@@ -200,7 +217,11 @@ export function MessageContent({
     const children = getRootChildren(message);
     if (children.length === 0) return <span className="text-zinc-500">—</span>;
     return (
-      <div className={cn('wrap-break-word text-base text-zinc-300 whitespace-pre-wrap [&_p]:whitespace-pre-wrap', className)}>
+      <div
+        className={cn(
+          'wrap-break-word text-base text-zinc-300 whitespace-pre-wrap [&_p]:whitespace-pre-wrap',
+          className,
+        )}>
         {children.map((node, i) => renderNode(node as SerializedNode, i, { textOnly }))}
       </div>
     );

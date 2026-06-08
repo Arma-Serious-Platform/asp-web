@@ -12,6 +12,8 @@ import {
   CheckCircleIcon,
   InfoIcon,
   Trash2Icon,
+  ChevronDownIcon,
+  ChevronUpIcon,
 } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, statusTextColors, sideTypeColors } from '@/entities/mission/lib';
@@ -57,6 +59,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [previewScreenshots, setPreviewScreenshots] = useState<MissionVersion['attackScreenshots']>([]);
   const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
 
@@ -166,8 +169,18 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
 
         {version.changelog && (
           <div className="rounded-lg border border-white/5 bg-black/30 p-3">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Список змін</div>
-            <MessageContent message={version.changelog} textOnly />
+            <button
+              type="button"
+              onClick={() => setIsChangelogOpen(prev => !prev)}
+              className="flex w-full items-center justify-between text-left text-xs font-semibold uppercase tracking-wide text-zinc-400 transition-colors hover:text-zinc-200">
+              <span>Список змін</span>
+              {isChangelogOpen ? <ChevronUpIcon className="size-4" /> : <ChevronDownIcon className="size-4" />}
+            </button>
+            {isChangelogOpen && (
+              <div className="mt-2">
+                <MessageContent message={version.changelog} textOnly />
+              </div>
+            )}
           </div>
         )}
 

@@ -8,6 +8,8 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { CharacterLimitPlugin } from '@lexical/react/LexicalCharacterLimitPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { ListItemNode, ListNode } from '@lexical/list';
 import { LinkNode } from '@lexical/link';
 import { OverflowNode } from '@lexical/overflow';
 import { $getRoot, EditorState } from 'lexical';
@@ -40,6 +42,7 @@ export type MessageEditorProps = {
   clearOnSubmit?: boolean;
   showSubmit?: boolean;
   textFormattingOnly?: boolean;
+  allowLists?: boolean;
 };
 
 const DEFAULT_MAX_CHARACTERS = 250;
@@ -160,12 +163,16 @@ export function MessageEditor({
   clearOnSubmit = true,
   showSubmit = true,
   textFormattingOnly = false,
+  allowLists = false,
 }: MessageEditorProps) {
+  const nodes = allowLists
+    ? [OverflowNode, LinkNode, YouTubeEmbedNode, ListNode, ListItemNode]
+    : [OverflowNode, LinkNode, YouTubeEmbedNode];
   const initialConfig = {
     namespace: 'MessageEditor',
     theme: newMessageAreaTheme,
     onError,
-    nodes: [OverflowNode, LinkNode, YouTubeEmbedNode],
+    nodes,
     editorState:
       initialState && typeof initialState === 'object'
         ? JSON.stringify(initialState)
@@ -182,13 +189,13 @@ export function MessageEditor({
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextBehaviorPlugin />
         <LinkPlugin />
-        <ToolbarPlugin textFormattingOnly={textFormattingOnly} />
+        <ToolbarPlugin textFormattingOnly={textFormattingOnly} allowLists={allowLists} />
         <div className="relative min-h-[80px] flex-1">
           <RichTextPlugin
             contentEditable={
               <ContentEditable
                 aria-placeholder={placeholder}
-                className="min-h-[80px] w-full resize-none overflow-auto px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+                className="min-h-[80px] w-full resize-none overflow-auto px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
                 placeholder={null}
               />
             }
@@ -198,6 +205,7 @@ export function MessageEditor({
             ErrorBoundary={LexicalErrorBoundary}
           />
         </div>
+        {allowLists && <ListPlugin />}
         <HistoryPlugin />
         <CharacterLimitPlugin
           charset="UTF-16"

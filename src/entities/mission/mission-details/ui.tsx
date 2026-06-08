@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import { CarIcon, UsersIcon, CalendarIcon, ShieldIcon, MapIcon, ClockIcon, CloudSunIcon } from 'lucide-react';
 import { Card } from '@/shared/ui/atoms/card';
@@ -18,8 +18,8 @@ type MissionDetailsProps = {
 };
 
 export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, defenseSideType }) => {
-  const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
-  const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
+  const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(true);
+  const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(true);
   const [previewScreenshots, setPreviewScreenshots] = useState<{ id: string; url: string }[]>([]);
   const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
 
@@ -33,6 +33,11 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
   const hasVersionMeta = Boolean(game.missionVersion.inGameTime || game.missionVersion.weather);
+
+  useEffect(() => {
+    setIsAttackUniformOpen(true);
+    setIsDefenseUniformOpen(true);
+  }, [game.id]);
 
   const handleOpenPreview = (screenshots: { id: string; url: string }[], startIndex: number) => {
     setPreviewScreenshots(screenshots);

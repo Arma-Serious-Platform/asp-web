@@ -410,6 +410,7 @@ const CreateUpdateMissionVersionModal: FC<{
                   maxCharacters={2000}
                   showSubmit={false}
                   textFormattingOnly
+                  allowLists
                   onChange={({ text, lexicalState }) => field.onChange(text ? lexicalState : null)}
                 />
               </div>

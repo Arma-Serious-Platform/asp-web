@@ -16,11 +16,12 @@ import { model } from './model';
 import { CreateMissionModal } from '@/features/mission/create-mission/ui';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
-import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryState, useQueryStates } from 'nuqs';
+import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { missionTypeOptions, stateOptions, statusOptions } from '@/entities/mission/lib';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
+import { Tab } from '@/shared/ui/moleculas/tab';
 
 type MissionFiltersState = {
   search: string | null;
@@ -43,6 +44,33 @@ type MissionFiltersProps = {
   className?: string;
 };
 
+type MissionSortControlsProps = {
+  orderType: 'asc' | 'desc';
+  onChange: (orderType: 'asc' | 'desc') => void;
+  className?: string;
+};
+
+const missionSortOptions = [
+  { label: 'Спочатку новіші', value: 'desc' },
+  { label: 'Спочатку старіші', value: 'asc' },
+] as const;
+
+const MissionSortControls = ({ orderType, onChange, className }: MissionSortControlsProps) => (
+  <div
+    aria-label="Сортування місій"
+    className={cn('flex overflow-hidden rounded-lg border border-white/10 bg-black/30', className)}>
+    {missionSortOptions.map(option => (
+      <Tab
+        key={option.value}
+        title={option.label}
+        isActive={orderType === option.value}
+        className="w-auto border-b-0 px-3 py-1.5 text-xs"
+        onClick={() => onChange(option.value)}
+      />
+    ))}
+  </div>
+);
+
 const MissionFilters = observer(
   ({ filters, setFilters, isFilterApplied, onApply, onReset, className }: MissionFiltersProps) => {
     const isLoading = model.missionModel.pagination.preloader.isLoading;
@@ -58,16 +86,6 @@ const MissionFilters = observer(
         />
 
         <Select
-          label="Сортування"
-          options={[
-            { label: 'Спочатку новіші', value: 'desc' },
-            { label: 'Спочатку старіші', value: 'asc' },
-          ]}
-          value={filters.orderType}
-          onChange={value => setFilters({ orderType: value === 'asc' ? 'asc' : 'desc' })}
-        />
-
-        <Select
           label="Тип місії"
           options={missionTypeOptions}
           value={filters.missionType || ''}
@@ -79,7 +97,7 @@ const MissionFilters = observer(
         />
 
         <Select
-          label="Статус"
+          label="Статус останньої версії"
           options={statusOptions}
           value={filters.status || ''}
           onChange={value =>
@@ -184,20 +202,34 @@ const MissionsPageContent = observer(() => {
     void setFiltersState(patch);
   };
 
+  const getMissionParams = (orderType: 'asc' | 'desc' = filters.orderType) => ({
+    authorId: filters.authorId || undefined,
+    status: filters.status || undefined,
+    state: filters.state || undefined,
+    islandId: filters.islandId || undefined,
+    search: filters.search || undefined,
+    minSlots: filters.minSlots ?? undefined,
+    maxSlots: filters.maxSlots ?? undefined,
+    missionType: filters.missionType || undefined,
+    orderBy: 'createdAt' as const,
+    orderType,
+    take: 25,
+  });
+
+  const handleSortChange = (orderType: 'asc' | 'desc') => {
+    if (orderType === filters.orderType) return;
+
+    void setFiltersState({ orderType });
+    void model.missionModel.pagination.init({
+      ...getMissionParams(orderType),
+      skip: 0,
+    });
+  };
+
   const applyFilters = () => {
     model.missionModel.pagination.init({
-      authorId: filters.authorId || undefined,
-      status: filters.status || undefined,
-      state: filters.state || undefined,
-      islandId: filters.islandId || undefined,
-      search: filters.search || undefined,
-      minSlots: filters.minSlots ?? undefined,
-      maxSlots: filters.maxSlots ?? undefined,
-      missionType: filters.missionType || undefined,
-      orderBy: 'createdAt',
-      orderType: filters.orderType,
+      ...getMissionParams(),
       skip: 0,
-      take: 25,
     });
     setMobileFiltersOpen(false);
   };
@@ -212,31 +244,20 @@ const MissionsPageContent = observer(() => {
       minSlots: null,
       maxSlots: null,
       missionType: null,
-      orderType: 'desc',
     });
 
     model.missionModel.pagination.init({
       skip: 0,
       take: 25,
       orderBy: 'createdAt',
-      orderType: 'desc',
+      orderType: filters.orderType,
     });
     setMobileFiltersOpen(false);
   };
 
   useEffect(() => {
     model.init({
-      authorId: filters.authorId || undefined,
-      status: filters.status || undefined,
-      state: filters.state || undefined,
-      islandId: filters.islandId || undefined,
-      search: filters.search || undefined,
-      minSlots: filters.minSlots ?? undefined,
-      maxSlots: filters.maxSlots ?? undefined,
-      missionType: filters.missionType || undefined,
-      orderBy: 'createdAt',
-      orderType: filters.orderType,
-      take: 25,
+      ...getMissionParams(),
     });
   }, []);
 
@@ -259,7 +280,12 @@ const MissionsPageContent = observer(() => {
         {/* Mobile header */}
         <div className="mb-4 flex flex-col gap-3 lg:hidden">
           <div>
-            <h1 className="text-2xl font-bold leading-tight tracking-tight text-white">Місії</h1>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h1 className="text-2xl font-bold leading-tight tracking-tight text-white">Місії</h1>
+                <MissionSortControls orderType={filters.orderType} onChange={handleSortChange} />
+              </div>
+            </div>
             <p className="mt-1 text-sm text-zinc-400">Перегляньте доступні місії або створіть нову</p>
           </div>
 
@@ -279,9 +305,7 @@ const MissionsPageContent = observer(() => {
               aria-expanded={mobileFiltersOpen}>
               <SlidersHorizontalIcon className="size-4" />
               <span>Фільтри</span>
-              {isFilterApplied && (
-                <span className="ml-0.5 flex size-2 rounded-full bg-lime-400" aria-hidden />
-              )}
+              {isFilterApplied && <span className="ml-0.5 flex size-2 rounded-full bg-lime-400" aria-hidden />}
             </Button>
           </div>
 
@@ -317,7 +341,10 @@ const MissionsPageContent = observer(() => {
           {/* Main content */}
           <main className="min-w-0 flex-1">
             <div className="mb-6 hidden lg:block lg:mb-8">
-              <h1 className="mb-2 text-3xl font-bold leading-tight tracking-tight text-white">Місії</h1>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+                <h1 className="text-3xl font-bold leading-tight tracking-tight text-white">Місії</h1>
+                <MissionSortControls orderType={filters.orderType} onChange={handleSortChange} />
+              </div>
               <p className="text-zinc-400">Перегляньте доступні місії або створіть нову</p>
             </div>
 
@@ -372,8 +399,7 @@ const MissionsPageContent = observer(() => {
                 className="mx-auto mt-2 w-full sm:mt-0 sm:w-fit"
                 onClick={() => model.missionModel.pagination.loadMore()}>
                 <span className="text-center text-sm sm:text-base">
-                  Показати більше: {model.missionModel.pagination.data.length} з{' '}
-                  {model.missionModel.pagination.total}
+                  Показати більше: {model.missionModel.pagination.data.length} з {model.missionModel.pagination.total}
                 </span>
               </Button>
             )}

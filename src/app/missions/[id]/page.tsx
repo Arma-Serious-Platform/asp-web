@@ -264,7 +264,7 @@ const MissionDetailsPage = observer(() => {
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             {/* Mission Image */}
-            <div className="relative w-full md:w-64 aspect-video md:aspect-square overflow-hidden rounded-lg border border-white/10 shrink-0">
+            <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg border border-white/10 md:w-80">
               {mission.image?.url ? (
                 <Image
                   src={mission.image.url}
