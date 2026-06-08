@@ -29,6 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from 
 import { SpecializationBadges, SpecializationOptionContent } from '@/entities/specialization/ui/specialization-badges';
 import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/shared/ui/organisms/drawer';
 import { ChangeSocials } from '@/features/user/change-socials';
+import { Tab } from '@/shared/ui/moleculas/tab';
 
 type SquadProfileSubtab = 'members' | 'settings' | 'requests';
 
@@ -292,51 +293,57 @@ export const UserSquad: FC<{
         </DialogContent>
       </Dialog>
 
-      <div className="flex gap-4">
-        <div className="overflow-hidden rounded-lg border border-white/10 bg-black/70">
-          <Image
-            src={squad.logo?.url || '/images/logo.webp'}
-            alt={squad.name}
-            width={128}
-            height={128}
-            className="h-32 w-32 object-cover"
-            unoptimized={!squad.logo?.url?.startsWith('https')}
-          />
-        </div>
-
-        <div className="flex flex-1 flex-col justify-between gap-2">
-          <div className="flex flex-col gap-1">
-            <div className="text-xl font-semibold text-white">{squad.name}</div>
-            {squad.tag && (
-              <div className="inline-flex w-fit items-center rounded-full border border-white/15 bg-black/60 px-3 py-0.5 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-200">
-                {squad.tag}
-              </div>
-            )}
-            <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
-              <span>Активних: {squad.activeCount ?? 0}</span>
-              <span
-                className={cn(
-                  'rounded-full border px-2 py-0.5',
-                  squad.recruiting
-                    ? 'border-lime-500/40 bg-lime-500/10 text-lime-200'
-                    : 'border-zinc-600/60 bg-zinc-800/60 text-zinc-400',
-                )}>
-                {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
-              </span>
+      <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/30 p-3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row">
+            <div className="w-full shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black/70 sm:w-36">
+              <Image
+                src={squad.logo?.url || '/images/logo.webp'}
+                alt={squad.name}
+                width={144}
+                height={144}
+                className="aspect-square w-full object-cover"
+                unoptimized={!squad.logo?.url?.startsWith('https')}
+              />
             </div>
-            <ChangeSocials socials={squad} readonly onChange={() => undefined} />
+
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <div className="min-w-0">
+                <div className="truncate text-lg font-semibold text-white">{squad.name}</div>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                  {squad.tag && (
+                    <span className="inline-flex items-center rounded-full border border-white/15 bg-black/60 px-2 py-0.5 font-semibold uppercase tracking-[0.16em] text-zinc-200">
+                      {squad.tag}
+                    </span>
+                  )}
+                  <span className="rounded-full border border-white/10 bg-black/40 px-2 py-0.5">
+                    Активних: {squad.activeCount ?? 0}
+                  </span>
+                  <span
+                    className={cn(
+                      'rounded-full border px-2 py-0.5',
+                      squad.recruiting
+                        ? 'border-lime-500/40 bg-lime-500/10 text-lime-200'
+                        : 'border-zinc-600/60 bg-zinc-800/60 text-zinc-400',
+                    )}>
+                    {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
             {canManageSquadMembers && (
               <>
                 <Button
                   size="sm"
+                  variant="secondary"
                   className="w-fit"
                   onClick={() => {
                     inviteToSquadModel.visibility.open({ squad });
                   }}>
-                  Запросити учасника
+                  Запросити
                 </Button>
                 <InviteToSquadModal
                   model={inviteToSquadModel}
@@ -356,10 +363,18 @@ export const UserSquad: FC<{
                   isLeader: user.id === squad.leader?.id,
                 });
               }}>
-              Покинути загін
+              Покинути
             </Button>
           </div>
         </div>
+
+        <ChangeSocials
+          socials={squad}
+          readonly
+          className="min-w-0 overflow-hidden border-t border-white/10 pt-3"
+          linksClassName="w-full min-w-0 max-w-full flex-nowrap overflow-x-auto pb-1"
+          onChange={() => undefined}
+        />
       </div>
 
       <KickFromSquadModal
@@ -489,29 +504,32 @@ export const UserSquad: FC<{
       </Drawer>
 
       {canManageSquadMembers && (
-        <div className="flex flex-wrap gap-2 border-t border-white/10 pt-4">
+        <div className="flex flex-wrap gap-1 border-t border-white/10 pt-3">
           {[
             { id: 'members' as const, label: 'Склад' },
             { id: 'settings' as const, label: 'Налаштування' },
             { id: 'requests' as const, label: 'Заявки' },
           ].map(tab => (
-            <Button
+            <Tab
               key={tab.id}
-              type="button"
-              size="sm"
-              variant={subtab === tab.id ? 'default' : 'secondary'}
-              onClick={() => setSubtab(tab.id)}>
-              <span>{tab.label}</span>
-              {tab.id === 'requests' && pendingJoinRequestsCount > 0 && (
-                <span
-                  className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full border border-white/20 bg-primary px-1.5 py-0.5 text-[10px] font-semibold leading-none text-zinc-100',
-                    subtab === tab.id ? 'bg-black/70' : 'bg-primary',
-                  )}>
-                  {pendingJoinRequestsCount}
-                </span>
-              )}
-            </Button>
+              isActive={subtab === tab.id}
+              className="w-auto items-center gap-2 rounded-md border-b-0 px-3 py-1.5 text-xs"
+              onClick={() => setSubtab(tab.id)}
+              title={
+                <>
+                  <span>{tab.label}</span>
+                  {tab.id === 'requests' && pendingJoinRequestsCount > 0 && (
+                    <span
+                      className={cn(
+                        'inline-flex size-5 items-center justify-center rounded-full border border-white/20 bg-primary px-1.5 py-0.5 text-[10px] font-semibold leading-none text-zinc-100',
+                        subtab === tab.id ? 'bg-black/70' : 'bg-primary',
+                      )}>
+                      {pendingJoinRequestsCount}
+                    </span>
+                  )}
+                </>
+              }
+            />
           ))}
         </div>
       )}

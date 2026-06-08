@@ -13,7 +13,7 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
 import { Layout } from '@/widgets/layout';
-import { ArrowLeftIcon, LoaderIcon, ShieldIcon, UsersRoundIcon } from 'lucide-react';
+import { ActivityIcon, ArrowLeftIcon, LoaderIcon, ShieldIcon, UsersRoundIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -28,6 +28,12 @@ const sideAppearance = (sideType?: SideType) => {
   }
   return { label: 'Незалежний', badge: 'bg-amber-500/15 text-amber-200 border-amber-400/35', dot: 'bg-amber-400' };
 };
+
+const SquadRoleBadge = ({ label }: { label: string }) => (
+  <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+    {label}
+  </span>
+);
 
 export default function SquadDetailPage() {
   const params = useParams();
@@ -134,157 +140,182 @@ export default function SquadDetailPage() {
           <>
             <div className="paper relative overflow-hidden rounded-xl border px-5 py-6 shadow-xl sm:px-8 sm:py-8">
               <div className="pointer-events-none absolute -right-24 top-0 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl" />
-              <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-                <div className="flex shrink-0 flex-col items-center gap-3 lg:items-start">
-                  <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/50 shadow-lg">
-                    <Image
-                      src={squad.logo?.url || '/images/avatar.jpg'}
-                      alt={squad.name}
-                      width={200}
-                      height={200}
-                      className="aspect-square w-[min(100%,220px)] object-cover sm:w-[220px]"
-                      unoptimized={!squad.logo?.url?.startsWith('https')}
-                    />
-                  </div>
-                  <div className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-1 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
-                    {squad.tag}
-                  </div>
-                  {specializationStats.length > 0 && (
-                    <div className="flex w-full max-w-[220px] flex-col gap-1">
-                      {specializationStats.map(stat => (
-                        <span
-                          key={stat.id}
-                          className="inline-flex items-center justify-center gap-1 rounded-full border bg-black/35 px-2 py-0.5 text-xs font-semibold lg:justify-start"
-                          style={{ borderColor: stat.color || '#84cc16', color: stat.color || '#84cc16' }}>
-                          {stat.icon?.url ? (
-                            <Image
-                              src={stat.icon.url}
-                              alt=""
-                              width={14}
-                              height={14}
-                              className="size-3.5 rounded-full object-cover"
-                              unoptimized={!stat.icon.url.startsWith('https')}
-                            />
-                          ) : (
-                            <span
-                              className="size-1.5 rounded-full"
-                              style={{ backgroundColor: stat.color || '#84cc16' }}
-                              aria-hidden
-                            />
-                          )}
-                          <span className="truncate">
-                            {stat.name}: {stat.count}
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1 space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={cn(
-                          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider',
-                          appearance.badge,
-                        )}>
-                        <span className={cn('size-1.5 rounded-full', appearance.dot)} />
-                        {appearance.label}
-                        {squad.side?.name ? (
-                          <span className="font-normal normal-case text-zinc-400">· {squad.side.name}</span>
-                        ) : null}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-zinc-500">
-                        <UsersRoundIcon className="size-3.5" />
-                        Учасників: {squad._count?.members ?? squad.members?.length ?? 0}
-                        {typeof squad.activeCount === 'number' ? (
-                          <span className="text-zinc-600">· активних: {squad.activeCount}</span>
-                        ) : null}
-                      </span>
-                      <span
-                        className={cn(
-                          'inline-flex rounded-full border px-2.5 py-0.5 text-xs',
-                          squad.recruiting
-                            ? 'border-lime-500/40 bg-lime-500/10 text-lime-200'
-                            : 'border-zinc-600/60 bg-zinc-800/60 text-zinc-400',
-                        )}>
-                        {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
-                      </span>
-                    </div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{squad.name}</h1>
-                    {squad.description ? (
-                      <div className="max-w-3xl text-sm leading-relaxed text-zinc-300">
-                        <MessageContent message={squad.description} />
-                      </div>
-                    ) : (
-                      <p className="text-sm text-zinc-500">Опис загону не додано.</p>
-                    )}
-                    <ChangeSocials socials={squad} readonly onChange={() => undefined} />
-                  </div>
-
-                  <RequestToJoinSquadButton
-                    squad={squad}
-                    pendingRequest={pendingJoinRequest}
-                    onRequestCreated={request =>
-                      setJoinRequests(current => [...current.filter(item => item.id !== request.id), request])
-                    }
-                    className="w-full sm:w-fit"
-                  />
-
-                  <div className="rounded-lg border border-white/10 bg-black/25 p-4">
-                    <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                      <ShieldIcon className="size-4 text-amber-400/90" />
-                      Командир
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        size="md"
-                        toProfileId={squad.leader?.nickname}
-                        src={squad.leader?.avatar?.url ?? undefined}
-                        alt={squad.leader?.nickname ?? ''}
+              <div className="relative flex flex-col gap-6">
+                <div className="grid gap-6 lg:grid-cols-[260px_1fr] lg:items-start">
+                  <div className="flex min-w-0 flex-col items-center gap-3">
+                    <div className="w-full max-w-[260px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 shadow-lg">
+                      <Image
+                        src={squad.logo?.url || '/images/avatar.jpg'}
+                        alt={squad.name}
+                        width={260}
+                        height={260}
+                        className="aspect-square w-full object-cover"
+                        unoptimized={!squad.logo?.url?.startsWith('https')}
                       />
-                      <div className="min-w-0">
-                        <div className="text-base font-semibold text-zinc-100">
-                          {squad.leader ? (
-                            <UserNicknameText user={{ ...squad.leader, squad } as User} />
-                          ) : (
-                            <span className="text-zinc-500">—</span>
-                          )}
-                        </div>
-                        <SpecializationBadges
-                          specializations={squad.leader?.specializations}
-                          className="mt-1"
-                          compact
-                        />
-                      </div>
                     </div>
-                  </div>
-                  {subleaders.length > 0 && (
-                    <div className="rounded-lg border border-white/10 bg-black/25 p-4">
-                      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                        <ShieldIcon className="size-4 text-lime-400/90" />
-                        Заступники
+                    {squad.tag && (
+                      <div className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-1 text-center text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
+                        {squad.tag}
                       </div>
-                      <div className="flex flex-col gap-2">
-                        {subleaders.map(subleader => (
-                          <div key={subleader.id} className="flex items-center gap-3">
-                            <Avatar
-                              size="sm"
-                              toProfileId={subleader.nickname}
-                              src={subleader.avatar?.url ?? undefined}
-                              alt={subleader.nickname}
-                            />
-                            <div className="flex min-w-0 flex-wrap items-center gap-2">
-                              <UserNicknameText user={{ ...subleader, squad } as User} />
-                              <SpecializationBadges specializations={subleader.specializations} compact />
-                            </div>
-                          </div>
+                    )}
+                    {specializationStats.length > 0 && (
+                      <div className="flex w-full max-w-[260px] flex-wrap justify-center gap-1.5">
+                        {specializationStats.map(stat => (
+                          <span
+                            key={stat.id}
+                            className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border bg-black/35 px-2 py-0.5 text-xs font-semibold"
+                            style={{ borderColor: stat.color || '#84cc16', color: stat.color || '#84cc16' }}>
+                            {stat.icon?.url ? (
+                              <Image
+                                src={stat.icon.url}
+                                alt=""
+                                width={14}
+                                height={14}
+                                className="size-3.5 shrink-0 rounded-full object-cover"
+                                unoptimized={!stat.icon.url.startsWith('https')}
+                              />
+                            ) : (
+                              <span
+                                className="size-1.5 shrink-0 rounded-full"
+                                style={{ backgroundColor: stat.color || '#84cc16' }}
+                                aria-hidden
+                              />
+                            )}
+                            <span className="truncate">
+                              {stat.name}: {stat.count}
+                            </span>
+                          </span>
                         ))}
                       </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-5">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider',
+                            appearance.badge,
+                          )}>
+                          <span className={cn('size-1.5 rounded-full', appearance.dot)} />
+                          {appearance.label}
+                          {squad.side?.name ? (
+                            <span className="font-normal normal-case text-zinc-400">· {squad.side.name}</span>
+                          ) : null}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-2.5 py-0.5 text-xs text-zinc-400">
+                          <UsersRoundIcon className="size-3.5" />
+                          Учасників: {squad._count?.members ?? squad.members?.length ?? 0}
+                        </span>
+                        {typeof squad.activeCount === 'number' ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-2.5 py-0.5 text-xs text-zinc-400">
+                            <ActivityIcon className="size-3.5 text-lime-400" />
+                            Активних: {squad.activeCount}
+                          </span>
+                        ) : null}
+                        <span
+                          className={cn(
+                            'inline-flex rounded-full border px-2.5 py-0.5 text-xs',
+                            squad.recruiting
+                              ? 'border-lime-500/40 bg-lime-500/10 text-lime-200'
+                              : 'border-zinc-600/60 bg-zinc-800/60 text-zinc-400',
+                          )}>
+                          {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
+                        </span>
+                      </div>
+                      <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{squad.name}</h1>
+                        {squad.description ? (
+                          <div className="mt-3 max-w-3xl rounded-lg border border-white/10 bg-black/25 p-4 text-sm leading-relaxed text-zinc-300">
+                            <MessageContent message={squad.description} />
+                          </div>
+                        ) : (
+                          <div className="mt-3 max-w-3xl rounded-lg border border-white/10 bg-black/25 p-4 text-sm text-zinc-500">
+                            Опис загону не додано.
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+
+                    <RequestToJoinSquadButton
+                      squad={squad}
+                      pendingRequest={pendingJoinRequest}
+                      onRequestCreated={request =>
+                        setJoinRequests(current => [...current.filter(item => item.id !== request.id), request])
+                      }
+                      className="w-full sm:w-fit"
+                    />
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="rounded-lg border border-white/10 bg-black/25 p-4">
+                        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                          <ShieldIcon className="size-4 text-amber-400/90" />
+                          Командир
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Avatar
+                            size="md"
+                            toProfileId={squad.leader?.nickname}
+                            src={squad.leader?.avatar?.url ?? undefined}
+                            alt={squad.leader?.nickname ?? ''}
+                          />
+                          <div className="min-w-0">
+                            <div className="text-base font-semibold text-zinc-100">
+                              {squad.leader ? (
+                                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                  <UserNicknameText user={{ ...squad.leader, squad } as User} />
+                                  <SquadRoleBadge label="Лідер" />
+                                </div>
+                              ) : (
+                                <span className="text-zinc-500">—</span>
+                              )}
+                            </div>
+                            <SpecializationBadges
+                              specializations={squad.leader?.specializations}
+                              className="mt-1"
+                              compact
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {subleaders.length > 0 && (
+                        <div className="rounded-lg border border-white/10 bg-black/25 p-4">
+                          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                            <ShieldIcon className="size-4 text-lime-400/90" />
+                            Заступники
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {subleaders.map(subleader => (
+                              <div key={subleader.id} className="flex items-center gap-3">
+                                <Avatar
+                                  size="sm"
+                                  toProfileId={subleader.nickname}
+                                  src={subleader.avatar?.url ?? undefined}
+                                  alt={subleader.nickname}
+                                />
+                                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                  <UserNicknameText user={{ ...subleader, squad } as User} />
+                                  <SquadRoleBadge label={SQUAD_ROLE_LABELS[subleader.squadRole ?? SquadRole.MEMBER]} />
+                                  <SpecializationBadges specializations={subleader.specializations} compact />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
+
+                <ChangeSocials
+                  socials={squad}
+                  readonly
+                  className="min-w-0 overflow-hidden border-t border-white/10 pt-4"
+                  linksClassName="w-full min-w-0 max-w-full flex-nowrap overflow-x-auto pb-1"
+                  onChange={() => undefined}
+                />
               </div>
             </div>
 
@@ -316,11 +347,9 @@ export default function SquadDetailPage() {
                         />
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                           <UserNicknameText user={{ ...member, squad } as User} />
+                          <SquadRoleBadge label={SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]} />
                           <SpecializationBadges specializations={member.specializations} compact />
                         </div>
-                        <span className="rounded-full border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-zinc-400">
-                          {SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]}
-                        </span>
                       </li>
                     ))}
                   </ul>

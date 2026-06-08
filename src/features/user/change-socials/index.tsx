@@ -17,12 +17,21 @@ type ChangeSocialsProps = {
   socials?: SocialValues | null;
   user?: SocialValues | null;
   className?: string;
+  linksClassName?: string;
   isLoading?: boolean;
   readonly?: boolean;
   onChange: (changes: Partial<Record<SocialKeys, string>>) => Promise<void> | void;
 };
 
-const ChangeSocials: FC<ChangeSocialsProps> = ({ socials, user, className, isLoading, readonly = false, onChange }) => {
+const ChangeSocials: FC<ChangeSocialsProps> = ({
+  socials,
+  user,
+  className,
+  linksClassName,
+  isLoading,
+  readonly = false,
+  onChange,
+}) => {
   const [isEdit, setIsEdit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const socialValues = socials ?? user ?? null;
@@ -106,8 +115,8 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ socials, user, className, isLoa
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className={cn('flex flex-wrap items-center gap-3', linksClassName)}>
           {socialsConfig.map(social => {
             const url = socialValues[social.key];
 
@@ -117,7 +126,7 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ socials, user, className, isLoa
               return (
                 <div
                   key={social.key}
-                  className="flex items-center gap-1 rounded-full border border-dashed border-white/10 px-3 py-1 text-xs text-zinc-400">
+                  className="flex shrink-0 items-center gap-1 rounded-full border border-dashed border-white/10 px-3 py-1 text-xs text-zinc-400">
                   <Image src={social.icon} alt={social.label} width={18} height={18} className="opacity-70" />
                   <span>{social.label}</span>
                 </div>
@@ -130,7 +139,7 @@ const ChangeSocials: FC<ChangeSocialsProps> = ({ socials, user, className, isLoa
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-100 transition-colors hover:bg-white/10">
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-100 transition-colors hover:bg-white/10">
                 <Image src={social.icon} alt={social.label} width={18} height={18} />
                 <span className="max-w-[140px] truncate">{social.label}</span>
               </a>
