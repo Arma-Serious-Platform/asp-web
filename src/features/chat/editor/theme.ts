@@ -1,7 +1,7 @@
 import type { EditorThemeClasses } from 'lexical';
 
 export const newMessageAreaTheme: EditorThemeClasses = {
-  paragraph: 'mb-1 last:mb-0',
+  paragraph: 'min-h-[1em] mb-1 last:mb-0',
   link: 'text-lime-400 underline cursor-pointer',
   text: {
     bold: 'font-bold',

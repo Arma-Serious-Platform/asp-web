@@ -91,7 +91,7 @@ function renderNode(node: SerializedNode, key: number | string, options: RenderO
     case 'paragraph':
       return (
         <p key={key} className="mb-1 last:mb-0">
-          {children.map((child, i) => renderNode(child, i, options))}
+          {children.length ? children.map((child, i) => renderNode(child, i, options)) : <br />}
         </p>
       );
     case 'text': {
