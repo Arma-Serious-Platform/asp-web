@@ -219,12 +219,16 @@ const TeamSpeakGuide: FC<{ className?: string }> = ({ className }) => {
     {
       title: 'Підключення до серверу TeamSpeak 3',
       description: (
-        <p>
-          При підключенні до серверу проекту в TeamSpeak 3, використовуйте нікнейм, який відповідає вашому нікнейму в
-          Discord. <br />
-          <br />
-          <b>TeamSpeak IP:</b> <span className="text-primary">vtgarma3</span>
-        </p>
+        <div className="flex flex-col gap-3">
+          <p>
+            При підключенні до серверу проекту в TeamSpeak 3, використовуйте нікнейм, який відповідає вашому нікнейму
+            в Discord.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <b>TeamSpeak IP:</b>
+            <CodeCopy string="vtgarma3" />
+          </div>
+        </div>
       ),
     },
   ];

@@ -10,7 +10,7 @@ export default function Home() {
       <Section sectionClassName="py-10" id="about" eyebrow="Про проект" title="VTG" background={false}>
         <div className="flex w-full flex-col gap-10 lg:flex-row lg:items-stretch lg:gap-12">
           <section className="paper relative flex w-full flex-col gap-6 rounded-xl px-6 py-6 shadow-xl lg:w-2/3">
-            <div className="pointer-events-none absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-white/5" />
+            <div className="pointer-events-none absolute inset-0 -z-10 rounded-xl bg-linear-to-br from-white/5 via-transparent to-white/5" />
 
             <div className="flex flex-col gap-4 text-lg max-lg:text-base">
               <p className="max-lg:text-center text-zinc-100">
@@ -62,7 +62,7 @@ export default function Home() {
             <div
               key={id}
               className="relative w-full overflow-hidden rounded-xl border border-white/10 bg-black/80 shadow-md">
-              <div className="relative w-full aspect-[5/5]">
+              <div className="relative w-full aspect-5/5">
                 <iframe
                   className="absolute inset-0 h-full w-full"
                   src={`https://www.youtube.com/embed/${id}`}
@@ -84,14 +84,30 @@ export default function Home() {
         title="Встановлення збірки"
         background={false}
         withCard={false}>
-        <div className="flex gap-6 max-lg:flex-col">
-          <div className="max-lg:w-full lg:w-2/3">
-            <InstallationGuide className="paper mt-2 w-full rounded-xl border px-4 py-4 shadow-md" />
+        <div className="mx-auto max-1/2 w-full">
+          <div className="paper overflow-hidden rounded-2xl border shadow-xl">
+            <div className="relative aspect-video w-full bg-black">
+              <iframe
+                className="absolute inset-0 h-full w-full"
+                src="https://www.youtube.com/embed/wOaGAuV6YcU"
+                title="Відеогайд встановлення збірки VTG"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+          <div>
+            <h3 className="text-2xl font-bold max-lg:text-center">Кроки</h3>
+            <InstallationGuide className="paper mt-4 w-full rounded-xl border px-4 py-4 shadow-md" />
           </div>
 
-          <div className="max-lg:mt-8 max-lg:w-full lg:w-1/3">
-            <h3 className="mx-auto text-3xl font-bold max-lg:text-center">Посилання на моди та ключі</h3>
-            <InstallationGuideLinks className="paper mt-6 w-full max-lg:mx-auto rounded-xl border px-4 py-4 shadow-md" />
+          <div className="max-lg:w-full">
+            <h3 className="text-2xl font-bold max-lg:text-center">Посилання на моди та ключі</h3>
+            <InstallationGuideLinks className="paper mt-4 w-full max-lg:mx-auto rounded-xl border px-4 py-4 shadow-md" />
           </div>
         </div>
 
