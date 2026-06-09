@@ -361,6 +361,7 @@ const MissionDetailsPage = observer(() => {
                 canEdit={canEditMissionVersion}
                 canDelete={canDeleteMissionVersion}
                 canChangeStatus={canChangeMissionVersionStatus}
+                defaultSectionsOpen
                 onEdit={handleEditVersion}
                 onDelete={setVersionToDelete}
                 onChangeStatus={params => {

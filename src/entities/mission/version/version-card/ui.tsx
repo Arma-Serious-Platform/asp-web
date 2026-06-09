@@ -40,6 +40,7 @@ type MissionVersionCardProps = {
   onEdit: (version: MissionVersion) => void;
   canDelete?: boolean;
   canChangeStatus?: boolean;
+  defaultSectionsOpen?: boolean;
   onDelete?: (version: MissionVersion) => void;
   onChangeStatus: (params: { missionId: string; version: MissionVersion; status: MissionStatus }) => void;
 };
@@ -52,13 +53,14 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   onEdit,
   canDelete,
   canChangeStatus = true,
+  defaultSectionsOpen = false,
   onDelete,
   onChangeStatus,
 }) => {
-  const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(false);
-  const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(false);
-  const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(false);
-  const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(false);
+  const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(defaultSectionsOpen);
+  const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(defaultSectionsOpen);
+  const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(defaultSectionsOpen);
+  const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(defaultSectionsOpen);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [previewScreenshots, setPreviewScreenshots] = useState<MissionVersion['attackScreenshots']>([]);
   const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
