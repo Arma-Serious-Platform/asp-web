@@ -1,6 +1,10 @@
+'use client';
+
 import { cn } from '@/shared/utils/cn';
+import { CopyIcon } from 'lucide-react';
 import { FC } from 'react';
-import { RuleSection } from '../data';
+import toast from 'react-hot-toast';
+import type { RuleSection } from '../data';
 
 const RuleCategory: FC<React.PropsWithChildren> = ({ children }) => (
   <div className="paper flex flex-col gap-4 rounded-xl border px-4 py-5 shadow-xl">{children}</div>
@@ -17,18 +21,38 @@ const RuleContent: FC<{
   text: string;
 }> = ({ id, text }) => {
   const dotCount = (id.match(/\./g) || []).length;
+  const copyRuleLink = async () => {
+    const ruleText = `${id} ${text}`;
+
+    try {
+      await navigator.clipboard.writeText(ruleText);
+      toast.success('Правило скопійовано');
+    } catch {
+      toast.error('Не вдалося скопіювати правило');
+    }
+  };
 
   return (
     <div
-      className={cn('whitespace-pre-wrap pl-4 text-sm leading-relaxed text-zinc-300', {
+      className={cn('pl-4 text-sm leading-relaxed text-zinc-300', {
         'pl-8': dotCount === 2,
         'pl-12': dotCount === 3,
       })}
       id={id}>
-      <a href={`#${id}`} className="mr-1 font-mono text-xs font-semibold text-lime-400">
-        {id}{' '}
-      </a>
-      {text}
+      <span className="whitespace-pre-wrap">
+        <a href={`#${id}`} className="mr-1 font-mono text-xs font-semibold text-lime-400">
+          {id}{' '}
+        </a>
+        {text}
+      </span>
+      <button
+        type="button"
+        aria-label={`Копіювати правило ${id}`}
+        title="Копіювати правило"
+        className="cursor-pointer ml-2 inline-flex size-6 align-text-bottom items-center justify-center rounded-md border border-white/10 bg-black/30 text-zinc-400 transition-colors hover:border-lime-500/50 hover:text-lime-300"
+        onClick={copyRuleLink}>
+        <CopyIcon className="size-3.5" />
+      </button>
     </div>
   );
 };

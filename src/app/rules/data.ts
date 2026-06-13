@@ -645,3 +645,106 @@ export const RULE_CATEGORIES = DEFAULT_RULE_SECTIONS.map(section => ({
   hash: `#${section.id}`,
   title: section.title,
 }));
+
+const RULE_SECTION_HEADING_REGEX = /^(\d+)\.\s+(.+)$/;
+const RULE_ITEM_HEADING_REGEX = /^(\d+(?:\.\d+)+)\.\s+(.+)$/;
+const CONTROL_CHARACTERS_REGEX = /[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
+
+const normalizeRuleLine = (line: string) => line.replace(CONTROL_CHARACTERS_REGEX, '').trimEnd();
+
+const trimRuleTextLines = (lines: string[]) => {
+  const normalizedLines = [...lines];
+
+  while (normalizedLines[0] === '') normalizedLines.shift();
+  while (normalizedLines[normalizedLines.length - 1] === '') normalizedLines.pop();
+
+  return normalizedLines.join('\n');
+};
+
+export const parseMarkdownRuleSections = (content?: string | null): RuleSection[] => {
+  if (!content?.trim()) {
+    return cloneRuleSections();
+  }
+
+  const sections: RuleSection[] = [];
+  let currentSection: RuleSection | null = null;
+  let currentItem: { id: string; lines: string[] } | null = null;
+
+  const pushCurrentItem = () => {
+    if (!currentSection || !currentItem) return;
+
+    const text = trimRuleTextLines(currentItem.lines);
+
+    if (text) {
+      currentSection.items.push({
+        id: currentItem.id,
+        text,
+      });
+    }
+
+    currentItem = null;
+  };
+
+  const pushCurrentSection = () => {
+    pushCurrentItem();
+
+    if (currentSection && currentSection.items.length > 0) {
+      sections.push(currentSection);
+    }
+
+    currentSection = null;
+  };
+
+  content.split(/\r?\n/).forEach(rawLine => {
+    const line = normalizeRuleLine(rawLine);
+    const trimmedLine = line.trim();
+
+    if (!currentSection && /^(Source URL|Title):/i.test(trimmedLine)) {
+      return;
+    }
+
+    const sectionMatch = trimmedLine.match(RULE_SECTION_HEADING_REGEX);
+    const itemMatch = trimmedLine.match(RULE_ITEM_HEADING_REGEX);
+
+    if (sectionMatch && !itemMatch) {
+      pushCurrentSection();
+
+      const [, id, title] = sectionMatch;
+      currentSection = {
+        id,
+        title: `${id}. ${title.trim()}`,
+        items: [],
+      };
+      return;
+    }
+
+    if (itemMatch) {
+      pushCurrentItem();
+
+      const [, id, title] = itemMatch;
+      currentItem = {
+        id,
+        lines: [title.trim()],
+      };
+
+      if (!currentSection) {
+        const sectionId = id.split('.')[0];
+        currentSection = {
+          id: sectionId,
+          title: sectionId,
+          items: [],
+        };
+      }
+
+      return;
+    }
+
+    if (!currentItem) return;
+
+    currentItem.lines.push(trimmedLine ? line : '');
+  });
+
+  pushCurrentSection();
+
+  return sections.length > 0 ? sections : cloneRuleSections();
+};

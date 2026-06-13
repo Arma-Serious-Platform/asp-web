@@ -1,11 +1,11 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { RULE_CATEGORIES } from './data';
+import type { RuleSection } from './data';
 import { cn } from '@/shared/utils/cn';
 import { ListTreeIcon, XIcon } from 'lucide-react';
 
-const RulesMobileMenu: FC = () => {
+const RulesMobileMenu: FC<{ sections: RuleSection[] }> = ({ sections }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -25,7 +25,7 @@ const RulesMobileMenu: FC = () => {
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-40 flex flex-col bg-gradient-to-b from-black/95 via-neutral-950/98 to-black/95 lg:hidden">
+        <div className="fixed inset-0 z-40 flex flex-col bg-linear-to-b from-black/95 via-neutral-950/98 to-black/95 lg:hidden">
           <div className="mx-auto flex w-full max-w-xl flex-col px-4 pt-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1">
@@ -45,13 +45,13 @@ const RulesMobileMenu: FC = () => {
 
             <div className="mt-5 flex-1 overflow-y-auto pb-6">
               <div className="paper flex flex-col gap-1 rounded-xl border px-2 py-2 shadow-xl">
-                {RULE_CATEGORIES.map(category => (
+                {sections.map(section => (
                   <a
-                    key={category.title}
-                    href={category.hash}
+                    key={section.id}
+                    href={`#${section.id}`}
                     onClick={() => setIsOpen(false)}
                     className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-zinc-200 transition-colors hover:bg-white/5 hover:text-white">
-                    <span>{category.title}</span>
+                    <span>{section.title}</span>
                   </a>
                 ))}
               </div>
