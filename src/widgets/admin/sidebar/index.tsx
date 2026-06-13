@@ -4,7 +4,16 @@ import { session } from '@/entities/session/model';
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
 import classNames from 'classnames';
-import { CalendarIcon, MapPin, MedalIcon, ScrollTextIcon, ServerIcon, SwordIcon, UserIcon, UsersIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  MapPin,
+  MedalIcon,
+  ScrollTextIcon,
+  ServerIcon,
+  SwordIcon,
+  UserIcon,
+  UsersIcon,
+} from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -51,9 +60,9 @@ const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
           <AdminSidebarItem href={ROUTES.admin.weekends} label="Анонси" icon={<CalendarIcon />} />
         )}
 
-        {session.canManageRules && (
+        {/* {session.canManageRules && (
           <AdminSidebarItem href={ROUTES.admin.rules} label="Правила" icon={<ScrollTextIcon />} />
-        )}
+        )} */}
 
         {session.canManageSpecializations && (
           <AdminSidebarItem href={ROUTES.admin.specializations} label="Спеціалізації" icon={<MedalIcon />} />
