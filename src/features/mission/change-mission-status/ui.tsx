@@ -29,6 +29,7 @@ const ChangeMissionVersionStatusModal: FC<
   const isApproveAction = status === MissionStatus.APPROVED;
   const isChangesRequestedAction = status === MissionStatus.CHANGES_REQUESTED;
   const isPendingApprovalAction = status === MissionStatus.PENDING_APPROVAL;
+  const isInReviewAction = status === MissionStatus.IN_REVIEW;
 
   return (
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
@@ -49,6 +50,12 @@ const ChangeMissionVersionStatusModal: FC<
                 статус <span className="text-primary">{statusLabels[MissionStatus.PENDING_APPROVAL]}</span>?
               </div>
             </View.Condition>
+            <View.Condition if={isInReviewAction}>
+              <div>
+                Ви впевнені, що хочете взяти версію <span className="text-primary">{version?.version}</span> на
+                перевірку?
+              </div>
+            </View.Condition>
             <View.Condition if={isChangesRequestedAction}>
               <div>
                 Ви впевнені, що версія <span className="text-primary">{version?.version}</span> ще потребує змін?
@@ -62,7 +69,7 @@ const ChangeMissionVersionStatusModal: FC<
               Скасувати
             </Button>
             <Button
-              variant={isApproveAction ? 'default' : 'destructive'}
+              variant={isApproveAction || isInReviewAction || isPendingApprovalAction ? 'default' : 'destructive'}
               onClick={() => {
                 if (missionId && version?.id && status) {
                   model.changeStatus(missionId, version.id, status, onSuccess);

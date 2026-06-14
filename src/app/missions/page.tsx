@@ -29,6 +29,7 @@ type MissionFiltersState = {
   state: State | null;
   islandId: string | null;
   authorId: string | null;
+  reviewerId: string | null;
   minSlots: number | null;
   maxSlots: number | null;
   missionType: MissionType | null;
@@ -128,6 +129,15 @@ const MissionFilters = observer(
         />
 
         <Select
+          label="Перевіряючий"
+          options={mapUsersToSelectOptions(model.reviewerUserModel.pagination.data)}
+          localSearch
+          placeholder="Усі перевіряючі"
+          value={filters.reviewerId || ''}
+          onChange={value => setFilters({ reviewerId: value || null })}
+        />
+
+        <Select
           label="Карта"
           resultsClassName="max-h-[150px] overflow-y-auto"
           multiple={false}
@@ -185,6 +195,7 @@ const MissionsPageContent = observer(() => {
     state: parseAsStringEnum(Object.values(State)),
     islandId: parseAsString,
     authorId: parseAsString,
+    reviewerId: parseAsString,
     minSlots: parseAsInteger,
     maxSlots: parseAsInteger,
     missionType: parseAsStringEnum(Object.values(MissionType)),
@@ -204,6 +215,7 @@ const MissionsPageContent = observer(() => {
 
   const getMissionParams = (orderType: 'asc' | 'desc' = filters.orderType) => ({
     authorId: filters.authorId || undefined,
+    reviewerId: filters.reviewerId || undefined,
     status: filters.status || undefined,
     state: filters.state || undefined,
     islandId: filters.islandId || undefined,
@@ -241,6 +253,7 @@ const MissionsPageContent = observer(() => {
       state: null,
       islandId: null,
       authorId: null,
+      reviewerId: null,
       minSlots: null,
       maxSlots: null,
       missionType: null,

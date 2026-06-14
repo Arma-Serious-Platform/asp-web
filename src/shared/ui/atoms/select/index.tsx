@@ -1,4 +1,4 @@
-import { FC, ReactNode, useMemo, useState } from 'react';
+import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
 import { Popover } from '../../moleculas/popover';
 
 import { Radio } from '../radio';
@@ -74,6 +74,8 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   const shouldCloseOnSelect = closeOnSelect ?? !multiple;
 
   const handleOpenChange = (open: boolean) => {
+    if (disabled && open) return;
+
     if (!open) {
       setSearchValue('');
     }
@@ -83,6 +85,8 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
   };
 
   const onSelect = (option: SelectOption) => {
+    if (disabled) return;
+
     if (multiple) {
       const currentValue = value as string[];
       const nextValue = currentValue.includes(option.value)
@@ -137,6 +141,14 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
     return selected.content ?? selected.label;
   }, [multiple, allKnownOptions, value]);
 
+  useEffect(() => {
+    if (disabled && isOpen) {
+      setSearchValue('');
+      setIsOpen(false);
+      onOpenChange?.(false);
+    }
+  }, [disabled, isOpen, onOpenChange]);
+
   return (
     <Popover
       open={isOpen}
@@ -149,7 +161,11 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
         ) : (
           <div className="relative flex flex-col w-full">
             {label && (
-              <div className="absolute left-2 top-0 -translate-y-1/2 rounded-md border border-white/10 bg-neutral-800 px-2 text-xs font-medium text-zinc-100 shadow-sm">
+              <div
+                className={cn(
+                  'absolute left-2 top-0 -translate-y-1/2 rounded-md border border-white/10 bg-neutral-800 px-2 text-xs font-medium text-zinc-100 shadow-sm',
+                  disabled && 'border-neutral-700 bg-neutral-900 text-zinc-500 opacity-70',
+                )}>
                 {label}
               </div>
             )}
@@ -158,7 +174,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
                 'flex h-9 w-full min-w-0 cursor-pointer items-center rounded-md border border-neutral-700 bg-black/70 px-2 py-1 text-sm text-zinc-100 shadow-sm transition-colors placeholder:text-zinc-500 hover:border-lime-500 hover:bg-black/80 focus-visible:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/40',
                 {
                   'text-zinc-500': !value || !value.length,
-                  'cursor-not-allowed opacity-45 hover:border-neutral-700 hover:bg-black/70': disabled,
+                  'pointer-events-none cursor-not-allowed opacity-45 hover:border-neutral-700 hover:bg-black/70': disabled,
                 },
               )}>
               <span className="min-w-0 flex-1 truncate">

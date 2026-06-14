@@ -59,7 +59,11 @@ const UpdateMissionModal: FC<
 
   const payload = model.visibility?.payload;
   const mission = payload?.mission;
-  const canUpdateCoauthors = session.user?.user?.id === mission?.authorId;
+  const currentUserId = session.user?.user?.id;
+  const isCurrentUserCoauthor = Boolean(
+    currentUserId && mission?.coauthors?.some(coauthor => coauthor.id === currentUserId),
+  );
+  const canUpdateCoauthors = !isCurrentUserCoauthor;
 
   const islandsOptions = islands.map(island => ({
     value: island.id,
@@ -302,7 +306,7 @@ const UpdateMissionModal: FC<
                     disabled={!canUpdateCoauthors}
                   />
                   {!canUpdateCoauthors && (
-                    <p className="text-xs text-zinc-500">Співавторів може змінювати лише автор місії.</p>
+                    <p className="text-xs text-zinc-500">Співавтор не може змінювати список співавторів місії.</p>
                   )}
                 </div>
               )}

@@ -14,6 +14,7 @@ import {
   Trash2Icon,
   ChevronDownIcon,
   ChevronUpIcon,
+  UserCheckIcon,
 } from 'lucide-react';
 import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
 import { statusLabels, statusColors, statusTextColors, sideTypeColors } from '@/entities/mission/lib';
@@ -28,6 +29,7 @@ import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 import { Tooltip } from '@/shared/ui/moleculas/tooltip';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
 import { MessageContent } from '@/entities/comment/lexical-message';
+import { UserNicknameText } from '@/entities/user/ui/user-text';
 
 /** Two side columns (w-72) + gap-3 — keeps compact cards from resizing when spoilers open */
 const COMPACT_CARD_WIDTH = 'w-[1/2]';
@@ -113,11 +115,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 <span>Версія {version.version} потребує змін. Перезалийте файл або створіть нову версію.</span>
               </Tooltip>
             </View.Condition>
-            <View.Condition if={!session.canReviewMissions || version.status !== MissionStatus.PENDING_APPROVAL}>
-              <span className={cn('px-2 py-0.5 rounded text-xs font-semibold border', statusColors[version.status])}>
-                {statusLabels[version.status]}
-              </span>
-            </View.Condition>
+            <span className={cn('px-2 py-0.5 rounded text-xs font-semibold border', statusColors[version.status])}>
+              {statusLabels[version.status]}
+              {version.reviewer && '. '}
+              {version.reviewer && <UserNicknameText user={version.reviewer} className="truncate text-zinc-100" />}
+            </span>
 
             <View.Condition if={session.canReviewMissions && canChangeStatus}>
               <Popover
@@ -128,7 +130,12 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                     <EditIcon className="size-4" />
                   </Button>
                 }>
-                {[MissionStatus.APPROVED, MissionStatus.CHANGES_REQUESTED, MissionStatus.PENDING_APPROVAL]
+                {[
+                  MissionStatus.APPROVED,
+                  MissionStatus.IN_REVIEW,
+                  MissionStatus.CHANGES_REQUESTED,
+                  MissionStatus.PENDING_APPROVAL,
+                ]
                   .filter(status => status !== version.status)
                   .map(status => (
                     <Button

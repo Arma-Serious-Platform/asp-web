@@ -13,6 +13,7 @@ export enum MissionStatus {
   APPROVED = 'APPROVED',
   PENDING_APPROVAL = 'PENDING_APPROVAL',
   CHANGES_REQUESTED = 'CHANGES_REQUESTED',
+  IN_REVIEW = 'IN_REVIEW',
 }
 
 export enum MissionType {
@@ -348,6 +349,8 @@ export type FindUsersDto = PaginatedRequest<{
   hasSquad?: boolean;
   /** Filter users who have authored at least one mission */
   hasMission?: boolean;
+  /** Filter users who can review mission versions */
+  canReviewMissions?: boolean;
 }>;
 
 /** bannedUntil is sent as path param (ISO string). Required by API. */
@@ -481,6 +484,7 @@ export type FindMissionsDto = PaginatedRequest<{
   status?: MissionStatus;
   state?: State;
   authorId?: string;
+  reviewerId?: string;
   islandId?: string;
   minSlots?: number;
   maxSlots?: number;
@@ -568,6 +572,8 @@ export type MissionVersion = {
   inGameTime?: string | null;
   weather?: string | null;
   changelog?: MissionCommentMessage | null;
+  reviewerId?: string | null;
+  reviewer?: User | null;
   status: MissionStatus;
   createdAt: string;
   updatedAt: string;

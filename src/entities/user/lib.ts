@@ -62,6 +62,14 @@ export const findUsersWithMissionParams = (params: Partial<FindUsersDto> = {}): 
   ...params,
 });
 
+/** Query params for mission reviewer filter — only users who can review mission versions. */
+export const findMissionReviewersParams = (params: Partial<FindUsersDto> = {}): FindUsersDto => ({
+  canReviewMissions: true,
+  take: 50,
+  skip: 0,
+  ...params,
+});
+
 export const getUserStatusText = (status?: UserStatus) => {
   switch (status) {
     case UserStatus.BANNED:

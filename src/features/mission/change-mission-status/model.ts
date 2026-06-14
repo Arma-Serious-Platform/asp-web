@@ -2,6 +2,7 @@ import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
 import { MissionStatus, MissionVersion } from '@/shared/sdk/types';
+import { statusLabels } from '@/entities/mission/lib';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -32,8 +33,7 @@ export class ChangeMissionVersionStatusModel {
         onSuccess(status);
       }
 
-      const statusLabel = status === MissionStatus.APPROVED ? 'Перевірено' : 'Потребує змін';
-      toast.success(`Статус версії змінено на "${statusLabel}"`);
+      toast.success(`Статус версії змінено на "${statusLabels[status]}"`);
       this.visibility.close();
     } catch {
       toast.error('Не вдалося змінити статус версії місії');
