@@ -13,10 +13,11 @@ import { observer } from 'mobx-react-lite';
 import { FC, useEffect } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import * as yup from 'yup';
+import { nicknameSchema } from '@/shared/lib/nickname-schema';
 import { ChangeNicknameModel } from './model';
 
 const schema = yup.object().shape({
-  nickname: yup.string().trim().min(2, 'Мінімум 2 символи').required("Обов'язкове поле"),
+  nickname: nicknameSchema,
 });
 
 const ChangeNicknameModal: FC<{

@@ -11,6 +11,7 @@ import {
 import { User } from '@/shared/sdk/types';
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useEffect, useState } from 'react';
+import { getNicknameValidationError } from '@/shared/lib/nickname-schema';
 import toast from 'react-hot-toast';
 import { adminChangeNicknameModel, AdminChangeNicknameModel } from './model';
 
@@ -32,8 +33,10 @@ const AdminChangeNicknameModal: FC<
   const submit = () => {
     const trimmedNickname = nickname.trim();
 
-    if (trimmedNickname.length < 2) {
-      toast.error('Позивний має містити мінімум 2 символи');
+    const nicknameError = getNicknameValidationError(trimmedNickname);
+
+    if (nicknameError) {
+      toast.error(nicknameError);
       return;
     }
 

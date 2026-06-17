@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { FC, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { signUpModel, SignUpModel } from './model';
+import { nicknameSchema } from '@/shared/lib/nickname-schema';
 import { PASSWORD_REQUIREMENTS_HINT, passwordSchema } from '@/shared/lib/password-schema';
 import * as yup from 'yup';
 
@@ -23,7 +24,7 @@ const SignUpForm: FC<{
   model?: SignUpModel;
 }> = ({ className, model = signUpModel }) => {
   const schema = yup.object().shape({
-    nickname: yup.string().min(2, 'Мінімум 2 символи').required("Обов'язкове поле"),
+    nickname: nicknameSchema,
     email: yup.string().email('Неправильний формат email').required("Обов'язкове поле"),
     password: passwordSchema,
     rePassword: yup
@@ -51,7 +52,7 @@ const SignUpForm: FC<{
     try {
       await model.signUp({
         email: data.email,
-        nickname: data.nickname,
+        nickname: data.nickname.trim(),
         password: data.password,
       });
       model.setSuccessEmail(data.email);
