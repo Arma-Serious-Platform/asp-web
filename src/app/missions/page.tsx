@@ -269,10 +269,20 @@ const MissionsPageContent = observer(() => {
   };
 
   useEffect(() => {
+    if (session.preloader.isLoading) return;
+
+    if (!session.isAuthorized) {
+      router.push(ROUTES.auth.login);
+    }
+  }, [router, session.isAuthorized, session.preloader.isLoading]);
+
+  useEffect(() => {
+    if (session.preloader.isLoading || !session.isAuthorized) return;
+
     model.init({
       ...getMissionParams(),
     });
-  }, []);
+  }, [session.isAuthorized, session.preloader.isLoading]);
 
   const handleCreateMission = () => {
     model.createMissionModel.visibility.open();
@@ -285,6 +295,10 @@ const MissionsPageContent = observer(() => {
   const isLoading = model.missionModel.pagination.preloader.isLoading;
   const missions = model.missionModel.pagination.data;
   const hasNoMissions = !isLoading && missions.length === 0;
+
+  if (session.preloader.isLoading || !session.isAuthorized) {
+    return null;
+  }
 
   return (
     <Layout showHero={false} className="container paper mx-auto my-2 sm:my-4">

@@ -84,7 +84,7 @@ const MainLinks: FC<{
         </Link>
       )}
 
-      {!env.isLanding && (
+      {!env.isLanding && session.isAuthorized && (
         <Link className={className} activeClassName={activeClassName} href={ROUTES.missions.root}>
           Місії
         </Link>

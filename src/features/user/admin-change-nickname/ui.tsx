@@ -32,8 +32,8 @@ const AdminChangeNicknameModal: FC<
   const submit = () => {
     const trimmedNickname = nickname.trim();
 
-    if (trimmedNickname.length < 3) {
-      toast.error('Позивний має містити мінімум 3 символи');
+    if (trimmedNickname.length < 2) {
+      toast.error('Позивний має містити мінімум 2 символи');
       return;
     }
 

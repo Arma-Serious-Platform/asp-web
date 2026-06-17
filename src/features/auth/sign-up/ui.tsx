@@ -23,7 +23,7 @@ const SignUpForm: FC<{
   model?: SignUpModel;
 }> = ({ className, model = signUpModel }) => {
   const schema = yup.object().shape({
-    nickname: yup.string().min(3, 'Мінімум 3 символи').required("Обов'язкове поле"),
+    nickname: yup.string().min(2, 'Мінімум 2 символи').required("Обов'язкове поле"),
     email: yup.string().email('Неправильний формат email').required("Обов'язкове поле"),
     password: passwordSchema,
     rePassword: yup

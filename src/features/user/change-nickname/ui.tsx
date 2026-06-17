@@ -16,7 +16,7 @@ import * as yup from 'yup';
 import { ChangeNicknameModel } from './model';
 
 const schema = yup.object().shape({
-  nickname: yup.string().trim().min(3, 'Мінімум 3 символи').required("Обов'язкове поле"),
+  nickname: yup.string().trim().min(2, 'Мінімум 2 символи').required("Обов'язкове поле"),
 });
 
 const ChangeNicknameModal: FC<{

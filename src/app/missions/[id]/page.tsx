@@ -7,7 +7,7 @@ import { Mission, MissionStatus, MissionVersion, State, UserRole } from '@/share
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon, LoaderIcon, EditIcon, Trash2Icon } from 'lucide-react';
+import { ArchiveIcon, ArchiveRestoreIcon, EllipsisIcon, PlusIcon, LoaderIcon, EditIcon, Trash2Icon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/shared/config/routes';
 import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
@@ -27,6 +27,7 @@ import { ChangeMissionStateModal } from '@/features/mission/change-mission-state
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { MessageContent } from '@/entities/comment/lexical-message';
+import { Popover } from '@/shared/ui/moleculas/popover';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -36,10 +37,19 @@ const MissionDetailsPage = observer(() => {
   const [isLoading, setIsLoading] = useState(true);
   const [versionToDelete, setVersionToDelete] = useState<MissionVersion | null>(null);
   const [isDeletingVersion, setIsDeletingVersion] = useState(false);
+  const [missionActionsOpen, setMissionActionsOpen] = useState(false);
   const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
   const deleteCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
   const deleteMissionModel = useMemo(() => new DeleteMissionModel(), []);
   const currentUserId = session.user?.user?.id;
+
+  useEffect(() => {
+    if (session.preloader.isLoading) return;
+
+    if (!session.isAuthorized) {
+      router.push(ROUTES.auth.login);
+    }
+  }, [router, session.isAuthorized, session.preloader.isLoading]);
 
   const isMissionAuthor = useMemo(() => {
     return currentUserId === mission?.authorId;
@@ -52,12 +62,16 @@ const MissionDetailsPage = observer(() => {
   const canEditMissionVersion = canEditMission && !isMissionArchived;
   const canChangeMissionVersionStatus = session.canReviewMissions && !isMissionArchived;
   const canDeleteMissionVersion = session.canManageMissions;
+  const canDeleteMission = session.canManageMissions;
   const canChangeMissionState =
     isMissionAuthor ||
     isMissionCoauthor ||
     [UserRole.OWNER, UserRole.UVK].includes(session.user?.user?.role as UserRole);
+  const hasMissionActions = canEditMission || canChangeMissionState || canDeleteMission;
 
   useEffect(() => {
+    if (session.preloader.isLoading || !session.isAuthorized) return;
+
     const loadMission = async () => {
       try {
         setIsLoading(true);
@@ -73,15 +87,17 @@ const MissionDetailsPage = observer(() => {
     if (missionId) {
       loadMission();
     }
-  }, [missionId]);
+  }, [missionId, session.isAuthorized, session.preloader.isLoading]);
 
   useEffect(() => {
+    if (session.preloader.isLoading || !session.isAuthorized) return;
+
     if (missionId) {
       missionDetailsModel.commentModel.pagination.loadAll({
         missionId,
       });
     }
-  }, [missionId]);
+  }, [missionId, session.isAuthorized, session.preloader.isLoading, missionDetailsModel.commentModel.pagination]);
 
   const handleCreateVersion = () => {
     if (!mission) return;
@@ -178,6 +194,10 @@ const MissionDetailsPage = observer(() => {
   const handleDeleteComment = (comment: MissionComment) => {
     deleteCommentModel.visibility.open({ comment });
   };
+
+  if (session.preloader.isLoading || !session.isAuthorized) {
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -300,48 +320,69 @@ const MissionDetailsPage = observer(() => {
                   />
                 </div>
 
-                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                  <View.Condition if={canEditMission}>
-                    <Button
-                      onClick={handleMissionUpdate}
-                      variant="outline"
-                      className="flex items-center gap-2 hover:bg-white/10 transition-colors">
-                      <EditIcon className="size-4" />
-                      <span className="hidden sm:inline">Редагувати</span>
-                    </Button>
-                  </View.Condition>
-                  <View.Condition if={canChangeMissionState}>
-                    <Button
-                      type="button"
-                      onClick={handleChangeMissionState}
-                      variant="outline"
-                      className="flex items-center gap-2 hover:bg-white/10 transition-colors">
-                      {mission.state === State.ARCHIVED ? (
-                        <ArchiveRestoreIcon className="size-4" />
-                      ) : (
-                        <ArchiveIcon className="size-4" />
-                      )}
-                      <span className="hidden sm:inline">
+                <View.Condition if={hasMissionActions}>
+                  <Popover
+                    open={missionActionsOpen}
+                    onChange={setMissionActionsOpen}
+                    className="flex w-56 flex-col gap-2 p-2"
+                    trigger={
+                      <Button type="button" size="icon" variant="outline" aria-label="Дії з місією">
+                        <EllipsisIcon className="size-5" />
+                      </Button>
+                    }>
+                    <View.Condition if={canEditMission}>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setMissionActionsOpen(false);
+                          handleMissionUpdate();
+                        }}
+                        variant="ghost"
+                        align="left"
+                        className="w-full justify-start gap-2">
+                        <EditIcon className="size-4" />
+                        Редагувати
+                      </Button>
+                    </View.Condition>
+
+                    <View.Condition if={canChangeMissionState}>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setMissionActionsOpen(false);
+                          handleChangeMissionState();
+                        }}
+                        variant="ghost"
+                        align="left"
+                        className="w-full justify-start gap-2">
+                        {mission.state === State.ARCHIVED ? (
+                          <ArchiveRestoreIcon className="size-4" />
+                        ) : (
+                          <ArchiveIcon className="size-4" />
+                        )}
                         {mission.state === State.ARCHIVED ? 'Розархівувати' : 'Архівувати'}
-                      </span>
-                    </Button>
-                  </View.Condition>
-                  <View.Condition if={session.canManageMissions}>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="flex items-center gap-2"
-                      onClick={() =>
-                        deleteMissionModel.visibility.open({
-                          missionId: mission.id,
-                          missionName: mission.name,
-                        })
-                      }>
-                      <Trash2Icon className="size-4" />
-                      <span className="hidden sm:inline">Видалити</span>
-                    </Button>
-                  </View.Condition>
-                </div>
+                      </Button>
+                    </View.Condition>
+
+                    <View.Condition if={canDeleteMission}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        align="left"
+                        className="w-full justify-start gap-2 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                        onClick={() => {
+                          setMissionActionsOpen(false);
+                          deleteMissionModel.visibility.open({
+                            missionId: mission.id,
+                            missionName: mission.name,
+                          });
+                        }}>
+                        <Trash2Icon className="size-4" />
+                        Видалити
+                      </Button>
+                    </View.Condition>
+                  </Popover>
+                </View.Condition>
               </div>
             </div>
           </div>
