@@ -223,9 +223,10 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                   </Button>
                   <Button
                     variant="destructive"
-                    onClick={() => {
-                      session.logout();
+                    onClick={async () => {
+                      await session.logout();
                       setLogoutDialogOpen(false);
+                      router.refresh();
                     }}>
                     Вийти
                   </Button>

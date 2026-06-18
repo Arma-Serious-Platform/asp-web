@@ -308,6 +308,22 @@ export type ResetPasswordDto = {
 /** @deprecated Use ResetPasswordDto */
 export type ConfirmForgotPasswordDto = ResetPasswordDto;
 
+export type SessionLoginDto = {
+  emailOrNickname: string;
+  password: string;
+  device?: string;
+};
+
+export type UserSession = {
+  id: string;
+  device?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  createdAt?: string;
+  lastActiveAt?: string;
+  isCurrent?: boolean;
+};
+
 /** @deprecated Use LoginUserDto (emailOrNickname + password) */
 export type LoginDto = {
   email: string;
@@ -319,10 +335,12 @@ export type LoginUserDto = {
   password: string;
 };
 
+/** @deprecated Session auth no longer returns tokens */
 export type RefreshTokenDto = {
   refreshToken: string;
 };
 
+/** @deprecated Session auth no longer returns tokens */
 export type LoginResponse = {
   user: User;
   token: string;

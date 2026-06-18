@@ -30,7 +30,6 @@ import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { MessageEditor } from '@/features/chat/editor';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
-import { getTokensFromLocalStorage } from '@/shared/utils/session';
 import dayjs from 'dayjs';
 import { ChevronDownIcon, ChevronUpIcon, CopyIcon, LoaderIcon, ShieldIcon, TrashIcon, UserIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -576,16 +575,15 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
       return;
     }
 
-    const token = getTokensFromLocalStorage()?.token;
     const apiBaseUrl = env.apiUrl?.replace(/\/api\/?$/, '');
-    if (!token || !apiBaseUrl) {
+    if (!apiBaseUrl || !session.isAuthorized) {
       return;
     }
 
     const socket =
       socketRef.current ??
       io(`${apiBaseUrl}/headquarters`, {
-        auth: { token },
+        withCredentials: true,
         transports: ['websocket'],
       });
 

@@ -19,6 +19,7 @@ import { View } from '@/features/view';
 import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from '@/widgets/user/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
+import { ManageSessions } from '@/features/user/manage-sessions';
 import { ChangeNicknameModal, ProfileNickname } from '@/features/user/change-nickname';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
@@ -106,7 +107,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
             </div>
 
             {/* Right column: tab content */}
-            <div className="flex w-full flex-col gap-4 border-t border-white/10 pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <div className="flex min-w-0 flex-1 flex-col gap-4 border-t border-white/10 pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
               <View.Condition if={tab === 'profile' || !model.isOwnProfile}>
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-1">
@@ -213,14 +214,21 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                   </View.Condition>
 
                   <View.Condition if={tab === 'security'}>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
-                          Безпека облікового запису
-                        </span>
-                        <div className="text-lg font-bold text-white">Змінити пароль</div>
-                      </div>
-                      <ChangePassword user={model.user} />
+                    <div className="flex min-w-0 flex-col gap-5">
+                      <section className="flex min-w-0 flex-col gap-3">
+                        <h2 className="text-sm font-semibold text-white">Змінити пароль</h2>
+                        <ChangePassword user={model.user} />
+                      </section>
+
+                      <section className="flex min-w-0 flex-col gap-3 border-t border-white/10 pt-5">
+                        <div className="flex flex-col gap-0.5">
+                          <h2 className="text-sm font-semibold text-white">Активні сесії</h2>
+                          <p className="text-xs text-zinc-500">
+                            Завершіть інші входи. Поточну сесію завершити не можна.
+                          </p>
+                        </div>
+                        <ManageSessions />
+                      </section>
                     </div>
                   </View.Condition>
 

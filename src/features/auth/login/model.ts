@@ -9,11 +9,11 @@ class LoginModel {
   }
 
   login = async (dto: LoginDto) => {
-    const { data: response } = await api.login(dto);
+    const { data: user } = await api.login(dto);
 
-    session.authorize(response);
+    session.authorize(user);
 
-    return response;
+    return user;
   };
 }
 

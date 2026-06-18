@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/uk';
 import toast from 'react-hot-toast';
+import { observer } from 'mobx-react-lite';
 import { CheckIcon, LoaderIcon, MessageCircleIcon, PencilIcon, PlusIcon, UsersIcon, XIcon } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 
@@ -19,7 +20,6 @@ import { MessageContent } from '@/entities/comment/lexical-message';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { session } from '@/entities/session/model';
 import { env } from '@/shared/config/env';
-import { getTokensFromLocalStorage } from '@/shared/utils/session';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/organisms/dialog';
 
 dayjs.extend(relativeTime);
@@ -199,7 +199,7 @@ const getArrayPayload = (value: unknown): unknown[] => {
   return [];
 };
 
-export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChatProps) {
+export const ProfileChat = observer(function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChatProps) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -221,6 +221,7 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
   const [chatActivityById, setChatActivityById] = useState<Record<string, string>>({});
   const handledInitialUserIdRef = useRef<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const activeChatIdRef = useRef<string | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   const activeChat = useMemo(() => chats.find(chat => chat.id === activeChatId) ?? null, [activeChatId, chats]);
@@ -593,31 +594,37 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
   };
 
   useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
+
+  useEffect(() => {
     if (!activeChatId) {
       socketRef.current?.disconnect();
       socketRef.current = null;
       return;
     }
 
-    const token = getTokensFromLocalStorage()?.token;
     const apiBaseUrl = env.apiUrl?.replace(/\/api\/?$/, '');
-    if (!token || !apiBaseUrl) {
+    if (!apiBaseUrl || !session.isAuthorized) {
       return;
     }
 
     const socket =
       socketRef.current ??
       io(`${apiBaseUrl}/chat`, {
-        auth: { token },
+        withCredentials: true,
         transports: ['websocket'],
       });
 
     socketRef.current = socket;
 
     const handleNewMessage = (payload: unknown) => {
-      const normalized = normalizeChatMessage(payload, activeChatId);
+      const chatId = activeChatIdRef.current;
+      if (!chatId) return;
+
+      const normalized = normalizeChatMessage(payload, chatId);
       if (!normalized) return;
-      if (normalized.chatId !== activeChatId) return;
+      if (normalized.chatId !== chatId) return;
 
       setMessages(prev => {
         if (prev.some(message => message.id === normalized.id)) {
@@ -628,14 +635,25 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
       bumpChatActivity(normalized.chatId, normalized.createdAt ?? normalized.updatedAt);
     };
 
+    const joinChat = () => {
+      const chatId = activeChatIdRef.current;
+      if (!chatId) return;
+
+      socket.emit('join_chat', { chatId });
+    };
+
     socket.on('new_message', handleNewMessage);
-    socket.emit('join_chat', { chatId: activeChatId });
+    socket.on('connect', joinChat);
+
+    if (socket.connected) {
+      joinChat();
+    }
 
     return () => {
-      socket.emit('leave_chat', { chatId: activeChatId });
       socket.off('new_message', handleNewMessage);
+      socket.off('connect', joinChat);
     };
-  }, [activeChatId, bumpChatActivity]);
+  }, [activeChatId, session.isAuthorized, bumpChatActivity]);
 
   useEffect(() => {
     return () => {
@@ -921,4 +939,4 @@ export function ProfileChat({ initialUserId, onInitialUserHandled }: ProfileChat
       </Dialog>
     </div>
   );
-}
+});

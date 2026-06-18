@@ -45,7 +45,7 @@ const ChangePassword: FC<{
   if (!user) return null;
 
   return (
-    <form className="flex flex-col gap-4 min-w-96" onSubmit={form.handleSubmit(onSubmit)}>
+    <form className="flex w-full max-w-sm flex-col gap-3" onSubmit={form.handleSubmit(onSubmit)}>
       <Input
         {...form.register('oldPassword')}
         label="Старий пароль"
