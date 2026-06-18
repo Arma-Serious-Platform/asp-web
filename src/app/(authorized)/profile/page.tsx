@@ -1,37 +1,15 @@
-'use client';
-
-import { Layout } from '@/widgets/layout';
-import { observer } from 'mobx-react-lite';
-import { useEffect, useMemo } from 'react';
-import { Hero } from '@/widgets/hero';
-import { session } from '@/entities/session/model';
+import { getSessionUser } from '@/entities/session/server/get-session-user';
 import { ROUTES } from '@/shared/config/routes';
-import { useRouter } from 'next/navigation';
-import { UserProfile } from '@/widgets/users/profile/ui';
+import { redirect } from 'next/navigation';
 
-import { model } from './model';
+import { ProfilePageClient } from './profile-page-client';
 
-const ProfilePage = observer(() => {
-  const router = useRouter();
+export default async function ProfilePage() {
+  const initialUser = await getSessionUser();
 
-  useEffect(() => {
-    if (!session.isAuthorized) {
-      router.push(ROUTES.auth.login);
-
-      return;
-    }
-  }, [session.isAuthorized, router]);
-
-  if (!session.isAuthorized) {
-    return null;
+  if (!initialUser) {
+    redirect(ROUTES.auth.login);
   }
 
-  return (
-    <Layout>
-      <Hero />
-      <UserProfile model={model.profile} />
-    </Layout>
-  );
-});
-
-export default ProfilePage;
+  return <ProfilePageClient initialUser={initialUser} />;
+}

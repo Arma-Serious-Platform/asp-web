@@ -28,23 +28,26 @@ class UserProfileModel {
     return this.isOwnProfile ? session.user.user : this.otherUser;
   }
 
-  init = async (userIdOrNickname?: string) => {
+  init = async (userIdOrNickname?: string, options?: { refresh?: boolean }) => {
+    const shouldFetchOwnProfile =
+      this.isOwnProfile && !userIdOrNickname && (options?.refresh || !session.user.user);
+
     try {
-      this.loader.start();
-
-      if (this.isOwnProfile && !userIdOrNickname) {
+      if (shouldFetchOwnProfile) {
+        this.loader.start();
         await session.fetchMe();
-
-        return;
+      } else if (!this.isOwnProfile || userIdOrNickname) {
+        this.loader.start();
+        const { data: otherUserData } = await api.getUserByIdOrNickname(userIdOrNickname || '');
+        this.otherUser = otherUserData;
       }
-
-      const { data: otherUserData } = await api.getUserByIdOrNickname(userIdOrNickname || '');
-      this.otherUser = otherUserData;
     } catch (error) {
       console.error(error);
       toast.error('Не вдалося завантажити профіль користувача');
     } finally {
-      this.loader.stop();
+      if (shouldFetchOwnProfile || !this.isOwnProfile || userIdOrNickname) {
+        this.loader.stop();
+      }
     }
   };
 
@@ -52,8 +55,7 @@ class UserProfileModel {
     try {
       this.socialsLoader.start();
       await api.updateMe(dto);
-      await this.init(this.user?.id || this.user?.nickname || '');
-      await session.fetchMe();
+      await this.init(undefined, { refresh: true });
     } catch {
       toast.error('Не вдалося оновити соціальні мережі');
     } finally {

@@ -44,12 +44,12 @@ const MissionDetailsPage = observer(() => {
   const currentUserId = session.user?.user?.id;
 
   useEffect(() => {
-    if (session.preloader.isLoading) return;
+    if (!session.isSessionReady) return;
 
     if (!session.isAuthorized) {
       router.push(ROUTES.auth.login);
     }
-  }, [router, session.isAuthorized, session.preloader.isLoading]);
+  }, [router, session.isAuthorized, session.isSessionReady]);
 
   const isMissionAuthor = useMemo(() => {
     return currentUserId === mission?.authorId;
@@ -70,7 +70,7 @@ const MissionDetailsPage = observer(() => {
   const hasMissionActions = canEditMission || canChangeMissionState || canDeleteMission;
 
   useEffect(() => {
-    if (session.preloader.isLoading || !session.isAuthorized) return;
+    if (!session.isSessionReady || !session.isAuthorized) return;
 
     const loadMission = async () => {
       try {
@@ -87,17 +87,17 @@ const MissionDetailsPage = observer(() => {
     if (missionId) {
       loadMission();
     }
-  }, [missionId, session.isAuthorized, session.preloader.isLoading]);
+  }, [missionId, session.isAuthorized, session.isSessionReady]);
 
   useEffect(() => {
-    if (session.preloader.isLoading || !session.isAuthorized) return;
+    if (!session.isSessionReady || !session.isAuthorized) return;
 
     if (missionId) {
       missionDetailsModel.commentModel.pagination.loadAll({
         missionId,
       });
     }
-  }, [missionId, session.isAuthorized, session.preloader.isLoading, missionDetailsModel.commentModel.pagination]);
+  }, [missionId, session.isAuthorized, session.isSessionReady, missionDetailsModel.commentModel.pagination]);
 
   const handleCreateVersion = () => {
     if (!mission) return;
@@ -195,7 +195,7 @@ const MissionDetailsPage = observer(() => {
     deleteCommentModel.visibility.open({ comment });
   };
 
-  if (session.preloader.isLoading || !session.isAuthorized) {
+  if (!session.isSessionReady || !session.isAuthorized) {
     return null;
   }
 

@@ -14,9 +14,11 @@ export class SessionModel {
 
   user = new UserModel();
 
-  preloader = new Preloader(true);
+  preloader = new Preloader();
 
   isAuthorized = false;
+
+  isSessionReady = false;
 
   get canManageRoles() {
     return this.user?.user?.role === UserRole.OWNER;
@@ -101,9 +103,17 @@ export class SessionModel {
   hydrate = (user: User | null) => {
     this.user.user = user;
     this.isAuthorized = Boolean(user);
+    this.isSessionReady = true;
+    this.preloader.stop();
   };
 
   boot = async () => {
+    if (this.isSessionReady) {
+      return;
+    }
+
+    this.preloader.start();
+
     try {
       await this.fetchMe();
     } catch (error) {
@@ -126,6 +136,7 @@ export class SessionModel {
 
       this.hydrate(null);
     } finally {
+      this.isSessionReady = true;
       this.preloader.stop();
     }
   };

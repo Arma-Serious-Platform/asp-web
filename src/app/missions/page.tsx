@@ -269,20 +269,20 @@ const MissionsPageContent = observer(() => {
   };
 
   useEffect(() => {
-    if (session.preloader.isLoading) return;
+    if (!session.isSessionReady) return;
 
     if (!session.isAuthorized) {
       router.push(ROUTES.auth.login);
     }
-  }, [router, session.isAuthorized, session.preloader.isLoading]);
+  }, [router, session.isAuthorized, session.isSessionReady]);
 
   useEffect(() => {
-    if (session.preloader.isLoading || !session.isAuthorized) return;
+    if (!session.isSessionReady || !session.isAuthorized) return;
 
     model.init({
       ...getMissionParams(),
     });
-  }, [session.isAuthorized, session.preloader.isLoading]);
+  }, [session.isAuthorized, session.isSessionReady]);
 
   const handleCreateMission = () => {
     model.createMissionModel.visibility.open();
@@ -296,7 +296,7 @@ const MissionsPageContent = observer(() => {
   const missions = model.missionModel.pagination.data;
   const hasNoMissions = !isLoading && missions.length === 0;
 
-  if (session.preloader.isLoading || !session.isAuthorized) {
+  if (!session.isSessionReady || !session.isAuthorized) {
     return null;
   }
 
