@@ -29,7 +29,6 @@ import { cn } from '@/shared/utils/cn';
 import { getUserRoleText } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
-import { useRouter } from 'next/navigation';
 import { headerModel } from './model';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 
@@ -107,7 +106,6 @@ const MainLinks: FC<{
 });
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer(({ className, activeClassName }) => {
-  const router = useRouter();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   if (!session.isSessionReady) {
@@ -220,9 +218,8 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                   <Button
                     variant="destructive"
                     onClick={async () => {
-                      await session.logout();
                       setLogoutDialogOpen(false);
-                      router.refresh();
+                      await session.logout();
                     }}>
                     Вийти
                   </Button>

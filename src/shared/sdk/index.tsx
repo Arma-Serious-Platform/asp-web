@@ -82,6 +82,10 @@ import {
 } from './types';
 
 import { env } from '../config/env';
+import { ROUTES } from '../config/routes';
+import { AUTH_REDIRECT_SKIP_PATHS } from '../lib/routes/lib';
+
+const AUTH_PAGES = [ROUTES.auth.login, ROUTES.auth.signup, ROUTES.auth.forgotPassword] as const;
 
 const appendStringArrayToFormData = (formData: FormData, key: string, values?: string[]) => {
   if (!values) return;
@@ -124,6 +128,32 @@ class ApiModel {
     this.instance.interceptors.request.use(request => {
       return request;
     });
+
+    this.instance.interceptors.response.use(
+      response => response,
+      error => {
+        const status = error.response?.status;
+        const requestUrl = error.config?.url ?? '';
+
+        if (
+          status === 401 &&
+          typeof window !== 'undefined' &&
+          !this.shouldSkipAuthRedirect(requestUrl, window.location.pathname)
+        ) {
+          window.location.assign(ROUTES.auth.login);
+        }
+
+        return Promise.reject(error);
+      },
+    );
+  }
+
+  private shouldSkipAuthRedirect(requestUrl: string, pathname: string) {
+    if (AUTH_REDIRECT_SKIP_PATHS.some(path => requestUrl.includes(path))) {
+      return true;
+    }
+
+    return AUTH_PAGES.some(path => pathname.startsWith(path));
   }
 
   /* Servers */

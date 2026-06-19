@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 
 import { UserModel } from '@/entities/user/model';
+import { ROUTES } from '@/shared/config/routes';
 import { SideType, SquadRole, User, UserRole } from '@/shared/sdk/types';
 import { Preloader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
@@ -159,6 +160,10 @@ export class SessionModel {
     }
 
     this.hydrate(null);
+
+    if (typeof window !== 'undefined') {
+      window.location.assign(ROUTES.home);
+    }
   };
 }
 

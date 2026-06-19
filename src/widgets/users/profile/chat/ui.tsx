@@ -582,7 +582,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       .filter(user => user.id !== currentUserId)
       .filter(user => {
         if (!query) return true;
-        return user.nickname.toLowerCase().includes(query) || user.email.toLowerCase().includes(query);
+        return user.nickname.toLowerCase().includes(query);
       });
   }, [allUsers, currentUserId, newChatUserSearch]);
 
