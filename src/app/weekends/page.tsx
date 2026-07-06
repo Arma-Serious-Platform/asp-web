@@ -3,13 +3,29 @@
 import { Layout } from '@/widgets/layout';
 import { WeekendAnnouncement } from '@/entities/weekend/weekend-announcement/ui';
 import { observer } from 'mobx-react-lite';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { model } from './model';
 import { View } from '@/features/view';
 import { api } from '@/shared/sdk';
 import { Side } from '@/shared/sdk/types';
 
+import { model } from './model';
+
+const scrollToWeekendAnchor = (hash: string) => {
+  const id = hash.replace(/^#/, '');
+  if (!id) {
+    return;
+  }
+
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
 const WeekendsPage = observer(() => {
+  const searchParams = useSearchParams();
+  const activeGameId = searchParams.get('game');
   const [sidesById, setSidesById] = useState<Record<string, Side>>({});
 
   useEffect(() => {
@@ -29,6 +45,25 @@ const WeekendsPage = observer(() => {
 
     void loadSides();
   }, []);
+
+  useEffect(() => {
+    if (model.weekends.pagination.preloader.isLoading) {
+      return;
+    }
+
+    const scrollToHash = () => {
+      requestAnimationFrame(() => {
+        scrollToWeekendAnchor(window.location.hash);
+      });
+    };
+
+    scrollToHash();
+    window.addEventListener('hashchange', scrollToHash);
+
+    return () => {
+      window.removeEventListener('hashchange', scrollToHash);
+    };
+  }, [activeGameId, model.weekends.pagination.preloader.isLoading, model.weekends.pagination.data.length]);
 
   return (
     <Layout>
@@ -50,7 +85,12 @@ const WeekendsPage = observer(() => {
             }>
             <div className="flex flex-col gap-12">
               {model.weekends.pagination.data.map(weekend => (
-                <WeekendAnnouncement key={weekend.id} weekend={weekend} sidesById={sidesById} />
+                <WeekendAnnouncement
+                  key={weekend.id}
+                  weekend={weekend}
+                  sidesById={sidesById}
+                  activeGameId={activeGameId}
+                />
               ))}
             </div>
           </View.Condition>

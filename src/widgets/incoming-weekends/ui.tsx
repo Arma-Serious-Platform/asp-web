@@ -50,7 +50,7 @@ export const IncomingWeekends: FC<{
                 </div>
                 <h2 className="text-lg font-bold text-white md:text-xl">Найближчі ігри</h2>
               </div>
-              <Link href={ROUTES.weekends}>
+              <Link href={model.weekend?.id ? ROUTES.weekendByAnchor(model.weekend.id) : ROUTES.weekends}>
                 <Button variant="outline" size="sm" className="h-8 gap-1 px-2.5 text-xs">
                   Всі анонси
                   <ArrowRightIcon className="size-3.5" />
@@ -63,11 +63,12 @@ export const IncomingWeekends: FC<{
               {upcomingGames.map(game => {
                 const attackColor = resolveMissionSideColor(game.missionVersion.attackSideType);
                 const defenseColor = resolveMissionSideColor(game.missionVersion.defenseSideType);
+                const weekendId = game.weekendId ?? model.weekend?.id;
 
                 return (
                   <Link
                     key={game.id}
-                    href={ROUTES.weekends}
+                    href={weekendId ? ROUTES.weekendByAnchor(weekendId, game.id) : ROUTES.weekends}
                     className="paper cursor-pointer rounded-md border border-white/10 p-2.5 transition-colors hover:border-lime-700/50 md:p-3">
                     <div className="flex items-start gap-2">
                       {/* Mission Image */}
