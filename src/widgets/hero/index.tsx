@@ -58,7 +58,7 @@ export const Hero: FC<{
         'relative flex flex-col items-center justify-center min-h-screen w-full shadow-2xl shadow-black',
         className,
       )}>
-      <video className="absolute inset-0 w-full h-full object-cover z-10 " src="/media/hero.webm" autoPlay muted loop />
+      <video className="absolute inset-0 w-full h-full object-cover z-10 " src="/media/hero.webm" autoPlay muted loop playsInline />
       <div className="absolute inset-0 bg-black opacity-75 z-10"></div>
       <div className="z-20 text-white mx-auto w-full flex flex-col items-center">
         <LogoAndTitle size="lg" />
