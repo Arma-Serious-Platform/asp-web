@@ -19,7 +19,7 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import NextLink from 'next/link';
 
 import classNames from 'classnames';
-import { ChevronDownIcon, Loader2Icon, LogOutIcon, MapIcon, MenuIcon, ShieldUserIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react';
+import { ChevronDownIcon, LogOutIcon, MapIcon, MenuIcon, ShieldUserIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
 
@@ -29,7 +29,6 @@ import { cn } from '@/shared/utils/cn';
 import { getUserRoleText } from '@/entities/user/lib';
 import { env } from '@/shared/config/env';
 import { Social } from '@/features/social/ui';
-import { useRouter } from 'next/navigation';
 import { headerModel } from './model';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 
@@ -107,15 +106,10 @@ const MainLinks: FC<{
 });
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer(({ className, activeClassName }) => {
-  const router = useRouter();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
-  if (session.preloader.isLoading) {
-    return (
-      <div className="flex items-center justify-center w-44 h-4">
-        <Loader2Icon className="w-4 h-4 animate-spin" />
-      </div>
-    );
+  if (!session.isSessionReady) {
+    return null;
   }
 
   return (
@@ -223,9 +217,9 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                   </Button>
                   <Button
                     variant="destructive"
-                    onClick={() => {
-                      session.logout();
+                    onClick={async () => {
                       setLogoutDialogOpen(false);
+                      await session.logout();
                     }}>
                     Вийти
                   </Button>

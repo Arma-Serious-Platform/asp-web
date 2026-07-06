@@ -1,236 +1,47 @@
 'use client';
 
-import { getGamesInCurrentWeek } from '@/entities/weekend/lib';
-import { session } from '@/entities/session/model';
-import { ROUTES } from '@/shared/config/routes';
-import { env } from '@/shared/config/env';
-import { api } from '@/shared/sdk';
-import {
-  Game,
-  HeadquartersComment,
-  HeadquartersGamePlan,
-  HeadquartersSlot,
-  MissionCommentMessage,
-  Side,
-  SideType,
-  Squad,
-  User,
-  UserRole,
-} from '@/shared/sdk/types';
-import { Button } from '@/shared/ui/atoms/button';
-import { FormReadonlyField } from '@/shared/ui/atoms/form-readonly-field';
-import { Input, NumericInput } from '@/shared/ui/atoms/input';
-import { Avatar } from '@/shared/ui/organisms/avatar';
-import { Select } from '@/shared/ui/atoms/select';
-import { TooltipContent, TooltipPrimitive, TooltipProvider, TooltipTrigger } from '@/shared/ui/moleculas/tooltip';
-import { cn } from '@/shared/utils/cn';
-import { UserNicknameText } from '@/entities/user/ui/user-text';
-import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
-import { MissionDetails } from '@/entities/mission/mission-details/ui';
-import { MessageContent } from '@/entities/comment/lexical-message';
-import { MessageEditor } from '@/features/chat/editor';
-import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
-import { getTokensFromLocalStorage } from '@/shared/utils/session';
-import dayjs from 'dayjs';
-import { ChevronDownIcon, ChevronUpIcon, CopyIcon, LoaderIcon, ShieldIcon, TrashIcon, UserIcon } from 'lucide-react';
-import Image from 'next/image';
+import { observer } from 'mobx-react-lite';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
+import { useEffect, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+
+import { session } from '@/entities/session/model';
+import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
+import { ROUTES } from '@/shared/config/routes';
+import { env } from '@/shared/config/env';
+import { HeadquartersComment, HeadquartersGamePlan, HeadquartersSlot, SideType, UserRole } from '@/shared/sdk/types';
+import { Button } from '@/shared/ui/atoms/button';
+
+import { PlanDetailsPanel } from './components/plan-details-panel';
+import { PlansSidebar } from './components/plans-sidebar';
+import { HqPlansModel } from './model';
 
 type HqPlansProps = {
   activePlanId?: string;
 };
 
-type SlotDraftField = keyof Pick<HeadquartersSlot, 'name' | 'weaponry' | 'slotCount' | 'spawnPoint' | 'comment'>;
-type SlotDrafts = Record<string, Partial<Record<SlotDraftField, string>>>;
-type WantedSlotOverrides = Record<string, boolean>;
-
-const normalizeSlotCount = (value: number | null | undefined) => (typeof value === 'number' ? value : 0);
-const PLANS_PAGE_SIZE = 8;
-const weekDayByIndex: Record<number, string> = {
-  0: 'Неділя',
-  1: 'Понеділок',
-  2: 'Вівторок',
-  3: 'Середа',
-  4: 'Четвер',
-  5: "П'ятниця",
-  6: 'Субота',
-};
-
-const joinSquadTags = (squads: Pick<Squad, 'tag'>[]) => squads.map(s => s.tag).join(', ');
-
-const areSamePayload = <T,>(a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
-
-const planListSkeletonPulse = 'animate-pulse rounded bg-zinc-600/35';
-
-function PlanListSkeleton() {
-  return (
-    <div className="flex min-w-max gap-2" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Завантаження списку планів</span>
-      {Array.from({ length: PLANS_PAGE_SIZE }, (_, i) => (
-        <div key={i} className="w-[300px] shrink-0 rounded-md border border-white/10 bg-black/30 px-2 py-2">
-          <div className={cn('mb-1.5 aspect-video w-full', planListSkeletonPulse)} />
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className={cn('h-3.5 w-[88%] max-w-[220px]', planListSkeletonPulse)} />
-              <div className={cn('h-3 w-full', planListSkeletonPulse)} />
-            </div>
-            <div className={cn('h-8 w-14 shrink-0', planListSkeletonPulse)} />
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            <div className={cn('h-4 min-w-0 flex-1', planListSkeletonPulse)} />
-            <div className={cn('h-4 w-6 shrink-0', planListSkeletonPulse)} />
-            <div className={cn('h-4 min-w-0 flex-1', planListSkeletonPulse)} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const tableFieldTooltipContentClass =
-  'block max-h-48 max-w-[min(24rem,85vw)] overflow-y-auto whitespace-pre-wrap wrap-break-word text-left';
-
-function TableCellTooltip({ text, children }: { text: string; children: ReactNode }) {
-  const display = text.trim() ? text : '—';
-  return (
-    <TooltipProvider delay={250}>
-      <TooltipPrimitive>
-        <TooltipTrigger
-          closeOnClick={false}
-          render={props => (
-            <div {...props} className={cn('block w-full min-w-0 text-left', props.className)}>
-              {children}
-            </div>
-          )}
-        />
-        <TooltipContent>
-          <span className={tableFieldTooltipContentClass}>{display}</span>
-        </TooltipContent>
-      </TooltipPrimitive>
-    </TooltipProvider>
-  );
-}
-
-function PlanCardSideName({
-  name,
-  slots,
-  className,
-}: {
-  name: string;
-  slots?: number | string | null;
-  className?: string;
-}) {
-  const displayName = name.trim() || '—';
-  const slotsLabel = slots ?? '-';
-
-  return (
-    <div className="flex min-w-0 items-center">
-      <TooltipProvider delay={250}>
-        <TooltipPrimitive>
-          <TooltipTrigger
-            closeOnClick={false}
-            render={props => (
-              <span {...props} className={cn('min-w-0 truncate font-semibold', className, props.className)}>
-                {displayName}
-              </span>
-            )}
-          />
-          <TooltipContent>
-            <span>
-              {displayName} ({slotsLabel})
-            </span>
-          </TooltipContent>
-        </TooltipPrimitive>
-      </TooltipProvider>
-      <span className={cn('shrink-0 font-semibold', className)}> ({slotsLabel})</span>
-    </div>
-  );
-}
-
-const getGameHumanLabel = (date?: string, position?: number) => {
-  const normalizedPosition = typeof position === 'number' ? position + 1 : null;
-  const dayIndex = date ? dayjs(date).day() : null;
-  const weekDay = dayIndex !== null && weekDayByIndex[dayIndex] ? weekDayByIndex[dayIndex] : 'Гра';
-  const datePart = date && dayjs(date).isValid() ? ` (${dayjs(date).format('DD.MM.YYYY')})` : '';
-
-  if (normalizedPosition !== null) {
-    return `${weekDay}, ${normalizedPosition}-а${datePart}`;
-  }
-
-  if (datePart) {
-    return `${weekDay}${datePart}`;
-  }
-
-  return weekDay;
-};
-
-const copyToClipboard = async (text: string, options?: { successMessage?: string; emptyErrorMessage?: string }) => {
-  const trimmed = text.trim();
-  if (!trimmed) {
-    toast.error(options?.emptyErrorMessage ?? 'Нічого копіювати');
-    return;
-  }
-
-  try {
-    await navigator.clipboard.writeText(trimmed);
-    toast.success(options?.successMessage ?? 'Скопійовано');
-  } catch {
-    toast.error('Не вдалося скопіювати');
-  }
-};
-
-export function HqPlans({ activePlanId }: HqPlansProps) {
+export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
   const router = useRouter();
-  const currentUser = session.user.user;
-  const [isLoading, setIsLoading] = useState(true);
-  const [plans, setPlans] = useState<HeadquartersGamePlan[]>([]);
-  const [usersById, setUsersById] = useState<Record<string, User>>({});
-  const [squadsById, setSquadsById] = useState<Record<string, Squad>>({});
-  const [gamesById, setGamesById] = useState<Record<string, Game>>({});
-  const [sidesById, setSidesById] = useState<Record<string, Side>>({});
-  const [isSlotsOpen, setIsSlotsOpen] = useState(true);
-  const [comments, setComments] = useState<HeadquartersComment[]>([]);
-  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
-  const [isCommentSending, setIsCommentSending] = useState(false);
-  const [visiblePlansCount, setVisiblePlansCount] = useState(PLANS_PAGE_SIZE);
-  const [slotDrafts, setSlotDrafts] = useState<SlotDrafts>({});
-  const [planUrlDraft, setPlanUrlDraft] = useState<string | null>(null);
-  const [wantedSlotOverrides, setWantedSlotOverrides] = useState<WantedSlotOverrides>({});
+  const model = useMemo(() => new HqPlansModel(), []);
   const socketRef = useRef<Socket | null>(null);
-  const wantedSlotOverrideTimeoutsRef = useRef<Record<string, number>>({});
   const deleteHqCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
 
+  const currentUser = session.user.user;
   const hasAccess = Boolean(
     currentUser?.squad && [SideType.BLUE, SideType.RED].includes(currentUser?.squad?.side?.type as SideType),
   );
-
   const currentSide = currentUser?.squad?.side?.type;
   const currentSquad = currentUser?.squad;
   const isAdmin = [UserRole.OWNER, UserRole.TECH_ADMIN].includes(currentUser?.role as UserRole);
 
-  const selectedPlan = useMemo(() => plans.find(plan => plan.id === activePlanId) ?? null, [activePlanId, plans]);
-  const selectedCommander = selectedPlan?.gameCommanderId ? usersById[selectedPlan.gameCommanderId] : null;
+  const selectedPlan = model.getPlanById(activePlanId);
+  const selectedCommander = selectedPlan?.gameCommanderId ? model.usersById[selectedPlan.gameCommanderId] : null;
   const isCommander = Boolean(currentUser?.id && selectedPlan?.gameCommanderId === currentUser.id);
   const canEditCommanderFields = isCommander;
-
-  useEffect(() => {
-    setPlanUrlDraft(null);
-    setSlotDrafts({});
-    setWantedSlotOverrides({});
-  }, [selectedPlan?.id]);
-
-  useEffect(
-    () => () => {
-      Object.values(wantedSlotOverrideTimeoutsRef.current).forEach(timeoutId => {
-        window.clearTimeout(timeoutId);
-      });
-    },
-    [],
-  );
+  const selectedGame = selectedPlan?.gameId ? model.gamesById[selectedPlan.gameId] : undefined;
+  const attackSide = selectedGame?.attackSideId ? model.sidesById[selectedGame.attackSideId] : undefined;
+  const defenseSide = selectedGame?.defenseSideId ? model.sidesById[selectedGame.defenseSideId] : undefined;
 
   useEffect(() => {
     if (!hasAccess) {
@@ -239,336 +50,46 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
   }, [hasAccess, router]);
 
   useEffect(() => {
-    if (!hasAccess) return;
+    if (!hasAccess) {
+      return;
+    }
 
-    const load = async () => {
-      setIsLoading(true);
-      try {
-        const [weekendsRes, usersRes, squadsRes, sidesRes] = await Promise.all([
-          api.findWeekends({ take: 100, skip: 0 }),
-          api.findUsers({ take: 1000, skip: 0 }),
-          api.findSquads({ take: 1000, skip: 0 }),
-          api.findSides({ take: 1000, skip: 0 }),
-        ]);
+    void model.load(currentSide).then(() => {
+      model.ensureArchivePlanVisible(activePlanId);
 
-        const users = usersRes.data.data ?? [];
-        const squads = squadsRes.data.data ?? [];
-        const sides = sidesRes.data.data ?? [];
-        setUsersById(Object.fromEntries(users.map(user => [user.id, user])));
-        setSquadsById(Object.fromEntries(squads.map(squad => [squad.id, squad])));
-        setSidesById(Object.fromEntries(sides.map(side => [side.id, side])));
-
-        const weekends = weekendsRes.data.data ?? [];
-        const games = getGamesInCurrentWeek(weekends);
-        setGamesById(Object.fromEntries(games.map(game => [game.id, game])));
-        const plansByGame = await Promise.allSettled(games.map(game => api.findHeadquartersPlansByGame(game.id)));
-        const loadedPlans = plansByGame.flatMap(result =>
-          result.status === 'fulfilled' ? (result.value.data ?? []) : ([] as HeadquartersGamePlan[]),
-        );
-
-        const filtered = loadedPlans
-          .filter(plan => plan.side?.type === currentSide)
-          .sort((a, b) => dayjs(a.game?.date).valueOf() - dayjs(b.game?.date).valueOf());
-
-        setPlans(filtered);
-        setVisiblePlansCount(PLANS_PAGE_SIZE);
-
-        if (!activePlanId && filtered.length > 0) {
-          const now = dayjs().startOf('day');
-          const defaultPlan =
-            filtered.find(plan => !dayjs(plan.game?.date).startOf('day').isBefore(now)) ?? filtered[0];
-          router.replace(`/hq/plans/${defaultPlan.id}`);
+      if (!activePlanId) {
+        const defaultPlanId = model.getDefaultPlanId();
+        if (defaultPlanId) {
+          router.replace(`/hq/plans/${defaultPlanId}`);
         }
-      } catch (error) {
-        console.error(error);
-        toast.error('Не вдалося завантажити плани штабу');
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    load();
-  }, [currentSide, hasAccess, router]);
-
-  const replacePlan = (nextPlan: HeadquartersGamePlan) => {
-    setPlans(prev =>
-      prev.map(item => (item.id === nextPlan.id ? (areSamePayload(item, nextPlan) ? item : nextPlan) : item)),
-    );
-  };
-
-  const replaceSlot = (slot: HeadquartersSlot) => {
-    setPlans(prev =>
-      prev.map(plan => {
-        const slotIndex = plan.slots.findIndex(item => item.id === slot.id);
-        if (slotIndex === -1 || areSamePayload(plan.slots[slotIndex], slot)) {
-          return plan;
-        }
-
-        const slots = [...plan.slots];
-        slots[slotIndex] = slot;
-
-        return {
-          ...plan,
-          slots,
-        };
-      }),
-    );
-  };
-
-  const setSlotDraft = (slotId: string, field: SlotDraftField, value: string) => {
-    setSlotDrafts(prev => ({
-      ...prev,
-      [slotId]: {
-        ...prev[slotId],
-        [field]: value,
-      },
-    }));
-  };
-
-  const clearSlotDrafts = (slotId: string, fields: SlotDraftField[]) => {
-    setSlotDrafts(prev => {
-      const current = prev[slotId];
-      if (!current) return prev;
-
-      const next = { ...current };
-      fields.forEach(field => {
-        delete next[field];
-      });
-
-      if (Object.keys(next).length === 0) {
-        const { [slotId]: _removed, ...rest } = prev;
-        return rest;
-      }
-
-      return {
-        ...prev,
-        [slotId]: next,
-      };
     });
-  };
-
-  const getSlotTextDraft = (slot: HeadquartersSlot, field: Exclude<SlotDraftField, 'slotCount'>) =>
-    slotDrafts[slot.id]?.[field] ?? slot[field] ?? '';
-
-  const getSlotCountDraft = (slot: HeadquartersSlot) =>
-    slotDrafts[slot.id]?.slotCount ?? String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)));
-
-  const updateSlotField = async (
-    slotId: string,
-    dto: Parameters<typeof api.updateHeadquartersSlot>[1],
-    draftFields = Object.keys(dto) as SlotDraftField[],
-  ) => {
-    try {
-      const { data } = await api.updateHeadquartersSlot(slotId, dto);
-      replaceSlot(data);
-      clearSlotDrafts(slotId, draftFields);
-    } catch (error) {
-      console.error(error);
-      toast.error('Не вдалося оновити слот');
-    }
-  };
-
-  const updatePlanUrl = async (value: string) => {
-    if (!selectedPlan) return;
-    try {
-      const { data } = await api.updateHeadquartersPlan(selectedPlan.id, { planUrl: value || null });
-      replacePlan(data);
-      setPlanUrlDraft(null);
-    } catch (error) {
-      console.error(error);
-      toast.error('Не вдалося оновити посилання на план');
-    }
-  };
-
-  const squadOptions = useMemo(
-    () =>
-      Object.values(squadsById)
-        .filter(squad => squad.side?.type === currentSide)
-        .map(squad => ({
-          value: squad.id,
-          label: squad.tag,
-        })),
-    [currentSide, squadsById],
-  );
-
-  const syncAssignedSquads = async (slot: HeadquartersSlot, nextSquadIds: string[]) => {
-    const currentSquadIds = slot.assignedSquads.map(squad => squad.id);
-    const toAssign = nextSquadIds.filter(id => !currentSquadIds.includes(id));
-    const toUnassign = currentSquadIds.filter(id => !nextSquadIds.includes(id));
-
-    try {
-      let latestSlot = slot;
-
-      for (const squadId of toAssign) {
-        const { data } = await api.assignHeadquartersSlotSquad(slot.id, { squadId });
-        latestSlot = data;
-      }
-
-      for (const squadId of toUnassign) {
-        const { data } = await api.unassignHeadquartersSlotSquad(slot.id, { squadId });
-        latestSlot = data;
-      }
-
-      replaceSlot(latestSlot);
-    } catch (error) {
-      console.error(error);
-      toast.error('Не вдалося оновити бронювання');
-    }
-  };
-
-  const totalSlots = useMemo(
-    () => selectedPlan?.slots.reduce((sum, slot) => sum + normalizeSlotCount(slot.slotCount), 0) ?? 0,
-    [selectedPlan],
-  );
-  const totalOccupied = useMemo(
-    () =>
-      selectedPlan?.slots.reduce((sum, slot) => {
-        if (!slot.assignedSquads.length) {
-          return sum;
-        }
-
-        return sum + normalizeSlotCount(slot.slotCount);
-      }, 0) ?? 0,
-    [selectedPlan],
-  );
-  const visiblePlans = useMemo(() => plans.slice(0, visiblePlansCount), [plans, visiblePlansCount]);
+  }, [currentSide, hasAccess, model, router]);
 
   useEffect(() => {
-    if (!activePlanId) return;
+    model.resetPlanDrafts();
+  }, [model, selectedPlan?.id]);
 
-    const activePlanIndex = plans.findIndex(plan => plan.id === activePlanId);
-    if (activePlanIndex === -1) return;
+  useEffect(() => {
+    model.ensureArchivePlanVisible(activePlanId);
+  }, [activePlanId, model]);
 
-    setVisiblePlansCount(prev => Math.max(prev, activePlanIndex + 1, PLANS_PAGE_SIZE));
-  }, [activePlanId, plans]);
-
-  const selectedGame = selectedPlan?.gameId ? gamesById[selectedPlan.gameId] : undefined;
-  const attackSide = selectedGame?.attackSideId ? sidesById[selectedGame.attackSideId] : undefined;
-  const defenseSide = selectedGame?.defenseSideId ? sidesById[selectedGame.defenseSideId] : undefined;
-
-  const sideColorClass = (sideType?: SideType) => {
-    if (sideType === SideType.BLUE) return 'text-blue-400';
-    if (sideType === SideType.RED) return 'text-red-400';
-    return 'text-zinc-300';
-  };
-
-  const clearWantedSlotOverride = (slotId: string) => {
-    const timeoutId = wantedSlotOverrideTimeoutsRef.current[slotId];
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-      delete wantedSlotOverrideTimeoutsRef.current[slotId];
-    }
-
-    setWantedSlotOverrides(prev => {
-      if (!(slotId in prev)) return prev;
-
-      const next = { ...prev };
-      delete next[slotId];
-      return next;
-    });
-  };
-
-  const scheduleWantedSlotOverrideClear = (slotId: string) => {
-    const existingTimeoutId = wantedSlotOverrideTimeoutsRef.current[slotId];
-    if (existingTimeoutId) {
-      window.clearTimeout(existingTimeoutId);
-    }
-
-    wantedSlotOverrideTimeoutsRef.current[slotId] = window.setTimeout(() => {
-      clearWantedSlotOverride(slotId);
-    }, 500);
-  };
-
-  const getWantedSquadsForSlot = (slot: HeadquartersSlot) => {
-    const override = wantedSlotOverrides[slot.id];
-    if (override === undefined || !currentSquad) {
-      return slot.wantedSquads;
-    }
-
-    const hasCurrentSquad = slot.wantedSquads.some(squad => squad.id === currentSquad.id);
-
-    if (override) {
-      return hasCurrentSquad
-        ? slot.wantedSquads
-        : [
-            ...slot.wantedSquads,
-            {
-              id: currentSquad.id,
-              name: currentSquad.name,
-              tag: currentSquad.tag,
-              logo: currentSquad.logo,
-            },
-          ];
-    }
-
-    return slot.wantedSquads.filter(squad => squad.id !== currentSquad.id);
-  };
-
-  const sideAppearance = (sideType?: SideType) => {
-    if (sideType === SideType.RED) {
-      return {
-        dot: 'bg-red-500',
-        text: 'text-red-400',
-        badge: 'bg-red-500/20 text-red-400',
-      };
-    }
-
-    if (sideType === SideType.BLUE) {
-      return {
-        dot: 'bg-blue-500',
-        text: 'text-blue-400',
-        badge: 'bg-blue-500/20 text-blue-400',
-      };
-    }
-
-    return {
-      dot: 'bg-zinc-500',
-      text: 'text-zinc-300',
-      badge: 'bg-zinc-500/20 text-zinc-300',
-    };
-  };
-
-  const loadMorePlans = () => {
-    setVisiblePlansCount(prev => Math.min(prev + PLANS_PAGE_SIZE, plans.length));
-  };
-
-  const loadComments = async (gamePlanId: string) => {
-    setIsCommentsLoading(true);
-    try {
-      const { data } = await api.findHeadquartersComments(gamePlanId, { take: 100, skip: 0 });
-      setComments(data.data ?? []);
-    } catch (error) {
-      console.error(error);
-      toast.error('Не вдалося завантажити коментарі');
-    } finally {
-      setIsCommentsLoading(false);
-    }
-  };
-
-  const canDeleteHeadquartersComment = (comment: HeadquartersComment) =>
-    isAdmin || Boolean(currentUser?.id && comment.userId === currentUser.id);
-
-  const confirmDeleteHeadquartersComment = async (commentId: string) => {
-    try {
-      await api.deleteHeadquartersComment(commentId);
-      setComments(prev => prev.filter(item => item.id !== commentId));
-      toast.success('Коментар видалено');
-    } catch (error) {
-      console.error(error);
-      toast.error('Не вдалося видалити коментар');
-      throw error;
-    }
-  };
+  useEffect(
+    () => () => {
+      model.clearWantedSlotOverrideTimeouts();
+    },
+    [model],
+  );
 
   useEffect(() => {
     const gamePlanId = selectedPlan?.id;
     if (!gamePlanId) {
-      setComments([]);
+      model.comments = [];
       return;
     }
 
-    void loadComments(gamePlanId);
-  }, [selectedPlan?.id]);
+    void model.loadComments(gamePlanId);
+  }, [model, selectedPlan?.id]);
 
   useEffect(() => {
     const gamePlanId = selectedPlan?.id;
@@ -576,16 +97,15 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
       return;
     }
 
-    const token = getTokensFromLocalStorage()?.token;
     const apiBaseUrl = env.apiUrl?.replace(/\/api\/?$/, '');
-    if (!token || !apiBaseUrl) {
+    if (!apiBaseUrl || !session.isAuthorized) {
       return;
     }
 
     const socket =
       socketRef.current ??
       io(`${apiBaseUrl}/headquarters`, {
-        auth: { token },
+        withCredentials: true,
         transports: ['websocket'],
       });
 
@@ -593,32 +113,34 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
 
     const handleGamePlanUpdated = (payload: HeadquartersGamePlan) => {
       if (!payload?.id || payload.id !== gamePlanId) return;
-      replacePlan(payload);
+      model.replacePlan(payload);
     };
 
     const handleCommanderChanged = (payload: HeadquartersGamePlan) => {
       if (!payload?.id || payload.id !== gamePlanId) return;
-      replacePlan(payload);
+      model.replacePlan(payload);
     };
 
     const handleSlotUpdated = (payload: HeadquartersSlot) => {
       if (!payload?.id) return;
-      replaceSlot(payload);
+      model.replaceSlot(payload);
     };
 
     const handleCommentCreated = (payload: HeadquartersComment) => {
       if (!payload?.id) return;
-      setComments(prev => (prev.some(item => item.id === payload.id) ? prev : [payload, ...prev]));
+      model.comments = model.comments.some(item => item.id === payload.id)
+        ? model.comments
+        : [payload, ...model.comments];
     };
 
     const handleCommentUpdated = (payload: HeadquartersComment) => {
       if (!payload?.id) return;
-      setComments(prev => prev.map(item => (item.id === payload.id ? payload : item)));
+      model.comments = model.comments.map(item => (item.id === payload.id ? payload : item));
     };
 
     const handleCommentDeleted = (payload: { id: string }) => {
       if (!payload?.id) return;
-      setComments(prev => prev.filter(item => item.id !== payload.id));
+      model.comments = model.comments.filter(item => item.id !== payload.id);
     };
 
     const joinRoom = () => {
@@ -648,7 +170,7 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
       socket.off('comment_updated', handleCommentUpdated);
       socket.off('comment_deleted', handleCommentDeleted);
     };
-  }, [selectedPlan?.id]);
+  }, [model, selectedPlan?.id]);
 
   useEffect(() => {
     return () => {
@@ -657,11 +179,17 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
     };
   }, []);
 
-  if (!hasAccess) return null;
+  if (!hasAccess) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto my-6 flex flex-col gap-4 px-4">
-      <DeleteMissionCommentModal model={deleteHqCommentModel} onConfirm={confirmDeleteHeadquartersComment} />
+      <DeleteMissionCommentModal
+        model={deleteHqCommentModel}
+        onConfirm={commentId => model.confirmDeleteHeadquartersComment(commentId)}
+      />
+
       <div className="flex items-center gap-2 border-b border-white/10 pb-2">
         <h1 className="mr-4 text-lg font-semibold text-zinc-100">Штаб</h1>
         <Link href="/hq/plans">
@@ -670,586 +198,32 @@ export function HqPlans({ activePlanId }: HqPlansProps) {
       </div>
 
       <div className="grid min-h-[460px] grid-cols-1 gap-3">
-        <aside
-          className="overflow-x-auto rounded-lg border border-white/10 bg-black/40 p-2"
-          onScroll={event => {
-            const target = event.currentTarget;
-            const isEndReached = target.scrollLeft + target.clientWidth >= target.scrollWidth - 24;
-
-            if (isEndReached && visiblePlansCount < plans.length) {
-              loadMorePlans();
-            }
-          }}>
-          <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-            Список планів (тиждень)
-          </div>
-          {isLoading ? (
-            <PlanListSkeleton />
-          ) : plans.length === 0 ? (
-            <div className="px-2 py-2 text-sm text-zinc-500">Плани не знайдено</div>
-          ) : (
-            <div className="flex gap-2 min-w-max">
-              {visiblePlans.map(plan => {
-                const game = gamesById[plan.gameId];
-                const attackSideType = sidesById[game?.attackSideId || '']?.type;
-                const defenseSideType = sidesById[game?.defenseSideId || '']?.type;
-                const attackAppearance = sideAppearance(attackSideType);
-                const defenseAppearance = sideAppearance(defenseSideType);
-
-                return (
-                  <Link key={plan.id} href={`/hq/plans/${plan.id}`} className="block w-[300px] shrink-0">
-                    <div
-                      className={cn(
-                        'rounded-md border border-transparent bg-black/30 px-2 py-2 transition-colors',
-                        activePlanId === plan.id ? 'border-primary/40 bg-primary/15' : 'hover:bg-white/5',
-                      )}>
-                      <div className="relative mb-1.5 aspect-video w-full overflow-hidden rounded-md border border-white/10">
-                        <Image
-                          src={game?.mission?.image?.url || '/images/avatar.jpg'}
-                          alt={game?.mission?.name || 'mission image'}
-                          fill
-                          className="object-cover"
-                          unoptimized={!game?.mission?.image?.url?.startsWith('https')}
-                        />
-                      </div>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="truncate text-xs font-semibold text-zinc-100">
-                            {plan.game?.mission?.name ?? `Гра #${plan.game?.position ?? '-'}`}
-                          </div>
-                          <div className="mt-1 flex items-start gap-1 text-xs font-semibold text-zinc-300">
-                            <ShieldIcon className="mt-0.5 size-3.5 shrink-0" />
-                            <span className="min-w-0 wrap-break-word leading-snug">
-                              {getGameHumanLabel(plan.game?.date, plan.game?.position)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-right text-xs">
-                          <div className="flex items-center justify-end gap-1 text-zinc-400">
-                            <UserIcon className="size-3.5" />
-                            {plan.gameCommanderId && usersById[plan.gameCommanderId] ? (
-                              <span className="text-zinc-300">
-                                <UserNicknameText link={false} user={usersById[plan.gameCommanderId]} />
-                              </span>
-                            ) : (
-                              <span className="text-zinc-500">КС відсутній</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px]">
-                        <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                          <span className={cn('size-2 shrink-0 rounded-full', attackAppearance.dot)} />
-                          <PlanCardSideName
-                            className={attackAppearance.text}
-                            name={
-                              game?.missionVersion?.attackSideName ??
-                              sidesById[game?.attackSideId || '']?.name ??
-                              '—'
-                            }
-                            slots={game?.missionVersion?.attackSideSlots}
-                          />
-                          <span
-                            className={cn(
-                              'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
-                              attackAppearance.badge,
-                            )}>
-                            Атака
-                          </span>
-                        </div>
-                        <span className="shrink-0 text-zinc-500">vs</span>
-                        <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                          <span className={cn('size-2 shrink-0 rounded-full', defenseAppearance.dot)} />
-                          <PlanCardSideName
-                            className={defenseAppearance.text}
-                            name={
-                              game?.missionVersion?.defenseSideName ??
-                              sidesById[game?.defenseSideId || '']?.name ??
-                              '—'
-                            }
-                            slots={game?.missionVersion?.defenseSideSlots}
-                          />
-                          <span
-                            className={cn(
-                              'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
-                              defenseAppearance.badge,
-                            )}>
-                            Оборона
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-              {visiblePlansCount < plans.length && (
-                <div className="flex w-[260px] shrink-0 items-center justify-center px-2 py-2 text-center text-xs text-zinc-500">
-                  Прокрутіть праворуч, щоб завантажити ще
-                </div>
-              )}
-            </div>
-          )}
-        </aside>
+        <PlansSidebar model={model} activePlanId={activePlanId} />
 
         <section className="rounded-lg border border-white/10 bg-black/40 p-4">
           {!selectedPlan ? (
-            <div className="py-10 text-center text-zinc-300 text-lg font-bold h-full flex items-center justify-center">
+            <div className="flex h-full items-center justify-center py-10 text-center text-lg font-bold text-zinc-300">
               Оберіть план
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Деталі гри</div>
-                {selectedGame ? (
-                  <div className="flex flex-col gap-3">
-                    <div className="text-sm text-zinc-300">
-                      {getGameHumanLabel(selectedGame.date, selectedGame.position ?? selectedPlan.game?.position)}
-                    </div>
-                    <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-                      <MissionImagePanel game={selectedGame} />
-                      <div className="lg:w-3/5">
-                        <MissionDetails
-                          game={selectedGame}
-                          attackSideType={attackSide?.type}
-                          defenseSideType={defenseSide?.type}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm text-zinc-500">Деталі гри недоступні</div>
-                )}
-              </div>
-
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Командир</div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {selectedCommander ? (
-                    <div className="flex items-center gap-2">
-                      <Avatar
-                        size="sm"
-                        toProfileId={selectedCommander.id}
-                        src={selectedCommander.avatar?.url ?? undefined}
-                        alt={selectedCommander.nickname}
-                      />
-                      <span className="text-sm">
-                        <UserNicknameText user={selectedCommander} />
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-zinc-200">Не призначено</span>
-                  )}
-                  {!selectedPlan.gameCommanderId && (
-                    <Button
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const { data } = await api.assignHeadquartersCommander(selectedPlan.id);
-                          replacePlan(data);
-                        } catch (error) {
-                          console.error(error);
-                          toast.error('Не вдалося призначити командира');
-                        }
-                      }}>
-                      Призначити себе
-                    </Button>
-                  )}
-                  {selectedPlan.gameCommanderId && (isCommander || isAdmin) && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={async () => {
-                        try {
-                          const { data } = await api.unassignHeadquartersCommander(selectedPlan.id);
-                          replacePlan(data);
-                        } catch (error) {
-                          console.error(error);
-                          toast.error('Не вдалося зняти командира');
-                        }
-                      }}>
-                      Зняти командира
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                  Маркери або посилання на план |{' '}
-                  <a
-                    className="text-xs tracking-normal underline"
-                    href="https://arma-plan-maker.com"
-                    target="_blank"
-                    rel="noopener noreferrer">
-                    Arma Plan Maker
-                  </a>
-                </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="shrink-0 px-2"
-                    disabled={!selectedPlan.planUrl?.trim()}
-                    title="Копіювати посилання"
-                    aria-label="Копіювати посилання на план"
-                    onClick={() =>
-                      void copyToClipboard(selectedPlan.planUrl ?? '', {
-                        successMessage: 'Скопійовано',
-                      })
-                    }>
-                    <CopyIcon className="size-4" />
-                  </Button>
-                  {canEditCommanderFields ? (
-                    <Input
-                      className="min-w-0 flex-1"
-                      value={planUrlDraft ?? selectedPlan.planUrl ?? ''}
-                      placeholder="https://..."
-                      onChange={event => setPlanUrlDraft(event.target.value)}
-                      onBlur={event => {
-                        void updatePlanUrl(event.target.value.trim());
-                      }}
-                    />
-                  ) : selectedPlan.planUrl?.trim() ? (
-                    <a
-                      className="min-w-0 flex-1 truncate rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-lime-300 underline-offset-4 hover:underline"
-                      href={selectedPlan.planUrl}
-                      target="_blank"
-                      rel="noopener noreferrer">
-                      {selectedPlan.planUrl}
-                    </a>
-                  ) : (
-                    <FormReadonlyField className="min-w-0 flex-1" value="" />
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <button
-                  type="button"
-                  className="mb-2 flex w-full cursor-pointer items-center justify-between rounded-md px-1 py-1 transition-colors hover:bg-white/5"
-                  onClick={() => setIsSlotsOpen(prev => !prev)}>
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Слоти</div>
-                  <div className="text-xs text-zinc-400">
-                    Всього: {totalSlots} · Зайнято: {totalOccupied} · Вільно: {Math.max(totalSlots - totalOccupied, 0)}
-                  </div>
-                  {isSlotsOpen ? (
-                    <ChevronUpIcon className="size-4 text-zinc-400" />
-                  ) : (
-                    <ChevronDownIcon className="size-4 text-zinc-400" />
-                  )}
-                </button>
-                {isSlotsOpen && (
-                  <div className="overflow-x-auto">
-                    <table className="w-fit border-collapse text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-white/10 text-zinc-400">
-                          <th className="px-2 py-2">Відділення</th>
-                          <th className="px-2 py-2 min-w-[380px]">Типологія</th>
-                          <th className="px-2 py-2 min-w-[400px]">Техніка, озброєння</th>
-                          <th className="px-2 py-2 min-w-[50px]">Слоти</th>
-                          <th className="px-2 py-2 min-w-[170px]">Бронювання</th>
-                          <th className="px-2 py-2">Бажаючі</th>
-                          <th className="px-2 py-2 min-w-[200px]">Спавн</th>
-                          <th className="px-2 py-2 min-w-[400px]">Коментар</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedPlan.slots.map(slot => {
-                          const wantedSquads = getWantedSquadsForSlot(slot);
-                          const isWantedByMySquad = Boolean(
-                            currentSquad && wantedSquads.some(squad => squad.id === currentSquad.id),
-                          );
-                          const isWantedUpdating = slot.id in wantedSlotOverrides;
-
-                          return (
-                            <tr key={slot.id} className="border-b border-white/5 align-top">
-                              <td className="px-2 py-2 text-zinc-100">
-                                <TableCellTooltip text={String(slot.slotNumber)}>
-                                  <span>{slot.slotNumber}</span>
-                                </TableCellTooltip>
-                              </td>
-                              <td className="px-2 py-2">
-                                <TableCellTooltip
-                                  text={canEditCommanderFields ? getSlotTextDraft(slot, 'name') : slot.name ?? ''}>
-                                  {canEditCommanderFields ? (
-                                    <Input
-                                      className="min-w-0 w-full"
-                                      value={getSlotTextDraft(slot, 'name')}
-                                      onChange={event => setSlotDraft(slot.id, 'name', event.target.value)}
-                                      onBlur={event =>
-                                        void updateSlotField(slot.id, { name: event.target.value || null }, ['name'])
-                                      }
-                                    />
-                                  ) : (
-                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.name ?? ''} />
-                                  )}
-                                </TableCellTooltip>
-                              </td>
-                              <td className="px-2 py-2">
-                                <TableCellTooltip
-                                  text={canEditCommanderFields ? getSlotTextDraft(slot, 'weaponry') : slot.weaponry ?? ''}>
-                                  {canEditCommanderFields ? (
-                                    <Input
-                                      className="min-w-0 w-full"
-                                      value={getSlotTextDraft(slot, 'weaponry')}
-                                      onChange={event => setSlotDraft(slot.id, 'weaponry', event.target.value)}
-                                      onBlur={event =>
-                                        void updateSlotField(slot.id, { weaponry: event.target.value || null }, [
-                                          'weaponry',
-                                        ])
-                                      }
-                                    />
-                                  ) : (
-                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.weaponry ?? ''} />
-                                  )}
-                                </TableCellTooltip>
-                              </td>
-                              <td className="px-2 py-2">
-                                <TableCellTooltip
-                                  text={
-                                    canEditCommanderFields
-                                      ? getSlotCountDraft(slot)
-                                      : String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))
-                                  }>
-                                  {canEditCommanderFields ? (
-                                    <NumericInput
-                                      className="min-w-0 w-full"
-                                      min={0}
-                                      max={99}
-                                      maxLength={2}
-                                      value={getSlotCountDraft(slot)}
-                                      onChange={event => setSlotDraft(slot.id, 'slotCount', event.target.value)}
-                                      onBlur={event => {
-                                        const n = Number(event.target.value);
-                                        const clamped = Number.isFinite(n)
-                                          ? Math.min(99, Math.max(0, Math.floor(n)))
-                                          : 0;
-                                        void updateSlotField(
-                                          slot.id,
-                                          {
-                                            slotCount: clamped,
-                                          },
-                                          ['slotCount'],
-                                        );
-                                      }}
-                                    />
-                                  ) : (
-                                    <FormReadonlyField
-                                      className="text-center"
-                                      value={String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)))}
-                                    />
-                                  )}
-                                </TableCellTooltip>
-                              </td>
-                              <td className="px-2 py-2">
-                                {canEditCommanderFields ? (
-                                  <TableCellTooltip text={joinSquadTags(slot.assignedSquads)}>
-                                    <Select
-                                      multiple
-                                      localSearch
-                                      placeholder="Оберіть загони"
-                                      options={squadOptions}
-                                      value={slot.assignedSquads.map(squad => squad.id)}
-                                      onChange={value => {
-                                        void syncAssignedSquads(slot, value);
-                                      }}
-                                    />
-                                  </TableCellTooltip>
-                                ) : (
-                                  <TableCellTooltip text={joinSquadTags(slot.assignedSquads)}>
-                                    <div className="flex flex-wrap gap-2">
-                                      {slot.assignedSquads.map(squad => (
-                                        <div
-                                          key={squad.id}
-                                          className="flex items-center gap-1 rounded-md border border-white/10 bg-black/30 px-2 py-1">
-                                          <Image
-                                            src={squadsById[squad.id]?.logo?.url || '/images/avatar.jpg'}
-                                            width={16}
-                                            height={16}
-                                            alt={squad.tag}
-                                            className="size-4 rounded-full object-cover"
-                                            unoptimized={!squadsById[squad.id]?.logo?.url?.startsWith('https')}
-                                          />
-                                          <span className="text-xs text-zinc-200">{squad.tag}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </TableCellTooltip>
-                                )}
-                              </td>
-                              <td className="px-2 py-2">
-                                <TableCellTooltip text={joinSquadTags(wantedSquads)}>
-                                  <div className="flex flex-wrap gap-2">
-                                    {wantedSquads.map(squad => (
-                                      <div
-                                        key={squad.id}
-                                        className="flex items-center gap-1 rounded-md border border-white/10 bg-black/30 px-2 py-1">
-                                        <Image
-                                          src={squadsById[squad.id]?.logo?.url || '/images/avatar.jpg'}
-                                          width={16}
-                                          height={16}
-                                          alt={squad.tag}
-                                          className="size-4 rounded-full object-cover"
-                                          unoptimized={!squadsById[squad.id]?.logo?.url?.startsWith('https')}
-                                        />
-                                        <span className="text-xs text-zinc-200">{squad.tag}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </TableCellTooltip>
-                                {currentSquad && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="mt-2"
-                                    disabled={isWantedUpdating}
-                                    onClick={async () => {
-                                      const nextWantedState = !isWantedByMySquad;
-                                      setWantedSlotOverrides(prev => ({
-                                        ...prev,
-                                        [slot.id]: nextWantedState,
-                                      }));
-
-                                      try {
-                                        const { data } = nextWantedState
-                                          ? await api.assignHeadquartersSlotWantedSquad(slot.id)
-                                          : await api.unassignHeadquartersSlotWantedSquad(slot.id);
-                                        replaceSlot(data);
-                                        scheduleWantedSlotOverrideClear(slot.id);
-                                      } catch (error) {
-                                        clearWantedSlotOverride(slot.id);
-                                        console.error(error);
-                                        toast.error('Не вдалося змінити список бажаючих');
-                                      }
-                                    }}>
-                                    {isWantedByMySquad ? 'Більше не хочемо' : 'Хочемо цей слот'}
-                                  </Button>
-                                )}
-                              </td>
-                              <td className="px-2 py-2">
-                                <TableCellTooltip
-                                  text={
-                                    canEditCommanderFields ? getSlotTextDraft(slot, 'spawnPoint') : slot.spawnPoint ?? ''
-                                  }>
-                                  {canEditCommanderFields ? (
-                                    <Input
-                                      className="min-w-0 w-full"
-                                      value={getSlotTextDraft(slot, 'spawnPoint')}
-                                      onChange={event => setSlotDraft(slot.id, 'spawnPoint', event.target.value)}
-                                      onBlur={event =>
-                                        void updateSlotField(slot.id, { spawnPoint: event.target.value || null }, [
-                                          'spawnPoint',
-                                        ])
-                                      }
-                                    />
-                                  ) : (
-                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.spawnPoint ?? ''} />
-                                  )}
-                                </TableCellTooltip>
-                              </td>
-                              <td className="px-2 py-2">
-                                <TableCellTooltip
-                                  text={canEditCommanderFields ? getSlotTextDraft(slot, 'comment') : slot.comment ?? ''}>
-                                  {canEditCommanderFields ? (
-                                    <Input
-                                      className="min-w-0 w-full"
-                                      value={getSlotTextDraft(slot, 'comment')}
-                                      onChange={event => setSlotDraft(slot.id, 'comment', event.target.value)}
-                                      onBlur={event =>
-                                        void updateSlotField(slot.id, { comment: event.target.value || null }, [
-                                          'comment',
-                                        ])
-                                      }
-                                    />
-                                  ) : (
-                                    <FormReadonlyField className="text-xs leading-relaxed" value={slot.comment ?? ''} />
-                                  )}
-                                </TableCellTooltip>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Коментарі</div>
-
-                {isCommentsLoading ? (
-                  <div className="flex items-center justify-center py-6 text-zinc-500">
-                    <LoaderIcon className="size-4 animate-spin" />
-                  </div>
-                ) : comments.length === 0 ? (
-                  <div className="mb-3 text-sm text-zinc-500">Ще немає коментарів</div>
-                ) : (
-                  <ul className="mb-3 flex flex-col gap-2">
-                    {comments.map(comment => (
-                      <li key={comment.id} className="rounded-md border border-white/10 bg-black/30 p-2">
-                        <div className="mb-1 flex items-start gap-2">
-                          <div className="flex min-w-0 flex-1 items-center gap-2">
-                            <Avatar
-                              size="sm"
-                              toProfileId={comment.user?.id}
-                              src={comment.user?.avatar?.url ?? undefined}
-                              alt={comment.user?.nickname ?? ''}
-                            />
-                            {comment.user ? (
-                              <UserNicknameText user={comment.user as User} />
-                            ) : (
-                              <span className="text-sm text-zinc-300">Користувач</span>
-                            )}
-                            <span className="text-xs text-zinc-500">
-                              {dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}
-                            </span>
-                          </div>
-                          {canDeleteHeadquartersComment(comment) && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="shrink-0 px-2"
-                              title="Видалити коментар"
-                              aria-label="Видалити коментар"
-                              onClick={() => deleteHqCommentModel.visibility.open({ comment })}>
-                              <TrashIcon className="size-4 text-red-400" />
-                            </Button>
-                          )}
-                        </div>
-                        <MessageContent message={comment.message as MissionCommentMessage} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <MessageEditor
-                  placeholder="Написати коментар..."
-                  maxCharacters={500}
-                  disabled={isCommentSending}
-                  onSubmit={async ({ lexicalState }) => {
-                    if (!selectedPlan?.id) return;
-                    setIsCommentSending(true);
-                    try {
-                      const { data } = await api.createHeadquartersComment(selectedPlan.id, {
-                        message: lexicalState as MissionCommentMessage,
-                      });
-                      setComments(prev => (prev.some(item => item.id === data.id) ? prev : [data, ...prev]));
-                    } catch (error) {
-                      console.error(error);
-                      toast.error('Не вдалося додати коментар');
-                    } finally {
-                      setIsCommentSending(false);
-                    }
-                  }}
-                />
-              </div>
-            </div>
+            <PlanDetailsPanel
+              model={model}
+              selectedPlan={selectedPlan}
+              selectedCommander={selectedCommander}
+              selectedGame={selectedGame}
+              attackSide={attackSide}
+              defenseSide={defenseSide}
+              currentSquad={currentSquad}
+              currentUserId={currentUser?.id}
+              isAdmin={isAdmin}
+              isCommander={isCommander}
+              canEditCommanderFields={canEditCommanderFields}
+              currentSide={currentSide}
+              deleteHqCommentModel={deleteHqCommentModel}
+            />
           )}
         </section>
       </div>
     </div>
   );
-}
+});

@@ -1,10 +1,10 @@
 import { makeAutoObservable } from 'mobx';
 
 import { UserModel } from '@/entities/user/model';
-import { LoginResponse, SideType, SquadRole, UserRole } from '@/shared/sdk/types';
+import { ROUTES } from '@/shared/config/routes';
+import { SideType, SquadRole, User, UserRole } from '@/shared/sdk/types';
 import { Preloader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
-import { getTokensFromLocalStorage, setTokensToLocalStorage } from '@/shared/utils/session';
 import { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 
@@ -15,9 +15,11 @@ export class SessionModel {
 
   user = new UserModel();
 
-  preloader = new Preloader(true);
+  preloader = new Preloader();
 
   isAuthorized = false;
+
+  isSessionReady = false;
 
   get canManageRoles() {
     return this.user?.user?.role === UserRole.OWNER;
@@ -99,37 +101,43 @@ export class SessionModel {
     );
   }
 
+  hydrate = (user: User | null) => {
+    this.user.user = user;
+    this.isAuthorized = Boolean(user);
+    this.isSessionReady = true;
+    this.preloader.stop();
+  };
+
   boot = async () => {
-    const { token, refreshToken } = getTokensFromLocalStorage();
+    if (this.isSessionReady) {
+      return;
+    }
+
+    this.preloader.start();
 
     try {
-      if (token && refreshToken) {
-        await this.fetchMe();
-
-        this.authorize();
-      }
+      await this.fetchMe();
     } catch (error) {
-      console.log(error, error.code, error.message);
+      if (error instanceof AxiosError) {
+        if (error.code === 'ECONNREFUSED' || error.message === 'Network Error') {
+          toast.error("Не вдалося з'єднатися з сервером. Повторна спроба через 5 секунд...");
 
-      if (!(error instanceof AxiosError)) {
-        toast('Час сесії сплинув');
+          setTimeout(async () => {
+            await this.boot();
+          }, 5000);
+
+          return;
+        }
+
+        if (error.response?.status === 401) {
+          this.hydrate(null);
+          return;
+        }
       }
 
-      if (error.code === 'ECONNREFUSED' || error.message === 'Network Error') {
-        toast.error("Не вдалося з'єднатися з сервером. Повторна спроба через 5 секунд...");
-
-        setTimeout(async () => {
-          await this.boot();
-        }, 5000);
-
-        return;
-      }
-
-      if (token) {
-        this.logout();
-        toast('Час сесії сплинув');
-      }
+      this.hydrate(null);
     } finally {
+      this.isSessionReady = true;
       this.preloader.stop();
     }
   };
@@ -137,30 +145,25 @@ export class SessionModel {
   fetchMe = async () => {
     const { data } = await api.getMe();
 
-    this.user.user = data;
-
-    if (!this.isAuthorized) {
-      this.isAuthorized = true;
-    }
+    this.hydrate(data);
   };
 
-  authorize = async (dto?: LoginResponse) => {
-    if (!dto) {
-      this.isAuthorized = true;
-
-      return;
-    }
-
-    setTokensToLocalStorage(dto.token, dto.refreshToken);
-    this.isAuthorized = true;
-    this.user.user = dto.user;
+  authorize = (user: User) => {
+    this.hydrate(user);
   };
 
-  logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    this.isAuthorized = false;
-    this.user.user = null;
+  logout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      // Session may already be cleared on the server.
+    }
+
+    this.hydrate(null);
+
+    if (typeof window !== 'undefined') {
+      window.location.assign(ROUTES.home);
+    }
   };
 }
 

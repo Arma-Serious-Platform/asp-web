@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
 import { Tab } from '@/shared/ui/moleculas/tab';
@@ -10,16 +10,32 @@ import dayjs from 'dayjs';
 export const WeekendAnnouncement: FC<{
   weekend: Weekend;
   sidesById: Record<string, Side>;
-}> = ({ weekend, sidesById }) => {
-  const [activeGameIndex, setActiveGameIndex] = useState(0);
+  activeGameId?: string | null;
+}> = ({ weekend, sidesById, activeGameId }) => {
+  const sortedGames = useMemo(
+    () => (weekend.games ? [...weekend.games].sort((a, b) => a.position - b.position) : []),
+    [weekend.games],
+  );
 
-  // Sort games by position to ensure correct order
-  const sortedGames = weekend.games ? [...weekend.games].sort((a, b) => a.position - b.position) : [];
+  const activeGameIndexFromId = useMemo(() => {
+    if (!activeGameId) {
+      return 0;
+    }
+
+    const index = sortedGames.findIndex(game => game.id === activeGameId);
+    return index >= 0 ? index : 0;
+  }, [activeGameId, sortedGames]);
+
+  const [activeGameIndex, setActiveGameIndex] = useState(activeGameIndexFromId);
+
+  useEffect(() => {
+    setActiveGameIndex(activeGameIndexFromId);
+  }, [activeGameIndexFromId]);
 
   const activeGame = sortedGames[activeGameIndex];
 
   return (
-    <div className="w-full mb-8">
+    <div id={weekend.id} className="mb-8 w-full scroll-mt-24">
       {/* Top Announcement Bar */}
 
       {/* Combined Tabs and Content Card */}

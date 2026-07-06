@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 
 import './globals.css';
 import { SessionProvider } from '@/entities/session/provider';
+import { getSessionUser } from '@/entities/session/server/get-session-user';
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
@@ -34,11 +35,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialUser = await getSessionUser();
+
   return (
     <html lang="en">
       <head>
@@ -70,7 +73,7 @@ export default function RootLayout({
           }}
         />
         <NuqsAdapter>
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider initialUser={initialUser}>{children}</SessionProvider>
         </NuqsAdapter>
       </body>
     </html>

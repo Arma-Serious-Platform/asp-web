@@ -19,6 +19,7 @@ import { View } from '@/features/view';
 import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from '@/widgets/user/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
+import { ManageSessions } from '@/features/user/manage-sessions';
 import { ChangeNicknameModal, ProfileNickname } from '@/features/user/change-nickname';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
@@ -57,16 +58,20 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
       {model.isOwnProfile && (
         <>
           <ChangeAvatarModal model={model.avatar} autoInputClick />
-          <ChangeNicknameModal model={model.nickname} user={model.user} onSuccess={() => model.init()} />
+          <ChangeNicknameModal
+            model={model.nickname}
+            user={model.user}
+            onSuccess={() => model.init(undefined, { refresh: true })}
+          />
         </>
       )}
 
       <div className="container relative mx-auto my-6 w-full px-4">
         <Preloader isLoading={model.loader.isLoading}>
-          <div className="paper mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:flex-row lg:px-7 lg:py-6">
+          <div className="paper mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:flex-row lg:items-start lg:px-7 lg:py-6">
             {/* Left column: avatar + tabs */}
-            <div className="flex w-full flex-col gap-4 lg:w-64">
-              <div className="group relative w-full overflow-hidden rounded-lg border border-white/10 bg-black/70 shadow-lg">
+            <div className="flex w-full lg:max-w-[195px] shrink-0 flex-col gap-4 lg:w-64">
+              <div className="group relative aspect-square w-full overflow-hidden rounded-lg border border-white/10 bg-black/70 shadow-lg">
                 <Image
                   className="h-full w-full object-cover"
                   src={model.user?.avatar?.url || '/images/avatar.jpg'}
@@ -106,7 +111,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
             </div>
 
             {/* Right column: tab content */}
-            <div className="flex w-full flex-col gap-4 border-t border-white/10 pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <div className="flex min-w-0 flex-1 flex-col gap-4 border-t border-white/10 pt-4 lg:min-w-0 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
               <View.Condition if={tab === 'profile' || !model.isOwnProfile}>
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-1">
@@ -136,7 +141,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                         <ProfileSteamConnect
                           user={model.user}
                           disconnectModel={model.steamDisconnect}
-                          onChanged={() => model.init()}
+                          onChanged={() => model.init(undefined, { refresh: true })}
                         />
                       }
                     />
@@ -208,19 +213,26 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
                         Мій загін
                       </span>
-                      <UserSquad user={model.user} onSquadChanged={() => model.init()} />
+                      <UserSquad user={model.user} onSquadChanged={() => model.init(undefined, { refresh: true })} />
                     </div>
                   </View.Condition>
 
                   <View.Condition if={tab === 'security'}>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
-                          Безпека облікового запису
-                        </span>
-                        <div className="text-lg font-bold text-white">Змінити пароль</div>
-                      </div>
-                      <ChangePassword user={model.user} />
+                    <div className="flex min-w-0 flex-col gap-5">
+                      <section className="flex min-w-0 flex-col gap-3">
+                        <h2 className="text-sm font-semibold text-white">Змінити пароль</h2>
+                        <ChangePassword user={model.user} />
+                      </section>
+
+                      <section className="flex min-w-0 flex-col gap-3 border-t border-white/10 pt-5">
+                        <div className="flex flex-col gap-0.5">
+                          <h2 className="text-sm font-semibold text-white">Активні сесії</h2>
+                          <p className="text-xs text-zinc-500">
+                            Завершіть інші входи. Поточну сесію завершити не можна.
+                          </p>
+                        </div>
+                        <ManageSessions />
+                      </section>
                     </div>
                   </View.Condition>
 

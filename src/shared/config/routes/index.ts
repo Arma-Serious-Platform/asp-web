@@ -8,6 +8,8 @@ export const ROUTES = {
   },
   rules: '/rules',
   weekends: '/weekends',
+  weekendByAnchor: (weekendId: string, gameId?: string) =>
+    gameId ? `/weekends?game=${encodeURIComponent(gameId)}#${weekendId}` : `/weekends#${weekendId}`,
   squads: '/squads',
   squadById: (id: string) => `/squads/${id}`,
   replays: '/replays',

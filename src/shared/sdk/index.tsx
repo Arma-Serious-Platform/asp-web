@@ -1,7 +1,6 @@
 'use client';
 
 import axios from 'axios';
-import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import {
   BanUserDto,
   ChangeNicknameDto,
@@ -31,14 +30,14 @@ import {
   InviteToSquadDto,
   Island,
   LoginDto,
-  LoginResponse,
+  SessionLoginDto,
+  UserSession,
   Mission,
   Chat,
   MissionComment,
   MissionStatus,
   MissionVersion,
   PaginatedResponse,
-  RefreshTokenDto,
   RulesContent,
   Server,
   SetUserSpecializationsDto,
@@ -83,24 +82,10 @@ import {
 } from './types';
 
 import { env } from '../config/env';
+import { ROUTES } from '../config/routes';
+import { AUTH_REDIRECT_SKIP_PATHS } from '../lib/routes/lib';
 
-import {
-  clearTokensFromLocalStorage,
-  getTokensFromLocalStorage,
-  redirectToLogin,
-  setTokensToLocalStorage,
-} from '../utils/session';
-
-const AUTH_REQUEST_PATHS_WITHOUT_TOKEN_REFRESH = [
-  '/users/login',
-  '/users/signup',
-  '/users/sign-up/confirm',
-  '/users/forgot-password',
-  '/users/reset-password',
-] as const;
-
-const isPublicAuthRequest = (url?: string) =>
-  Boolean(url && AUTH_REQUEST_PATHS_WITHOUT_TOKEN_REFRESH.some(path => url.includes(path)));
+const AUTH_PAGES = [ROUTES.auth.login, ROUTES.auth.signup, ROUTES.auth.forgotPassword] as const;
 
 const appendStringArrayToFormData = (formData: FormData, key: string, values?: string[]) => {
   if (!values) return;
@@ -129,9 +114,9 @@ const appendFormDataValue = (formData: FormData, key: string, value: unknown) =>
 class ApiModel {
   instance = axios.create({
     baseURL: env.apiUrl,
+    withCredentials: true,
     headers: {
       'Content-Type': 'application/json',
-      ...(getTokensFromLocalStorage?.()?.token && { Authorization: `Bearer ${getTokensFromLocalStorage?.()?.token}` }),
     },
   });
 
@@ -141,70 +126,34 @@ class ApiModel {
 
   private setupInterceptors() {
     this.instance.interceptors.request.use(request => {
-      const token = getTokensFromLocalStorage()?.token;
-
-      if (token) {
-        request.headers['Authorization'] = `Bearer ${token}`;
-      }
-
       return request;
     });
 
-    createAuthRefreshInterceptor(
-      this.instance,
-      async failedRequest => {
-        const requestUrl = failedRequest?.config?.url ?? failedRequest?.response?.config?.url;
+    this.instance.interceptors.response.use(
+      response => response,
+      error => {
+        const status = error.response?.status;
+        const requestUrl = error.config?.url ?? '';
 
-        if (requestUrl?.includes('refresh-token')) {
-          clearTokensFromLocalStorage();
-          redirectToLogin();
-
-          return Promise.reject(failedRequest);
+        if (
+          status === 401 &&
+          typeof window !== 'undefined' &&
+          !this.shouldSkipAuthRedirect(requestUrl, window.location.pathname)
+        ) {
+          window.location.assign(ROUTES.auth.login);
         }
 
-        // Wrong credentials / sign-up errors must reach the form, not trigger a redirect.
-        if (isPublicAuthRequest(requestUrl)) {
-          return Promise.reject(failedRequest);
-        }
-
-        const storedRefreshToken = getTokensFromLocalStorage()?.refreshToken || '';
-
-        // Do not try to refresh when there is no refresh token
-        if (!storedRefreshToken) {
-          clearTokensFromLocalStorage();
-          redirectToLogin();
-
-          return Promise.reject(failedRequest);
-        }
-
-        try {
-          const { data } = await this.refreshToken({ refreshToken: storedRefreshToken });
-
-          setTokensToLocalStorage(data.token, data.refreshToken);
-
-          // Update default headers for all next requests
-          this.instance.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-
-          // Update the failed request with the new token so it will be retried correctly
-          if (failedRequest.response?.config?.headers) {
-            failedRequest.response.config.headers['Authorization'] = `Bearer ${data.token}`;
-          } else if (failedRequest.config?.headers) {
-            failedRequest.config.headers['Authorization'] = `Bearer ${data.token}`;
-          }
-
-          return Promise.resolve();
-        } catch {
-          clearTokensFromLocalStorage();
-          redirectToLogin();
-
-          return Promise.reject(failedRequest);
-        }
-      },
-      {
-        pauseInstanceWhileRefreshing: true,
-        statusCodes: [401],
+        return Promise.reject(error);
       },
     );
+  }
+
+  private shouldSkipAuthRedirect(requestUrl: string, pathname: string) {
+    if (AUTH_REDIRECT_SKIP_PATHS.some(path => requestUrl.includes(path))) {
+      return true;
+    }
+
+    return AUTH_PAGES.some(path => pathname.startsWith(path));
   }
 
   /* Servers */
@@ -242,14 +191,26 @@ class ApiModel {
   };
 
   login = async ({ email, password }: LoginDto) => {
-    return await this.instance.post<LoginResponse>('/users/login', {
+    const payload: SessionLoginDto = {
       emailOrNickname: email,
       password,
-    });
+    };
+
+    await this.instance.post('/auth/session/login', payload);
+
+    return this.getMe();
   };
 
-  refreshToken = async (dto: RefreshTokenDto) => {
-    return await this.instance.post<LoginResponse>('/users/refresh-token', dto);
+  logout = async () => {
+    return await this.instance.post('/auth/session/logout');
+  };
+
+  findActiveSessions = async () => {
+    return await this.instance.get<UserSession[]>('/auth/session');
+  };
+
+  revokeSession = async (sessionId: string) => {
+    return await this.instance.delete(`/auth/session/${sessionId}`);
   };
 
   changePassword = async (dto: ChangePasswordDto) => {
@@ -275,7 +236,7 @@ class ApiModel {
   /* Users */
 
   getMe = async () => {
-    return await this.instance.get<User>('/users/me');
+    return await this.instance.get<User>('/auth/session/me');
   };
 
   getUserByIdOrNickname = async (userIdOrNickname: string) => {
@@ -299,9 +260,7 @@ class ApiModel {
   };
 
   getSteamLoginUrl = () => {
-    const accessToken = window.localStorage.getItem('token') || '';
-
-    return `${env.apiUrl}/users/steam-login?accessToken=${accessToken}`;
+    return `${env.apiUrl}/users/steam-login`;
   };
 
   steamCallback = async () => {
@@ -916,9 +875,12 @@ class ApiModel {
   };
 
   findHeadquartersComments = async (gamePlanId: string, dto: FindHeadquartersCommentsDto = {}) => {
-    return await this.instance.get<{ data: HeadquartersComment[]; total: number }>(`/headquarters/plans/${gamePlanId}/comments`, {
-      params: dto,
-    });
+    return await this.instance.get<{ data: HeadquartersComment[]; total: number }>(
+      `/headquarters/plans/${gamePlanId}/comments`,
+      {
+        params: dto,
+      },
+    );
   };
 
   createHeadquartersComment = async (gamePlanId: string, dto: CreateHeadquartersCommentDto) => {

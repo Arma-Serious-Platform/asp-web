@@ -1,14 +1,28 @@
 'use client';
 
+import type { User } from '@/shared/sdk/types';
+import { observer } from 'mobx-react-lite';
+import { useEffect, useRef } from 'react';
+
 import { session } from './model';
 
-import { observer } from 'mobx-react-lite';
-import { useEffect } from 'react';
+export const SessionProvider = observer(
+  ({ children, initialUser }: { children: React.ReactNode; initialUser: User | null }) => {
+    const isHydratedRef = useRef(false);
 
-export const SessionProvider = observer(({ children }: { children: React.ReactNode }) => {
-  useEffect(() => {
-    session.boot();
-  }, []);
+    if (!isHydratedRef.current) {
+      session.hydrate(initialUser);
+      isHydratedRef.current = true;
+    }
 
-  return <>{children}</>;
-});
+    useEffect(() => {
+      session.hydrate(initialUser);
+    }, [initialUser]);
+
+    useEffect(() => {
+      void session.boot();
+    }, []);
+
+    return <>{children}</>;
+  },
+);

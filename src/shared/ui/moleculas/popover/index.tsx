@@ -25,9 +25,11 @@ function PopoverContent({
   portalContainer?: HTMLElement | null;
 }) {
   const dialogPortalTargetRef = useDialogPortalTargetRef();
-  const container =
-    portalContainer ??
-    (dialogPortalTargetRef?.current instanceof HTMLElement ? dialogPortalTargetRef.current : undefined);
+  const dialogPortalTarget =
+    typeof HTMLElement !== 'undefined' && dialogPortalTargetRef?.current instanceof HTMLElement
+      ? dialogPortalTargetRef.current
+      : undefined;
+  const container = portalContainer ?? dialogPortalTarget;
 
   return (
     <PopoverPrimitive.Portal container={container}>
