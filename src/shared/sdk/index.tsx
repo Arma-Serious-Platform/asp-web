@@ -11,6 +11,7 @@ import {
   TwoFactorSetupResponse,
   TwoFactorStatusResponse,
   VerifyTwoFactorLoginDto,
+  AddChatMembersDto,
   CreateChatDto,
   CreateGameDto,
   CreateIslandDto,
@@ -969,6 +970,14 @@ class ApiModel {
 
   leaveChat = async (chatId: string) => {
     return await this.instance.delete(`/chats/${chatId}/leave`);
+  };
+
+  deleteChat = async (chatId: string) => {
+    return await this.instance.delete(`/chats/${chatId}`);
+  };
+
+  addChatMembers = async (chatId: string, dto: AddChatMembersDto) => {
+    return await this.instance.post<Chat>(`/chats/${chatId}/members`, dto);
   };
 }
 

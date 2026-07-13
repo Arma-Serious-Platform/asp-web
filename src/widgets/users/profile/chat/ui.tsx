@@ -6,7 +6,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/uk';
 import toast from 'react-hot-toast';
 import { observer } from 'mobx-react-lite';
-import { CheckIcon, LoaderIcon, MessageCircleIcon, PencilIcon, PlusIcon, UsersIcon, XIcon } from 'lucide-react';
+import { CheckIcon, LoaderIcon, LogOutIcon, MessageCircleIcon, PencilIcon, PlusIcon, Trash2Icon, UserPlusIcon, UsersIcon, XIcon } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 
 import { api } from '@/shared/sdk';
@@ -59,6 +59,7 @@ const normalizeChat = (value: unknown): Chat | null => {
     id: record.id,
     type: (record.type as ChatType) || ChatType.DIRECT,
     name: typeof record.name === 'string' ? record.name : undefined,
+    creatorId: typeof record.creatorId === 'string' ? record.creatorId : undefined,
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : undefined,
     updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : undefined,
   };
@@ -69,7 +70,7 @@ const directChatPairKey = (a: string, b: string) => (a < b ? `${a}::${b}` : `${b
 /** Coalesces concurrent direct-chat creates for the same pair (e.g. React Strict Mode or parallel handlers). */
 const inflightDirectChatCreates = new Map<string, Promise<Chat>>();
 
-function createDirectChatOnce(userIdA: string, userIdB: string): Promise<Chat> {
+function createDirectChatOnce(userIdA: string, userIdB: string, name?: string): Promise<Chat> {
   const key = directChatPairKey(userIdA, userIdB);
   const existing = inflightDirectChatCreates.get(key);
   if (existing) return existing;
@@ -78,6 +79,7 @@ function createDirectChatOnce(userIdA: string, userIdB: string): Promise<Chat> {
     .createChat({
       type: ChatType.DIRECT,
       userIds: [userIdA, userIdB],
+      ...(name ? { name } : {}),
     })
     .then(({ data }) => {
       const chat = normalizeChat(data);
@@ -216,6 +218,15 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   const [isRenamingChat, setIsRenamingChat] = useState(false);
   const [renameChatName, setRenameChatName] = useState('');
   const [isSavingChatRename, setIsSavingChatRename] = useState(false);
+  const [isLeavingChat, setIsLeavingChat] = useState(false);
+  const [isDeletingChat, setIsDeletingChat] = useState(false);
+  const [isConfirmLeaveOpen, setIsConfirmLeaveOpen] = useState(false);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [isAddMembersDialogOpen, setIsAddMembersDialogOpen] = useState(false);
+  const [isAddingMembers, setIsAddingMembers] = useState(false);
+  const [addMembersSearch, setAddMembersSearch] = useState('');
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [activeChatParticipantIds, setActiveChatParticipantIds] = useState<string[]>([]);
   const [userByChatId, setUserByChatId] = useState<Record<string, User | undefined>>({});
   const [directChatByUserId, setDirectChatByUserId] = useState<Record<string, string>>({});
   const [chatActivityById, setChatActivityById] = useState<Record<string, string>>({});
@@ -226,6 +237,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
 
   const activeChat = useMemo(() => chats.find(chat => chat.id === activeChatId) ?? null, [activeChatId, chats]);
   const currentUserId = session.user.user?.id;
+  const isActiveChatCreator = Boolean(activeChat?.creatorId && activeChat.creatorId === currentUserId);
 
   const bumpChatActivity = useCallback((chatId: string, at?: string) => {
     const timestamp = at ?? new Date().toISOString();
@@ -393,7 +405,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       let chat: Chat | null = null;
       if (type === ChatType.DIRECT) {
         const otherId = selectedOtherUserIds[0];
-        chat = await createDirectChatOnce(currentUserId, otherId);
+        chat = await createDirectChatOnce(currentUserId, otherId, trimmedName || undefined);
       } else {
         const { data } = await api.createChat({
           type,
@@ -441,7 +453,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   const startRenameChat = useCallback(() => {
     if (!activeChat) return;
     const directUser = userByChatId[activeChat.id];
-    const defaultName = directUser?.nickname ?? activeChat.name ?? `Чат #${activeChat.id.slice(0, 8)}`;
+    const defaultName = activeChat.name ?? directUser?.nickname ?? `Чат #${activeChat.id.slice(0, 8)}`;
     setRenameChatName(defaultName);
     setIsRenamingChat(true);
   }, [activeChat, userByChatId]);
@@ -477,6 +489,94 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       setIsSavingChatRename(false);
     }
   }, [activeChatId, renameChatName]);
+
+  const removeChatFromState = useCallback((chatId: string) => {
+    setChats(prev => prev.filter(chat => chat.id !== chatId));
+    setActiveChatId(prev => (prev === chatId ? null : prev));
+    setMessages(prev => (activeChatIdRef.current === chatId ? [] : prev));
+    setChatActivityById(prev => {
+      const next = { ...prev };
+      delete next[chatId];
+      return next;
+    });
+  }, []);
+
+  const handleLeaveChat = useCallback(async () => {
+    if (!activeChatId) return;
+
+    setIsLeavingChat(true);
+    try {
+      await api.leaveChat(activeChatId);
+      removeChatFromState(activeChatId);
+      setIsConfirmLeaveOpen(false);
+      toast.success('Ви вийшли з чату');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося вийти з чату');
+    } finally {
+      setIsLeavingChat(false);
+    }
+  }, [activeChatId, removeChatFromState]);
+
+  const handleDeleteChat = useCallback(async () => {
+    if (!activeChatId) return;
+
+    setIsDeletingChat(true);
+    try {
+      await api.deleteChat(activeChatId);
+      removeChatFromState(activeChatId);
+      setIsConfirmDeleteOpen(false);
+      toast.success('Чат видалено');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося видалити чат');
+    } finally {
+      setIsDeletingChat(false);
+    }
+  }, [activeChatId, removeChatFromState]);
+
+  const loadActiveChatParticipants = useCallback(async (chatId: string) => {
+    try {
+      const { data } = await api.findChatById(chatId);
+      const record = normalizeRecord(data);
+      const participantIds = getArrayPayload(record.users)
+        .map(item => {
+          const membership = normalizeRecord(item);
+          if (membership.leftAt != null) return null;
+
+          const nestedUser = normalizeRecord(membership.user);
+          if (typeof nestedUser.id === 'string') return nestedUser.id;
+          if (typeof membership.userId === 'string') return membership.userId;
+
+          return null;
+        })
+        .filter((id): id is string => Boolean(id));
+
+      setActiveChatParticipantIds(participantIds);
+    } catch (error) {
+      console.error(error);
+      setActiveChatParticipantIds([]);
+    }
+  }, []);
+
+  const addSelectedMembers = useCallback(async () => {
+    if (!activeChatId || selectedMemberIds.length === 0) return;
+
+    setIsAddingMembers(true);
+    try {
+      await api.addChatMembers(activeChatId, { userIds: selectedMemberIds });
+      await loadActiveChatParticipants(activeChatId);
+      setSelectedMemberIds([]);
+      setAddMembersSearch('');
+      setIsAddMembersDialogOpen(false);
+      toast.success('Учасників додано');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося додати учасників');
+    } finally {
+      setIsAddingMembers(false);
+    }
+  }, [activeChatId, loadActiveChatParticipants, selectedMemberIds]);
 
   useEffect(() => {
     const loadChats = async () => {
@@ -540,6 +640,15 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   }, [activeChatId, loadMessages]);
 
   useEffect(() => {
+    if (!activeChatId || activeChat?.type !== ChatType.GROUP) {
+      setActiveChatParticipantIds([]);
+      return;
+    }
+
+    void loadActiveChatParticipants(activeChatId);
+  }, [activeChat?.type, activeChatId, loadActiveChatParticipants]);
+
+  useEffect(() => {
     if (!initialUserId) {
       handledInitialUserIdRef.current = null;
       return;
@@ -586,10 +695,23 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       });
   }, [allUsers, currentUserId, newChatUserSearch]);
 
+  const filteredUsersForAddMembers = useMemo(() => {
+    const query = addMembersSearch.trim().toLowerCase();
+    const activeIds = new Set(activeChatParticipantIds);
+
+    return allUsers
+      .filter(user => user.id !== currentUserId)
+      .filter(user => !activeIds.has(user.id))
+      .filter(user => {
+        if (!query) return true;
+        return user.nickname.toLowerCase().includes(query) || user.email.toLowerCase().includes(query);
+      });
+  }, [activeChatParticipantIds, addMembersSearch, allUsers, currentUserId]);
+
   const resolveChatTitle = (chat: Chat) => {
+    if (chat.name) return chat.name;
     const directUser = userByChatId[chat.id];
     if (directUser) return directUser.nickname;
-    if (chat.name) return chat.name;
     return `Чат #${chat.id.slice(0, 8)}`;
   };
 
@@ -598,12 +720,6 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   }, [activeChatId]);
 
   useEffect(() => {
-    if (!activeChatId) {
-      socketRef.current?.disconnect();
-      socketRef.current = null;
-      return;
-    }
-
     const apiBaseUrl = env.apiUrl?.replace(/\/api\/?$/, '');
     if (!apiBaseUrl || !session.isAuthorized) {
       return;
@@ -635,32 +751,62 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       bumpChatActivity(normalized.chatId, normalized.createdAt ?? normalized.updatedAt);
     };
 
-    const joinChat = () => {
-      const chatId = activeChatIdRef.current;
+    const handleChatUpdated = (payload: unknown) => {
+      const updatedChat = normalizeChat(payload);
+      if (!updatedChat) return;
+
+      setChats(prev =>
+        prev.map(chat =>
+          chat.id === updatedChat.id
+            ? {
+                ...chat,
+                name: updatedChat.name,
+                updatedAt: updatedChat.updatedAt ?? chat.updatedAt,
+              }
+            : chat,
+        ),
+      );
+    };
+
+    const handleChatDeleted = (payload: unknown) => {
+      const record = normalizeRecord(payload);
+      const chatId = typeof record.chatId === 'string' ? record.chatId : null;
       if (!chatId) return;
 
-      socket.emit('join_chat', { chatId });
+      removeChatFromState(chatId);
+      toast('Чат було видалено', { icon: 'ℹ️' });
     };
 
     socket.on('new_message', handleNewMessage);
-    socket.on('connect', joinChat);
-
-    if (socket.connected) {
-      joinChat();
-    }
+    socket.on('chat_updated', handleChatUpdated);
+    socket.on('chat_deleted', handleChatDeleted);
 
     return () => {
       socket.off('new_message', handleNewMessage);
-      socket.off('connect', joinChat);
-    };
-  }, [activeChatId, session.isAuthorized, bumpChatActivity]);
-
-  useEffect(() => {
-    return () => {
-      socketRef.current?.disconnect();
+      socket.off('chat_updated', handleChatUpdated);
+      socket.off('chat_deleted', handleChatDeleted);
+      socket.disconnect();
       socketRef.current = null;
     };
-  }, []);
+  }, [bumpChatActivity, removeChatFromState, session.isAuthorized]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!activeChatId || !socket) {
+      return;
+    }
+
+    const joinChat = () => {
+      socket.emit('join_chat', { chatId: activeChatId });
+    };
+
+    joinChat();
+    socket.on('connect', joinChat);
+
+    return () => {
+      socket.off('connect', joinChat);
+    };
+  }, [activeChatId]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -731,17 +877,19 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
           <div className="border-b border-white/10 px-3 py-2">
             {activeChat ? (
               <div className="flex items-center gap-2">
-                {isRenamingChat ? (
-                  <Input
-                    value={renameChatName}
-                    onChange={event => setRenameChatName(event.target.value)}
-                    placeholder="Назва чату"
-                    className="h-8"
-                    disabled={isSavingChatRename}
-                  />
-                ) : (
-                  <div className="truncate text-sm font-semibold text-white">{resolveChatTitle(activeChat)}</div>
-                )}
+                <div className="min-w-0 flex-1">
+                  {isRenamingChat ? (
+                    <Input
+                      value={renameChatName}
+                      onChange={event => setRenameChatName(event.target.value)}
+                      placeholder="Назва чату"
+                      className="h-8"
+                      disabled={isSavingChatRename}
+                    />
+                  ) : (
+                    <div className="truncate text-sm font-semibold text-white">{resolveChatTitle(activeChat)}</div>
+                  )}
+                </div>
                 {isRenamingChat ? (
                   <>
                     <Button
@@ -766,9 +914,44 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
                     </Button>
                   </>
                 ) : (
-                  <Button variant="ghost" size="icon" className="size-8" onClick={startRenameChat}>
-                    <PencilIcon className="size-4" />
-                  </Button>
+                  <>
+                    {activeChat.type === ChatType.GROUP && isActiveChatCreator && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        title="Додати учасників"
+                        onClick={() => {
+                          setSelectedMemberIds([]);
+                          setAddMembersSearch('');
+                          setIsAddMembersDialogOpen(true);
+                        }}>
+                        <UserPlusIcon className="size-4" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className="size-8" onClick={startRenameChat}>
+                      <PencilIcon className="size-4" />
+                    </Button>
+                    {isActiveChatCreator ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                        title="Видалити чат"
+                        onClick={() => setIsConfirmDeleteOpen(true)}>
+                        <Trash2Icon className="size-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-amber-300 hover:bg-amber-500/10 hover:text-amber-200"
+                        title="Вийти з чату"
+                        onClick={() => setIsConfirmLeaveOpen(true)}>
+                        <LogOutIcon className="size-4" />
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
@@ -933,6 +1116,97 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
             </Button>
             <Button onClick={createSelectedChat} disabled={isCreatingChat}>
               {isCreatingChat ? 'Створення...' : 'Створити'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isConfirmLeaveOpen} onOpenChange={setIsConfirmLeaveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Вийти з чату?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-zinc-400">
+            Ви більше не бачитимете цей чат. Творець чату зможе додати вас знову.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmLeaveOpen(false)} disabled={isLeavingChat}>
+              Скасувати
+            </Button>
+            <Button onClick={handleLeaveChat} disabled={isLeavingChat}>
+              {isLeavingChat ? <LoaderIcon className="size-4 animate-spin" /> : 'Вийти'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Видалити чат?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-zinc-400">
+            Чат і всі повідомлення будуть видалені для всіх учасників. Цю дію не можна скасувати.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmDeleteOpen(false)} disabled={isDeletingChat}>
+              Скасувати
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-500"
+              onClick={handleDeleteChat}
+              disabled={isDeletingChat}>
+              {isDeletingChat ? <LoaderIcon className="size-4 animate-spin" /> : 'Видалити'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddMembersDialogOpen} onOpenChange={setIsAddMembersDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Додати учасників</DialogTitle>
+          </DialogHeader>
+
+          <input
+            value={addMembersSearch}
+            onChange={event => setAddMembersSearch(event.target.value)}
+            placeholder="Пошук користувача..."
+            className="mb-2 w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-primary/60"
+          />
+
+          <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
+            {filteredUsersForAddMembers.length === 0 ? (
+              <div className="px-2 py-2 text-xs text-zinc-500">Користувачів не знайдено</div>
+            ) : (
+              filteredUsersForAddMembers.map(user => {
+                const isSelected = selectedMemberIds.includes(user.id);
+                return (
+                  <Button
+                    key={user.id}
+                    variant={isSelected ? 'default' : 'ghost'}
+                    className="h-auto w-full justify-start px-2 py-2 text-left"
+                    onClick={() => {
+                      setSelectedMemberIds(prev =>
+                        prev.includes(user.id) ? prev.filter(id => id !== user.id) : [...prev, user.id],
+                      );
+                    }}>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <UsersIcon className="size-4 shrink-0" />
+                      <span className="truncate text-xs">{user.nickname}</span>
+                    </div>
+                  </Button>
+                );
+              })
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddMembersDialogOpen(false)} disabled={isAddingMembers}>
+              Скасувати
+            </Button>
+            <Button onClick={addSelectedMembers} disabled={isAddingMembers || selectedMemberIds.length === 0}>
+              {isAddingMembers ? <LoaderIcon className="size-4 animate-spin" /> : 'Додати'}
             </Button>
           </DialogFooter>
         </DialogContent>

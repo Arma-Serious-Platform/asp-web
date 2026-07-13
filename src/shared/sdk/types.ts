@@ -911,6 +911,7 @@ export type Chat = {
   id: string;
   name?: string;
   type: ChatType;
+  creatorId?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -919,6 +920,10 @@ export type CreateChatDto = {
   type: ChatType;
   userIds: string[];
   name?: string;
+};
+
+export type AddChatMembersDto = {
+  userIds: string[];
 };
 
 export type LeaveSquadDto = {
