@@ -8,7 +8,7 @@ import { FormReadonlyField } from '@/shared/ui/atoms/form-readonly-field';
 import { Input } from '@/shared/ui/atoms/input';
 import { CopyIcon } from 'lucide-react';
 
-import { copyToClipboard } from '../lib';
+import { copyToClipboard, isHttpUrl } from '../lib';
 import { HqPlansModel } from '../model';
 
 type PlanUrlSectionProps = {
@@ -18,6 +18,9 @@ type PlanUrlSectionProps = {
 };
 
 export const PlanUrlSection = observer(({ model, selectedPlan, canEditCommanderFields }: PlanUrlSectionProps) => {
+  const planUrl = selectedPlan.planUrl?.trim() ?? '';
+  const isPlanUrlLink = Boolean(planUrl && isHttpUrl(planUrl));
+
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
       <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
@@ -36,7 +39,7 @@ export const PlanUrlSection = observer(({ model, selectedPlan, canEditCommanderF
           size="sm"
           variant="ghost"
           className="shrink-0 px-2"
-          disabled={!selectedPlan.planUrl?.trim()}
+          disabled={!planUrl}
           title="Копіювати посилання"
           aria-label="Копіювати посилання на план"
           onClick={() =>
@@ -58,14 +61,19 @@ export const PlanUrlSection = observer(({ model, selectedPlan, canEditCommanderF
               void model.updatePlanUrl(selectedPlan.id, event.target.value.trim());
             }}
           />
-        ) : selectedPlan.planUrl?.trim() ? (
+        ) : planUrl && isPlanUrlLink ? (
           <a
             className="min-w-0 flex-1 truncate rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-lime-300 underline-offset-4 hover:underline"
-            href={selectedPlan.planUrl}
+            href={planUrl}
             target="_blank"
             rel="noopener noreferrer">
-            {selectedPlan.planUrl}
+            {planUrl}
           </a>
+        ) : planUrl ? (
+          <FormReadonlyField
+            className="min-w-0 flex-1 rounded-md border border-white/10 bg-black/20 px-3 py-2"
+            value={planUrl}
+          />
         ) : (
           <FormReadonlyField className="min-w-0 flex-1" value="" />
         )}

@@ -30,6 +30,8 @@ export const normalizeSlotCount = (value: number | null | undefined) => (typeof 
 
 export const joinSquadTags = (squads: Pick<Squad, 'tag'>[]) => squads.map(s => s.tag).join(', ');
 
+export const isHttpUrl = (value: string) => /^https?:\/\//i.test(value.trim());
+
 export const areSamePayload = <T,>(a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
 
 export const getPlanTimeCategory = (date?: string | null): PlanTimeCategory | null => {
