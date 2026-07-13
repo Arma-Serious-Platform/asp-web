@@ -5,7 +5,12 @@ import {
   BanUserDto,
   ChangeNicknameDto,
   ChangePasswordDto,
-  ConfirmForgotPasswordDto,
+  DisableTwoFactorDto,
+  EnableTwoFactorDto,
+  EnableTwoFactorResponse,
+  TwoFactorSetupResponse,
+  TwoFactorStatusResponse,
+  VerifyTwoFactorLoginDto,
   CreateChatDto,
   CreateGameDto,
   CreateIslandDto,
@@ -196,9 +201,43 @@ class ApiModel {
       password,
     };
 
-    await this.instance.post('/auth/session/login', payload);
+    const { data } = await this.instance.post<{
+      requiresTwoFactor?: boolean;
+      twoFactorToken?: string;
+    }>('/auth/session/login', payload);
+
+    if (data.requiresTwoFactor && data.twoFactorToken) {
+      return {
+        data: {
+          requiresTwoFactor: true as const,
+          twoFactorToken: data.twoFactorToken,
+        },
+      };
+    }
 
     return this.getMe();
+  };
+
+  verifyTwoFactorLogin = async (dto: VerifyTwoFactorLoginDto) => {
+    const { data } = await this.instance.post<{ user: User }>('/auth/session/verify-2fa', dto);
+
+    return { data: data.user };
+  };
+
+  getTwoFactorStatus = async () => {
+    return await this.instance.get<TwoFactorStatusResponse>('/auth/2fa/status');
+  };
+
+  setupTwoFactor = async () => {
+    return await this.instance.post<TwoFactorSetupResponse>('/auth/2fa/setup');
+  };
+
+  enableTwoFactor = async (dto: EnableTwoFactorDto) => {
+    return await this.instance.post<EnableTwoFactorResponse>('/auth/2fa/enable', dto);
+  };
+
+  disableTwoFactor = async (dto: DisableTwoFactorDto) => {
+    return await this.instance.post('/auth/2fa/disable', dto);
   };
 
   logout = async () => {

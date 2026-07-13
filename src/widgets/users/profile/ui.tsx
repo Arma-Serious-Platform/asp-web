@@ -20,6 +20,7 @@ import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from '@/widgets/user/user-squad';
 import ChangePassword from '@/features/user/change-password/ui';
 import { ManageSessions } from '@/features/user/manage-sessions';
+import { ManageTwoFactor } from '@/features/user/manage-two-factor';
 import { ChangeNicknameModal, ProfileNickname } from '@/features/user/change-nickname';
 import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
@@ -222,6 +223,22 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       <section className="flex min-w-0 flex-col gap-3">
                         <h2 className="text-sm font-semibold text-white">Змінити пароль</h2>
                         <ChangePassword user={model.user} />
+                      </section>
+
+                      <section className="flex min-w-0 flex-col gap-3 border-t border-white/10 pt-5">
+                        <div className="flex flex-col gap-0.5">
+                          <h2 className="text-sm font-semibold text-white">Двофакторна автентифікація</h2>
+                          <p className="text-xs text-zinc-500">
+                            Google Authenticator, Authy та інші TOTP-застосунки.
+                          </p>
+                        </div>
+                        <ManageTwoFactor
+                          onStatusChange={enabled => {
+                            if (model.user) {
+                              model.user.twoFactorEnabled = enabled;
+                            }
+                          }}
+                        />
                       </section>
 
                       <section className="flex min-w-0 flex-col gap-3 border-t border-white/10 pt-5">

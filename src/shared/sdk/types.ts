@@ -153,6 +153,7 @@ export type User = {
   twitchUrl?: string;
   youtubeUrl?: string;
   tiktokUrl?: string;
+  twoFactorEnabled?: boolean;
   _count?: Partial<Record<'missions' | 'warnings', number>>;
 };
 
@@ -338,6 +339,43 @@ export type LoginUserDto = {
 /** @deprecated Session auth no longer returns tokens */
 export type RefreshTokenDto = {
   refreshToken: string;
+};
+
+export type SessionLoginResponse =
+  | { user: User }
+  | {
+      requiresTwoFactor: true;
+      twoFactorToken: string;
+    };
+
+export type TwoFactorSetupResponse = {
+  otpauthUrl: string;
+  qrCodeDataUrl: string;
+  secret: string;
+};
+
+export type TwoFactorStatusResponse = {
+  enabled: boolean;
+};
+
+export type EnableTwoFactorDto = {
+  code: string;
+};
+
+export type DisableTwoFactorDto = {
+  password: string;
+  code?: string;
+  recoveryCode?: string;
+};
+
+export type VerifyTwoFactorLoginDto = {
+  twoFactorToken: string;
+  code?: string;
+  recoveryCode?: string;
+};
+
+export type EnableTwoFactorResponse = {
+  recoveryCodes: string[];
 };
 
 /** @deprecated Session auth no longer returns tokens */
