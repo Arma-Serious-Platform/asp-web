@@ -48,7 +48,9 @@ function PlansSection({
               defenseSideType={defenseSideType}
               attackSideName={model.sidesById[game?.attackSideId || '']?.name}
               defenseSideName={model.sidesById[game?.defenseSideId || '']?.name}
-              commander={plan.gameCommanderId ? model.usersById[plan.gameCommanderId] : null}
+              commander={
+                plan.gameCommander ?? (plan.gameCommanderId ? model.usersById[plan.gameCommanderId] : null)
+              }
             />
           );
         })}
@@ -90,7 +92,9 @@ export const PlansSidebar = observer(({ model, activePlanId }: PlansSidebarProps
                       defenseSideType={defenseSideType}
                       attackSideName={model.sidesById[game?.attackSideId || '']?.name}
                       defenseSideName={model.sidesById[game?.defenseSideId || '']?.name}
-                      commander={plan.gameCommanderId ? model.usersById[plan.gameCommanderId] : null}
+                      commander={
+                plan.gameCommander ?? (plan.gameCommanderId ? model.usersById[plan.gameCommanderId] : null)
+              }
                     />
                   );
                 })}

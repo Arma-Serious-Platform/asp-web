@@ -25,7 +25,13 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
   const router = useRouter();
   const model = useMemo(() => new HqPlansModel(), []);
   const socketRef = useRef<Socket | null>(null);
+  const selectedPlanIdRef = useRef<string | undefined>(activePlanId);
+  const joinedPlanIdsRef = useRef<string[]>([]);
   const deleteHqCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
+
+  useEffect(() => {
+    selectedPlanIdRef.current = activePlanId;
+  }, [activePlanId]);
 
   const currentUser = session.user.user;
   const hasAccess = Boolean(
@@ -33,11 +39,22 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
   );
   const currentSide = currentUser?.squad?.side?.type;
   const currentSquad = currentUser?.squad;
-  const isAdmin = [UserRole.OWNER, UserRole.TECH_ADMIN].includes(currentUser?.role as UserRole);
+  const isHqAdmin = [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(currentUser?.role as UserRole);
 
   const selectedPlan = model.getPlanById(activePlanId);
-  const selectedCommander = selectedPlan?.gameCommanderId ? model.usersById[selectedPlan.gameCommanderId] : null;
+  const selectedCommander =
+    selectedPlan?.gameCommander ??
+    (selectedPlan?.gameCommanderId ? model.usersById[selectedPlan.gameCommanderId] : null);
   const isCommander = Boolean(currentUser?.id && selectedPlan?.gameCommanderId === currentUser.id);
+  const canManageHqSquad = Boolean(
+    session.canAccessHeadquarters &&
+      currentUser?.squad &&
+      selectedPlan?.side?.type === currentSide,
+  );
+  const isInHqSquad = Boolean(currentUser?.squad?.id && selectedPlan?.hqSquadId === currentUser.squad.id);
+  const canUnassignHqSquad = Boolean(
+    isHqAdmin || (selectedPlan?.hqSquadId && isInHqSquad && canManageHqSquad),
+  );
   const canEditCommanderFields = isCommander;
   const selectedGame = selectedPlan?.gameId ? model.gamesById[selectedPlan.gameId] : undefined;
   const attackSide = selectedGame?.attackSideId ? model.sidesById[selectedGame.attackSideId] : undefined;
@@ -92,13 +109,12 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
   }, [model, selectedPlan?.id]);
 
   useEffect(() => {
-    const gamePlanId = selectedPlan?.id;
-    if (!gamePlanId) {
+    if (!hasAccess || !session.isAuthorized) {
       return;
     }
 
     const apiBaseUrl = env.apiUrl?.replace(/\/api\/?$/, '');
-    if (!apiBaseUrl || !session.isAuthorized) {
+    if (!apiBaseUrl) {
       return;
     }
 
@@ -111,13 +127,8 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
 
     socketRef.current = socket;
 
-    const handleGamePlanUpdated = (payload: HeadquartersGamePlan) => {
-      if (!payload?.id || payload.id !== gamePlanId) return;
-      model.replacePlan(payload);
-    };
-
-    const handleCommanderChanged = (payload: HeadquartersGamePlan) => {
-      if (!payload?.id || payload.id !== gamePlanId) return;
+    const handlePlanChanged = (payload: HeadquartersGamePlan) => {
+      if (!payload?.id) return;
       model.replacePlan(payload);
     };
 
@@ -127,14 +138,14 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
     };
 
     const handleCommentCreated = (payload: HeadquartersComment) => {
-      if (!payload?.id) return;
+      if (!payload?.id || payload.gamePlanId !== selectedPlanIdRef.current) return;
       model.comments = model.comments.some(item => item.id === payload.id)
         ? model.comments
         : [payload, ...model.comments];
     };
 
     const handleCommentUpdated = (payload: HeadquartersComment) => {
-      if (!payload?.id) return;
+      if (!payload?.id || payload.gamePlanId !== selectedPlanIdRef.current) return;
       model.comments = model.comments.map(item => (item.id === payload.id ? payload : item));
     };
 
@@ -143,34 +154,65 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
       model.comments = model.comments.filter(item => item.id !== payload.id);
     };
 
-    const joinRoom = () => {
-      socket.emit('join_game_plan', { gamePlanId }, (response?: { success?: boolean; error?: string }) => {
-        if (response?.error) {
-          console.error('Failed to join headquarters game plan room:', response.error);
-        }
-      });
-    };
-
-    socket.on('connect', joinRoom);
-    socket.on('game_plan_updated', handleGamePlanUpdated);
-    socket.on('commander_changed', handleCommanderChanged);
+    socket.on('game_plan_updated', handlePlanChanged);
+    socket.on('commander_changed', handlePlanChanged);
+    socket.on('hq_squad_changed', handlePlanChanged);
     socket.on('slot_updated', handleSlotUpdated);
     socket.on('comment_created', handleCommentCreated);
     socket.on('comment_updated', handleCommentUpdated);
     socket.on('comment_deleted', handleCommentDeleted);
-    joinRoom();
 
     return () => {
-      socket.emit('leave_game_plan', { gamePlanId });
-      socket.off('connect', joinRoom);
-      socket.off('game_plan_updated', handleGamePlanUpdated);
-      socket.off('commander_changed', handleCommanderChanged);
+      socket.off('game_plan_updated', handlePlanChanged);
+      socket.off('commander_changed', handlePlanChanged);
+      socket.off('hq_squad_changed', handlePlanChanged);
       socket.off('slot_updated', handleSlotUpdated);
       socket.off('comment_created', handleCommentCreated);
       socket.off('comment_updated', handleCommentUpdated);
       socket.off('comment_deleted', handleCommentDeleted);
     };
-  }, [model, selectedPlan?.id]);
+  }, [hasAccess, model, session.isAuthorized]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket || !hasAccess || !session.isAuthorized) {
+      return;
+    }
+
+    const nextPlanIds = model.plans.map(plan => plan.id);
+    const previousPlanIds = joinedPlanIdsRef.current;
+
+    previousPlanIds
+      .filter(planId => !nextPlanIds.includes(planId))
+      .forEach(planId => {
+        socket.emit('leave_game_plan', { gamePlanId: planId });
+      });
+
+    const joinPlans = () => {
+      nextPlanIds.forEach(gamePlanId => {
+        socket.emit('join_game_plan', { gamePlanId }, (response?: { success?: boolean; error?: string }) => {
+          if (response?.error) {
+            console.error(`Failed to join headquarters game plan room ${gamePlanId}:`, response.error);
+          }
+        });
+      });
+    };
+
+    socket.on('connect', joinPlans);
+    if (socket.connected) {
+      joinPlans();
+    }
+
+    joinedPlanIdsRef.current = nextPlanIds;
+
+    return () => {
+      socket.off('connect', joinPlans);
+      nextPlanIds.forEach(gamePlanId => {
+        socket.emit('leave_game_plan', { gamePlanId });
+      });
+      joinedPlanIdsRef.current = [];
+    };
+  }, [hasAccess, model.plans]);
 
   useEffect(() => {
     return () => {
@@ -215,7 +257,10 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
               defenseSide={defenseSide}
               currentSquad={currentSquad}
               currentUserId={currentUser?.id}
-              isAdmin={isAdmin}
+              isHqAdmin={isHqAdmin}
+              canManageHqSquad={canManageHqSquad}
+              isInHqSquad={isInHqSquad}
+              canUnassignHqSquad={canUnassignHqSquad}
               isCommander={isCommander}
               canEditCommanderFields={canEditCommanderFields}
               currentSide={currentSide}

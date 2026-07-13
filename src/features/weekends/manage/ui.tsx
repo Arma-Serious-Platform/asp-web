@@ -49,6 +49,8 @@ const defaultGame: CreateGameDto = {
   attackSideId: '',
   defenseSideId: '',
   adminId: null,
+  attackHqSquadId: '',
+  defenseHqSquadId: '',
 };
 
 const gameSchema = yup.object().shape({
@@ -68,6 +70,8 @@ const gameSchema = yup.object().shape({
       return value !== attackSideId;
     }),
   adminId: yup.string().nullable(),
+  attackHqSquadId: yup.string().required("Штабний загін атаки є обов'язковим"),
+  defenseHqSquadId: yup.string().required("Штабний загін оборони є обов'язковим"),
 });
 
 const schema = yup.object().shape({
@@ -96,6 +100,7 @@ type SortableGameItemProps = {
   sideOptions: Array<{ label: string; value: string }>;
   userOptions: Array<{ label: string; value: string }>;
   getVersionOptionsForMission: (missionId: string) => Array<{ label: string; value: string }>;
+  getSquadOptionsForSide: (sideId: string) => Array<{ label: string; value: string }>;
   fetchMissionVersions: (missionId: string) => void;
   onRemove: () => void;
   canRemove: boolean;
@@ -109,6 +114,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
   sideOptions,
   userOptions,
   getVersionOptionsForMission,
+  getSquadOptionsForSide,
   fetchMissionVersions,
   onRemove,
   canRemove,
@@ -201,7 +207,10 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
                 label="Сторона атаки"
                 options={sideOptions}
                 value={f.value || null}
-                onChange={v => f.onChange(v ?? '')}
+                onChange={v => {
+                  f.onChange(v ?? '');
+                  form.setValue(`games.${index}.attackHqSquadId`, '');
+                }}
                 error={form.formState.errors.games?.[index]?.attackSideId?.message}
               />
             )}
@@ -214,10 +223,55 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
                 label="Сторона оборони"
                 options={sideOptions}
                 value={f.value || null}
-                onChange={v => f.onChange(v ?? '')}
+                onChange={v => {
+                  f.onChange(v ?? '');
+                  form.setValue(`games.${index}.defenseHqSquadId`, '');
+                }}
                 error={form.formState.errors.games?.[index]?.defenseSideId?.message}
               />
             )}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Controller
+            control={form.control}
+            name={`games.${index}.attackHqSquadId`}
+            render={({ field: f }) => {
+              const attackSideId = form.watch(`games.${index}.attackSideId`) as string;
+              const squadOptions = getSquadOptionsForSide(attackSideId ?? '');
+
+              return (
+                <Select
+                  label="Штабний загін (атака)"
+                  localSearch
+                  options={squadOptions}
+                  value={f.value || null}
+                  disabled={!attackSideId}
+                  onChange={v => f.onChange(v ?? '')}
+                  error={form.formState.errors.games?.[index]?.attackHqSquadId?.message}
+                />
+              );
+            }}
+          />
+          <Controller
+            control={form.control}
+            name={`games.${index}.defenseHqSquadId`}
+            render={({ field: f }) => {
+              const defenseSideId = form.watch(`games.${index}.defenseSideId`) as string;
+              const squadOptions = getSquadOptionsForSide(defenseSideId ?? '');
+
+              return (
+                <Select
+                  label="Штабний загін (оборона)"
+                  localSearch
+                  options={squadOptions}
+                  value={f.value || null}
+                  disabled={!defenseSideId}
+                  onChange={v => f.onChange(v ?? '')}
+                  error={form.formState.errors.games?.[index]?.defenseHqSquadId?.message}
+                />
+              );
+            }}
           />
         </div>
         <Controller
@@ -328,6 +382,8 @@ const ManageWeekendModal: FC<
               attackSideId: g.attackSideId,
               defenseSideId: g.defenseSideId,
               adminId: g.adminId ?? null,
+              attackHqSquadId: g.attackHqSquadId || null,
+              defenseHqSquadId: g.defenseHqSquadId || null,
             });
           } else {
             // Create new game
@@ -339,6 +395,8 @@ const ManageWeekendModal: FC<
               attackSideId: g.attackSideId,
               defenseSideId: g.defenseSideId,
               adminId: g.adminId ?? null,
+              attackHqSquadId: g.attackHqSquadId || null,
+              defenseHqSquadId: g.defenseHqSquadId || null,
             });
           }
         }
@@ -368,6 +426,8 @@ const ManageWeekendModal: FC<
           attackSideId: g.attackSideId,
           defenseSideId: g.defenseSideId,
           adminId: g.adminId ?? null,
+          attackHqSquadId: g.attackHqSquadId || null,
+          defenseHqSquadId: g.defenseHqSquadId || null,
         })),
         published: data.published,
         publishedAt: data.publishedAt || null,
@@ -393,6 +453,8 @@ const ManageWeekendModal: FC<
                 attackSideId: g.attackSideId,
                 defenseSideId: g.defenseSideId,
                 adminId: g.adminId ?? null,
+                attackHqSquadId: g.attackHqSquadId ?? '',
+                defenseHqSquadId: g.defenseHqSquadId ?? '',
               }))
           : [{ ...defaultGame }];
         games.forEach(g => g.missionId && fetchMissionVersions(g.missionId));
@@ -424,6 +486,14 @@ const ManageWeekendModal: FC<
 
   const getVersionOptionsForMission = (missionId: string) =>
     (missionVersionsCache[missionId] ?? []).map(v => ({ label: v.version, value: v.id }));
+
+  const getSquadOptionsForSide = (sideId: string) =>
+    model.squads.pagination.data
+      .filter(squad => squad.sideId === sideId || squad.side?.id === sideId)
+      .map(squad => ({
+        label: `${squad.tag} — ${squad.name}`,
+        value: squad.id,
+      }));
 
   return (
     <>
@@ -508,6 +578,7 @@ const ManageWeekendModal: FC<
                           sideOptions={sideOptions}
                           userOptions={userOptions}
                           getVersionOptionsForMission={getVersionOptionsForMission}
+                          getSquadOptionsForSide={getSquadOptionsForSide}
                           fetchMissionVersions={fetchMissionVersions}
                           onRemove={() => remove(index)}
                           canRemove={fields.length > 1}

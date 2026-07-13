@@ -901,6 +901,14 @@ class ApiModel {
     return await this.instance.post<HeadquartersGamePlan>(`/headquarters/plans/${id}/unassign-commander`);
   };
 
+  assignHeadquartersHqSquad = async (id: string) => {
+    return await this.instance.post<HeadquartersGamePlan>(`/headquarters/plans/${id}/assign-hq-squad`);
+  };
+
+  unassignHeadquartersHqSquad = async (id: string) => {
+    return await this.instance.post<HeadquartersGamePlan>(`/headquarters/plans/${id}/unassign-hq-squad`);
+  };
+
   updateHeadquartersSlot = async (slotId: string, dto: UpdateHeadquartersGamePlanSlotDto) => {
     return await this.instance.patch<HeadquartersSlot>(`/headquarters/slots/${slotId}`, dto);
   };

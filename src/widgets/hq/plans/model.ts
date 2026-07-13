@@ -170,6 +170,26 @@ class HqPlansModel {
   };
 
   replacePlan = (nextPlan: HeadquartersGamePlan) => {
+    if (nextPlan.gameCommander) {
+      this.usersById = {
+        ...this.usersById,
+        [nextPlan.gameCommander.id]: {
+          ...this.usersById[nextPlan.gameCommander.id],
+          ...nextPlan.gameCommander,
+        } as User,
+      };
+    }
+
+    if (nextPlan.hqSquad) {
+      this.squadsById = {
+        ...this.squadsById,
+        [nextPlan.hqSquad.id]: {
+          ...this.squadsById[nextPlan.hqSquad.id],
+          ...nextPlan.hqSquad,
+        } as Squad,
+      };
+    }
+
     this.plans = this.plans.map(item =>
       item.id === nextPlan.id ? (areSamePayload(item, nextPlan) ? item : nextPlan) : item,
     );
@@ -390,6 +410,16 @@ class HqPlansModel {
 
   unassignCommander = async (planId: string) => {
     const { data } = await api.unassignHeadquartersCommander(planId);
+    this.replacePlan(data);
+  };
+
+  assignHqSquad = async (planId: string) => {
+    const { data } = await api.assignHeadquartersHqSquad(planId);
+    this.replacePlan(data);
+  };
+
+  unassignHqSquad = async (planId: string) => {
+    const { data } = await api.unassignHeadquartersHqSquad(planId);
     this.replacePlan(data);
   };
 

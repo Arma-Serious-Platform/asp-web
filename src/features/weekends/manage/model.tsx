@@ -1,5 +1,6 @@
 import { MissionModel } from '@/entities/mission/model';
 import { SideModel } from '@/entities/side/model';
+import { SquadModel } from '@/entities/squad/model';
 import { UserModel } from '@/entities/user/model';
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
@@ -21,12 +22,14 @@ export class ManageWeekendModel {
   }>();
 
   sides = new SideModel();
+  squads = new SquadModel();
   users = new UserModel();
   missions = new MissionModel();
 
   init = async () => {
     await Promise.all([
       this.sides.pagination.loadAll(),
+      this.squads.pagination.loadAll(),
       this.users.pagination.loadAll(),
       this.missions.pagination.loadAll(),
     ]);

@@ -1,6 +1,6 @@
 'use client';
 
-import { HeadquartersGamePlan, Game, Side, User } from '@/shared/sdk/types';
+import { HeadquartersGamePlan, Game, Side } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { ShieldIcon, UserIcon } from 'lucide-react';
@@ -18,7 +18,7 @@ type PlanCardProps = {
   defenseSideType?: Side['type'];
   attackSideName?: string;
   defenseSideName?: string;
-  commander?: User | null;
+  commander?: HeadquartersGamePlan['gameCommander'];
 };
 
 export function PlanCard({
@@ -73,6 +73,11 @@ export function PlanCard({
                 <span className="text-zinc-500">КС відсутній</span>
               )}
             </div>
+            {plan.hqSquad && (
+              <div className="mt-0.5 truncate text-[10px] text-zinc-500">
+                ШЗ: {plan.hqSquad.tag}
+              </div>
+            )}
           </div>
         </div>
         <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px]">

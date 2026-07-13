@@ -708,6 +708,8 @@ export type Game = {
   attackSideId: string;
   defenseSideId: string;
   adminId: string | null;
+  attackHqSquadId?: string | null;
+  defenseHqSquadId?: string | null;
   weekendId?: string;
   weekend?: Weekend;
   missionVersion: MissionVersion;
@@ -739,6 +741,8 @@ export type CreateGameDto = {
   attackSideId: string;
   defenseSideId: string;
   adminId?: string | null;
+  attackHqSquadId?: string | null;
+  defenseHqSquadId?: string | null;
 };
 
 export type CreateWeekendDto = {
@@ -764,6 +768,8 @@ export type UpdateGameDto = {
   attackSideId?: string;
   defenseSideId?: string;
   adminId?: string | null;
+  attackHqSquadId?: string | null;
+  defenseHqSquadId?: string | null;
 };
 
 /* Mission comments */
@@ -842,11 +848,24 @@ export type HeadquartersSideShort = {
   type: SideType;
 };
 
+export type HeadquartersCommander = Pick<User, 'id' | 'nickname' | 'role' | 'squadRole' | 'isMissionReviewer' | 'avatar'> & {
+  squad?: {
+    id: string;
+    tag: string;
+    side?: {
+      type: SideType;
+    };
+  } | null;
+};
+
 export type HeadquartersGamePlan = {
   id: string;
   gameId: string;
   planUrl: string | null;
   gameCommanderId: string | null;
+  hqSquadId?: string | null;
+  hqSquad?: HeadquartersSquadShort | null;
+  gameCommander?: HeadquartersCommander | null;
   game?: HeadquartersGameShort;
   side?: HeadquartersSideShort;
   slots: HeadquartersSlot[];

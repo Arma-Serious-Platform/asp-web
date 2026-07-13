@@ -25,7 +25,16 @@ const UserProfileLink: FC<
 };
 
 export const UserNicknameText: FC<{
-  user: User | null;
+  user:
+    | User
+    | (Pick<User, 'id' | 'nickname'> &
+        Partial<Pick<User, 'role' | 'squadRole' | 'isMissionReviewer' | 'avatar'>> & {
+          squad?: {
+            tag?: string;
+            side?: { type?: SideType };
+          } | null;
+        })
+    | null;
   tag?: string;
   sideType?: SideType;
   className?: string;

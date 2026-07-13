@@ -3,7 +3,7 @@
 import toast from 'react-hot-toast';
 
 import { UserNicknameText } from '@/entities/user/ui/user-text';
-import { HeadquartersGamePlan, User } from '@/shared/sdk/types';
+import { HeadquartersGamePlan } from '@/shared/sdk/types';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Button } from '@/shared/ui/atoms/button';
 
@@ -12,9 +12,11 @@ import { HqPlansModel } from '../model';
 type PlanCommanderSectionProps = {
   model: HqPlansModel;
   selectedPlan: HeadquartersGamePlan;
-  selectedCommander?: User | null;
+  selectedCommander?: HeadquartersGamePlan['gameCommander'];
   isCommander: boolean;
-  isAdmin: boolean;
+  isHqAdmin: boolean;
+  canManageHqSquad: boolean;
+  isInHqSquad: boolean;
 };
 
 export function PlanCommanderSection({
@@ -22,8 +24,13 @@ export function PlanCommanderSection({
   selectedPlan,
   selectedCommander,
   isCommander,
-  isAdmin,
+  isHqAdmin,
+  canManageHqSquad,
+  isInHqSquad,
 }: PlanCommanderSectionProps) {
+  const canAssignSelf =
+    !selectedPlan.gameCommanderId && Boolean(selectedPlan.hqSquadId) && isInHqSquad && canManageHqSquad;
+
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
       <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Командир</div>
@@ -43,7 +50,7 @@ export function PlanCommanderSection({
         ) : (
           <span className="text-sm text-zinc-200">Не призначено</span>
         )}
-        {!selectedPlan.gameCommanderId && (
+        {canAssignSelf && (
           <Button
             size="sm"
             onClick={async () => {
@@ -57,7 +64,10 @@ export function PlanCommanderSection({
             Призначити себе
           </Button>
         )}
-        {selectedPlan.gameCommanderId && (isCommander || isAdmin) && (
+        {!selectedPlan.hqSquadId && canManageHqSquad && !selectedPlan.gameCommanderId && (
+          <span className="text-xs text-zinc-500">Спочатку призначте штабний загін</span>
+        )}
+        {selectedPlan.gameCommanderId && (isCommander || isHqAdmin) && (
           <Button
             size="sm"
             variant="outline"

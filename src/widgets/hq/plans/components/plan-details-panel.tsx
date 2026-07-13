@@ -9,19 +9,23 @@ import { HqPlansModel } from '../model';
 import { PlanCommanderSection } from './plan-commander-section';
 import { PlanCommentsSection } from './plan-comments-section';
 import { PlanGameDetailsSection } from './plan-game-details-section';
+import { PlanHqSquadSection } from './plan-hq-squad-section';
 import { PlanSlotsSection } from './plan-slots-section';
 import { PlanUrlSection } from './plan-url-section';
 
 type PlanDetailsPanelProps = {
   model: HqPlansModel;
   selectedPlan: HeadquartersGamePlan;
-  selectedCommander?: User | null;
+  selectedCommander?: HeadquartersGamePlan['gameCommander'];
   selectedGame?: Game;
   attackSide?: Side;
   defenseSide?: Side;
   currentSquad?: User['squad'];
   currentUserId?: string;
-  isAdmin: boolean;
+  isHqAdmin: boolean;
+  canManageHqSquad: boolean;
+  isInHqSquad: boolean;
+  canUnassignHqSquad: boolean;
   isCommander: boolean;
   canEditCommanderFields: boolean;
   currentSide?: Side['type'];
@@ -38,14 +42,17 @@ export const PlanDetailsPanel = observer(
     defenseSide,
     currentSquad,
     currentUserId,
-    isAdmin,
+    isHqAdmin,
+    canManageHqSquad,
+    isInHqSquad,
+    canUnassignHqSquad,
     isCommander,
     canEditCommanderFields,
     currentSide,
     deleteHqCommentModel,
   }: PlanDetailsPanelProps) => {
     const canDeleteHeadquartersComment = (comment: HeadquartersComment) =>
-      isAdmin || Boolean(currentUserId && comment.userId === currentUserId);
+      isHqAdmin || Boolean(currentUserId && comment.userId === currentUserId);
 
     return (
       <div className="flex flex-col gap-4">
@@ -55,12 +62,20 @@ export const PlanDetailsPanel = observer(
           attackSide={attackSide}
           defenseSide={defenseSide}
         />
+        <PlanHqSquadSection
+          model={model}
+          selectedPlan={selectedPlan}
+          canManageHqSquad={canManageHqSquad}
+          canUnassignHqSquad={canUnassignHqSquad}
+        />
         <PlanCommanderSection
           model={model}
           selectedPlan={selectedPlan}
           selectedCommander={selectedCommander}
           isCommander={isCommander}
-          isAdmin={isAdmin}
+          isHqAdmin={isHqAdmin}
+          canManageHqSquad={canManageHqSquad}
+          isInHqSquad={isInHqSquad}
         />
         <PlanUrlSection model={model} selectedPlan={selectedPlan} canEditCommanderFields={canEditCommanderFields} />
         <PlanSlotsSection
