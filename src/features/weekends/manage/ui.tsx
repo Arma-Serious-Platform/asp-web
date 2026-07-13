@@ -491,7 +491,7 @@ const ManageWeekendModal: FC<
     model.squads.pagination.data
       .filter(squad => squad.sideId === sideId || squad.side?.id === sideId)
       .map(squad => ({
-        label: `${squad.tag} — ${squad.name}`,
+        label: `${squad.tag}`,
         value: squad.id,
       }));
 
