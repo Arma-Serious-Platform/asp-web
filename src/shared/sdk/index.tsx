@@ -88,6 +88,7 @@ import {
 
 import { env } from '../config/env';
 import { ROUTES } from '../config/routes';
+import { buildTwoFactorCodePayload } from '../lib/two-factor-payload';
 import { AUTH_REDIRECT_SKIP_PATHS } from '../lib/routes/lib';
 
 const AUTH_PAGES = [ROUTES.auth.login, ROUTES.auth.signup, ROUTES.auth.forgotPassword] as const;
@@ -219,7 +220,10 @@ class ApiModel {
   };
 
   verifyTwoFactorLogin = async (dto: VerifyTwoFactorLoginDto) => {
-    const { data } = await this.instance.post<{ user: User }>('/auth/session/verify-2fa', dto);
+    const { data } = await this.instance.post<{ user: User }>('/auth/session/verify-2fa', {
+      twoFactorToken: dto.twoFactorToken,
+      ...buildTwoFactorCodePayload(dto.code, dto.recoveryCode),
+    });
 
     return { data: data.user };
   };
@@ -237,7 +241,10 @@ class ApiModel {
   };
 
   disableTwoFactor = async (dto: DisableTwoFactorDto) => {
-    return await this.instance.post('/auth/2fa/disable', dto);
+    return await this.instance.post('/auth/2fa/disable', {
+      password: dto.password.trim(),
+      ...buildTwoFactorCodePayload(dto.code, dto.recoveryCode),
+    });
   };
 
   logout = async () => {

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { FC, useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { LoaderIcon, ShieldCheckIcon } from 'lucide-react';
+import { LoaderIcon, CopyIcon, ShieldCheckIcon } from 'lucide-react';
 
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/organisms/dialog';
 import { manageTwoFactorModel, ManageTwoFactorModel } from './model';
+import { getDisableTwoFactorFieldErrors } from '@/shared/lib/two-factor-payload';
 
 const ManageTwoFactor: FC<{
   model?: ManageTwoFactorModel;
@@ -27,6 +28,8 @@ const ManageTwoFactor: FC<{
   const [disableRecoveryCode, setDisableRecoveryCode] = useState('');
   const [useRecoveryForDisable, setUseRecoveryForDisable] = useState(false);
   const [isRecoveryDialogOpen, setIsRecoveryDialogOpen] = useState(false);
+  const [disablePasswordError, setDisablePasswordError] = useState<string | undefined>();
+  const [disableCodeError, setDisableCodeError] = useState<string | undefined>();
 
   useEffect(() => {
     void model.load();
@@ -58,21 +61,70 @@ const ManageTwoFactor: FC<{
   };
 
   const handleDisable = async () => {
+    const password = disablePassword.trim();
+    const code = useRecoveryForDisable ? undefined : disableCode.trim();
+    const recoveryCode = useRecoveryForDisable ? disableRecoveryCode.trim() : undefined;
+
+    if (!password) {
+      toast.error('Введіть пароль');
+      return;
+    }
+
+    if (!recoveryCode && (!code || code.length !== 6)) {
+      toast.error(useRecoveryForDisable ? 'Введіть код відновлення' : 'Введіть 6-значний код з застосунку');
+      return;
+    }
+
     try {
+      setDisablePasswordError(undefined);
+      setDisableCodeError(undefined);
+
       await model.disable({
-        password: disablePassword,
-        code: useRecoveryForDisable ? undefined : disableCode.trim(),
-        recoveryCode: useRecoveryForDisable ? disableRecoveryCode.trim() : undefined,
+        password,
+        code,
+        recoveryCode,
       });
       setDisablePassword('');
       setDisableCode('');
       setDisableRecoveryCode('');
+      setUseRecoveryForDisable(false);
       onStatusChange?.(false);
       toast.success('Двофакторну автентифікацію вимкнено');
-    } catch {
+    } catch (error) {
+      const fieldErrors = getDisableTwoFactorFieldErrors(error);
+
+      if (fieldErrors.password) {
+        setDisablePasswordError(fieldErrors.password);
+        toast.error(fieldErrors.password);
+        return;
+      }
+
+      if (fieldErrors.code) {
+        setDisableCodeError(fieldErrors.code);
+        toast.error(fieldErrors.code);
+        return;
+      }
+
       toast.error('Не вдалося вимкнути 2FA. Перевірте пароль і код.');
     }
   };
+
+  const handleCopyAllRecoveryCodes = async () => {
+    if (model.recoveryCodes.length === 0) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(model.recoveryCodes.join('\n'));
+      toast.success('Усі коди скопійовано');
+    } catch {
+      toast.error('Не вдалося скопіювати коди');
+    }
+  };
+
+  const canDisable =
+    disablePassword.trim().length > 0 &&
+    (useRecoveryForDisable ? disableRecoveryCode.trim().length > 0 : disableCode.length === 6);
 
   if (model.loader.isLoading) {
     return (
@@ -170,14 +222,27 @@ const ManageTwoFactor: FC<{
               label="Пароль"
               type="password"
               value={disablePassword}
-              onChange={event => setDisablePassword(event.target.value)}
+              error={disablePasswordError}
+              onChange={event => {
+                setDisablePassword(event.target.value);
+                setDisablePasswordError(undefined);
+              }}
             />
 
             <label className="flex items-center gap-2 text-sm text-zinc-300">
               <input
                 type="checkbox"
                 checked={useRecoveryForDisable}
-                onChange={event => setUseRecoveryForDisable(event.target.checked)}
+                onChange={event => {
+                  const checked = event.target.checked;
+                  setUseRecoveryForDisable(checked);
+                  if (checked) {
+                    setDisableCode('');
+                  } else {
+                    setDisableRecoveryCode('');
+                  }
+                  setDisableCodeError(undefined);
+                }}
               />
               Використати код відновлення
             </label>
@@ -186,7 +251,11 @@ const ManageTwoFactor: FC<{
               <Input
                 label="Код відновлення"
                 value={disableRecoveryCode}
-                onChange={event => setDisableRecoveryCode(event.target.value.toUpperCase())}
+                error={disableCodeError}
+                onChange={event => {
+                  setDisableRecoveryCode(event.target.value.toUpperCase());
+                  setDisableCodeError(undefined);
+                }}
                 placeholder="A1B2-C3D4"
               />
             ) : (
@@ -195,7 +264,11 @@ const ManageTwoFactor: FC<{
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={disableCode}
-                onChange={event => setDisableCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                error={disableCodeError}
+                onChange={event => {
+                  setDisableCode(event.target.value.replace(/\D/g, '').slice(0, 6));
+                  setDisableCodeError(undefined);
+                }}
                 placeholder="123456"
               />
             )}
@@ -205,7 +278,7 @@ const ManageTwoFactor: FC<{
               variant="ghost"
               className="self-start text-red-300 hover:bg-red-500/10 hover:text-red-200"
               onClick={handleDisable}
-              disabled={model.actionLoader.isLoading || !disablePassword}>
+              disabled={model.actionLoader.isLoading || !canDisable}>
               {model.actionLoader.isLoading ? <LoaderIcon className="size-4 animate-spin" /> : 'Вимкнути 2FA'}
             </Button>
           </div>
@@ -230,10 +303,29 @@ const ManageTwoFactor: FC<{
             доступ до застосунку автентифікації.
           </p>
 
-          <div className="grid grid-cols-2 gap-2 rounded-md border border-white/10 bg-black/30 p-3 font-mono text-sm">
-            {model.recoveryCodes.map(code => (
-              <span key={code}>{code}</span>
-            ))}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                {model.recoveryCodes.length} кодів
+              </span>
+              <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={handleCopyAllRecoveryCodes}>
+                <CopyIcon className="size-3.5" />
+                Копіювати всі
+              </Button>
+            </div>
+
+            <ul className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
+              {model.recoveryCodes.map((code, index) => (
+                <li
+                  key={code}
+                  className="rounded-md border border-white/10 bg-black/40 px-3 py-2 font-mono text-sm text-zinc-100">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                    #{index + 1}
+                  </span>
+                  <span className="mt-0.5 block tracking-wide">{code}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <DialogFooter>
