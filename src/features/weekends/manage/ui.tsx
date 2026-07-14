@@ -101,7 +101,7 @@ type SortableGameItemProps = {
   userOptions: Array<{ label: string; value: string }>;
   getVersionOptionsForMission: (missionId: string) => Array<{ label: string; value: string }>;
   getSquadOptionsForSide: (sideId: string) => Array<{ label: string; value: string }>;
-  fetchMissionVersions: (missionId: string) => void;
+  fetchMissionVersions: (missionId: string) => Promise<MissionVersion[]>;
   onRemove: () => void;
   canRemove: boolean;
 };
@@ -128,7 +128,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="rounded-lg border border-neutral-700 p-3 space-y-3">
+    <div ref={setNodeRef} style={style} className="rounded-lg border border-neutral-700 p-3 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
@@ -150,7 +150,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
           <TrashIcon className="w-4 h-4" />
         </Button>
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <Controller
           control={form.control}
           name={`games.${index}.date`}
@@ -168,10 +168,19 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
                 localSearch
                 options={missionOptions}
                 value={f.value || null}
-                onChange={v => {
+                onChange={async v => {
                   f.onChange(v ?? '');
                   form.setValue(`games.${index}.missionVersionId`, '');
-                  if (v) fetchMissionVersions(v);
+                  if (!v) return;
+
+                  const versions = await fetchMissionVersions(v);
+                  const latestVersion = [...versions].sort(
+                    (a, b) => dayjs(b.createdAt).valueOf() - dayjs(a.createdAt).valueOf(),
+                  )[0];
+
+                  if (latestVersion?.id) {
+                    form.setValue(`games.${index}.missionVersionId`, latestVersion.id);
+                  }
                 }}
                 error={form.formState.errors.games?.[index]?.missionId?.message}
               />
@@ -315,6 +324,8 @@ const ManageWeekendModal: FC<
     },
   });
 
+  const { isDirty } = form.formState;
+
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: 'games',
@@ -338,13 +349,16 @@ const ManageWeekendModal: FC<
   };
 
   const fetchMissionVersions = useCallback(async (missionId: string) => {
-    if (!missionId) return;
+    if (!missionId) return [];
+
     try {
       const { data } = await api.findMissionById(missionId);
       const versions = data?.missionVersions ?? [];
       setMissionVersionsCache(prev => ({ ...prev, [missionId]: versions }));
+      return versions;
     } catch {
       setMissionVersionsCache(prev => ({ ...prev, [missionId]: [] }));
+      return [];
     }
   }, []);
 
@@ -491,7 +505,9 @@ const ManageWeekendModal: FC<
   const userOptions = mapUsersToSelectOptions(model.users.pagination.data.filter(canAdminMission));
 
   const getVersionOptionsForMission = (missionId: string) =>
-    (missionVersionsCache[missionId] ?? []).map(v => ({ label: v.version, value: v.id }));
+    [...(missionVersionsCache[missionId] ?? [])]
+      .sort((a, b) => dayjs(b.createdAt).valueOf() - dayjs(a.createdAt).valueOf())
+      .map(v => ({ label: v.version, value: v.id }));
 
   const getSquadOptionsForSide = (sideId: string) =>
     model.squads.pagination.data
@@ -506,7 +522,17 @@ const ManageWeekendModal: FC<
       <Dialog open={model.modal.isOpen && model.modal?.payload?.mode !== 'delete'} onOpenChange={model.modal.switch}>
         <DialogOverlay />
         {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto max-w-2xl"
+          onPointerDownOutside={event => {
+            if (isDirty) event.preventDefault();
+          }}
+          onInteractOutside={event => {
+            if (isDirty) event.preventDefault();
+          }}
+          onEscapeKeyDown={event => {
+            if (isDirty) event.preventDefault();
+          }}>
           <DialogHeader>
             <DialogTitle>{isEdit ? 'Редагувати анонс' : 'Створити анонс'}</DialogTitle>
           </DialogHeader>
@@ -573,7 +599,7 @@ const ManageWeekendModal: FC<
                 )}
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-6">
                       {fields.map((field, index) => (
                         <SortableGameItem
                           key={field.id}
