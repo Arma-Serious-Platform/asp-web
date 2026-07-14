@@ -1,7 +1,6 @@
 'use client';
 
-import { observer } from 'mobx-react-lite';
-import toast from 'react-hot-toast';
+import { CalendarIcon } from 'lucide-react';
 
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel/ui';
 import { MissionDetails } from '@/entities/mission/mission-details/ui';
@@ -16,17 +15,25 @@ type PlanGameDetailsSectionProps = {
   defenseSide?: Side;
 };
 
-export function PlanGameDetailsSection({ selectedPlan, selectedGame, attackSide, defenseSide }: PlanGameDetailsSectionProps) {
+export function PlanGameDetailsSection({
+  selectedPlan,
+  selectedGame,
+  attackSide,
+  defenseSide,
+}: PlanGameDetailsSectionProps) {
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
       <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Деталі гри</div>
       {selectedGame ? (
         <div className="flex flex-col gap-3">
-          <div className="text-sm text-zinc-300">
-            {getGameHumanLabel(selectedGame.date, selectedGame.position ?? selectedPlan.game?.position)}
+          <div className="flex items-center gap-2 text-lg font-bold text-zinc-100">
+            <CalendarIcon className="size-5 shrink-0" />
+            <span>
+              {getGameHumanLabel(selectedGame.date, selectedGame.position ?? selectedPlan.game?.position)}
+            </span>
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-            <MissionImagePanel game={selectedGame} />
+            <MissionImagePanel game={selectedGame} descriptionMaxLength={100} />
             <div className="lg:w-3/5">
               <MissionDetails
                 game={selectedGame}

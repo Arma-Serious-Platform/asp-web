@@ -1,15 +1,15 @@
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 
-import { HeadquartersGamePlan, HeadquartersSlot, SideType, Squad } from '@/shared/sdk/types';
+import { HeadquartersGamePlan, HeadquartersSlot, Squad } from '@/shared/sdk/types';
 
-export const ARCHIVE_PLANS_PAGE_SIZE = 4;
+export const ARCHIVE_PLANS_PAGE_SIZE = 8;
 export const PLAN_LIST_SKELETON_COUNT = 8;
 
 export type SlotDraftField = keyof Pick<HeadquartersSlot, 'name' | 'weaponry' | 'slotCount' | 'spawnPoint' | 'comment'>;
 export type SlotDrafts = Record<string, Partial<Record<SlotDraftField, string>>>;
 export type WantedSlotOverrides = Record<string, boolean>;
-export type PlanTimeCategory = 'today' | 'future' | 'archive';
+export type PlanTimeCategory = 'today' | 'tomorrow' | 'future' | 'archive';
 
 const weekDayByIndex: Record<number, string> = {
   0: 'Неділя',
@@ -46,6 +46,10 @@ export const getPlanTimeCategory = (date?: string | null): PlanTimeCategory | nu
     return 'today';
   }
 
+  if (planDate.isSame(today.add(1, 'day'))) {
+    return 'tomorrow';
+  }
+
   if (planDate.isAfter(today)) {
     return 'future';
   }
@@ -74,30 +78,6 @@ export const getGameHumanLabel = (date?: string, position?: number) => {
   }
 
   return weekDay;
-};
-
-export const sideAppearance = (sideType?: SideType) => {
-  if (sideType === SideType.RED) {
-    return {
-      dot: 'bg-red-500',
-      text: 'text-red-400',
-      badge: 'bg-red-500/20 text-red-400',
-    };
-  }
-
-  if (sideType === SideType.BLUE) {
-    return {
-      dot: 'bg-blue-500',
-      text: 'text-blue-400',
-      badge: 'bg-blue-500/20 text-blue-400',
-    };
-  }
-
-  return {
-    dot: 'bg-zinc-500',
-    text: 'text-zinc-300',
-    badge: 'bg-zinc-500/20 text-zinc-300',
-  };
 };
 
 export const copyToClipboard = async (text: string, options?: { successMessage?: string; emptyErrorMessage?: string }) => {

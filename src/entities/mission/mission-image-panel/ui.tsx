@@ -1,4 +1,6 @@
-import { FC } from 'react';
+'use client';
+
+import { FC, useEffect, useState } from 'react';
 import { Button } from '@/shared/ui/atoms/button';
 import { Card } from '@/shared/ui/atoms/card';
 import { EyeIcon, DownloadIcon, CalendarIcon, InfoIcon, UserIcon, UserRoundCog } from 'lucide-react';
@@ -8,12 +10,31 @@ import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
-import { MessageContent } from '@/entities/comment/lexical-message';
+import { getMessageText, MessageContent } from '@/entities/comment/lexical-message';
 
 export const MissionImagePanel: FC<{
   game: Game;
   showDescription?: boolean;
-}> = ({ game, showDescription = true }) => {
+  descriptionMaxLength?: number;
+}> = ({ game, showDescription = true, descriptionMaxLength }) => {
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  useEffect(() => {
+    setIsDescriptionExpanded(false);
+  }, [game.id]);
+
+  const descriptionText = getMessageText(game.mission.description);
+  const isDescriptionEmpty = !descriptionText || descriptionText === '—';
+  const shouldCollapse =
+    typeof descriptionMaxLength === 'number' &&
+    descriptionMaxLength > 0 &&
+    !isDescriptionEmpty &&
+    descriptionText.length > descriptionMaxLength;
+  const truncatedDescription =
+    shouldCollapse && !isDescriptionExpanded
+      ? `${descriptionText.slice(0, descriptionMaxLength).trimEnd()}…`
+      : null;
+
   return (
     <div className="lg:w-2/5 flex flex-col gap-4">
       <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-white/10 group">
@@ -76,17 +97,31 @@ export const MissionImagePanel: FC<{
         </div>
       </Card>
 
-      {showDescription && (
+      {showDescription && !isDescriptionEmpty && (
         <Card>
           <div className="flex items-center gap-2 mb-3">
             <InfoIcon className="size-4 text-lime-500" />
             <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Опис сценарію</span>
           </div>
-          <MessageContent
-            message={game.mission.description}
-            textOnly
-            className="text-sm leading-relaxed text-zinc-200"
-          />
+          {truncatedDescription ? (
+            <p className="text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap wrap-break-word">
+              {truncatedDescription}
+            </p>
+          ) : (
+            <MessageContent
+              message={game.mission.description}
+              textOnly
+              className="text-sm leading-relaxed text-zinc-200"
+            />
+          )}
+          {shouldCollapse && (
+            <button
+              type="button"
+              className="mt-2 text-sm font-medium text-lime-400 hover:text-lime-300"
+              onClick={() => setIsDescriptionExpanded(prev => !prev)}>
+              {isDescriptionExpanded ? 'Сховати' : 'Більше'}
+            </button>
+          )}
         </Card>
       )}
     </div>

@@ -307,7 +307,7 @@ const ManageWeekendModal: FC<
   const form = useForm<WeekendFormValues>({
     resolver: yupResolver(schema) as Resolver<WeekendFormValues>,
     defaultValues: {
-      name: '',
+      name: `Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`,
       description: '',
       published: false,
       publishedAt: '',
@@ -467,7 +467,7 @@ const ManageWeekendModal: FC<
         });
       } else {
         form.reset({
-          name: '',
+          name: `Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`,
           description: '',
           published: false,
           publishedAt: '',
@@ -475,7 +475,13 @@ const ManageWeekendModal: FC<
         });
       }
     } else {
-      form.reset({ name: '', description: '', published: false, publishedAt: '', games: [{ ...defaultGame }] });
+      form.reset({
+        name: `Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`,
+        description: '',
+        published: false,
+        publishedAt: '',
+        games: [{ ...defaultGame }],
+      });
       model.modal.clearPayload();
     }
   }, [model.modal.isOpen, model.modal.payload?.weekend]);

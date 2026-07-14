@@ -3,23 +3,19 @@
 import { observer } from 'mobx-react-lite';
 
 import { DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
-import { Game, HeadquartersComment, HeadquartersGamePlan, Side, User } from '@/shared/sdk/types';
+import { HeadquartersComment, HeadquartersGamePlan, Side, User } from '@/shared/sdk/types';
 
 import { HqPlansModel } from '../model';
 import { PlanCommanderSection } from './plan-commander-section';
 import { PlanCommentsSection } from './plan-comments-section';
-import { PlanGameDetailsSection } from './plan-game-details-section';
 import { PlanHqSquadSection } from './plan-hq-squad-section';
 import { PlanSlotsSection } from './plan-slots-section';
 import { PlanUrlSection } from './plan-url-section';
 
-type PlanDetailsPanelProps = {
+type PlanManagementSectionsProps = {
   model: HqPlansModel;
   selectedPlan: HeadquartersGamePlan;
   selectedCommander?: HeadquartersGamePlan['gameCommander'];
-  selectedGame?: Game;
-  attackSide?: Side;
-  defenseSide?: Side;
   currentSquad?: User['squad'];
   currentUserId?: string;
   isHqAdmin: boolean;
@@ -32,14 +28,11 @@ type PlanDetailsPanelProps = {
   deleteHqCommentModel: DeleteMissionCommentModel;
 };
 
-export const PlanDetailsPanel = observer(
+export const PlanManagementSections = observer(
   ({
     model,
     selectedPlan,
     selectedCommander,
-    selectedGame,
-    attackSide,
-    defenseSide,
     currentSquad,
     currentUserId,
     isHqAdmin,
@@ -50,18 +43,12 @@ export const PlanDetailsPanel = observer(
     canEditCommanderFields,
     currentSide,
     deleteHqCommentModel,
-  }: PlanDetailsPanelProps) => {
+  }: PlanManagementSectionsProps) => {
     const canDeleteHeadquartersComment = (comment: HeadquartersComment) =>
       isHqAdmin || Boolean(currentUserId && comment.userId === currentUserId);
 
     return (
       <div className="flex flex-col gap-4">
-        <PlanGameDetailsSection
-          selectedPlan={selectedPlan}
-          selectedGame={selectedGame}
-          attackSide={attackSide}
-          defenseSide={defenseSide}
-        />
         <PlanHqSquadSection
           model={model}
           selectedPlan={selectedPlan}

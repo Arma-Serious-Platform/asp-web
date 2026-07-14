@@ -13,7 +13,8 @@ import { env } from '@/shared/config/env';
 import { HeadquartersComment, HeadquartersGamePlan, HeadquartersSlot, SideType, UserRole } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 
-import { PlanDetailsPanel } from './components/plan-details-panel';
+import { PlanGameDetailsSection } from './components/plan-game-details-section';
+import { PlanManagementSections } from './components/plan-management-sections';
 import { PlansSidebar } from './components/plans-sidebar';
 import { HqPlansModel } from './model';
 
@@ -73,15 +74,8 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
 
     void model.load(currentSide).then(() => {
       model.ensureArchivePlanVisible(activePlanId);
-
-      if (!activePlanId) {
-        const defaultPlanId = model.getDefaultPlanId();
-        if (defaultPlanId) {
-          router.replace(`/hq/plans/${defaultPlanId}`);
-        }
-      }
     });
-  }, [currentSide, hasAccess, model, router]);
+  }, [activePlanId, currentSide, hasAccess, model]);
 
   useEffect(() => {
     model.resetPlanDrafts();
@@ -239,22 +233,32 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
         </Link>
       </div>
 
-      <div className="grid min-h-[460px] grid-cols-1 gap-3">
-        <PlansSidebar model={model} activePlanId={activePlanId} />
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)]">
+          <PlansSidebar model={model} activePlanId={activePlanId} />
 
-        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
-          {!selectedPlan ? (
-            <div className="flex h-full items-center justify-center py-10 text-center text-lg font-bold text-zinc-300">
-              Оберіть план
-            </div>
-          ) : (
-            <PlanDetailsPanel
+          <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+            {!selectedPlan ? (
+              <div className="flex h-full items-center justify-center py-10 text-center text-lg font-bold text-zinc-300">
+                Оберіть план
+              </div>
+            ) : (
+              <PlanGameDetailsSection
+                selectedPlan={selectedPlan}
+                selectedGame={selectedGame}
+                attackSide={attackSide}
+                defenseSide={defenseSide}
+              />
+            )}
+          </section>
+        </div>
+
+        {selectedPlan && (
+          <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+            <PlanManagementSections
               model={model}
               selectedPlan={selectedPlan}
               selectedCommander={selectedCommander}
-              selectedGame={selectedGame}
-              attackSide={attackSide}
-              defenseSide={defenseSide}
               currentSquad={currentSquad}
               currentUserId={currentUser?.id}
               isHqAdmin={isHqAdmin}
@@ -266,8 +270,8 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
               currentSide={currentSide}
               deleteHqCommentModel={deleteHqCommentModel}
             />
-          )}
-        </section>
+          </section>
+        )}
       </div>
     </div>
   );

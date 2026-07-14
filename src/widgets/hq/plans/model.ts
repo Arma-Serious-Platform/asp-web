@@ -52,6 +52,10 @@ class HqPlansModel {
     return this.plans.filter(plan => getPlanTimeCategory(plan.game?.date) === 'today').sort(sortPlansAscending);
   }
 
+  get tomorrowPlans() {
+    return this.plans.filter(plan => getPlanTimeCategory(plan.game?.date) === 'tomorrow').sort(sortPlansAscending);
+  }
+
   get futurePlans() {
     return this.plans.filter(plan => getPlanTimeCategory(plan.game?.date) === 'future').sort(sortPlansAscending);
   }
@@ -69,15 +73,15 @@ class HqPlansModel {
   }
 
   get hasAnyPlans() {
-    return this.todayPlans.length > 0 || this.futurePlans.length > 0 || this.archivePlans.length > 0;
+    return (
+      this.todayPlans.length > 0 ||
+      this.tomorrowPlans.length > 0 ||
+      this.futurePlans.length > 0 ||
+      this.archivePlans.length > 0
+    );
   }
 
   getPlanById = (planId?: string) => this.plans.find(plan => plan.id === planId) ?? null;
-
-  getDefaultPlanId = () => {
-    const defaultPlan = this.todayPlans[0] ?? this.futurePlans[0] ?? this.archivePlans[0];
-    return defaultPlan?.id ?? null;
-  };
 
   resetPlanDrafts = () => {
     this.planUrlDraft = null;
