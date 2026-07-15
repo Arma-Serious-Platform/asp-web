@@ -133,6 +133,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 {[
                   MissionStatus.APPROVED,
                   MissionStatus.IN_REVIEW,
+                  MissionStatus.PENDING_GAME_APPROVAL,
                   MissionStatus.CHANGES_REQUESTED,
                   MissionStatus.PENDING_APPROVAL,
                 ]

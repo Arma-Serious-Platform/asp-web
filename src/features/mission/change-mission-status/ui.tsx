@@ -30,6 +30,7 @@ const ChangeMissionVersionStatusModal: FC<
   const isChangesRequestedAction = status === MissionStatus.CHANGES_REQUESTED;
   const isPendingApprovalAction = status === MissionStatus.PENDING_APPROVAL;
   const isInReviewAction = status === MissionStatus.IN_REVIEW;
+  const isPendingGameApprovalAction = status === MissionStatus.PENDING_GAME_APPROVAL;
 
   return (
     <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
@@ -61,6 +62,12 @@ const ChangeMissionVersionStatusModal: FC<
                 Ви впевнені, що версія <span className="text-primary">{version?.version}</span> ще потребує змін?
               </div>
             </View.Condition>
+            <View.Condition if={isPendingGameApprovalAction}>
+              <div>
+                Ви впевнені, що хочете перевести версію <span className="text-primary">{version?.version}</span> в
+                статус <span className="text-primary">{statusLabels[MissionStatus.PENDING_GAME_APPROVAL]}</span>?
+              </div>
+            </View.Condition>
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-2">
@@ -69,7 +76,11 @@ const ChangeMissionVersionStatusModal: FC<
               Скасувати
             </Button>
             <Button
-              variant={isApproveAction || isInReviewAction || isPendingApprovalAction ? 'default' : 'destructive'}
+              variant={
+                isApproveAction || isInReviewAction || isPendingApprovalAction || isPendingGameApprovalAction
+                  ? 'default'
+                  : 'destructive'
+              }
               onClick={() => {
                 if (missionId && version?.id && status) {
                   model.changeStatus(missionId, version.id, status, onSuccess);

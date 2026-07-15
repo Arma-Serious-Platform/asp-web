@@ -686,6 +686,10 @@ class ApiModel {
     formData.append('attackSideName', dto.attackSideName);
     formData.append('defenseSideName', dto.defenseSideName);
 
+    if (dto.minSlotsToPlay !== undefined && dto.minSlotsToPlay !== null) {
+      formData.append('minSlotsToPlay', dto.minSlotsToPlay.toString());
+    }
+
     if (dto.weaponry && dto.weaponry.length > 0) {
       dto.weaponry.forEach((weaponry, index) => {
         formData.append(`weaponry[${index}][name]`, weaponry.name);
@@ -744,6 +748,9 @@ class ApiModel {
     }
     if (dto.defenseSideSlots !== undefined) {
       formData.append('defenseSideSlots', dto.defenseSideSlots.toString());
+    }
+    if (dto.minSlotsToPlay !== undefined) {
+      formData.append('minSlotsToPlay', dto.minSlotsToPlay === null ? '' : dto.minSlotsToPlay.toString());
     }
     if (dto.attackSideName) {
       formData.append('attackSideName', dto.attackSideName);

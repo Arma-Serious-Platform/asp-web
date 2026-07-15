@@ -32,6 +32,7 @@ type MissionFiltersState = {
   reviewerId: string | null;
   minSlots: number | null;
   maxSlots: number | null;
+  minSlotsToPlay: number | null;
   missionType: MissionType | null;
   orderType: 'asc' | 'desc';
 };
@@ -172,6 +173,17 @@ const MissionFilters = observer(
           />
         </div>
 
+        <NumericInput
+          label="Мінімальні слоти для гри mVTG"
+          placeholder="0"
+          value={filters.minSlotsToPlay?.toString() || ''}
+          onChange={e =>
+            setFilters({
+              minSlotsToPlay: e.target.value ? parseInt(e.target.value, 10) : null,
+            })
+          }
+        />
+
         <div className="grid grid-cols-2 gap-2 pt-1 sm:flex sm:flex-col sm:gap-2 sm:pt-2">
           <Button variant="outline" disabled={isLoading} onClick={onApply} className="w-full">
             Застосувати
@@ -198,6 +210,7 @@ const MissionsPageContent = observer(() => {
     reviewerId: parseAsString,
     minSlots: parseAsInteger,
     maxSlots: parseAsInteger,
+    minSlotsToPlay: parseAsInteger,
     missionType: parseAsStringEnum(Object.values(MissionType)),
     orderType: parseAsStringEnum(['asc', 'desc']).withDefault('desc'),
   });
@@ -222,6 +235,7 @@ const MissionsPageContent = observer(() => {
     search: filters.search || undefined,
     minSlots: filters.minSlots ?? undefined,
     maxSlots: filters.maxSlots ?? undefined,
+    minSlotsToPlay: filters.minSlotsToPlay ?? undefined,
     missionType: filters.missionType || undefined,
     orderBy: 'createdAt' as const,
     orderType,
@@ -256,6 +270,7 @@ const MissionsPageContent = observer(() => {
       reviewerId: null,
       minSlots: null,
       maxSlots: null,
+      minSlotsToPlay: null,
       missionType: null,
     });
 

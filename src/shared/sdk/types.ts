@@ -14,6 +14,7 @@ export enum MissionStatus {
   PENDING_APPROVAL = 'PENDING_APPROVAL',
   CHANGES_REQUESTED = 'CHANGES_REQUESTED',
   IN_REVIEW = 'IN_REVIEW',
+  PENDING_GAME_APPROVAL = 'PENDING_GAME_APPROVAL',
 }
 
 export enum MissionType {
@@ -544,6 +545,7 @@ export type FindMissionsDto = PaginatedRequest<{
   islandId?: string;
   minSlots?: number;
   maxSlots?: number;
+  minSlotsToPlay?: number;
   missionType?: MissionType;
   orderBy?: 'createdAt';
   orderType?: 'asc' | 'desc';
@@ -613,6 +615,7 @@ export type MissionVersion = {
   defenseSideType: MissionGameSide;
   attackSideSlots: number;
   defenseSideSlots: number;
+  minSlotsToPlay?: number | null;
   attackSideName: string;
   defenseSideName: string;
   changesDescription: string | null;
@@ -664,6 +667,7 @@ export type CreateMissionVersionDto = {
   defenseSideType: MissionGameSide;
   attackSideSlots: number;
   defenseSideSlots: number;
+  minSlotsToPlay?: number | null;
   attackSideName: string;
   defenseSideName: string;
   file: File;
@@ -682,6 +686,7 @@ export type UpdateMissionVersionDto = {
   defenseSideType?: MissionGameSide;
   attackSideSlots?: number;
   defenseSideSlots?: number;
+  minSlotsToPlay?: number | null;
   attackSideName?: string;
   defenseSideName?: string;
   file?: File;

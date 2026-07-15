@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Mission, MissionGameSide, State } from '@/shared/sdk/types';
+import { Mission, MissionGameSide, State, MissionType } from '@/shared/sdk/types';
 import { Card } from '@/shared/ui/atoms/card';
 import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
@@ -140,6 +140,15 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
                   sideType={lastVersion.defenseSideType}
                   slots={lastVersion.defenseSideSlots}
                 />
+                {mission.missionType === MissionType.mini && lastVersion.minSlotsToPlay != null && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500">Мін. слотів для гри:</span>
+                    <div className="flex items-center gap-1">
+                      <UsersIcon className="size-3 text-zinc-400" />
+                      <span className="text-xs font-medium text-zinc-300">{lastVersion.minSlotsToPlay}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

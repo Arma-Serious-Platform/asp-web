@@ -1,16 +1,7 @@
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
-import {
-  Mission,
-  MissionGameSide,
-  MissionVersion,
-  MissionCommentMessage,
-  State,
-  CreateMissionVersionDto,
-  UpdateMissionVersionDto,
-  CreateMissionWeaponryDto,
-} from '@/shared/sdk/types';
+import { Mission, MissionGameSide, MissionVersion, MissionCommentMessage, State, MissionType, CreateMissionVersionDto, UpdateMissionVersionDto, CreateMissionWeaponryDto } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -28,6 +19,7 @@ export type VersionFormData = {
   defenseSideType: MissionGameSide;
   attackSideSlots: number;
   defenseSideSlots: number;
+  minSlotsToPlay: number | null;
   attackSideName: string;
   defenseSideName: string;
   file: File | null;
@@ -94,6 +86,9 @@ export class CreateUpdateMissionVersionModel {
       ];
       const inGameTime = buildInGameTimeDate(data.inGameTime);
       const weather = data.weather.trim() || null;
+      const isMiniMission = mission?.missionType === MissionType.mini;
+      const minSlotsToPlay =
+        isMiniMission && data.minSlotsToPlay !== null && data.minSlotsToPlay > 0 ? data.minSlotsToPlay : null;
 
       if (version) {
         // Update existing version
@@ -103,6 +98,7 @@ export class CreateUpdateMissionVersionModel {
           defenseSideType: data.defenseSideType,
           attackSideSlots: data.attackSideSlots,
           defenseSideSlots: data.defenseSideSlots,
+          ...(isMiniMission && { minSlotsToPlay }),
           attackSideName: data.attackSideName,
           defenseSideName: data.defenseSideName,
           weaponry: weaponry.length > 0 ? weaponry : [],
@@ -136,6 +132,7 @@ export class CreateUpdateMissionVersionModel {
           defenseSideType: data.defenseSideType as MissionGameSide,
           attackSideSlots: data.attackSideSlots,
           defenseSideSlots: data.defenseSideSlots,
+          ...(isMiniMission && minSlotsToPlay !== null && { minSlotsToPlay }),
           attackSideName: data.attackSideName,
           defenseSideName: data.defenseSideName,
           file: data.file,

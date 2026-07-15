@@ -17,7 +17,7 @@ import * as yup from 'yup';
 import { useEffect, useRef, useState, FC } from 'react';
 import { PlusIcon, LoaderIcon, UploadIcon, TrashIcon, MinusIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
-import { MissionGameSide, MissionVersion } from '@/shared/sdk/types';
+import { MissionGameSide, MissionType, MissionVersion } from '@/shared/sdk/types';
 import { CreateUpdateMissionVersionModel, VersionFormData, WeaponryFormItem } from './model';
 import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
 import { MessageEditor } from '@/features/chat/editor';
@@ -43,6 +43,12 @@ const createVersionSchema = (missionId: string) =>
     defenseSideType: yup.string().required("Обов'язково"),
     attackSideSlots: yup.number().required("Обов'язково").min(1),
     defenseSideSlots: yup.number().required("Обов'язково").min(1),
+    minSlotsToPlay: yup
+      .number()
+      .nullable()
+      .transform((value, originalValue) => (originalValue === '' || originalValue === null ? null : value))
+      .min(1, 'Мінімум 1')
+      .optional(),
     attackSideName: yup.string().required("Обов'язково"),
     defenseSideName: yup.string().required("Обов'язково"),
     file: yup
@@ -172,6 +178,7 @@ const CreateUpdateMissionVersionModal: FC<{
       defenseSideType: MissionGameSide.RED,
       attackSideSlots: 0,
       defenseSideSlots: 0,
+      minSlotsToPlay: null,
       attackSideName: '',
       defenseSideName: '',
       file: null,
@@ -222,6 +229,7 @@ const CreateUpdateMissionVersionModal: FC<{
         defenseSideType: editingVersion.defenseSideType,
         attackSideSlots: editingVersion.attackSideSlots,
         defenseSideSlots: editingVersion.defenseSideSlots,
+        minSlotsToPlay: editingVersion.minSlotsToPlay ?? null,
         attackSideName: editingVersion.attackSideName,
         defenseSideName: editingVersion.defenseSideName,
         file: null,
@@ -254,6 +262,7 @@ const CreateUpdateMissionVersionModal: FC<{
         defenseSideType: previousVersion.defenseSideType,
         attackSideSlots: previousVersion.attackSideSlots,
         defenseSideSlots: previousVersion.defenseSideSlots,
+        minSlotsToPlay: previousVersion.minSlotsToPlay ?? null,
         attackSideName: previousVersion.attackSideName,
         defenseSideName: previousVersion.defenseSideName,
         file: null,
@@ -303,6 +312,7 @@ const CreateUpdateMissionVersionModal: FC<{
         defenseSideType: MissionGameSide.RED,
         attackSideSlots: 0,
         defenseSideSlots: 0,
+        minSlotsToPlay: null,
         attackSideName: '',
         defenseSideName: '',
         file: null,
@@ -902,6 +912,24 @@ const CreateUpdateMissionVersionModal: FC<{
               </div>
             </div>
           </div>
+
+          {mission.missionType === MissionType.mini && (
+            <Controller
+              control={versionForm.control}
+              name="minSlotsToPlay"
+              render={({ field }) => (
+                <NumericInput
+                  label="Мін. слотів для гри (опційно)"
+                  value={field.value ?? ''}
+                  onChange={e => {
+                    const value = e.target.value;
+                    field.onChange(value === '' ? null : parseInt(value, 10) || null);
+                  }}
+                  error={versionForm.formState.errors.minSlotsToPlay?.message}
+                />
+              )}
+            />
+          )}
 
           <Controller
             control={versionForm.control}
