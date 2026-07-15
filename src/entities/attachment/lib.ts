@@ -91,3 +91,35 @@ export const isPreviewableUploadFile = (file: File) =>
     originalName: file.name,
     mimeType: resolveAttachmentMimeType(file.name, file.type),
   });
+
+export const normalizeMessageAttachments = (value: unknown): MessageAttachmentItem[] => {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap(item => {
+    if (!item || typeof item !== 'object') return [];
+
+    const record = item as Record<string, unknown>;
+    if (typeof record.id !== 'string') return [];
+
+    const fileRecord =
+      record.file && typeof record.file === 'object' ? (record.file as Record<string, unknown>) : null;
+    const url = typeof fileRecord?.url === 'string' ? fileRecord.url : undefined;
+
+    return [
+      {
+        id: record.id,
+        originalName: typeof record.originalName === 'string' ? record.originalName : 'attachment',
+        mimeType: typeof record.mimeType === 'string' ? record.mimeType : null,
+        ...(url
+          ? {
+              file: {
+                id: typeof fileRecord?.id === 'string' ? fileRecord.id : record.id,
+                url,
+                filename: typeof fileRecord?.filename === 'string' ? fileRecord.filename : undefined,
+              },
+            }
+          : {}),
+      },
+    ];
+  });
+};

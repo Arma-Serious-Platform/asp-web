@@ -18,7 +18,7 @@ import { cn } from '@/shared/utils/cn';
 import { MessageComposer, MessageComposerSubmitPayload } from '@/features/chat/message-composer/ui';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { MessageAttachments } from '@/entities/attachment/ui/message-attachments';
-import { MessageAttachmentItem } from '@/entities/attachment/lib';
+import { MessageAttachmentItem, normalizeMessageAttachments } from '@/entities/attachment/lib';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { session } from '@/entities/session/model';
 import { env } from '@/shared/config/env';
@@ -149,7 +149,7 @@ const normalizeChatMessage = (value: unknown, chatId: string): ChatMessage | nul
     return { text: '' } as MissionCommentMessage;
   };
 
-  const rawMessage = extractMessagePayload(record);
+  const rawMessage = record.content ?? record.message;
 
   return {
     id: record.id,
@@ -157,7 +157,7 @@ const normalizeChatMessage = (value: unknown, chatId: string): ChatMessage | nul
     userId: typeof record.userId === 'string' ? record.userId : user?.id,
     user,
     message: normalizeMessagePayload(rawMessage),
-    attachments: Array.isArray(record.attachments) ? (record.attachments as ChatMessage['attachments']) : [],
+    attachments: normalizeMessageAttachments(record.attachments),
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : undefined,
     updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : undefined,
     editedAt: typeof record.editedAt === 'string' ? record.editedAt : undefined,
@@ -232,6 +232,8 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   const [isAddingMembers, setIsAddingMembers] = useState(false);
   const [addMembersSearch, setAddMembersSearch] = useState('');
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [messageToDelete, setMessageToDelete] = useState<ChatMessage | null>(null);
+  const [isDeletingMessage, setIsDeletingMessage] = useState(false);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [activeChatParticipantIds, setActiveChatParticipantIds] = useState<string[]>([]);
   const [userByChatId, setUserByChatId] = useState<Record<string, User | undefined>>({});
@@ -266,7 +268,8 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       setIsMessagesLoading(true);
       try {
         const { data } = await api.findChatMessages(chatId);
-        const normalized = getArrayPayload(data)
+        const payload = Array.isArray(data) ? data : (data.data ?? []);
+        const normalized = payload
           .map(item => normalizeChatMessage(item, chatId))
           .filter((item): item is ChatMessage => Boolean(item));
         setMessages(normalized);
@@ -308,6 +311,24 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
     },
     [activeChat, loadMessages],
   );
+
+  const confirmDeleteMessage = useCallback(async () => {
+    if (!activeChat || !messageToDelete) return;
+
+    setIsDeletingMessage(true);
+    try {
+      await api.deleteChatMessage(activeChat.id, messageToDelete.id);
+      setMessages(prev => prev.filter(item => item.id !== messageToDelete.id));
+      setEditingMessageId(current => (current === messageToDelete.id ? null : current));
+      setMessageToDelete(null);
+      toast.success('Повідомлення видалено');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося видалити повідомлення');
+    } finally {
+      setIsDeletingMessage(false);
+    }
+  }, [activeChat, messageToDelete]);
 
   const loadUsers = useCallback(async () => {
     setIsUsersLoading(true);
@@ -811,6 +832,20 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       setEditingMessageId(current => (current === normalized.id ? null : current));
     };
 
+    const handleMessageDeleted = (payload: unknown) => {
+      const chatId = activeChatIdRef.current;
+      if (!chatId) return;
+
+      const record = normalizeRecord(payload);
+      const messageId = typeof record.id === 'string' ? record.id : null;
+      const payloadChatId = typeof record.chatId === 'string' ? record.chatId : chatId;
+
+      if (!messageId || payloadChatId !== chatId) return;
+
+      setMessages(prev => prev.filter(message => message.id !== messageId));
+      setEditingMessageId(current => (current === messageId ? null : current));
+    };
+
     const handleChatDeleted = (payload: unknown) => {
       const record = normalizeRecord(payload);
       const chatId = typeof record.chatId === 'string' ? record.chatId : null;
@@ -822,12 +857,14 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
 
     socket.on('new_message', handleNewMessage);
     socket.on('message_updated', handleMessageUpdated);
+    socket.on('message_deleted', handleMessageDeleted);
     socket.on('chat_updated', handleChatUpdated);
     socket.on('chat_deleted', handleChatDeleted);
 
     return () => {
       socket.off('new_message', handleNewMessage);
       socket.off('message_updated', handleMessageUpdated);
+      socket.off('message_deleted', handleMessageDeleted);
       socket.off('chat_updated', handleChatUpdated);
       socket.off('chat_deleted', handleChatDeleted);
       socket.disconnect();
@@ -1075,16 +1112,29 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
                           )}
                         </div>
                         {isOwnMessage && !isEditing && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-1 top-1 size-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                            onClick={() => setEditingMessageId(message.id)}
-                            aria-label="Редагувати повідомлення"
-                            title="Редагувати повідомлення">
-                            <PencilIcon className="size-4 text-zinc-300" />
-                          </Button>
+                          <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="size-8 p-0"
+                              onClick={() => setEditingMessageId(message.id)}
+                              aria-label="Редагувати повідомлення"
+                              title="Редагувати повідомлення">
+                              <PencilIcon className="size-4 text-zinc-300" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="size-8 p-0"
+                              disabled={isSending || isDeletingMessage}
+                              onClick={() => setMessageToDelete(message)}
+                              aria-label="Видалити повідомлення"
+                              title="Видалити повідомлення">
+                              <Trash2Icon className="size-4 text-red-400" />
+                            </Button>
+                          </div>
                         )}
                       </article>
                     </li>
@@ -1207,6 +1257,35 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
             </Button>
             <Button onClick={createSelectedChat} disabled={isCreatingChat}>
               {isCreatingChat ? 'Створення...' : 'Створити'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(messageToDelete)}
+        onOpenChange={open => {
+          if (!open && !isDeletingMessage) {
+            setMessageToDelete(null);
+          }
+        }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Видалити повідомлення?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-zinc-400">Ця дія незворотна. Повідомлення буде видалено для всіх учасників чату.</p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setMessageToDelete(null)}
+              disabled={isDeletingMessage}>
+              Скасувати
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-500"
+              onClick={confirmDeleteMessage}
+              disabled={isDeletingMessage}>
+              {isDeletingMessage ? <LoaderIcon className="size-4 animate-spin" /> : 'Видалити'}
             </Button>
           </DialogFooter>
         </DialogContent>

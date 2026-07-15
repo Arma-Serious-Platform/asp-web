@@ -1067,8 +1067,10 @@ class ApiModel {
     return await this.instance.patch<Chat>(`/chats/${chatId}`, dto);
   };
 
-  findChatMessages = async (chatId: string) => {
-    return await this.instance.get<unknown[]>(`/chats/${chatId}/messages`);
+  findChatMessages = async (chatId: string, dto: { take?: number; skip?: number } = {}) => {
+    return await this.instance.get<PaginatedResponse<unknown>>(`/chats/${chatId}/messages`, {
+      params: { take: 500, ...dto },
+    });
   };
 
   sendChatMessage = async (
@@ -1108,6 +1110,12 @@ class ApiModel {
       ...body,
       ...(removedAttachmentIds?.length ? { removedAttachmentIds } : {}),
     });
+  };
+
+  deleteChatMessage = async (chatId: string, messageId: string) => {
+    return await this.instance.delete<{ message: string; id: string; chatId: string }>(
+      `/chats/${chatId}/messages/${messageId}`,
+    );
   };
 
   leaveChat = async (chatId: string) => {
