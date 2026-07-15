@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $getRoot,
@@ -65,9 +66,10 @@ const EMOJI_GRID = [
 type ToolbarPluginProps = {
   textFormattingOnly?: boolean;
   allowLists?: boolean;
+  extraActions?: ReactNode;
 };
 
-export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false }: ToolbarPluginProps) {
+export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false, extraActions }: ToolbarPluginProps) {
   const [editor] = useLexicalComposerContext();
   const [activeFormats, setActiveFormats] = useState<Set<Format>>(new Set());
   const [linkOpen, setLinkOpen] = useState(false);
@@ -295,6 +297,13 @@ export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false }
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        </>
+      )}
+
+      {extraActions && (
+        <>
+          <div className="mx-1 w-px self-stretch bg-white/10" aria-hidden />
+          {extraActions}
         </>
       )}
     </div>

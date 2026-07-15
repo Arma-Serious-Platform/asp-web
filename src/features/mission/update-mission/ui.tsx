@@ -51,7 +51,10 @@ const UpdateMissionModal: FC<
 > = observer(({ model, children, onSuccess }) => {
   const imageRef = useRef<HTMLInputElement>(null);
   const cropperRef = useRef<FixedCropperRef>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<File | null>(null);
+  const [croppedPreview, setCroppedPreview] = useState<string>('');
+  const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
   const [islands, setIslands] = useState<Island[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingIslands, setIsLoadingIslands] = useState(false);
@@ -129,16 +132,47 @@ const UpdateMissionModal: FC<
           image: null,
           coauthorIds: mission.coauthors?.map(coauthor => coauthor.id) ?? [],
         });
-        setImagePreview('');
+        setCroppedPreview('');
+        setCroppedImageFile(null);
+        setImageToCrop(null);
+        setCropperOpen(false);
       }
     }
   }, [model.visibility.isOpen, mission]);
 
+  const imageToCropPreview = imageToCrop ? URL.createObjectURL(imageToCrop) : '';
+
+  useEffect(() => {
+    if (!imageToCropPreview) return;
+    return () => URL.revokeObjectURL(imageToCropPreview);
+  }, [imageToCropPreview]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget);
     if (file) {
-      setImagePreview(URL.createObjectURL(file));
-      missionForm.setValue('image', null);
+      setImageToCrop(file);
+      setCropperOpen(true);
+    }
+  };
+
+  const handleSaveCroppedImage = async () => {
+    const base64 = cropperRef.current?.getCanvas()?.toDataURL();
+    if (!base64) return;
+
+    const imageFile = await base64ToFile(base64, 'mission-image');
+    if (!ensureValidUploadFile(imageFile)) return;
+
+    setCroppedImageFile(imageFile);
+    setCroppedPreview(URL.createObjectURL(imageFile));
+    setCropperOpen(false);
+    setImageToCrop(null);
+    missionForm.setValue('image', null);
+  };
+
+  const handleCloseCropper = (open: boolean) => {
+    setCropperOpen(open);
+    if (!open) {
+      setImageToCrop(null);
     }
   };
 
@@ -146,21 +180,15 @@ const UpdateMissionModal: FC<
     if (!mission) return;
 
     try {
-      let imageFile: File | null = null;
+      let imageFile: File | null = croppedImageFile;
 
-      // Get cropped image if cropper is active
-      if (imagePreview && cropperRef.current) {
-        const base64 = cropperRef.current?.getCanvas()?.toDataURL();
-        if (base64) {
-          imageFile = await base64ToFile(base64, 'mission-image');
-          if (imageFile && !ensureValidUploadFile(imageFile)) return;
-        }
-      } else if (data.image) {
+      if (!imageFile && data.image) {
         imageFile = data.image;
       }
 
       await model.save(data, imageFile, canUpdateCoauthors, onSuccess);
-      setImagePreview('');
+      setCroppedPreview('');
+      setCroppedImageFile(null);
     } catch (error) {
       // Error is handled in the model
     }
@@ -168,7 +196,10 @@ const UpdateMissionModal: FC<
 
   const handleClose = () => {
     model.visibility.close();
-    setImagePreview('');
+    setCroppedPreview('');
+    setCroppedImageFile(null);
+    setImageToCrop(null);
+    setCropperOpen(false);
     if (mission) {
       missionForm.reset({
         name: mission.name,
@@ -184,10 +215,50 @@ const UpdateMissionModal: FC<
   if (!mission) return null;
 
   return (
-    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
+    <>
+      <Dialog open={cropperOpen} onOpenChange={handleCloseCropper}>
+        <DialogOverlay />
+        <DialogContent className="w-[min(calc(100vw-2rem),48rem)] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Обрізати зображення місії</DialogTitle>
+          </DialogHeader>
+          <div className="flex max-h-[calc(90vh-8rem)] flex-col gap-3 overflow-hidden">
+            {imageToCropPreview && (
+              <div className="min-h-0 overflow-hidden">
+                <CropperWithZoom
+                  ref={cropperRef}
+                  className="h-64 max-w-full rounded-lg"
+                  src={imageToCropPreview}
+                  imageRestriction={ImageRestriction.stencil}
+                  stencilProps={{
+                    handlers: false,
+                    lines: true,
+                    movable: false,
+                    resizable: false,
+                  }}
+                  stencilSize={{
+                    height: 256,
+                    width: 455,
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex justify-between gap-2">
+              <Button type="button" variant="outline" onClick={() => handleCloseCropper(false)}>
+                Скасувати
+              </Button>
+              <Button type="button" onClick={handleSaveCroppedImage} disabled={!imageToCropPreview}>
+                Застосувати
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
       <DialogOverlay />
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="w-[min(calc(100vw-2rem),64rem)] max-h-[90vh] overflow-visible">
+      <DialogContent className="w-[min(calc(100vw-2rem),64rem)] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>Редагувати місію</DialogTitle>
         </DialogHeader>
@@ -200,26 +271,12 @@ const UpdateMissionModal: FC<
               onChange={handleImageChange}
               className="hidden"
             />
-            {imagePreview && (
-              <CropperWithZoom
-                ref={cropperRef}
-                className="h-64 rounded-lg"
-                src={imagePreview}
-                imageRestriction={ImageRestriction.stencil}
-                stencilProps={{
-                  handlers: false,
-                  lines: true,
-                  movable: false,
-                  resizable: false,
-                }}
-                stencilSize={{
-                  height: 256,
-                  width: 455,
-                }}
-              />
-            )}
-            {!imagePreview && mission.image?.url && (
-              <div className="relative aspect-2/1 w-full overflow-hidden rounded-lg border border-white/10 bg-black/80">
+            {croppedPreview ? (
+              <div className="relative aspect-2/1 w-full max-w-full overflow-hidden rounded-lg border border-white/10 bg-black/80">
+                <img src={croppedPreview} alt="Нове зображення місії" className="size-full object-contain" />
+              </div>
+            ) : mission.image?.url ? (
+              <div className="relative aspect-2/1 w-full max-w-full overflow-hidden rounded-lg border border-white/10 bg-black/80">
                 <Image
                   src={mission.image.url}
                   alt="Current image"
@@ -228,22 +285,18 @@ const UpdateMissionModal: FC<
                   unoptimized={!mission.image.url.startsWith('https')}
                 />
               </div>
-            )}
-            {!imagePreview && !mission.image?.url && (
+            ) : (
               <div className="relative flex aspect-2/1 w-full items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/80">
                 <span className="text-zinc-500 text-sm">Немає зображення</span>
               </div>
             )}
             <Button
               type="button"
-              variant={imagePreview || mission.image?.url ? 'outline' : 'default'}
+              variant={croppedPreview || mission.image?.url ? 'outline' : 'default'}
               className="w-full"
-              onClick={() => {
-                imageRef.current?.click();
-                setImagePreview('');
-              }}>
+              onClick={() => imageRef.current?.click()}>
               <UploadIcon className="size-4" />
-              {imagePreview || mission.image?.url ? 'Обрати інше зображення' : 'Обрати зображення'}
+              {croppedPreview || mission.image?.url ? 'Обрати інше зображення' : 'Обрати зображення'}
             </Button>
 
             <Controller
@@ -357,6 +410,7 @@ const UpdateMissionModal: FC<
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 });
 

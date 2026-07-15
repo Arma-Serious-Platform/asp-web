@@ -392,11 +392,11 @@ class HqPlansModel {
     }
   };
 
-  createComment = async (gamePlanId: string, message: MissionCommentMessage) => {
+  createComment = async (gamePlanId: string, message: MissionCommentMessage, attachments: File[] = []) => {
     this.isCommentSending = true;
 
     try {
-      const { data } = await api.createHeadquartersComment(gamePlanId, { message });
+      const { data } = await api.createHeadquartersComment(gamePlanId, { message, attachments });
       this.comments = this.comments.some(item => item.id === data.id) ? this.comments : [data, ...this.comments];
     } catch (error) {
       console.error(error);

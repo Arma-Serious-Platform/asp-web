@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -43,9 +44,12 @@ export type MessageEditorProps = {
   showSubmit?: boolean;
   textFormattingOnly?: boolean;
   allowLists?: boolean;
+  allowEmptySubmit?: boolean;
+  toolbarExtra?: ReactNode;
+  composerFooter?: ReactNode;
 };
 
-const DEFAULT_MAX_CHARACTERS = 250;
+const DEFAULT_MAX_CHARACTERS = 2000;
 
 function onError(error: Error) {
   console.error('Lexical MessageEditor:', error);
@@ -89,12 +93,14 @@ function InnerEditor({
   disabled,
   submitLabel,
   clearOnSubmit,
+  allowEmptySubmit = false,
 }: {
   onSubmit?: (payload: MessageEditorSubmitPayload) => void | Promise<void>;
   maxCharacters: number;
   disabled?: boolean;
   submitLabel: string;
   clearOnSubmit: boolean;
+  allowEmptySubmit?: boolean;
 }) {
   const [editor] = useLexicalComposerContext();
 
@@ -111,7 +117,7 @@ function InnerEditor({
       hasStructure = children.some(node => typeof node.getType === 'function' && node.getType() !== 'paragraph');
     });
     text = text.trim();
-    if (!text && !hasStructure) return;
+    if (!text && !hasStructure && !allowEmptySubmit) return;
     if (text.length > maxCharacters) return;
     const lexicalState = state.toJSON() as unknown as Record<string, unknown>;
     await Promise.resolve(onSubmit({ text, lexicalState }));
@@ -164,6 +170,9 @@ export function MessageEditor({
   showSubmit = true,
   textFormattingOnly = false,
   allowLists = false,
+  allowEmptySubmit = false,
+  toolbarExtra,
+  composerFooter,
 }: MessageEditorProps) {
   const nodes = allowLists
     ? [OverflowNode, LinkNode, YouTubeEmbedNode, ListNode, ListItemNode]
@@ -189,7 +198,11 @@ export function MessageEditor({
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextBehaviorPlugin />
         <LinkPlugin />
-        <ToolbarPlugin textFormattingOnly={textFormattingOnly} allowLists={allowLists} />
+        <ToolbarPlugin
+          textFormattingOnly={textFormattingOnly}
+          allowLists={allowLists}
+          extraActions={toolbarExtra}
+        />
         <div className="relative min-h-[80px] flex-1">
           <RichTextPlugin
             contentEditable={
@@ -224,6 +237,7 @@ export function MessageEditor({
             </div>
           )}
         />
+        {composerFooter}
         {onChange && <OnChangePlugin onChange={state => onChange(getSubmitPayload(state))} />}
         {showSubmit && (
           <InnerEditor
@@ -232,6 +246,7 @@ export function MessageEditor({
             disabled={disabled}
             submitLabel={submitLabel}
             clearOnSubmit={clearOnSubmit}
+            allowEmptySubmit={allowEmptySubmit}
           />
         )}
       </LexicalComposer>

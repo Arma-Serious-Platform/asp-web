@@ -22,11 +22,12 @@ class MissionCommentsModel {
     await this.pagination.init({ missionId, take });
   };
 
-  create = async (missionId: string, message: MissionCommentMessage) => {
+  create = async (missionId: string, message: MissionCommentMessage, attachments: File[] = []) => {
     try {
       await api.createMissionComment({
         missionId,
         message,
+        ...(attachments.length > 0 && { attachments }),
       });
       toast.success('Коментар додано');
       await this.pagination.init({

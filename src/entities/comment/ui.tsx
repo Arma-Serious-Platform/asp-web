@@ -7,6 +7,7 @@ import { UserNicknameText } from '../user/ui/user-text';
 import { MissionComment } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 import { MessageContent } from './lexical-message';
+import { MessageAttachments } from '@/entities/attachment/ui/message-attachments';
 import { Button } from '@/shared/ui/atoms/button';
 import { TrashIcon } from 'lucide-react';
 
@@ -37,6 +38,7 @@ export const CommentItem: FC<CommentItemProps> = props => {
         </div>
         <div className="mt-1">
           <MessageContent message={message} />
+          <MessageAttachments attachments={props.attachments} />
         </div>
       </div>
       {canDelete && onDelete && (

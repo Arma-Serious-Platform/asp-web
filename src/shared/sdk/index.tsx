@@ -118,6 +118,9 @@ const appendFormDataValue = (formData: FormData, key: string, value: unknown) =>
   formData.append(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
 };
 
+const extractUploadFiles = (files?: File[]) =>
+  files?.filter((file): file is File => file instanceof File) ?? [];
+
 class ApiModel {
   instance = axios.create({
     baseURL: env.apiUrl,
@@ -133,6 +136,14 @@ class ApiModel {
 
   private setupInterceptors() {
     this.instance.interceptors.request.use(request => {
+      if (request.data instanceof FormData && request.headers) {
+        if (typeof request.headers.delete === 'function') {
+          request.headers.delete('Content-Type');
+        } else {
+          delete (request.headers as Record<string, unknown>)['Content-Type'];
+        }
+      }
+
       return request;
     });
 
@@ -833,7 +844,21 @@ class ApiModel {
   };
 
   createMissionComment = async (dto: CreateMissionCommentDto) => {
-    return await this.instance.post<MissionComment>('/mission-comments', dto);
+    const { attachments, ...body } = dto;
+    const files = extractUploadFiles(attachments);
+
+    if (files.length > 0) {
+      const formData = new FormData();
+      formData.append('missionId', body.missionId);
+      formData.append('message', JSON.stringify(body.message));
+      files.forEach(file => {
+        formData.append('attachments', file);
+      });
+
+      return await this.instance.post<MissionComment>('/mission-comments', formData);
+    }
+
+    return await this.instance.post<MissionComment>('/mission-comments', body);
   };
 
   findMissionCommentById = async (id: string) => {
@@ -946,7 +971,23 @@ class ApiModel {
   };
 
   createHeadquartersComment = async (gamePlanId: string, dto: CreateHeadquartersCommentDto) => {
-    return await this.instance.post<HeadquartersComment>(`/headquarters/plans/${gamePlanId}/comments`, dto);
+    const { attachments, ...body } = dto;
+    const files = extractUploadFiles(attachments);
+
+    if (files.length > 0) {
+      const formData = new FormData();
+      formData.append('message', JSON.stringify(body.message));
+      if (body.replyId) {
+        formData.append('replyId', body.replyId);
+      }
+      files.forEach(file => {
+        formData.append('attachments', file);
+      });
+
+      return await this.instance.post<HeadquartersComment>(`/headquarters/plans/${gamePlanId}/comments`, formData);
+    }
+
+    return await this.instance.post<HeadquartersComment>(`/headquarters/plans/${gamePlanId}/comments`, body);
   };
 
   updateHeadquartersComment = async (id: string, dto: UpdateHeadquartersCommentDto) => {
@@ -979,8 +1020,27 @@ class ApiModel {
     return await this.instance.get<unknown[]>(`/chats/${chatId}/messages`);
   };
 
-  sendChatMessage = async (chatId: string, body?: unknown) => {
-    return await this.instance.post(`/chats/${chatId}/messages`, body ?? {});
+  sendChatMessage = async (
+    chatId: string,
+    body?: { content?: unknown; quoteMessageId?: string; attachments?: File[] },
+  ) => {
+    const files = extractUploadFiles(body?.attachments);
+
+    if (files.length > 0) {
+      const formData = new FormData();
+      formData.append('content', JSON.stringify(body?.content ?? {}));
+      if (body?.quoteMessageId) {
+        formData.append('quoteMessageId', body.quoteMessageId);
+      }
+      files.forEach(file => {
+        formData.append('attachments', file);
+      });
+
+      return await this.instance.post(`/chats/${chatId}/messages`, formData);
+    }
+
+    const { attachments: _attachments, ...jsonBody } = body ?? {};
+    return await this.instance.post(`/chats/${chatId}/messages`, jsonBody);
   };
 
   leaveChat = async (chatId: string) => {

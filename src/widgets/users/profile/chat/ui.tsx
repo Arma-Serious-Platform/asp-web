@@ -15,8 +15,10 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { cn } from '@/shared/utils/cn';
-import { MessageEditor } from '@/features/chat/editor';
+import { MessageComposer } from '@/features/chat/message-composer/ui';
 import { MessageContent } from '@/entities/comment/lexical-message';
+import { MessageAttachments } from '@/entities/attachment/ui/message-attachments';
+import { MessageAttachmentItem } from '@/entities/attachment/lib';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { session } from '@/entities/session/model';
 import { env } from '@/shared/config/env';
@@ -36,6 +38,7 @@ type ChatMessage = {
   userId?: string;
   user?: User;
   message: MissionCommentMessage;
+  attachments?: MessageAttachmentItem[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -153,6 +156,7 @@ const normalizeChatMessage = (value: unknown, chatId: string): ChatMessage | nul
     userId: typeof record.userId === 'string' ? record.userId : user?.id,
     user,
     message: normalizeMessagePayload(rawMessage),
+    attachments: Array.isArray(record.attachments) ? (record.attachments as ChatMessage['attachments']) : [],
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : undefined,
     updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : undefined,
   };
@@ -1003,6 +1007,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
                             </span>
                           </div>
                           <MessageContent message={message.message} />
+                          <MessageAttachments attachments={message.attachments} />
                         </div>
                       </article>
                     </li>
@@ -1014,13 +1019,22 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
 
           {activeChat && (
             <div className="border-t border-white/10 p-2">
-              <MessageEditor
+              <MessageComposer
                 placeholder="Напишіть повідомлення..."
                 maxCharacters={250}
                 disabled={isSending}
-                onSubmit={async ({ lexicalState }) => {
+                onSubmit={async ({ lexicalState, attachments }) => {
                   setIsSending(true);
                   try {
+                    if (attachments.length > 0) {
+                      await api.sendChatMessage(activeChat.id, {
+                        content: lexicalState,
+                        attachments,
+                      });
+                      await loadMessages(activeChat.id);
+                      return;
+                    }
+
                     const socket = socketRef.current;
                     if (socket?.connected) {
                       socket.emit('send_message', {

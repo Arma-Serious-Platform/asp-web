@@ -3,9 +3,10 @@
 import { observer } from 'mobx-react-lite';
 
 import { MessageContent } from '@/entities/comment/lexical-message';
+import { MessageAttachments } from '@/entities/attachment/ui/message-attachments';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
-import { MessageEditor } from '@/features/chat/editor';
+import { MessageComposer } from '@/features/chat/message-composer/ui';
 import { HeadquartersComment, MissionCommentMessage, User } from '@/shared/sdk/types';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Button } from '@/shared/ui/atoms/button';
@@ -66,18 +67,19 @@ export const PlanCommentsSection = observer(
                   )}
                 </div>
                 <MessageContent message={comment.message as MissionCommentMessage} />
+                <MessageAttachments attachments={comment.attachments} />
               </li>
             ))}
           </ul>
         )}
 
-        <MessageEditor
+        <MessageComposer
           placeholder="Написати коментар..."
           maxCharacters={500}
           disabled={model.isCommentSending}
-          onSubmit={async ({ lexicalState }) => {
+          onSubmit={async ({ lexicalState, attachments }) => {
             if (!selectedPlanId) return;
-            await model.createComment(selectedPlanId, lexicalState as MissionCommentMessage);
+            await model.createComment(selectedPlanId, lexicalState as MissionCommentMessage, attachments);
           }}
         />
       </div>

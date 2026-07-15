@@ -19,7 +19,7 @@ import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { observer } from 'mobx-react-lite';
 import { CommentList } from '@/entities/comment';
-import { MessageEditor } from '@/features/chat/editor';
+import { MessageComposer } from '@/features/chat/message-composer/ui';
 import type { MissionComment } from '@/shared/sdk/types';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { DeleteMissionModal, DeleteMissionModel } from '@/features/mission/delete-mission';
@@ -485,11 +485,10 @@ const MissionDetailsPage = observer(() => {
 
             <View.Condition if={session.isAuthorized}>
               <div className="mb-4">
-                <MessageEditor
+                <MessageComposer
                   placeholder="Додати коментар..."
-                  maxCharacters={250}
-                  onSubmit={async ({ lexicalState }) => {
-                    await missionDetailsModel.commentModel.create(missionId, lexicalState);
+                  onSubmit={async ({ lexicalState, attachments }) => {
+                    await missionDetailsModel.commentModel.create(missionId, lexicalState, attachments);
                   }}
                 />
               </div>

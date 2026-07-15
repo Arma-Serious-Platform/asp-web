@@ -782,6 +782,17 @@ export type UpdateGameDto = {
 /** Lexical editor state / JSON content (object) */
 export type MissionCommentMessage = Record<string, unknown> | string;
 
+export type MessageAttachmentItem = {
+  id: string;
+  originalName: string;
+  mimeType?: string | null;
+  file?: {
+    id: string;
+    url: string;
+    filename?: string;
+  };
+};
+
 export type MissionComment = {
   id: string;
   /** Lexical JSON content */
@@ -791,12 +802,14 @@ export type MissionComment = {
   updatedAt: string;
   userId?: string;
   user?: User;
+  attachments?: MessageAttachmentItem[];
 };
 
 export type CreateMissionCommentDto = {
   /** Lexical JSON content */
   message: MissionCommentMessage;
   missionId: string;
+  attachments?: File[];
 };
 
 export type UpdateMissionCommentDto = {
@@ -901,6 +914,7 @@ export type HeadquartersComment = {
   createdAt: string;
   updatedAt: string;
   user?: Pick<User, 'id' | 'nickname' | 'avatar'>;
+  attachments?: MessageAttachmentItem[];
   replyTo?: {
     id: string;
     userId: string;
@@ -917,6 +931,7 @@ export type FindHeadquartersCommentsDto = PaginatedRequest<{
 export type CreateHeadquartersCommentDto = {
   message: MissionCommentMessage;
   replyId?: string;
+  attachments?: File[];
 };
 
 export type UpdateHeadquartersCommentDto = {
