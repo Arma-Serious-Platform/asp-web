@@ -371,7 +371,9 @@ class HqPlansModel {
 
     try {
       const { data } = await api.findHeadquartersComments(gamePlanId, { take: 100, skip: 0 });
-      this.comments = data.data ?? [];
+      this.comments = [...(data.data ?? [])].sort(
+        (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+      );
     } catch (error) {
       console.error(error);
       toast.error('Не вдалося завантажити коментарі');
@@ -397,10 +399,37 @@ class HqPlansModel {
 
     try {
       const { data } = await api.createHeadquartersComment(gamePlanId, { message, attachments });
-      this.comments = this.comments.some(item => item.id === data.id) ? this.comments : [data, ...this.comments];
+      this.comments = this.comments.some(item => item.id === data.id) ? this.comments : [...this.comments, data];
     } catch (error) {
       console.error(error);
       toast.error('Не вдалося додати коментар');
+      throw error;
+    } finally {
+      this.isCommentSending = false;
+    }
+  };
+
+  updateComment = async (
+    commentId: string,
+    payload: {
+      lexicalState: MissionCommentMessage;
+      attachments: File[];
+      removedAttachmentIds: string[];
+    },
+  ) => {
+    this.isCommentSending = true;
+
+    try {
+      const { data } = await api.updateHeadquartersComment(commentId, {
+        message: payload.lexicalState,
+        attachments: payload.attachments,
+        removedAttachmentIds: payload.removedAttachmentIds,
+      });
+      this.comments = this.comments.map(item => (item.id === data.id ? data : item));
+      toast.success('Коментар оновлено');
+    } catch (error) {
+      console.error(error);
+      toast.error('Не вдалося оновити коментар');
       throw error;
     } finally {
       this.isCommentSending = false;

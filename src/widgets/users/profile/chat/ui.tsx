@@ -15,7 +15,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { cn } from '@/shared/utils/cn';
-import { MessageComposer } from '@/features/chat/message-composer/ui';
+import { MessageComposer, MessageComposerSubmitPayload } from '@/features/chat/message-composer/ui';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { MessageAttachments } from '@/entities/attachment/ui/message-attachments';
 import { MessageAttachmentItem } from '@/entities/attachment/lib';
@@ -41,6 +41,7 @@ type ChatMessage = {
   attachments?: MessageAttachmentItem[];
   createdAt?: string;
   updatedAt?: string;
+  editedAt?: string;
 };
 
 type ChatDetails = {
@@ -159,6 +160,7 @@ const normalizeChatMessage = (value: unknown, chatId: string): ChatMessage | nul
     attachments: Array.isArray(record.attachments) ? (record.attachments as ChatMessage['attachments']) : [],
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : undefined,
     updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : undefined,
+    editedAt: typeof record.editedAt === 'string' ? record.editedAt : undefined,
   };
 };
 
@@ -229,6 +231,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   const [isAddMembersDialogOpen, setIsAddMembersDialogOpen] = useState(false);
   const [isAddingMembers, setIsAddingMembers] = useState(false);
   const [addMembersSearch, setAddMembersSearch] = useState('');
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [activeChatParticipantIds, setActiveChatParticipantIds] = useState<string[]>([]);
   const [userByChatId, setUserByChatId] = useState<Record<string, User | undefined>>({});
@@ -280,6 +283,30 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       }
     },
     [bumpChatActivity],
+  );
+
+  const handleUpdateMessage = useCallback(
+    async (message: ChatMessage, payload: MessageComposerSubmitPayload) => {
+      if (!activeChat) return;
+
+      setIsSending(true);
+      try {
+        await api.updateChatMessage(activeChat.id, message.id, {
+          content: payload.lexicalState,
+          attachments: payload.attachments,
+          removedAttachmentIds: payload.removedAttachmentIds,
+        });
+        setEditingMessageId(null);
+        await loadMessages(activeChat.id);
+        toast.success('Повідомлення оновлено');
+      } catch (error) {
+        console.error(error);
+        toast.error('Не вдалося оновити повідомлення');
+      } finally {
+        setIsSending(false);
+      }
+    },
+    [activeChat, loadMessages],
   );
 
   const loadUsers = useCallback(async () => {
@@ -637,6 +664,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   useEffect(() => {
     if (!activeChatId) {
       setMessages([]);
+      setEditingMessageId(null);
       return;
     }
 
@@ -772,6 +800,17 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
       );
     };
 
+    const handleMessageUpdated = (payload: unknown) => {
+      const chatId = activeChatIdRef.current;
+      if (!chatId) return;
+
+      const normalized = normalizeChatMessage(payload, chatId);
+      if (!normalized || normalized.chatId !== chatId) return;
+
+      setMessages(prev => prev.map(message => (message.id === normalized.id ? normalized : message)));
+      setEditingMessageId(current => (current === normalized.id ? null : current));
+    };
+
     const handleChatDeleted = (payload: unknown) => {
       const record = normalizeRecord(payload);
       const chatId = typeof record.chatId === 'string' ? record.chatId : null;
@@ -782,11 +821,13 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
     };
 
     socket.on('new_message', handleNewMessage);
+    socket.on('message_updated', handleMessageUpdated);
     socket.on('chat_updated', handleChatUpdated);
     socket.on('chat_deleted', handleChatDeleted);
 
     return () => {
       socket.off('new_message', handleNewMessage);
+      socket.off('message_updated', handleMessageUpdated);
       socket.off('chat_updated', handleChatUpdated);
       socket.off('chat_deleted', handleChatDeleted);
       socket.disconnect();
@@ -976,39 +1017,75 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
               <ul className="flex flex-col gap-2">
                 {messages.map(message => {
                   const isOwnMessage = Boolean(currentUserId && message.userId === currentUserId);
+                  const isEditing = editingMessageId === message.id;
+
                   return (
                     <li key={message.id} className={cn('flex w-full', isOwnMessage ? 'justify-end' : 'justify-start')}>
                       <article
                         className={cn(
-                          'flex w-[75%] gap-3 rounded-lg px-3 py-2',
+                          'group relative flex w-[75%] gap-3 rounded-lg px-3 py-2',
                           isOwnMessage ? 'bg-primary/20' : 'bg-white/4',
                         )}>
-                        <Avatar
-                          toProfileId={message.user?.id}
-                          src={message.user?.avatar?.url ?? undefined}
-                          alt={message.user?.nickname ?? ''}
-                          size="sm"
-                        />
-                        <div className="min-w-0">
-                          <div className="mb-1 flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-semibold text-zinc-100">
-                              {message.user ? (
-                                <UserNicknameText user={message.user} link />
-                              ) : activeChatUser ? (
-                                <UserNicknameText user={activeChatUser} link />
-                              ) : (
-                                'Користувач'
-                              )}
-                            </span>
-                            <span className="text-[11px] text-zinc-500">
-                              {dayjs(message.createdAt ?? message.updatedAt).isValid()
-                                ? dayjs(message.createdAt ?? message.updatedAt).fromNow()
-                                : ''}
-                            </span>
-                          </div>
-                          <MessageContent message={message.message} />
-                          <MessageAttachments attachments={message.attachments} />
+                        {!isEditing && (
+                          <Avatar
+                            toProfileId={message.user?.id}
+                            src={message.user?.avatar?.url ?? undefined}
+                            alt={message.user?.nickname ?? ''}
+                            size="sm"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          {!isEditing && (
+                            <div className="mb-1 flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-semibold text-zinc-100">
+                                {message.user ? (
+                                  <UserNicknameText user={message.user} link />
+                                ) : activeChatUser ? (
+                                  <UserNicknameText user={activeChatUser} link />
+                                ) : (
+                                  'Користувач'
+                                )}
+                              </span>
+                              <span className="text-[11px] text-zinc-500">
+                                {dayjs(message.createdAt ?? message.updatedAt).isValid()
+                                  ? dayjs(message.createdAt ?? message.updatedAt).fromNow()
+                                  : ''}
+                              </span>
+                              {message.editedAt && <span className="text-[11px] text-zinc-500">(ред.)</span>}
+                            </div>
+                          )}
+                          {isEditing ? (
+                            <MessageComposer
+                              editingKey={message.id}
+                              initialState={message.message}
+                              existingAttachments={message.attachments}
+                              submitLabel="Зберегти"
+                              clearOnSubmit={false}
+                              disabled={isSending}
+                              maxCharacters={250}
+                              showCancel
+                              onCancel={() => setEditingMessageId(null)}
+                              onSubmit={payload => handleUpdateMessage(message, payload)}
+                            />
+                          ) : (
+                            <>
+                              <MessageContent message={message.message} />
+                              <MessageAttachments attachments={message.attachments} />
+                            </>
+                          )}
                         </div>
+                        {isOwnMessage && !isEditing && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-1 top-1 size-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                            onClick={() => setEditingMessageId(message.id)}
+                            aria-label="Редагувати повідомлення"
+                            title="Редагувати повідомлення">
+                            <PencilIcon className="size-4 text-zinc-300" />
+                          </Button>
+                        )}
                       </article>
                     </li>
                   );

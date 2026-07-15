@@ -19,7 +19,7 @@ import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { observer } from 'mobx-react-lite';
 import { CommentList } from '@/entities/comment';
-import { MessageComposer } from '@/features/chat/message-composer/ui';
+import { MessageComposer, MessageComposerSubmitPayload } from '@/features/chat/message-composer/ui';
 import type { MissionComment } from '@/shared/sdk/types';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { DeleteMissionModal, DeleteMissionModel } from '@/features/mission/delete-mission';
@@ -191,8 +191,17 @@ const MissionDetailsPage = observer(() => {
     return session.isHasAdminPanelAccess || isCommentAuthor;
   };
 
+  const canEditComment = (comment: MissionComment) => {
+    const currentUserId = session.user?.user?.id;
+    return Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
+  };
+
   const handleDeleteComment = (comment: MissionComment) => {
     deleteCommentModel.visibility.open({ comment });
+  };
+
+  const handleEditComment = async (comment: MissionComment, payload: MessageComposerSubmitPayload) => {
+    await missionDetailsModel.commentModel.update(comment.id, missionId, payload);
   };
 
   if (!session.isSessionReady || !session.isAuthorized) {
@@ -479,7 +488,9 @@ const MissionDetailsPage = observer(() => {
                 className="mb-2"
                 comments={missionDetailsModel.commentModel.pagination.data}
                 canDeleteComment={canDeleteComment}
+                canEditComment={canEditComment}
                 onDeleteComment={handleDeleteComment}
+                onEditComment={handleEditComment}
               />
             )}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useRef, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { PaperclipIcon } from 'lucide-react';
 import { MessageEditor, MessageEditorProps, MessageEditorSubmitPayload } from '@/features/chat/editor';
 import { Button } from '@/shared/ui/atoms/button';
@@ -13,24 +13,44 @@ import {
 } from '@/shared/utils/file';
 import { cn } from '@/shared/utils/cn';
 import { AttachmentDraftPreview } from '@/entities/attachment/ui/attachment-draft-preview';
+import { AttachmentEditPreview } from '@/entities/attachment/ui/attachment-edit-preview';
+import { MessageAttachmentItem } from '@/entities/attachment/lib';
 
 export type MessageComposerSubmitPayload = MessageEditorSubmitPayload & {
   attachments: File[];
+  removedAttachmentIds: string[];
 };
 
 type MessageComposerProps = Omit<MessageEditorProps, 'onSubmit' | 'toolbarExtra' | 'composerFooter'> & {
   onSubmit?: (payload: MessageComposerSubmitPayload) => void | Promise<void>;
+  onCancel?: () => void;
   className?: string;
+  existingAttachments?: MessageAttachmentItem[];
+  editingKey?: string;
+  showCancel?: boolean;
 };
 
 export const MessageComposer: FC<MessageComposerProps> = ({
   onSubmit,
+  onCancel,
   className,
   disabled,
+  existingAttachments,
+  editingKey,
+  showCancel = Boolean(onCancel),
+  submitLabel,
+  clearOnSubmit = !onCancel,
   ...editorProps
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>([]);
+  const isEditMode = Boolean(onCancel);
+
+  useEffect(() => {
+    setAttachments([]);
+    setRemovedAttachmentIds([]);
+  }, [editingKey, editorProps.initialState]);
 
   const handleAddAttachments = (files: FileList | null) => {
     if (!files?.length) return;
@@ -51,6 +71,15 @@ export const MessageComposer: FC<MessageComposerProps> = ({
     setAttachments(current => current.filter((_, itemIndex) => itemIndex !== index));
   };
 
+  const removeExistingAttachment = (attachmentId: string) => {
+    setRemovedAttachmentIds(current =>
+      current.includes(attachmentId) ? current : [...current, attachmentId],
+    );
+  };
+
+  const visibleExistingCount =
+    existingAttachments?.filter(attachment => !removedAttachmentIds.includes(attachment.id)).length ?? 0;
+
   return (
     <div className={cn('w-full', className)}>
       <input
@@ -69,6 +98,8 @@ export const MessageComposer: FC<MessageComposerProps> = ({
         {...editorProps}
         disabled={disabled}
         allowEmptySubmit
+        submitLabel={submitLabel}
+        clearOnSubmit={clearOnSubmit}
         toolbarExtra={
           <Button
             type="button"
@@ -83,17 +114,44 @@ export const MessageComposer: FC<MessageComposerProps> = ({
           </Button>
         }
         composerFooter={
-          <AttachmentDraftPreview files={attachments} onRemove={removeAttachment} />
+          isEditMode ? (
+            <AttachmentEditPreview
+              existingAttachments={existingAttachments}
+              removedAttachmentIds={removedAttachmentIds}
+              onRemoveExisting={removeExistingAttachment}
+              files={attachments}
+              onRemoveNew={removeAttachment}
+            />
+          ) : (
+            <AttachmentDraftPreview files={attachments} onRemove={removeAttachment} />
+          )
         }
         onSubmit={async payload => {
-          if (!payload.text.trim() && attachments.length === 0) return;
+          const hasContent =
+            Boolean(payload.text.trim()) || attachments.length > 0 || visibleExistingCount > 0;
+
+          if (!hasContent) return;
+
           await onSubmit?.({
             ...payload,
             attachments,
+            removedAttachmentIds,
           });
-          setAttachments([]);
+
+          if (clearOnSubmit) {
+            setAttachments([]);
+            setRemovedAttachmentIds([]);
+          }
         }}
       />
+
+      {showCancel && onCancel && (
+        <div className="mt-2 flex justify-end">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={disabled}>
+            Скасувати
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

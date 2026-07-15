@@ -135,7 +135,7 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
       if (!payload?.id || payload.gamePlanId !== selectedPlanIdRef.current) return;
       model.comments = model.comments.some(item => item.id === payload.id)
         ? model.comments
-        : [payload, ...model.comments];
+        : [...model.comments, payload];
     };
 
     const handleCommentUpdated = (payload: HeadquartersComment) => {

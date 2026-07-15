@@ -85,6 +85,7 @@ import {
   FindHeadquartersCommentsDto,
   CreateHeadquartersCommentDto,
   UpdateHeadquartersCommentDto,
+  UpdateChatMessageDto,
 } from './types';
 
 import { env } from '../config/env';
@@ -120,6 +121,29 @@ const appendFormDataValue = (formData: FormData, key: string, value: unknown) =>
 
 const extractUploadFiles = (files?: File[]) =>
   files?.filter((file): file is File => file instanceof File) ?? [];
+
+const appendAttachmentUpdateFormData = (
+  formData: FormData,
+  fields: {
+    message?: unknown;
+    content?: unknown;
+    removedAttachmentIds?: string[];
+  },
+  files: File[],
+) => {
+  if (fields.message !== undefined) {
+    formData.append('message', JSON.stringify(fields.message));
+  }
+  if (fields.content !== undefined) {
+    formData.append('content', JSON.stringify(fields.content));
+  }
+  if (fields.removedAttachmentIds?.length) {
+    formData.append('removedAttachmentIds', JSON.stringify(fields.removedAttachmentIds));
+  }
+  files.forEach(file => {
+    formData.append('attachments', file);
+  });
+};
 
 class ApiModel {
   instance = axios.create({
@@ -866,7 +890,19 @@ class ApiModel {
   };
 
   updateMissionComment = async (id: string, dto: UpdateMissionCommentDto) => {
-    return await this.instance.patch<MissionComment>(`/mission-comments/${id}`, dto);
+    const { attachments, removedAttachmentIds, ...body } = dto;
+    const files = extractUploadFiles(attachments);
+
+    if (files.length > 0) {
+      const formData = new FormData();
+      appendAttachmentUpdateFormData(formData, { message: body.message, removedAttachmentIds }, files);
+      return await this.instance.patch<MissionComment>(`/mission-comments/${id}`, formData);
+    }
+
+    return await this.instance.patch<MissionComment>(`/mission-comments/${id}`, {
+      ...body,
+      ...(removedAttachmentIds?.length ? { removedAttachmentIds } : {}),
+    });
   };
 
   deleteMissionComment = async (id: string) => {
@@ -991,7 +1027,22 @@ class ApiModel {
   };
 
   updateHeadquartersComment = async (id: string, dto: UpdateHeadquartersCommentDto) => {
-    return await this.instance.patch<HeadquartersComment>(`/headquarters/comments/${id}`, dto);
+    const { attachments, removedAttachmentIds, ...body } = dto;
+    const files = extractUploadFiles(attachments);
+
+    if (files.length > 0) {
+      const formData = new FormData();
+      appendAttachmentUpdateFormData(formData, { message: body.message, removedAttachmentIds }, files);
+      if (body.replyId !== undefined) {
+        formData.append('replyId', body.replyId ?? '');
+      }
+      return await this.instance.patch<HeadquartersComment>(`/headquarters/comments/${id}`, formData);
+    }
+
+    return await this.instance.patch<HeadquartersComment>(`/headquarters/comments/${id}`, {
+      ...body,
+      ...(removedAttachmentIds?.length ? { removedAttachmentIds } : {}),
+    });
   };
 
   deleteHeadquartersComment = async (id: string) => {
@@ -1041,6 +1092,22 @@ class ApiModel {
 
     const { attachments: _attachments, ...jsonBody } = body ?? {};
     return await this.instance.post(`/chats/${chatId}/messages`, jsonBody);
+  };
+
+  updateChatMessage = async (chatId: string, messageId: string, dto: UpdateChatMessageDto = {}) => {
+    const { attachments, removedAttachmentIds, ...body } = dto;
+    const files = extractUploadFiles(attachments);
+
+    if (files.length > 0) {
+      const formData = new FormData();
+      appendAttachmentUpdateFormData(formData, { content: body.content, removedAttachmentIds }, files);
+      return await this.instance.patch(`/chats/${chatId}/messages/${messageId}`, formData);
+    }
+
+    return await this.instance.patch(`/chats/${chatId}/messages/${messageId}`, {
+      ...body,
+      ...(removedAttachmentIds?.length ? { removedAttachmentIds } : {}),
+    });
   };
 
   leaveChat = async (chatId: string) => {

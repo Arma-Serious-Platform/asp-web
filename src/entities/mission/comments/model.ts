@@ -6,6 +6,7 @@ import {
   MissionComment,
   MissionCommentMessage,
 } from '@/shared/sdk/types';
+import { MessageComposerSubmitPayload } from '@/features/chat/message-composer/ui';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -37,6 +38,24 @@ class MissionCommentsModel {
     } catch {
       toast.error('Не вдалося додати коментар');
       throw new Error('Failed to create comment');
+    }
+  };
+
+  update = async (commentId: string, missionId: string, payload: MessageComposerSubmitPayload) => {
+    try {
+      await api.updateMissionComment(commentId, {
+        message: payload.lexicalState,
+        attachments: payload.attachments,
+        removedAttachmentIds: payload.removedAttachmentIds,
+      });
+      toast.success('Коментар оновлено');
+      await this.pagination.init({
+        missionId,
+        take: (this.pagination.params as FindMissionCommentsDto).take ?? 25,
+      });
+    } catch {
+      toast.error('Не вдалося оновити коментар');
+      throw new Error('Failed to update comment');
     }
   };
 

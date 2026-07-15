@@ -47,6 +47,9 @@ export const PlanManagementSections = observer(
     const canDeleteHeadquartersComment = (comment: HeadquartersComment) =>
       isHqAdmin || Boolean(currentUserId && comment.userId === currentUserId);
 
+    const canEditHeadquartersComment = (comment: HeadquartersComment) =>
+      Boolean(currentUserId && comment.userId === currentUserId);
+
     return (
       <div className="flex flex-col gap-4">
         <PlanHqSquadSection
@@ -77,6 +80,7 @@ export const PlanManagementSections = observer(
           selectedPlanId={selectedPlan.id}
           deleteHqCommentModel={deleteHqCommentModel}
           canDeleteHeadquartersComment={canDeleteHeadquartersComment}
+          canEditHeadquartersComment={canEditHeadquartersComment}
         />
       </div>
     );

@@ -814,7 +814,10 @@ export type CreateMissionCommentDto = {
 
 export type UpdateMissionCommentDto = {
   /** Lexical JSON content */
-  message: MissionCommentMessage;
+  message?: MissionCommentMessage;
+  replyId?: string | null;
+  attachments?: File[];
+  removedAttachmentIds?: string[];
 };
 
 export type FindMissionCommentsDto = PaginatedRequest<{
@@ -913,7 +916,7 @@ export type HeadquartersComment = {
   message: MissionCommentMessage;
   createdAt: string;
   updatedAt: string;
-  user?: Pick<User, 'id' | 'nickname' | 'avatar'>;
+  user?: User;
   attachments?: MessageAttachmentItem[];
   replyTo?: {
     id: string;
@@ -937,6 +940,14 @@ export type CreateHeadquartersCommentDto = {
 export type UpdateHeadquartersCommentDto = {
   message?: MissionCommentMessage;
   replyId?: string | null;
+  attachments?: File[];
+  removedAttachmentIds?: string[];
+};
+
+export type UpdateChatMessageDto = {
+  content?: MissionCommentMessage;
+  attachments?: File[];
+  removedAttachmentIds?: string[];
 };
 
 /* Chats */
