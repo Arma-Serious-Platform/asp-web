@@ -29,8 +29,7 @@ class UserProfileModel {
   }
 
   init = async (userIdOrNickname?: string, options?: { refresh?: boolean }) => {
-    const shouldFetchOwnProfile =
-      this.isOwnProfile && !userIdOrNickname && (options?.refresh || !session.user.user);
+    const shouldFetchOwnProfile = this.isOwnProfile && !userIdOrNickname;
 
     try {
       if (shouldFetchOwnProfile) {

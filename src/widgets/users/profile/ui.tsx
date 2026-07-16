@@ -32,8 +32,9 @@ import { ProfileSidebar } from './sidebar/ui';
 import { ProfileTab } from './lib';
 import { ProfileChat } from './chat';
 import { ROUTES } from '@/shared/config/routes';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ProfileSteamConnect } from '@/features/user/steam-connect/ui';
+import toast from 'react-hot-toast';
 
 type UserProfileProps = {
   model: UserProfileModel;
@@ -42,6 +43,7 @@ type UserProfileProps = {
 
 const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useQueryState(
     'tab',
     parseAsStringEnum([ProfileTab.PROFILE, ProfileTab.CHAT, ProfileTab.SQUAD, ProfileTab.SECURITY]).withDefault(
@@ -53,6 +55,20 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
   useEffect(() => {
     model.init(userIdOrNickname ?? undefined);
   }, [userIdOrNickname]);
+
+  useEffect(() => {
+    if (!model.isOwnProfile || searchParams.get('steam') !== 'linked') {
+      return;
+    }
+
+    toast.success('Steam успішно підключено');
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete('steam');
+
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${ROUTES.user.profile}?${nextQuery}` : ROUTES.user.profile);
+  }, [model.isOwnProfile, router, searchParams]);
 
   return (
     <>
