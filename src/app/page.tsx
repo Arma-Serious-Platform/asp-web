@@ -1,7 +1,14 @@
+'use client';
 import { InstallationGuide, InstallationGuideLinks, TeamSpeakGuide } from '@/features/guide/installation-guide/ui';
+import { ROUTES } from '@/shared/config/routes';
+import { Button } from '@/shared/ui/atoms/button';
 import { Hero } from '@/widgets/hero';
 import { Layout } from '@/widgets/layout';
 import { Section } from '@/shared/ui/organisms/section';
+import { AlertTriangleIcon } from 'lucide-react';
+import Link from 'next/link';
+import { View } from '@/features/view';
+import { session } from '@/entities/session/model';
 
 export default function Home() {
   return (
@@ -81,38 +88,77 @@ export default function Home() {
         sectionClassName="py-10"
         id="installation-guide"
         eyebrow="Інструкція"
-        title="Встановлення збірки"
+        title="Як почати грати"
         background={false}
         withCard={false}>
-        <div className="mx-auto max-1/2 w-full">
-          <div className="paper overflow-hidden rounded-2xl border shadow-xl">
-            <div className="relative aspect-video w-full bg-black">
-              <iframe
-                className="absolute inset-0 h-full w-full"
-                src="https://www.youtube.com/embed/wOaGAuV6YcU"
-                title="Відеогайд встановлення збірки VTG"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
+        <div>
+          <h3 className="text-3xl font-bold max-lg:text-center">
+            <span className="text-primary">1.</span> Реєстрація на сайті та підключення Steam ID
+          </h3>
+          <div className="paper mt-6 rounded-xl border px-6 py-6 shadow-md">
+            <div className="flex flex-col gap-4 text-lg text-zinc-200">
+              <p>
+                Зареєструйтеся на сайті VTG, після чого відкрийте свій профіль і натисніть <b>«Підключити Steam»</b>.{' '}
+                <br />
+                Авторизуйтеся через Steam, щоб прив&apos;язати Steam ID до облікового запису.
+              </p>
+              <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-100">
+                <AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-amber-400" aria-hidden />
+                Нікнейм у грі має збігатися з нікнеймом у профілі сайту.
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <View.Condition if={!session.isAuthorized}>
+                  <Button asChild>
+                    <Link href={ROUTES.auth.signup}>Зареєструватися</Link>
+                  </Button>
+                </View.Condition>
+                <View.Condition if={session.isAuthorized}>
+                  <Button asChild variant="outline">
+                    <Link href={`${ROUTES.user.profile}?tab=profile`}>Перейти до профілю</Link>
+                  </Button>
+                </View.Condition>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-          <div>
-            <h3 className="text-2xl font-bold max-lg:text-center">Кроки</h3>
-            <InstallationGuide className="paper mt-4 w-full rounded-xl border px-4 py-4 shadow-md" />
+        <div className="mt-12">
+          <h3 className="text-3xl font-bold max-lg:text-center">
+            <span className="text-primary">2.</span> Встановлення збірки
+          </h3>
+
+          <div className="mx-auto mt-6 max-w-3xl">
+            <div className="paper overflow-hidden rounded-2xl border shadow-xl">
+              <div className="relative aspect-video w-full bg-black">
+                <iframe
+                  className="absolute inset-0 h-full w-full"
+                  src="https://www.youtube.com/embed/wOaGAuV6YcU"
+                  title="Відеогайд встановлення збірки VTG"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="max-lg:w-full">
-            <h3 className="text-2xl font-bold max-lg:text-center">Посилання на моди та ключі</h3>
-            <InstallationGuideLinks className="paper mt-4 w-full max-lg:mx-auto rounded-xl border px-4 py-4 shadow-md" />
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div>
+              <h4 className="text-2xl font-bold max-lg:text-center">Кроки</h4>
+              <InstallationGuide className="paper mt-4 w-full rounded-xl border px-4 py-4 shadow-md" />
+            </div>
+
+            <div className="max-lg:w-full">
+              <h4 className="text-2xl font-bold max-lg:text-center">Посилання на моди та ключі</h4>
+              <InstallationGuideLinks className="paper mt-4 w-full max-lg:mx-auto rounded-xl border px-4 py-4 shadow-md" />
+            </div>
           </div>
         </div>
 
-        <div className="mt-10">
-          <h3 className="mx-auto text-3xl font-bold max-lg:text-center">Встановлення Task Force Radio</h3>
+        <div className="mt-12">
+          <h3 className="text-3xl font-bold max-lg:text-center">
+            <span className="text-primary">3.</span> Встановлення Task Force Radio
+          </h3>
           <TeamSpeakGuide className="paper mt-6 w-full max-lg:mx-auto rounded-xl border px-4 py-4 shadow-md" />
         </div>
       </Section>
