@@ -11,7 +11,7 @@ const UserProfileLink: FC<
   PropsWithChildren<{
     link?: boolean;
     className?: string;
-    user: User;
+    user: Pick<User, 'nickname'>;
   }> &
     PropsWithChildren
 > = ({ link = true, className, user, children }) => {
@@ -106,9 +106,7 @@ export const UserStatusText: FC<{
       {getUserStatusText(status)}
       {bannedUntil && <span className="text-red-500"> {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
       {isPermanentBan && <span className="text-red-500"> назавжди</span>}
-      {status === UserStatus.BANNED && banReason && (
-        <span className="ml-1 text-zinc-400">— {banReason}</span>
-      )}
+      {status === UserStatus.BANNED && banReason && <span className="ml-1 text-zinc-400">— {banReason}</span>}
     </span>
   );
 };

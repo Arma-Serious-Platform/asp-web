@@ -258,7 +258,15 @@ export type UserHistoryEvent = {
   type: UserHistoryEventType;
   payload: UserHistoryEventPayload;
   createdAt: string;
-  actor?: Pick<User, 'id' | 'nickname'> | null;
+  actor?:
+    | (Pick<User, 'id' | 'nickname' | 'role' | 'isMissionReviewer'> &
+        Partial<Pick<User, 'squadRole'>> & {
+          squad?: {
+            tag?: string;
+            side?: { type?: SideType };
+          } | null;
+        })
+    | null;
 };
 
 export type UpdateMeDto = {

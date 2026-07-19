@@ -1,6 +1,7 @@
 'use client';
 
 import { getUserRoleText } from '@/entities/user/lib';
+import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { UserHistoryEvent, UserHistoryEventType, UserRole } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 import {
@@ -48,6 +49,20 @@ const historyTypeIcons: Record<UserHistoryEventType, FC<{ className?: string }>>
   [UserHistoryEventType.REVIEWER_CHANGE]: ClipboardCheckIcon,
 };
 
+const historyTypeIconColors: Record<UserHistoryEventType, string> = {
+  [UserHistoryEventType.SIGN_UP]: 'text-green-400',
+  [UserHistoryEventType.SQUAD_JOIN]: 'text-blue-400',
+  [UserHistoryEventType.SQUAD_LEAVE]: 'text-blue-400',
+  [UserHistoryEventType.WARNING]: 'text-amber-400',
+  [UserHistoryEventType.WARNING_REMOVED]: 'text-amber-400',
+  [UserHistoryEventType.TEMP_BAN]: 'text-red-400',
+  [UserHistoryEventType.PERMANENT_BAN]: 'text-red-400',
+  [UserHistoryEventType.UNBAN]: 'text-red-400',
+  [UserHistoryEventType.NICKNAME_CHANGE]: 'text-yellow-400',
+  [UserHistoryEventType.ROLE_CHANGE]: 'text-yellow-400',
+  [UserHistoryEventType.REVIEWER_CHANGE]: 'text-yellow-400',
+};
+
 const formatDate = (date?: string | null) => (date ? dayjs(date).format('DD.MM.YYYY HH:mm') : '—');
 
 const describeEvent = (event: UserHistoryEvent) => {
@@ -86,12 +101,13 @@ const describeEvent = (event: UserHistoryEvent) => {
 
 const UserHistoryItem: FC<{ event: UserHistoryEvent }> = ({ event }) => {
   const Icon = historyTypeIcons[event.type] ?? ScrollTextIcon;
+  const iconColor = historyTypeIconColors[event.type] ?? 'text-primary';
   const description = describeEvent(event);
 
   return (
     <div className="flex gap-3 py-3">
-      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-primary">
-        <Icon className="size-4" />
+      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/[0.03]">
+        <Icon className={`size-4 ${iconColor}`} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -99,8 +115,13 @@ const UserHistoryItem: FC<{ event: UserHistoryEvent }> = ({ event }) => {
           <span className="text-xs text-zinc-400">{formatDate(event.createdAt)}</span>
         </div>
         {event.actor?.nickname && (
-          <div className="mt-1 text-xs text-zinc-400">
-            Автор: <span className="text-zinc-200">{event.actor.nickname}</span>
+          <div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-zinc-400">
+            <span>Автор:</span>
+            <UserNicknameText
+              user={event.actor}
+              tag={event.actor.squad?.tag}
+              sideType={event.actor.squad?.side?.type}
+            />
           </div>
         )}
         {description && <div className="mt-1 whitespace-pre-wrap text-sm text-zinc-300">{description}</div>}
