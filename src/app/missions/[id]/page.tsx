@@ -7,7 +7,15 @@ import { Mission, MissionStatus, MissionVersion, State, UserRole } from '@/share
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArchiveIcon, ArchiveRestoreIcon, EllipsisIcon, PlusIcon, LoaderIcon, EditIcon, Trash2Icon } from 'lucide-react';
+import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
+  EllipsisIcon,
+  PlusIcon,
+  LoaderIcon,
+  EditIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/shared/config/routes';
 import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
@@ -28,6 +36,7 @@ import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { Popover } from '@/shared/ui/moleculas/popover';
+import dayjs from 'dayjs';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -192,6 +201,10 @@ const MissionDetailsPage = observer(() => {
   };
 
   const canEditComment = (comment: MissionComment) => {
+    if (session.isCommunicationMuted) {
+      return false;
+    }
+
     const currentUserId = session.user?.user?.id;
     return Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
   };
@@ -496,8 +509,18 @@ const MissionDetailsPage = observer(() => {
 
             <View.Condition if={session.isAuthorized}>
               <div className="mb-4">
+                {session.isCommunicationMuted && (
+                  <div className="mb-2 text-xs text-amber-300">
+                    Вам заборонено писати коментарі на час блокування
+                    {session.user.user?.bannedUntil
+                      ? ` до ${dayjs(session.user.user.bannedUntil).format('DD.MM.YYYY HH:mm')}`
+                      : ''}
+                    .
+                  </div>
+                )}
                 <MessageComposer
                   placeholder="Додати коментар..."
+                  disabled={session.isCommunicationMuted}
                   onSubmit={async ({ lexicalState, attachments }) => {
                     await missionDetailsModel.commentModel.create(missionId, lexicalState, attachments);
                   }}

@@ -73,6 +73,7 @@ import {
   UpdateWeekendDto,
   UserRole,
   User,
+  UserHistoryEvent,
   UserPunishment,
   UserWarning,
   Weekend,
@@ -119,8 +120,7 @@ const appendFormDataValue = (formData: FormData, key: string, value: unknown) =>
   formData.append(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
 };
 
-const extractUploadFiles = (files?: File[]) =>
-  files?.filter((file): file is File => file instanceof File) ?? [];
+const extractUploadFiles = (files?: File[]) => files?.filter((file): file is File => file instanceof File) ?? [];
 
 const appendAttachmentUpdateFormData = (
   formData: FormData,
@@ -371,7 +371,10 @@ class ApiModel {
 
   banUser = async (dto: BanUserDto) => {
     const bannedUntil = typeof dto.bannedUntil === 'string' ? dto.bannedUntil : dto.bannedUntil.toISOString();
-    return await this.instance.post<User>(`/users/ban/${dto.userId}/${bannedUntil}`, { reason: dto.reason });
+    return await this.instance.post<User>(`/users/ban/${dto.userId}/${bannedUntil}`, {
+      reason: dto.reason,
+      mute: dto.mute === true,
+    });
   };
 
   permanentlyBanUser = async (userId: string, reason: string) => {
@@ -411,6 +414,10 @@ class ApiModel {
 
   findUserPunishmentHistory = async (userId: string) => {
     return await this.instance.get<UserPunishment[]>(`/users/${userId}/punishments`);
+  };
+
+  findUserHistory = async (userId: string) => {
+    return await this.instance.get<UserHistoryEvent[]>(`/users/${userId}/history`);
   };
 
   /* Squads */

@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -85,6 +86,16 @@ function createPlainTextEditorState(text: string) {
       version: 1,
     },
   };
+}
+
+function EditablePlugin({ editable }: { editable: boolean }) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    editor.setEditable(editable);
+  }, [editor, editable]);
+
+  return null;
 }
 
 function InnerEditor({
@@ -181,6 +192,7 @@ export function MessageEditor({
     namespace: 'MessageEditor',
     theme: newMessageAreaTheme,
     onError,
+    editable: !disabled,
     nodes,
     editorState:
       initialState && typeof initialState === 'object'
@@ -196,19 +208,24 @@ export function MessageEditor({
     <div
       className={cn('flex w-full flex-col overflow-hidden rounded-lg border border-white/10 bg-black/40', className)}>
       <LexicalComposer initialConfig={initialConfig}>
+        <EditablePlugin editable={!disabled} />
         <RichTextBehaviorPlugin />
         <LinkPlugin />
         <ToolbarPlugin
           textFormattingOnly={textFormattingOnly}
           allowLists={allowLists}
           extraActions={toolbarExtra}
+          disabled={disabled}
         />
         <div className="relative min-h-[80px] flex-1">
           <RichTextPlugin
             contentEditable={
               <ContentEditable
                 aria-placeholder={placeholder}
-                className="min-h-[80px] w-full resize-none overflow-auto px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+                className={cn(
+                  'min-h-[80px] w-full resize-none overflow-auto px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5',
+                  disabled && 'cursor-not-allowed opacity-70',
+                )}
                 placeholder={null}
               />
             }

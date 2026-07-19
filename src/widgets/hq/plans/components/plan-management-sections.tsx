@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import { DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { HeadquartersComment, HeadquartersGamePlan, Side, User } from '@/shared/sdk/types';
+import { session } from '@/entities/session/model';
 
 import { HqPlansModel } from '../model';
 import { PlanCommanderSection } from './plan-commander-section';
@@ -48,7 +49,7 @@ export const PlanManagementSections = observer(
       isHqAdmin || Boolean(currentUserId && comment.userId === currentUserId);
 
     const canEditHeadquartersComment = (comment: HeadquartersComment) =>
-      Boolean(currentUserId && comment.userId === currentUserId);
+      !session.isCommunicationMuted && Boolean(currentUserId && comment.userId === currentUserId);
 
     return (
       <div className="flex flex-col gap-4">

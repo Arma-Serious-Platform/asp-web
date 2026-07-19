@@ -28,6 +28,7 @@ const BanUnbanUserModal: FC<
   const [banTime, setBanTime] = useState('');
   const [reason, setReason] = useState('');
   const [isPermanent, setIsPermanent] = useState(false);
+  const [mute, setMute] = useState(false);
 
   const user = model.visibility?.payload?.user;
   const isBanAction = user?.status !== UserStatus.BANNED;
@@ -38,6 +39,7 @@ const BanUnbanUserModal: FC<
       setBanTime('');
       setReason('');
       setIsPermanent(false);
+      setMute(false);
     }
   }, [model.visibility.isOpen]);
 
@@ -71,6 +73,7 @@ const BanUnbanUserModal: FC<
         userId: user.id,
         bannedUntil: dayjs(banTime).toDate(),
         reason: trimmedReason,
+        mute,
       },
       onBanSuccess,
     );
@@ -95,19 +98,32 @@ const BanUnbanUserModal: FC<
                   type="button"
                   aria-pressed={isPermanent}
                   className="flex items-center gap-2 text-sm text-zinc-100"
-                  onClick={() => setIsPermanent(value => !value)}>
+                  onClick={() => {
+                    setIsPermanent(value => !value);
+                    setMute(false);
+                  }}>
                   <Checkbox checked={isPermanent} />
                   Перманентне блокування
                 </button>
               )}
 
               {!isPermanent && (
-                <Input
-                  label="Час блокування"
-                  type="datetime-local"
-                  value={banTime}
-                  onChange={e => setBanTime(e.target.value)}
-                />
+                <>
+                  <Input
+                    label="Час блокування"
+                    type="datetime-local"
+                    value={banTime}
+                    onChange={e => setBanTime(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    aria-pressed={mute}
+                    className="flex items-center gap-2 text-sm text-zinc-100"
+                    onClick={() => setMute(value => !value)}>
+                    <Checkbox checked={mute} />
+                    Заборонити писати повідомлення та коментарі
+                  </button>
+                </>
               )}
             </>
           )}
@@ -123,7 +139,10 @@ const BanUnbanUserModal: FC<
             <Button variant="outline" disabled={model.loader.isLoading} onClick={() => model.visibility.close()}>
               Скасувати
             </Button>
-            <Button variant={isBanAction ? 'destructive' : 'default'} disabled={model.loader.isLoading} onClick={submit}>
+            <Button
+              variant={isBanAction ? 'destructive' : 'default'}
+              disabled={model.loader.isLoading}
+              onClick={submit}>
               {isBanAction ? 'Заблокувати' : 'Розблокувати'}
             </Button>
           </div>

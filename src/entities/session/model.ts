@@ -2,7 +2,7 @@ import { makeAutoObservable } from 'mobx';
 
 import { UserModel } from '@/entities/user/model';
 import { ROUTES } from '@/shared/config/routes';
-import { SideType, SquadRole, User, UserRole } from '@/shared/sdk/types';
+import { SideType, SquadRole, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import { Preloader } from '@/shared/model/loader';
 import { api } from '@/shared/sdk';
 import { AxiosError } from 'axios';
@@ -79,6 +79,15 @@ export class SessionModel {
 
   get canPermanentlyBanUsers() {
     return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
+  }
+
+  get isCommunicationMuted() {
+    const user = this.user?.user;
+    if (!user?.isMuted || user.status !== UserStatus.BANNED || !user.bannedUntil) {
+      return false;
+    }
+
+    return new Date(user.bannedUntil).getTime() > Date.now();
   }
 
   get canSeeSensitiveUsersData() {

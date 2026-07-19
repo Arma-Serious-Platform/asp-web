@@ -67,9 +67,15 @@ type ToolbarPluginProps = {
   textFormattingOnly?: boolean;
   allowLists?: boolean;
   extraActions?: ReactNode;
+  disabled?: boolean;
 };
 
-export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false, extraActions }: ToolbarPluginProps) {
+export function ToolbarPlugin({
+  textFormattingOnly = false,
+  allowLists = false,
+  extraActions,
+  disabled = false,
+}: ToolbarPluginProps) {
   const [editor] = useLexicalComposerContext();
   const [activeFormats, setActiveFormats] = useState<Set<Format>>(new Set());
   const [linkOpen, setLinkOpen] = useState(false);
@@ -111,18 +117,22 @@ export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false, 
   }, [editor, updateFormats]);
 
   const applyFormat = (format: Format) => {
+    if (disabled) return;
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
   };
 
   const insertUnorderedList = () => {
+    if (disabled) return;
     editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
   };
 
   const insertOrderedList = () => {
+    if (disabled) return;
     editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
   };
 
   const insertEmoji = (emoji: string) => {
+    if (disabled) return;
     editor.focus();
     editor.update(() => {
       let selection = $getSelection();
@@ -138,6 +148,7 @@ export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false, 
   };
 
   const applyLink = () => {
+    if (disabled) return;
     const url = linkUrl.trim();
     if (!url) {
       setLinkOpen(false);
@@ -150,6 +161,7 @@ export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false, 
   };
 
   const insertYouTube = () => {
+    if (disabled) return;
     const videoId = extractYouTubeVideoId(youtubeUrl);
     if (!videoId) {
       setYoutubeUrl('');
@@ -165,7 +177,11 @@ export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false, 
   };
 
   return (
-    <div className="flex items-center gap-0.5 border-b border-white/10 bg-black/40 px-2 py-1">
+    <div
+      className={cn(
+        'flex items-center gap-0.5 border-b border-white/10 bg-black/40 px-2 py-1',
+        disabled && 'pointer-events-none opacity-50',
+      )}>
       <FormatButton
         format="bold"
         active={activeFormats.has('bold')}
@@ -188,7 +204,12 @@ export function ToolbarPlugin({ textFormattingOnly = false, allowLists = false, 
       {allowLists && (
         <>
           <div className="mx-1 w-px self-stretch bg-white/10" aria-hidden />
-          <FormatButton format="unordered list" active={false} onPress={insertUnorderedList} icon={<ListIcon className="size-4" />} />
+          <FormatButton
+            format="unordered list"
+            active={false}
+            onPress={insertUnorderedList}
+            icon={<ListIcon className="size-4" />}
+          />
           <FormatButton
             format="ordered list"
             active={false}

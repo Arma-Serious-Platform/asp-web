@@ -87,7 +87,8 @@ export const UserStatusText: FC<{
   status?: UserStatus;
   className?: string;
   bannedUntil?: Date | null;
-}> = ({ status, bannedUntil = null, className }) => {
+  banReason?: string | null;
+}> = ({ status, bannedUntil = null, banReason = null, className }) => {
   if (!status) return null;
 
   const isPermanentBan = status === UserStatus.BANNED && !bannedUntil;
@@ -105,6 +106,9 @@ export const UserStatusText: FC<{
       {getUserStatusText(status)}
       {bannedUntil && <span className="text-red-500"> {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
       {isPermanentBan && <span className="text-red-500"> назавжди</span>}
+      {status === UserStatus.BANNED && banReason && (
+        <span className="ml-1 text-zinc-400">— {banReason}</span>
+      )}
     </span>
   );
 };

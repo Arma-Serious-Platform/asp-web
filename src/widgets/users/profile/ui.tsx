@@ -26,6 +26,7 @@ import { ChangeAvatarModal } from '@/features/user/change-avatar/ui';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
 import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
 import { ChangeSocials } from '@/features/user/change-socials';
+import { UserHistorySection } from '@/features/user/user-history';
 import { UserProfileModel } from './model';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 import { ProfileSidebar } from './sidebar/ui';
@@ -181,7 +182,13 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     <InfoTile
                       icon={<ActivityIcon className="size-4" />}
                       title="Статус"
-                      description={<UserStatusText status={model.user?.status} />}
+                      description={
+                        <UserStatusText
+                          status={model.user?.status}
+                          bannedUntil={model.user?.bannedUntil}
+                          banReason={model.user?.banReason}
+                        />
+                      }
                     />
 
                     {model.isOwnProfile && (
@@ -220,6 +227,8 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       }
                     />
                   </div>
+
+                  <UserHistorySection userId={model.user?.id} />
                 </div>
               </View.Condition>
 

@@ -19,7 +19,6 @@ import { observer } from 'mobx-react-lite';
 import { session } from '@/entities/session/model';
 import { View } from '@/features/view';
 import { Popover } from '@/shared/ui/moleculas/popover';
-import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -63,51 +62,16 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'email',
-    header: observer(() => {
-      if (!session.canSeeSensitiveUsersData) return null;
-
-      return <div>Email</div>;
-    }),
-    cell: observer(({ row }) => {
-      if (!session.canSeeSensitiveUsersData) return null;
-
-      return row.original.email ? (
-        <RevealableBlurredText
-          className="inline-flex min-w-0 flex-nowrap gap-x-1"
-          textClassName="flex-none"
-          toggleAriaLabel="Показати або приховати електронну пошту">
-          {row.original.email}
-        </RevealableBlurredText>
-      ) : (
-        <div>—</div>
-      );
-    }),
-  },
-  {
     accessorKey: 'steamUUID',
     header: observer(() => {
       if (!session.canSeeSensitiveUsersData) return null;
 
-      return <div>STEAM UUID</div>;
+      return <div>STEAM ID</div>;
     }),
     cell: observer(({ row }) => {
       if (!session.canSeeSensitiveUsersData) return null;
 
       return <div>{row.original.steamId || ''}</div>;
-    }),
-  },
-  {
-    accessorKey: 'lastIp',
-    header: observer(() => {
-      if (!session.canSeeSensitiveUsersData) return null;
-
-      return <div>IP</div>;
-    }),
-    cell: observer(({ row }) => {
-      if (!session.canSeeSensitiveUsersData) return null;
-
-      return <div>{row.original.lastIp || ''}</div>;
     }),
   },
   {

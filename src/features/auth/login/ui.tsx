@@ -57,6 +57,11 @@ const LoginForm: FC<{
 
     const message = error.response?.data?.message;
 
+    if (message === 'Вас забанено назавжди') {
+      toast.error('Вас забанено назавжди');
+      return;
+    }
+
     if (message === 'Invalid credentials' || error.response?.status === 401) {
       form.setError('password', { message: 'Неправильний email або пароль' });
     }
@@ -84,8 +89,7 @@ const LoginForm: FC<{
           Попереднє посилання для активації вже не дійсне.
           <br />
           <br />
-          Ми надіслали новий лист для підтвердження на вашу електронну пошту. У вас є 10 хвилин для активації
-          аккаунту.
+          Ми надіслали новий лист для підтвердження на вашу електронну пошту. У вас є 10 хвилин для активації аккаунту.
         </div>,
         {
           duration: 15000,
@@ -174,8 +178,7 @@ const LoginForm: FC<{
             className="uppercase"
             type="button"
             disabled={
-              isVerifyingTwoFactor ||
-              (useRecoveryCode ? recoveryCode.trim().length === 0 : twoFactorCode.length !== 6)
+              isVerifyingTwoFactor || (useRecoveryCode ? recoveryCode.trim().length === 0 : twoFactorCode.length !== 6)
             }
             onClick={onVerifyTwoFactor}>
             {isVerifyingTwoFactor ? <LoaderIcon className="size-4 animate-spin" /> : 'Підтвердити'}

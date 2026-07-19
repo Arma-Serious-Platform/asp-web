@@ -142,6 +142,8 @@ export type User = {
     url: string;
   } | null;
   bannedUntil: Date | null;
+  banReason?: string | null;
+  isMuted?: boolean;
   missions: Mission[];
   side: Side | null;
   leadingSquad: Squad | null;
@@ -217,6 +219,46 @@ export type UserPunishment = {
   updatedAt: string;
   admin?: Pick<User, 'id' | 'nickname'> | null;
   warning?: Pick<UserWarning, 'id' | 'reason' | 'removedAt' | 'removeReason'> | null;
+};
+
+export enum UserHistoryEventType {
+  SIGN_UP = 'SIGN_UP',
+  SQUAD_JOIN = 'SQUAD_JOIN',
+  SQUAD_LEAVE = 'SQUAD_LEAVE',
+  WARNING = 'WARNING',
+  WARNING_REMOVED = 'WARNING_REMOVED',
+  TEMP_BAN = 'TEMP_BAN',
+  PERMANENT_BAN = 'PERMANENT_BAN',
+  UNBAN = 'UNBAN',
+  NICKNAME_CHANGE = 'NICKNAME_CHANGE',
+  ROLE_CHANGE = 'ROLE_CHANGE',
+  REVIEWER_CHANGE = 'REVIEWER_CHANGE',
+}
+
+export type UserHistoryEventPayload = {
+  reason?: string | null;
+  bannedUntil?: string | null;
+  punishmentId?: string | null;
+  warningId?: string | null;
+  squadId?: string | null;
+  squadTag?: string | null;
+  oldNickname?: string | null;
+  newNickname?: string | null;
+  oldRole?: UserRole | null;
+  newRole?: UserRole | null;
+  oldValue?: boolean | null;
+  newValue?: boolean | null;
+  isMuted?: boolean | null;
+};
+
+export type UserHistoryEvent = {
+  id: string;
+  userId: string;
+  actorId: string | null;
+  type: UserHistoryEventType;
+  payload: UserHistoryEventPayload;
+  createdAt: string;
+  actor?: Pick<User, 'id' | 'nickname'> | null;
 };
 
 export type UpdateMeDto = {
@@ -415,6 +457,7 @@ export type BanUserDto = {
   userId: string;
   bannedUntil: string | Date;
   reason: string;
+  mute?: boolean;
 };
 
 export type UnbanUserDto = {
@@ -869,7 +912,10 @@ export type HeadquartersSideShort = {
   type: SideType;
 };
 
-export type HeadquartersCommander = Pick<User, 'id' | 'nickname' | 'role' | 'squadRole' | 'isMissionReviewer' | 'avatar'> & {
+export type HeadquartersCommander = Pick<
+  User,
+  'id' | 'nickname' | 'role' | 'squadRole' | 'isMissionReviewer' | 'avatar'
+> & {
   squad?: {
     id: string;
     tag: string;

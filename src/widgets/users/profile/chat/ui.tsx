@@ -6,7 +6,18 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/uk';
 import toast from 'react-hot-toast';
 import { observer } from 'mobx-react-lite';
-import { CheckIcon, LoaderIcon, LogOutIcon, MessageCircleIcon, PencilIcon, PlusIcon, Trash2Icon, UserPlusIcon, UsersIcon, XIcon } from 'lucide-react';
+import {
+  CheckIcon,
+  LoaderIcon,
+  LogOutIcon,
+  MessageCircleIcon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon,
+  UserPlusIcon,
+  UsersIcon,
+  XIcon,
+} from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 
 import { api } from '@/shared/sdk';
@@ -247,6 +258,8 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
   const activeChat = useMemo(() => chats.find(chat => chat.id === activeChatId) ?? null, [activeChatId, chats]);
   const currentUserId = session.user.user?.id;
   const isActiveChatCreator = Boolean(activeChat?.creatorId && activeChat.creatorId === currentUserId);
+  const isCommunicationMuted = session.isCommunicationMuted;
+  const composerDisabled = isSending || isCommunicationMuted;
 
   const bumpChatActivity = useCallback((chatId: string, at?: string) => {
     const timestamp = at ?? new Date().toISOString();
@@ -1098,7 +1111,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
                               existingAttachments={message.attachments}
                               submitLabel="Зберегти"
                               clearOnSubmit={false}
-                              disabled={isSending}
+                              disabled={composerDisabled}
                               maxCharacters={250}
                               showCancel
                               onCancel={() => setEditingMessageId(null)}
@@ -1111,7 +1124,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
                             </>
                           )}
                         </div>
-                        {isOwnMessage && !isEditing && (
+                        {isOwnMessage && !isEditing && !isCommunicationMuted && (
                           <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                             <Button
                               type="button"
@@ -1146,10 +1159,19 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
 
           {activeChat && (
             <div className="border-t border-white/10 p-2">
+              {isCommunicationMuted && (
+                <div className="mb-2 text-xs text-amber-300">
+                  Вам заборонено писати повідомлення на час блокування
+                  {session.user.user?.bannedUntil
+                    ? ` до ${dayjs(session.user.user.bannedUntil).format('DD.MM.YYYY HH:mm')}`
+                    : ''}
+                  .
+                </div>
+              )}
               <MessageComposer
                 placeholder="Напишіть повідомлення..."
                 maxCharacters={250}
-                disabled={isSending}
+                disabled={composerDisabled}
                 onSubmit={async ({ lexicalState, attachments }) => {
                   setIsSending(true);
                   try {
@@ -1273,18 +1295,14 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
           <DialogHeader>
             <DialogTitle>Видалити повідомлення?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-zinc-400">Ця дія незворотна. Повідомлення буде видалено для всіх учасників чату.</p>
+          <p className="text-sm text-zinc-400">
+            Ця дія незворотна. Повідомлення буде видалено для всіх учасників чату.
+          </p>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setMessageToDelete(null)}
-              disabled={isDeletingMessage}>
+            <Button variant="outline" onClick={() => setMessageToDelete(null)} disabled={isDeletingMessage}>
               Скасувати
             </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-500"
-              onClick={confirmDeleteMessage}
-              disabled={isDeletingMessage}>
+            <Button className="bg-red-600 hover:bg-red-500" onClick={confirmDeleteMessage} disabled={isDeletingMessage}>
               {isDeletingMessage ? <LoaderIcon className="size-4 animate-spin" /> : 'Видалити'}
             </Button>
           </DialogFooter>
@@ -1296,9 +1314,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
           <DialogHeader>
             <DialogTitle>Вийти з чату?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-zinc-400">
-            Ви більше не бачитимете цей чат. Творець чату зможе додати вас знову.
-          </p>
+          <p className="text-sm text-zinc-400">Ви більше не бачитимете цей чат. Творець чату зможе додати вас знову.</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsConfirmLeaveOpen(false)} disabled={isLeavingChat}>
               Скасувати
@@ -1322,10 +1338,7 @@ export const ProfileChat = observer(function ProfileChat({ initialUserId, onInit
             <Button variant="outline" onClick={() => setIsConfirmDeleteOpen(false)} disabled={isDeletingChat}>
               Скасувати
             </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-500"
-              onClick={handleDeleteChat}
-              disabled={isDeletingChat}>
+            <Button className="bg-red-600 hover:bg-red-500" onClick={handleDeleteChat} disabled={isDeletingChat}>
               {isDeletingChat ? <LoaderIcon className="size-4 animate-spin" /> : 'Видалити'}
             </Button>
           </DialogFooter>
