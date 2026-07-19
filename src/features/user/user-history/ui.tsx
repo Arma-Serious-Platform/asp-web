@@ -4,6 +4,7 @@ import { getUserRoleText } from '@/entities/user/lib';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { UserHistoryEvent, UserHistoryEventType, UserRole } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
+import 'dayjs/locale/uk';
 import {
   AlertTriangleIcon,
   BanIcon,
@@ -64,6 +65,30 @@ const historyTypeIconColors: Record<UserHistoryEventType, string> = {
 };
 
 const formatDate = (date?: string | null) => (date ? dayjs(date).format('DD.MM.YYYY HH:mm') : '—');
+const formatTime = (date?: string | null) => (date ? dayjs(date).format('HH:mm') : '—');
+
+const groupEventsByDate = (events: UserHistoryEvent[]) => {
+  const groups: { key: string; label: string; events: UserHistoryEvent[] }[] = [];
+
+  events.forEach(event => {
+    const date = event.createdAt ? dayjs(event.createdAt) : null;
+    const key = date?.isValid() ? date.format('YYYY-MM-DD') : 'unknown';
+    const existingGroup = groups.find(group => group.key === key);
+
+    if (existingGroup) {
+      existingGroup.events.push(event);
+      return;
+    }
+
+    groups.push({
+      key,
+      label: date?.isValid() ? date.locale('uk').format('D MMMM YYYY') : 'Дата невідома',
+      events: [event],
+    });
+  });
+
+  return groups;
+};
 
 const describeEvent = (event: UserHistoryEvent) => {
   const payload = event.payload ?? {};
@@ -106,13 +131,15 @@ const UserHistoryItem: FC<{ event: UserHistoryEvent }> = ({ event }) => {
 
   return (
     <div className="flex gap-3 py-3">
-      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/[0.03]">
+      <div className="z-10 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-zinc-950">
         <Icon className={`size-4 ${iconColor}`} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="font-medium text-zinc-100">{historyTypeLabels[event.type]}</span>
-          <span className="text-xs text-zinc-400">{formatDate(event.createdAt)}</span>
+          <time className="font-mono text-xs text-zinc-400" dateTime={event.createdAt ?? undefined}>
+            {formatTime(event.createdAt)}
+          </time>
         </div>
         {event.actor?.nickname && (
           <div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-zinc-400">
@@ -152,9 +179,24 @@ export const UserHistorySection: FC<{ userId?: string }> = observer(({ userId })
       ) : model.events.length === 0 ? (
         <div className="text-sm text-zinc-500">Подій поки немає</div>
       ) : (
-        <div className="divide-y divide-white/10 rounded-md border border-white/10 bg-white/[0.02] px-3">
-          {model.events.map(event => (
-            <UserHistoryItem key={event.id} event={event} />
+        <div className="rounded-md border border-white/10 bg-white/2 px-3 pb-2">
+          {groupEventsByDate(model.events).map(group => (
+            <div key={group.key}>
+              <div className="flex items-center gap-3 pb-1 pt-4">
+                <time className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  {group.label}
+                </time>
+                <div className="h-px w-full bg-white/10" />
+              </div>
+              <div className="relative">
+                <div className="absolute bottom-3 left-[15px] top-3 w-px bg-white/10" aria-hidden />
+                {group.events.map(event => (
+                  <div key={event.id} className="relative">
+                    <UserHistoryItem event={event} />
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
