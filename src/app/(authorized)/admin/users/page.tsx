@@ -11,11 +11,7 @@ import { usersModel } from './model';
 import { useDebounce } from 'react-use';
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
-import { BanUnbanUserModal } from '@/features/user/ban-unban-user/ui';
-import { AdminChangeNicknameModal } from '@/features/user/admin-change-nickname/ui';
-import { ChangeUserRoleModal } from '@/features/user/change-user-role/ui';
-import { IssueUserWarningModal } from '@/features/user/issue-user-warning/ui';
-import { PunishmentHistoryModal } from '@/features/user/punishment-history/ui';
+import { UserAdminActionsModals } from '@/features/user/admin-actions';
 import { useAdminRouteGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
 
 const AdminPage = observer(() => {
@@ -49,45 +45,27 @@ const AdminPage = observer(() => {
 
         <h1 className="text-2xl font-bold mb-2">Гравці</h1>
 
-        <BanUnbanUserModal
-          model={usersModel.banUnbanUserModel}
+        <UserAdminActionsModals
+          model={usersModel.adminActions}
           onBanSuccess={user => {
             usersModel.afterBanUser(user);
           }}
           onUnbanSuccess={user => {
             usersModel.afterUnbanUser(user);
           }}
-        />
-
-        <AdminChangeNicknameModal
-          model={usersModel.adminChangeNicknameModel}
-          onSuccess={user => {
+          onChangeNicknameSuccess={user => {
             usersModel.afterChangeNickname(user);
           }}
-        />
-
-        <IssueUserWarningModal
-          model={usersModel.issueUserWarningModel}
-          onSuccess={warning => {
+          onIssueWarningSuccess={warning => {
             usersModel.afterIssueWarning(warning);
           }}
-        />
-
-        <PunishmentHistoryModal
-          model={usersModel.punishmentHistoryModel}
           onWarningRemoved={warning => {
             usersModel.afterWarningRemoved(warning);
           }}
+          onChangeRoleSuccess={(userId, roles) => {
+            usersModel.afterChangeRole(userId, roles);
+          }}
         />
-
-        {session.canManageRoles && (
-          <ChangeUserRoleModal
-            model={usersModel.changeUserRoleModel}
-            onSuccess={(userId, roles) => {
-              usersModel.afterChangeRole(userId, roles);
-            }}
-          />
-        )}
 
         <Input
           searchIcon

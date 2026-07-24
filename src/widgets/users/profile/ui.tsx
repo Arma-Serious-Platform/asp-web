@@ -27,6 +27,7 @@ import { InfoTile } from '@/shared/ui/moleculas/info-tile';
 import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
 import { ChangeSocials } from '@/features/user/change-socials';
 import { UserHistorySection } from '@/features/user/user-history';
+import { UserAdminActionsButtons, UserAdminActionsModals } from '@/features/user/admin-actions';
 import { UserProfileModel } from './model';
 import { Preloader } from '@/shared/ui/atoms/preloader';
 import { ProfileSidebar } from './sidebar/ui';
@@ -36,6 +37,8 @@ import { ROUTES } from '@/shared/config/routes';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProfileSteamConnect } from '@/features/user/steam-connect/ui';
 import toast from 'react-hot-toast';
+import { Card } from '@/shared/ui/atoms/card';
+import { User } from '@/shared/sdk/types';
 
 type UserProfileProps = {
   model: UserProfileModel;
@@ -71,6 +74,20 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
     router.replace(nextQuery ? `${ROUTES.user.profile}?${nextQuery}` : ROUTES.user.profile);
   }, [model.isOwnProfile, router, searchParams]);
 
+  const refreshOtherUser = () => {
+    if (!model.isOwnProfile && userIdOrNickname) {
+      void model.init(userIdOrNickname, { refresh: true });
+    }
+  };
+
+  const handleChangeNicknameSuccess = (user: User) => {
+    model.otherUser = user;
+
+    if (userIdOrNickname !== user.nickname) {
+      router.replace(ROUTES.user.profileById(user.nickname));
+    }
+  };
+
   return (
     <>
       {model.isOwnProfile && (
@@ -82,6 +99,18 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
             onSuccess={() => model.init(undefined, { refresh: true })}
           />
         </>
+      )}
+
+      {!model.isOwnProfile && model.user && (
+        <UserAdminActionsModals
+          model={model.adminActions}
+          onBanSuccess={refreshOtherUser}
+          onUnbanSuccess={refreshOtherUser}
+          onChangeNicknameSuccess={handleChangeNicknameSuccess}
+          onChangeRoleSuccess={refreshOtherUser}
+          onIssueWarningSuccess={refreshOtherUser}
+          onWarningRemoved={refreshOtherUser}
+        />
       )}
 
       <div className="container relative mx-auto my-6 w-full px-4">
@@ -111,21 +140,25 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
               </div>
 
               {!model.isOwnProfile && (
-                <Button
-                  size="sm"
-                  disabled={!model.user?.id}
-                  onClick={() =>
-                    router.push(
-                      `${ROUTES.user.profile}?tab=${ProfileTab.CHAT}&userId=${encodeURIComponent(model.user?.id ?? '')}`,
-                    )
-                  }
-                  className="w-full">
-                  <MessageCircleIcon className="size-4" />
-                  Написати
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    disabled={!model.user?.id}
+                    onClick={() =>
+                      router.push(
+                        `${ROUTES.user.profile}?tab=${ProfileTab.CHAT}&userId=${encodeURIComponent(model.user?.id ?? '')}`,
+                      )
+                    }
+                    className="w-full">
+                    <MessageCircleIcon className="size-4" />
+                    Написати
+                  </Button>
+
+                  <UserAdminActionsButtons user={model.user} model={model.adminActions} />
+                </>
               )}
 
-              <ProfileSidebar tab={tab} setTab={setTab} isOwnProfile={model.isOwnProfile} />
+              {model.isOwnProfile && <ProfileSidebar tab={tab} setTab={setTab} isOwnProfile={model.isOwnProfile} />}
             </div>
 
             {/* Right column: tab content */}
@@ -253,9 +286,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                       <section className="flex min-w-0 flex-col gap-3 border-t border-white/10 pt-5">
                         <div className="flex flex-col gap-0.5">
                           <h2 className="text-sm font-semibold text-white">Двофакторна автентифікація</h2>
-                          <p className="text-xs text-zinc-500">
-                            Google Authenticator, Authy та інші TOTP-застосунки.
-                          </p>
+                          <p className="text-xs text-zinc-500">Google Authenticator, Authy та інші TOTP-застосунки.</p>
                         </div>
                         <ManageTwoFactor
                           onStatusChange={enabled => {

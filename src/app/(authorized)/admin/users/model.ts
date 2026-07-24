@@ -1,8 +1,4 @@
-import { BanUnbanUserModel } from '@/features/user/ban-unban-user/model';
-import { AdminChangeNicknameModel } from '@/features/user/admin-change-nickname/model';
-import { ChangeUserRoleModel } from '@/features/user/change-user-role/model';
-import { IssueUserWarningModel } from '@/features/user/issue-user-warning/model';
-import { PunishmentHistoryModel } from '@/features/user/punishment-history/model';
+import { UserAdminActionsModel } from '@/features/user/admin-actions';
 import { Pagination } from '@/shared/model/pagination';
 import { api } from '@/shared/sdk';
 import { User, UserRole, UserStatus, UserWarning } from '@/shared/sdk/types';
@@ -15,15 +11,7 @@ export class UsersModel {
 
   pagination = new Pagination({ api: api.findUsers });
 
-  banUnbanUserModel = new BanUnbanUserModel();
-
-  adminChangeNicknameModel = new AdminChangeNicknameModel();
-
-  issueUserWarningModel = new IssueUserWarningModel();
-
-  punishmentHistoryModel = new PunishmentHistoryModel();
-
-  changeUserRoleModel = new ChangeUserRoleModel();
+  adminActions = new UserAdminActionsModel();
 
   afterBanUser = (user: User) => {
     const foundUser = this.pagination.data.map(u => {

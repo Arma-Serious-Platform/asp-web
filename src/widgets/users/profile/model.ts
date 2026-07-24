@@ -1,4 +1,5 @@
 import { session } from '@/entities/session/model';
+import { UserAdminActionsModel } from '@/features/user/admin-actions';
 import { ChangeAvatarModel } from '@/features/user/change-avatar/model';
 import { ChangeNicknameModel } from '@/features/user/change-nickname/model';
 import { DisconnectSteamModel } from '@/features/user/disconnect-steam/model';
@@ -23,6 +24,7 @@ class UserProfileModel {
   avatar = new ChangeAvatarModel();
   nickname = new ChangeNicknameModel();
   steamDisconnect = new DisconnectSteamModel();
+  adminActions = new UserAdminActionsModel();
 
   get user() {
     return this.isOwnProfile ? session.user.user : this.otherUser;
