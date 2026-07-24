@@ -389,15 +389,8 @@ class ApiModel {
     return await this.instance.delete(`/users/${id}`);
   };
 
-  changeIsMissionReviewer = async (userId: string, isMissionReviewer: boolean) => {
-    return await this.instance.post(`/users/change-is-mission-reviewer`, {
-      userId,
-      isMissionReviewer,
-    });
-  };
-
   changeUserRole = async (dto: ChangeUserRoleDto) => {
-    return await this.instance.post<User>('/users/change-role', dto);
+    return await this.instance.put<User>('/users/change-role', dto);
   };
 
   createUserWarning = async ({ userId, ...dto }: CreateUserWarningDto) => {

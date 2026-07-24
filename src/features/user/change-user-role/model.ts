@@ -14,19 +14,23 @@ export class ChangeUserRoleModel {
 
   visibility = new Visibility<{ user: User }>();
 
-  async changeRole(userId: string, role: UserRole, onSuccess?: (userId: string, role: UserRole) => void) {
+  async changeRole(
+    userId: string,
+    roles: UserRole[],
+    onSuccess?: (userId: string, roles: UserRole[]) => void,
+  ) {
     try {
       this.loader.start();
-      await api.changeUserRole({ id: userId, role });
+      await api.changeUserRole({ id: userId, roles });
 
       if (onSuccess) {
-        onSuccess(userId, role);
+        onSuccess(userId, roles);
       }
 
-      toast.success(`Роль оновлено`);
+      toast.success(`Ролі оновлено`);
       this.visibility.close();
     } catch {
-      toast.error('Не вдалося змінити роль');
+      toast.error('Не вдалося змінити ролі');
     } finally {
       this.loader.stop();
     }

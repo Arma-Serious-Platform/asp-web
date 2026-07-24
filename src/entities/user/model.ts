@@ -12,7 +12,10 @@ class UserModel {
   user: User | null = null;
 
   get isOwnerOrTech() {
-    return this.user?.role === UserRole.OWNER || this.user?.role === UserRole.TECH_ADMIN;
+    return Boolean(
+      this.user?.roles?.includes(UserRole.OWNER) ||
+        this.user?.roles?.includes(UserRole.TECH_ADMIN),
+    );
   }
 
   get isBanned() {

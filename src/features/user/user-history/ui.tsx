@@ -102,8 +102,11 @@ const describeEvent = (event: UserHistoryEvent) => {
       return payload.squadTag ? `Покинув [${payload.squadTag}]` : 'Покинув загін';
     case UserHistoryEventType.NICKNAME_CHANGE:
       return `${payload.oldNickname ?? '—'} → ${payload.newNickname ?? '—'}`;
-    case UserHistoryEventType.ROLE_CHANGE:
-      return `${getUserRoleText(payload.oldRole as UserRole | undefined)} → ${getUserRoleText(payload.newRole as UserRole | undefined)}`;
+    case UserHistoryEventType.ROLE_CHANGE: {
+      const oldRoles = (payload.oldRoles ?? (payload.oldRole ? [payload.oldRole] : [])) as UserRole[];
+      const newRoles = (payload.newRoles ?? (payload.newRole ? [payload.newRole] : [])) as UserRole[];
+      return `${getUserRoleText(oldRoles)} → ${getUserRoleText(newRoles)}`;
+    }
     case UserHistoryEventType.REVIEWER_CHANGE:
       return payload.newValue ? 'Призначено перевіряючим місій' : 'Знято статус перевіряючого місій';
     case UserHistoryEventType.TEMP_BAN:

@@ -177,7 +177,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     <InfoTile
                       icon={<ShieldUserIcon className="size-4" />}
                       title="Роль"
-                      description={<UserRoleText role={model.user?.role} />}
+                      description={<UserRoleText roles={model.user?.roles} />}
                     />
                     <InfoTile
                       icon={<ActivityIcon className="size-4" />}

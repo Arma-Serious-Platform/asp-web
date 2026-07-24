@@ -43,6 +43,7 @@ export enum UserRole {
   OWNER = 'OWNER',
   SERVER_ADMIN = 'SERVER_ADMIN',
   TECH_ADMIN = 'TECH_ADMIN',
+  MISSION_REVIEWER = 'MISSION_REVIEWER',
   UVK = 'UVK',
   GAME_ADMIN = 'GAME_ADMIN',
   MINI_ADMIN = 'MINI_ADMIN',
@@ -131,10 +132,9 @@ export type User = {
   activationToken: string | null;
   activationTokenExpiresAt: Date | null;
   status: UserStatus;
-  role: UserRole;
+  roles: UserRole[];
   steamId: string | null;
   lastIp: string | null;
-  isMissionReviewer: boolean;
   resetPasswordToken: string | null;
   resetPasswordTokenExpiresAt: Date | null;
   avatar: {
@@ -244,6 +244,8 @@ export type UserHistoryEventPayload = {
   squadTag?: string | null;
   oldNickname?: string | null;
   newNickname?: string | null;
+  oldRoles?: UserRole[] | null;
+  newRoles?: UserRole[] | null;
   oldRole?: UserRole | null;
   newRole?: UserRole | null;
   oldValue?: boolean | null;
@@ -259,7 +261,7 @@ export type UserHistoryEvent = {
   payload: UserHistoryEventPayload;
   createdAt: string;
   actor?:
-    | (Pick<User, 'id' | 'nickname' | 'role' | 'isMissionReviewer'> &
+    | (Pick<User, 'id' | 'nickname' | 'roles'> &
         Partial<Pick<User, 'squadRole'>> & {
           squad?: {
             tag?: string;
@@ -473,10 +475,10 @@ export type UnbanUserDto = {
   reason?: string;
 };
 
-/** Body for POST /users/change-role */
+/** Body for PUT /users/change-role */
 export type ChangeUserRoleDto = {
   id: string;
-  role: UserRole;
+  roles: UserRole[];
 };
 
 export type FindServersDto = PaginatedRequest<{
@@ -922,7 +924,7 @@ export type HeadquartersSideShort = {
 
 export type HeadquartersCommander = Pick<
   User,
-  'id' | 'nickname' | 'role' | 'squadRole' | 'isMissionReviewer' | 'avatar'
+  'id' | 'nickname' | 'roles' | 'squadRole' | 'avatar'
 > & {
   squad?: {
     id: string;

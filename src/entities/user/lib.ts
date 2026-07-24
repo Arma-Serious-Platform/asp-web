@@ -4,30 +4,64 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.OWNER]: 'Керівництво',
   [UserRole.SERVER_ADMIN]: 'Серверний адміністратор',
   [UserRole.TECH_ADMIN]: 'Тех. адміністратор',
+  [UserRole.MISSION_REVIEWER]: 'Перевіряючий місій',
   [UserRole.UVK]: 'УВК',
   [UserRole.GAME_ADMIN]: 'Ігровий адміністратор',
   [UserRole.MINI_ADMIN]: 'mVTG адміністратор',
   [UserRole.USER]: 'Користувач',
 };
 
-export const getUserRoleText = (role?: UserRole, isMissionReviewer?: boolean) => {
-  if (isMissionReviewer && (!role || role === UserRole.USER)) {
-    return 'Перевіряючий місій';
-  }
-
-  if (role && USER_ROLE_LABELS[role]) {
-    return USER_ROLE_LABELS[role];
-  }
-
-  return 'Користувач';
+const ROLE_RANK: Record<UserRole, number> = {
+  [UserRole.USER]: 0,
+  [UserRole.MISSION_REVIEWER]: 0,
+  [UserRole.MINI_ADMIN]: 1,
+  [UserRole.GAME_ADMIN]: 2,
+  [UserRole.TECH_ADMIN]: 3,
+  [UserRole.UVK]: 4,
+  [UserRole.SERVER_ADMIN]: 5,
+  [UserRole.OWNER]: 6,
 };
 
-export const getUserRoleColor = (role?: UserRole, isMissionReviewer?: boolean) => {
-  if (isMissionReviewer && (!role || role === UserRole.USER)) {
-    return 'text-amber-200';
+export const hasAnyRole = (userRoles: UserRole[] | null | undefined, allowed: UserRole[]): boolean =>
+  Boolean(userRoles?.some(role => allowed.includes(role)));
+
+export const highestRole = (roles?: UserRole[] | null): UserRole => {
+  if (!roles?.length) {
+    return UserRole.USER;
   }
 
-  switch (role) {
+  return roles.reduce((best, role) => (ROLE_RANK[role] > ROLE_RANK[best] ? role : best));
+};
+
+export const getPrimaryDisplayRole = (roles?: UserRole[] | null): UserRole => {
+  if (!roles?.length) {
+    return UserRole.USER;
+  }
+
+  const highest = highestRole(roles);
+  if (highest !== UserRole.USER) {
+    return highest;
+  }
+
+  if (roles.includes(UserRole.MISSION_REVIEWER)) {
+    return UserRole.MISSION_REVIEWER;
+  }
+
+  return UserRole.USER;
+};
+
+export const getUserRoleText = (roles?: UserRole[] | UserRole | null) => {
+  const roleList = Array.isArray(roles) ? roles : roles ? [roles] : [];
+  const primary = getPrimaryDisplayRole(roleList);
+
+  return USER_ROLE_LABELS[primary] ?? 'Користувач';
+};
+
+export const getUserRoleColor = (roles?: UserRole[] | UserRole | null) => {
+  const roleList = Array.isArray(roles) ? roles : roles ? [roles] : [];
+  const primary = getPrimaryDisplayRole(roleList);
+
+  switch (primary) {
     case UserRole.OWNER:
       return 'text-red-700';
     case UserRole.SERVER_ADMIN:
@@ -36,6 +70,8 @@ export const getUserRoleColor = (role?: UserRole, isMissionReviewer?: boolean) =
       return 'text-purple-600';
     case UserRole.UVK:
       return 'text-emerald-500';
+    case UserRole.MISSION_REVIEWER:
+      return 'text-amber-200';
     case UserRole.GAME_ADMIN:
       return 'text-red-500';
     case UserRole.MINI_ADMIN:
@@ -82,5 +118,5 @@ export const getUserStatusText = (status?: UserStatus) => {
 };
 
 export const canAdminMission = (user: User) => {
-  return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK, UserRole.GAME_ADMIN].includes(user.role);
+  return hasAnyRole(user.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK, UserRole.GAME_ADMIN]);
 };

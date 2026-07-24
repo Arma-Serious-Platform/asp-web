@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import { session } from '@/entities/session/model';
+import { hasAnyRole } from '@/entities/user/lib';
 import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
 import { ROUTES } from '@/shared/config/routes';
 import { env } from '@/shared/config/env';
@@ -40,7 +41,11 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
   );
   const currentSide = currentUser?.squad?.side?.type;
   const currentSquad = currentUser?.squad;
-  const isHqAdmin = [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(currentUser?.role as UserRole);
+  const isHqAdmin = hasAnyRole(currentUser?.roles, [
+    UserRole.OWNER,
+    UserRole.SERVER_ADMIN,
+    UserRole.UVK,
+  ]);
 
   const selectedPlan = model.getPlanById(activePlanId);
   const selectedCommander =

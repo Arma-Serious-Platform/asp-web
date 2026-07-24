@@ -27,7 +27,7 @@ const AdminSidebarItem: FC<{
   const pathname = usePathname();
 
   return (
-    <Link href={href} className="w-full">
+    <Link href={href} className="w-fit">
       <Button className="w-full" size="sm" align="left" variant={pathname === href ? 'outline' : 'default'}>
         {icon}
         {label}
@@ -38,7 +38,7 @@ const AdminSidebarItem: FC<{
 
 const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
   return (
-    <aside className={classNames('flex flex-col gap-2 bg-card max-w-40 w-full', className)}>
+    <aside className={classNames('flex flex-col gap-2 bg-card w-full overflow-x-auto', className)}>
       <div className="flex w-full gap-0.5">
         {session.canManageUsers && <AdminSidebarItem href={ROUTES.admin.users} label="Гравці" icon={<UserIcon />} />}
 

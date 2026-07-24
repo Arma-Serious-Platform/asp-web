@@ -25,6 +25,7 @@ import { MissionDetailsModel } from './model';
 import { MissionVersionCard } from '@/entities/mission/version/version-card/ui';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
+import { hasAnyRole } from '@/entities/user/lib';
 import { observer } from 'mobx-react-lite';
 import { CommentList } from '@/entities/comment';
 import { MessageComposer, MessageComposerSubmitPayload } from '@/features/chat/message-composer/ui';
@@ -75,7 +76,7 @@ const MissionDetailsPage = observer(() => {
   const canChangeMissionState =
     isMissionAuthor ||
     isMissionCoauthor ||
-    [UserRole.OWNER, UserRole.UVK].includes(session.user?.user?.role as UserRole);
+    hasAnyRole(session.user?.user?.roles, [UserRole.OWNER, UserRole.UVK]);
   const hasMissionActions = canEditMission || canChangeMissionState || canDeleteMission;
 
   useEffect(() => {

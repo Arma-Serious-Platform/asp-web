@@ -26,5 +26,5 @@ export function useAdminRouteGuard(canAccess: boolean) {
     if (!canAccess) {
       router.replace(getFirstAllowedAdminRoute());
     }
-  }, [canAccess, router, session.isAuthorized, session.user?.user?.role]);
+  }, [canAccess, router, session.isAuthorized, session.user?.user?.roles]);
 }

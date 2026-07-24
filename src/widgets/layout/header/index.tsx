@@ -142,7 +142,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
             
             {/* Minimalist Header with User Role */}
             <div className="px-2 py-1 text-[9px] font-semibold text-zinc-500 uppercase tracking-wider">
-              {getUserRoleText(session.user?.user?.role, session.user?.user?.isMissionReviewer)}
+              {getUserRoleText(session.user?.user?.roles)}
             </div>
 
             <div className="h-px bg-white/5 my-0.5" />

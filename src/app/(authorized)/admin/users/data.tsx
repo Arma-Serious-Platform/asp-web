@@ -10,7 +10,6 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   ScrollTextIcon,
-  SearchCodeIcon,
   ShieldIcon,
   TriangleAlertIcon,
 } from 'lucide-react';
@@ -33,12 +32,12 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'role',
+    accessorKey: 'roles',
     header: () => <div>Роль</div>,
     cell: ({ row }) => {
       return (
         <div>
-          <UserRoleText role={row.original.role} isMissionReviewer={row.original.isMissionReviewer} />
+          <UserRoleText roles={row.original.roles} />
         </div>
       );
     },
@@ -95,7 +94,10 @@ export const columns: ColumnDef<User>[] = [
               <View.Condition
                 if={
                   session.canManageRoles &&
-                  !((session.user?.user?.role as UserRole) === UserRole.OWNER && row.original.role === UserRole.OWNER)
+                  !(
+                    session.user?.user?.roles?.includes(UserRole.OWNER) &&
+                    row.original.roles?.includes(UserRole.OWNER)
+                  )
                 }>
                 <Button
                   size="sm"
@@ -106,41 +108,7 @@ export const columns: ColumnDef<User>[] = [
                     usersModel.changeUserRoleModel.visibility.open({ user: row.original });
                   }}>
                   <ShieldIcon className="w-4 h-4" />
-                  Змінити роль
-                </Button>
-              </View.Condition>
-
-              <View.Condition if={session.canManageRoles && row.original.isMissionReviewer}>
-                <Button
-                  size="sm"
-                  className="w-full"
-                  align="left"
-                  variant="secondary"
-                  onClick={() => {
-                    usersModel.changeIsReviewerModel.visibility.open({
-                      user: row.original,
-                      isMissionReviewer: false,
-                    });
-                  }}>
-                  <SearchCodeIcon className="w-4 h-4 text-amber-200" />
-                  Зняти з перевірки місій
-                </Button>
-              </View.Condition>
-
-              <View.Condition if={session.canManageRoles && !row.original.isMissionReviewer}>
-                <Button
-                  size="sm"
-                  className="w-full"
-                  align="left"
-                  variant="secondary"
-                  onClick={() => {
-                    usersModel.changeIsReviewerModel.visibility.open({
-                      user: row.original,
-                      isMissionReviewer: true,
-                    });
-                  }}>
-                  <SearchCodeIcon className="w-4 h-4 text-amber-200" />
-                  Зробити перевіряючим місій
+                  Змінити ролі
                 </Button>
               </View.Condition>
 

@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 
 import { UserModel } from '@/entities/user/model';
+import { hasAnyRole } from '@/entities/user/lib';
 import { ROUTES } from '@/shared/config/routes';
 import { SideType, SquadRole, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import { Preloader } from '@/shared/model/loader';
@@ -21,8 +22,12 @@ export class SessionModel {
 
   isSessionReady = false;
 
+  private get roles() {
+    return this.user?.user?.roles;
+  }
+
   get canManageRoles() {
-    return this.user?.user?.role === UserRole.OWNER;
+    return hasAnyRole(this.roles, [UserRole.OWNER]);
   }
 
   get canManageUsers() {
@@ -30,35 +35,35 @@ export class SessionModel {
   }
 
   get canManageWeekends() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK]);
   }
 
   get canManageIslands() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN]);
   }
 
   get canManageServers() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
   }
 
   get canManageRules() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
   }
 
   get canManageSpecializations() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
   }
 
   get canManageSquadsAndSides() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN]);
   }
 
   get canManageMissions() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK]);
   }
 
   get canReviewMissions() {
-    return Boolean(this.user?.user?.isMissionReviewer) || this.canManageMissions;
+    return hasAnyRole(this.roles, [UserRole.MISSION_REVIEWER]) || this.canManageMissions;
   }
 
   get isHasAdminPanelAccess() {
@@ -74,11 +79,11 @@ export class SessionModel {
   }
 
   get canModerateUsers() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.GAME_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.GAME_ADMIN]);
   }
 
   get canPermanentlyBanUsers() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
   }
 
   get isCommunicationMuted() {
@@ -91,7 +96,7 @@ export class SessionModel {
   }
 
   get canSeeSensitiveUsersData() {
-    return [UserRole.OWNER, UserRole.SERVER_ADMIN].includes(this.user?.user?.role as UserRole);
+    return hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
   }
 
   get hasTechAdminAccess() {

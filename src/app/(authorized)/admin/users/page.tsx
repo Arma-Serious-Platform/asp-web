@@ -13,7 +13,6 @@ import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
 import { BanUnbanUserModal } from '@/features/user/ban-unban-user/ui';
 import { AdminChangeNicknameModal } from '@/features/user/admin-change-nickname/ui';
-import { ChangeIsReviewerModal } from '@/features/user/change-is-reviewer/ui';
 import { ChangeUserRoleModal } from '@/features/user/change-user-role/ui';
 import { IssueUserWarningModal } from '@/features/user/issue-user-warning/ui';
 import { PunishmentHistoryModal } from '@/features/user/punishment-history/ui';
@@ -82,21 +81,12 @@ const AdminPage = observer(() => {
         />
 
         {session.canManageRoles && (
-          <>
-            <ChangeIsReviewerModal
-              model={usersModel.changeIsReviewerModel}
-              onSuccess={(userId, isMissionReviewer) => {
-                usersModel.afterChangeIsReviewer(userId, isMissionReviewer);
-              }}
-            />
-
-            <ChangeUserRoleModal
-              model={usersModel.changeUserRoleModel}
-              onSuccess={(userId, role) => {
-                usersModel.afterChangeRole(userId, role);
-              }}
-            />
-          </>
+          <ChangeUserRoleModal
+            model={usersModel.changeUserRoleModel}
+            onSuccess={(userId, roles) => {
+              usersModel.afterChangeRole(userId, roles);
+            }}
+          />
         )}
 
         <Input

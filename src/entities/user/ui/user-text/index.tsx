@@ -28,7 +28,7 @@ export const UserNicknameText: FC<{
   user:
     | User
     | (Pick<User, 'id' | 'nickname'> &
-        Partial<Pick<User, 'role' | 'squadRole' | 'isMissionReviewer' | 'avatar'>> & {
+        Partial<Pick<User, 'roles' | 'squadRole' | 'avatar'>> & {
           squad?: {
             tag?: string;
             side?: { type?: SideType };
@@ -57,28 +57,27 @@ export const UserNicknameText: FC<{
           })}>
           {TAG}
         </span>
-        <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>{user.nickname}</span>
+        <span className={cn(getUserRoleColor(user.roles))}>{user.nickname}</span>
       </UserProfileLink>
     );
   }
 
   return (
     <UserProfileLink link={link} className={className} user={user}>
-      <span className={cn(getUserRoleColor(user.role, user.isMissionReviewer))}>{user.nickname}</span>
+      <span className={cn(getUserRoleColor(user.roles))}>{user.nickname}</span>
     </UserProfileLink>
   );
 };
 
 export const UserRoleText: FC<{
-  role?: UserRole;
-  isMissionReviewer?: boolean;
+  roles?: UserRole[] | null;
   className?: string;
-}> = ({ role, isMissionReviewer, className }) => {
-  if (!role) return null;
+}> = ({ roles, className }) => {
+  if (!roles?.length) return null;
 
   return (
-    <span className={cn(getUserRoleColor(role, isMissionReviewer), className)}>
-      {getUserRoleText(role, isMissionReviewer)}
+    <span className={cn(getUserRoleColor(roles), className)}>
+      {getUserRoleText(roles)}
     </span>
   );
 };

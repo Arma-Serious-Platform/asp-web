@@ -1,6 +1,5 @@
 import { BanUnbanUserModel } from '@/features/user/ban-unban-user/model';
 import { AdminChangeNicknameModel } from '@/features/user/admin-change-nickname/model';
-import { ChangeIsReviewerModel } from '@/features/user/change-is-reviewer/model';
 import { ChangeUserRoleModel } from '@/features/user/change-user-role/model';
 import { IssueUserWarningModel } from '@/features/user/issue-user-warning/model';
 import { PunishmentHistoryModel } from '@/features/user/punishment-history/model';
@@ -23,8 +22,6 @@ export class UsersModel {
   issueUserWarningModel = new IssueUserWarningModel();
 
   punishmentHistoryModel = new PunishmentHistoryModel();
-
-  changeIsReviewerModel = new ChangeIsReviewerModel();
 
   changeUserRoleModel = new ChangeUserRoleModel();
 
@@ -96,22 +93,10 @@ export class UsersModel {
     this.pagination.setData(foundUser);
   };
 
-  afterChangeIsReviewer = (userId: string, isMissionReviewer: boolean) => {
+  afterChangeRole = (userId: string, roles: UserRole[]) => {
     const foundUser = this.pagination.data.map(u => {
       if (u.id === userId) {
-        u.isMissionReviewer = isMissionReviewer;
-      }
-
-      return u;
-    });
-
-    this.pagination.setData(foundUser);
-  };
-
-  afterChangeRole = (userId: string, role: UserRole) => {
-    const foundUser = this.pagination.data.map(u => {
-      if (u.id === userId) {
-        u.role = role;
+        u.roles = roles;
       }
 
       return u;

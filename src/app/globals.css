@@ -63,6 +63,7 @@ a:active {
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -70,5 +71,5 @@ a:active {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #799a63;
 }
