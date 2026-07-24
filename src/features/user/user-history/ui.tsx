@@ -19,8 +19,11 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
-import { FC, useEffect, useMemo } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { UserHistoryModel } from './model';
+import { Button } from '@/shared/ui/atoms/button';
+
+const HISTORY_PREVIEW_LIMIT = 4;
 
 const historyTypeLabels: Record<UserHistoryEventType, string> = {
   [UserHistoryEventType.SIGN_UP]: 'Реєстрація',
@@ -162,10 +165,18 @@ const UserHistoryItem: FC<{ event: UserHistoryEvent }> = ({ event }) => {
 
 export const UserHistorySection: FC<{ userId?: string }> = observer(({ userId }) => {
   const model = useMemo(() => new UserHistoryModel(), []);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     void model.load(userId);
   }, [model, userId]);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [userId]);
+
+  const visibleEvents = expanded ? model.events : model.events.slice(0, HISTORY_PREVIEW_LIMIT);
+  const canToggle = model.events.length > HISTORY_PREVIEW_LIMIT;
 
   return (
     <section className="flex flex-col gap-3">
@@ -182,25 +193,38 @@ export const UserHistorySection: FC<{ userId?: string }> = observer(({ userId })
       ) : model.events.length === 0 ? (
         <div className="text-sm text-zinc-500">Подій поки немає</div>
       ) : (
-        <div className="rounded-md border border-white/10 bg-white/2 px-3 pb-2">
-          {groupEventsByDate(model.events).map(group => (
-            <div key={group.key}>
-              <div className="flex items-center gap-3 pb-1 pt-4">
-                <time className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                  {group.label}
-                </time>
-                <div className="h-px w-full bg-white/10" />
+        <div className="flex flex-col gap-2">
+          <div className="rounded-md border border-white/10 bg-white/2 px-3 pb-2">
+            {groupEventsByDate(visibleEvents).map(group => (
+              <div key={group.key}>
+                <div className="flex items-center gap-3 pb-1 pt-4">
+                  <time className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    {group.label}
+                  </time>
+                  <div className="h-px w-full bg-white/10" />
+                </div>
+                <div className="relative">
+                  <div className="absolute bottom-3 left-[15px] top-3 w-px bg-white/10" aria-hidden />
+                  {group.events.map(event => (
+                    <div key={event.id} className="relative">
+                      <UserHistoryItem event={event} />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="relative">
-                <div className="absolute bottom-3 left-[15px] top-3 w-px bg-white/10" aria-hidden />
-                {group.events.map(event => (
-                  <div key={event.id} className="relative">
-                    <UserHistoryItem event={event} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {canToggle && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="self-start"
+              onClick={() => setExpanded(value => !value)}>
+              {expanded ? 'Показати менше' : 'Показати більше'}
+            </Button>
+          )}
         </div>
       )}
     </section>
