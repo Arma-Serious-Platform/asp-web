@@ -1,7 +1,13 @@
 import { SideType, SquadRole, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC, PropsWithChildren } from 'react';
-import { getUserRoleColor, getUserRoleText, getUserStatusText } from '../../lib';
+import {
+  getPrimaryDisplayRole,
+  getUserRoleColor,
+  getUserStatusText,
+  sortRolesByPriority,
+  USER_ROLE_LABELS,
+} from '../../lib';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
@@ -42,6 +48,8 @@ export const UserNicknameText: FC<{
 }> = ({ user, tag, sideType, className, link = true }) => {
   if (!user?.nickname) return '';
 
+  const nicknameColor = getUserRoleColor(getPrimaryDisplayRole(user.roles));
+
   if ((tag && sideType) || user?.squad?.tag) {
     const type = sideType || user?.squad?.side?.type;
 
@@ -57,14 +65,14 @@ export const UserNicknameText: FC<{
           })}>
           {TAG}
         </span>
-        <span className={cn(getUserRoleColor(user.roles))}>{user.nickname}</span>
+        <span className={cn(nicknameColor)}>{user.nickname}</span>
       </UserProfileLink>
     );
   }
 
   return (
     <UserProfileLink link={link} className={className} user={user}>
-      <span className={cn(getUserRoleColor(user.roles))}>{user.nickname}</span>
+      <span className={cn(nicknameColor)}>{user.nickname}</span>
     </UserProfileLink>
   );
 };
@@ -75,9 +83,16 @@ export const UserRoleText: FC<{
 }> = ({ roles, className }) => {
   if (!roles?.length) return null;
 
+  const sortedRoles = sortRolesByPriority(roles);
+
   return (
-    <span className={cn(getUserRoleColor(roles), className)}>
-      {getUserRoleText(roles)}
+    <span className={cn(className)}>
+      {sortedRoles.map((role, index) => (
+        <span key={role}>
+          {index > 0 && <span className="text-zinc-500">, </span>}
+          <span className={getUserRoleColor(role)}>{USER_ROLE_LABELS[role]}</span>
+        </span>
+      ))}
     </span>
   );
 };

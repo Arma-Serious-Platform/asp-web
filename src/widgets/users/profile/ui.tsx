@@ -209,7 +209,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                   <div className="grid gap-3 text-sm text-zinc-200 sm:grid-cols-2">
                     <InfoTile
                       icon={<ShieldUserIcon className="size-4" />}
-                      title="Роль"
+                      title="Ролі"
                       description={<UserRoleText roles={model.user?.roles} />}
                     />
                     <InfoTile

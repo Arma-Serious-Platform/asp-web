@@ -28,7 +28,7 @@ export const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: 'roles',
-    header: () => <div>Роль</div>,
+    header: () => <div>Ролі</div>,
     cell: ({ row }) => {
       return (
         <div>

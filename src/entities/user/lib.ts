@@ -50,11 +50,26 @@ export const getPrimaryDisplayRole = (roles?: UserRole[] | null): UserRole => {
   return UserRole.USER;
 };
 
+export const sortRolesByPriority = (roles: UserRole[]): UserRole[] =>
+  [...roles].sort((a, b) => {
+    const rankDiff = ROLE_RANK[b] - ROLE_RANK[a];
+    if (rankDiff !== 0) return rankDiff;
+
+    // Prefer mission reviewer over plain user when ranks are equal
+    if (a === UserRole.MISSION_REVIEWER) return -1;
+    if (b === UserRole.MISSION_REVIEWER) return 1;
+    return 0;
+  });
+
 export const getUserRoleText = (roles?: UserRole[] | UserRole | null) => {
   const roleList = Array.isArray(roles) ? roles : roles ? [roles] : [];
-  const primary = getPrimaryDisplayRole(roleList);
+  if (!roleList.length) {
+    return USER_ROLE_LABELS[UserRole.USER];
+  }
 
-  return USER_ROLE_LABELS[primary] ?? 'Користувач';
+  return sortRolesByPriority(roleList)
+    .map(role => USER_ROLE_LABELS[role] ?? role)
+    .join(', ');
 };
 
 export const getUserRoleColor = (roles?: UserRole[] | UserRole | null) => {
