@@ -20,6 +20,7 @@ import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionType, MissionVersion } from '@/shared/sdk/types';
 import { CreateUpdateMissionVersionModel, VersionFormData, WeaponryFormItem } from './model';
 import { resolveUniformScreenshots } from '@/entities/mission/version/version-card/lib';
+import { getMissionSideRoleLabels } from '@/entities/mission/lib';
 import { MessageEditor } from '@/features/chat/editor';
 import {
   isValidUploadFileSize,
@@ -51,6 +52,37 @@ const createVersionSchema = (missionId: string) =>
       .optional(),
     attackSideName: yup.string().required("Обов'язково"),
     defenseSideName: yup.string().required("Обов'язково"),
+    enableFriendlySide: yup.boolean().default(false),
+    friendlySideType: yup.string().nullable(),
+    friendlyTo: yup.string().nullable(),
+    friendlySideName: yup.string().when('enableFriendlySide', {
+      is: true,
+      then: schema => schema.required("Обов'язково"),
+      otherwise: schema => schema.nullable(),
+    }),
+    friendlySideSlots: yup
+      .number()
+      .nullable()
+      .when('enableFriendlySide', {
+        is: true,
+        then: schema => schema.required("Обов'язково").min(1),
+        otherwise: schema => schema.nullable(),
+      }),
+    friendlyScreenshots: yup.array().of(
+      yup
+        .mixed<File>()
+        .required()
+        .test('file-size', uploadFileSizeLimitMessage, file => file instanceof File && isValidUploadFileSize(file)),
+    ),
+    removeFriendlyScreenshotIds: yup.array().of(yup.string().required()),
+    friendlyWeaponry: yup.array().of(
+      yup.object().shape({
+        name: yup.string().required("Обов'язково"),
+        description: yup.string(),
+        count: yup.number().required("Обов'язково").min(1),
+        type: yup.string().required(),
+      }),
+    ),
     file: yup
       .mixed()
       .nullable()
@@ -162,11 +194,13 @@ const CreateUpdateMissionVersionModal: FC<{
   const fileRef = useRef<HTMLInputElement>(null);
   const attackScreenshotsRef = useRef<HTMLInputElement>(null);
   const defenseScreenshotsRef = useRef<HTMLInputElement>(null);
+  const friendlyScreenshotsRef = useRef<HTMLInputElement>(null);
   const payload = model.visibility?.payload;
   const missionId = payload?.missionId;
   const mission = payload?.mission;
   const editingVersion = payload?.version;
   const resolvedEditingScreenshots = editingVersion ? resolveUniformScreenshots(editingVersion) : null;
+  const sideLabels = getMissionSideRoleLabels(mission?.missionObjective);
 
   const versionForm = useForm<VersionFormData>({
     mode: 'onChange',
@@ -181,13 +215,21 @@ const CreateUpdateMissionVersionModal: FC<{
       minSlotsToPlay: null,
       attackSideName: '',
       defenseSideName: '',
+      enableFriendlySide: false,
+      friendlySideType: MissionGameSide.GREEN,
+      friendlyTo: MissionGameSide.BLUE,
+      friendlySideName: '',
+      friendlySideSlots: null,
       file: null,
       attackScreenshots: [],
       defenseScreenshots: [],
+      friendlyScreenshots: [],
       removeAttackScreenshotIds: [],
       removeDefenseScreenshotIds: [],
+      removeFriendlyScreenshotIds: [],
       attackWeaponry: [],
       defenseWeaponry: [],
+      friendlyWeaponry: [],
       inGameTime: '',
       weather: '',
       changelog: null,
@@ -197,8 +239,10 @@ const CreateUpdateMissionVersionModal: FC<{
   // Watch side types to reset weaponry when they change
   const attackSideType = versionForm.watch('attackSideType');
   const defenseSideType = versionForm.watch('defenseSideType');
+  const friendlySideType = versionForm.watch('friendlySideType');
   const prevAttackSideType = useRef(attackSideType);
   const prevDefenseSideType = useRef(defenseSideType);
+  const prevFriendlySideType = useRef(friendlySideType);
 
   useEffect(() => {
     // Reset weaponry arrays when side types change (but not on initial load)
@@ -208,10 +252,14 @@ const CreateUpdateMissionVersionModal: FC<{
     if (prevDefenseSideType.current !== defenseSideType && prevDefenseSideType.current !== undefined) {
       versionForm.setValue('defenseWeaponry', []);
     }
+    if (prevFriendlySideType.current !== friendlySideType && prevFriendlySideType.current !== undefined) {
+      versionForm.setValue('friendlyWeaponry', []);
+    }
 
     prevAttackSideType.current = attackSideType;
     prevDefenseSideType.current = defenseSideType;
-  }, [attackSideType, defenseSideType]);
+    prevFriendlySideType.current = friendlySideType;
+  }, [attackSideType, defenseSideType, friendlySideType]);
 
   // Autofill version form when dialog opens
   useEffect(() => {
@@ -232,13 +280,23 @@ const CreateUpdateMissionVersionModal: FC<{
         minSlotsToPlay: editingVersion.minSlotsToPlay ?? null,
         attackSideName: editingVersion.attackSideName,
         defenseSideName: editingVersion.defenseSideName,
+        enableFriendlySide: Boolean(editingVersion.friendlySideType),
+        friendlySideType: editingVersion.friendlySideType ?? MissionGameSide.GREEN,
+        friendlyTo: editingVersion.friendlyTo ?? editingVersion.attackSideType,
+        friendlySideName: editingVersion.friendlySideName ?? '',
+        friendlySideSlots: editingVersion.friendlySideSlots ?? null,
         file: null,
         attackScreenshots: [],
         defenseScreenshots: [],
+        friendlyScreenshots: [],
         removeAttackScreenshotIds: [],
         removeDefenseScreenshotIds: [],
+        removeFriendlyScreenshotIds: [],
         attackWeaponry,
         defenseWeaponry,
+        friendlyWeaponry: editingVersion.friendlySideType
+          ? mapWeaponryByType(editingVersion, editingVersion.friendlySideType)
+          : [],
         inGameTime: getTimeInputValue(editingVersion.inGameTime),
         weather: editingVersion.weather ?? '',
         changelog: editingVersion.changelog ?? null,
@@ -247,6 +305,7 @@ const CreateUpdateMissionVersionModal: FC<{
       // Initialize refs to current values to prevent reset on first render
       prevAttackSideType.current = editingVersion.attackSideType;
       prevDefenseSideType.current = editingVersion.defenseSideType;
+      prevFriendlySideType.current = editingVersion.friendlySideType ?? MissionGameSide.GREEN;
     } else if (mission.missionVersions?.length > 0) {
       // Creating new version - autofill from previous
       const previousVersion = getLatestMissionVersion(mission.missionVersions);
@@ -263,15 +322,25 @@ const CreateUpdateMissionVersionModal: FC<{
         attackSideSlots: previousVersion.attackSideSlots,
         defenseSideSlots: previousVersion.defenseSideSlots,
         minSlotsToPlay: previousVersion.minSlotsToPlay ?? null,
-        attackSideName: previousVersion.attackSideName,
+                attackSideName: previousVersion.attackSideName,
         defenseSideName: previousVersion.defenseSideName,
+        enableFriendlySide: Boolean(previousVersion.friendlySideType),
+        friendlySideType: previousVersion.friendlySideType ?? MissionGameSide.GREEN,
+        friendlyTo: previousVersion.friendlyTo ?? previousVersion.attackSideType,
+        friendlySideName: previousVersion.friendlySideName ?? '',
+        friendlySideSlots: previousVersion.friendlySideSlots ?? null,
         file: null,
         attackScreenshots: [],
         defenseScreenshots: [],
+        friendlyScreenshots: [],
         removeAttackScreenshotIds: [],
         removeDefenseScreenshotIds: [],
+        removeFriendlyScreenshotIds: [],
         attackWeaponry,
         defenseWeaponry,
+        friendlyWeaponry: previousVersion.friendlySideType
+          ? mapWeaponryByType(previousVersion, previousVersion.friendlySideType)
+          : [],
         inGameTime: getTimeInputValue(previousVersion.inGameTime),
         weather: previousVersion.weather ?? '',
         changelog: null,
@@ -279,6 +348,7 @@ const CreateUpdateMissionVersionModal: FC<{
 
       prevAttackSideType.current = previousVersion.attackSideType;
       prevDefenseSideType.current = previousVersion.defenseSideType;
+      prevFriendlySideType.current = previousVersion.friendlySideType ?? MissionGameSide.GREEN;
 
       const previousScreenshots = resolveUniformScreenshots(previousVersion);
 
@@ -293,12 +363,18 @@ const CreateUpdateMissionVersionModal: FC<{
             downloadFileFromUrl(screenshot.url, `${newVersion}-defense-uniform-${index + 1}-${screenshot.id}.jpg`),
           ),
         ),
+        Promise.all(
+          previousScreenshots.friendly.map((screenshot, index) =>
+            downloadFileFromUrl(screenshot.url, `${newVersion}-friendly-uniform-${index + 1}-${screenshot.id}.jpg`),
+          ),
+        ),
       ])
-        .then(([attackScreenshots, defenseScreenshots]) => {
+        .then(([attackScreenshots, defenseScreenshots, friendlyScreenshots]) => {
           if (!model.visibility.isOpen || model.visibility.payload?.version) return;
 
           versionForm.setValue('attackScreenshots', attackScreenshots, { shouldValidate: true });
           versionForm.setValue('defenseScreenshots', defenseScreenshots, { shouldValidate: true });
+          versionForm.setValue('friendlyScreenshots', friendlyScreenshots, { shouldValidate: true });
         })
         .catch(error => {
           console.error('Failed to copy previous mission version screenshots:', error);
@@ -315,13 +391,21 @@ const CreateUpdateMissionVersionModal: FC<{
         minSlotsToPlay: null,
         attackSideName: '',
         defenseSideName: '',
+        enableFriendlySide: false,
+        friendlySideType: MissionGameSide.GREEN,
+        friendlyTo: MissionGameSide.BLUE,
+        friendlySideName: '',
+        friendlySideSlots: null,
         file: null,
         attackScreenshots: [],
         defenseScreenshots: [],
+        friendlyScreenshots: [],
         removeAttackScreenshotIds: [],
         removeDefenseScreenshotIds: [],
+        removeFriendlyScreenshotIds: [],
         attackWeaponry: [],
         defenseWeaponry: [],
+        friendlyWeaponry: [],
         inGameTime: '',
         weather: '',
         changelog: null,
@@ -330,6 +414,7 @@ const CreateUpdateMissionVersionModal: FC<{
       // Initialize refs to current values
       prevAttackSideType.current = MissionGameSide.BLUE;
       prevDefenseSideType.current = MissionGameSide.RED;
+      prevFriendlySideType.current = MissionGameSide.GREEN;
     }
   }, [model.visibility.isOpen, mission, editingVersion, missionId]);
 
@@ -351,6 +436,7 @@ const CreateUpdateMissionVersionModal: FC<{
     // Reset refs when closing
     prevAttackSideType.current = undefined as any;
     prevDefenseSideType.current = undefined as any;
+    prevFriendlySideType.current = undefined as any;
   };
 
   if (!missionId || !mission) return null;
@@ -431,13 +517,13 @@ const CreateUpdateMissionVersionModal: FC<{
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Attack Side Column */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-white">Атакуюча сторона</h3>
+              <h3 className="text-lg font-semibold text-white">{sideLabels.attackTitle}</h3>
               <Controller
                 control={versionForm.control}
                 name="attackSideType"
                 render={({ field }) => (
                   <Select
-                    label="Тип атакуючої сторони"
+                    label={sideLabels.attackTypeLabel}
                     options={sideTypeOptions}
                     value={field.value}
                     onChange={field.onChange}
@@ -451,7 +537,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label="Назва атакуючої сторони"
+                    label={sideLabels.attackNameLabel}
                     error={versionForm.formState.errors.attackSideName?.message}
                   />
                 )}
@@ -462,7 +548,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 render={({ field }) => (
                   <NumericInput
                     {...field}
-                    label="Слоти атакуючої сторони"
+                    label={sideLabels.attackSlotsLabel}
                     value={field.value || ''}
                     onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                     error={versionForm.formState.errors.attackSideSlots?.message}
@@ -584,7 +670,7 @@ const CreateUpdateMissionVersionModal: FC<{
               </div>
 
               <div className="flex flex-col gap-2 mt-2">
-                <label className="text-sm font-semibold text-zinc-300">Скріншоти уніформи (атака)</label>
+                <label className="text-sm font-semibold text-zinc-300">{sideLabels.attackScreenshotsLabel}</label>
                 <Button type="button" variant="outline" size="sm" onClick={() => attackScreenshotsRef.current?.click()}>
                   <UploadIcon className="size-4" />
                   Завантажити скріншоти
@@ -671,13 +757,13 @@ const CreateUpdateMissionVersionModal: FC<{
 
             {/* Defense Side Column */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-white">Оборонна сторона</h3>
+              <h3 className="text-lg font-semibold text-white">{sideLabels.defenseTitle}</h3>
               <Controller
                 control={versionForm.control}
                 name="defenseSideType"
                 render={({ field }) => (
                   <Select
-                    label="Тип оборонної сторони"
+                    label={sideLabels.defenseTypeLabel}
                     options={sideTypeOptions}
                     value={field.value}
                     onChange={field.onChange}
@@ -691,7 +777,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label="Назва оборонної сторони"
+                    label={sideLabels.defenseNameLabel}
                     error={versionForm.formState.errors.defenseSideName?.message}
                   />
                 )}
@@ -702,7 +788,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 render={({ field }) => (
                   <NumericInput
                     {...field}
-                    label="Слоти оборонної сторони"
+                    label={sideLabels.defenseSlotsLabel}
                     value={field.value || ''}
                     error={versionForm.formState.errors.defenseSideSlots?.message}
                   />
@@ -823,7 +909,7 @@ const CreateUpdateMissionVersionModal: FC<{
               </div>
 
               <div className="flex flex-col gap-2 mt-2">
-                <label className="text-sm font-semibold text-zinc-300">Скріншоти уніформи (оборона)</label>
+                <label className="text-sm font-semibold text-zinc-300">{sideLabels.defenseScreenshotsLabel}</label>
                 <Button
                   type="button"
                   variant="outline"
@@ -911,6 +997,295 @@ const CreateUpdateMissionVersionModal: FC<{
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-black/20 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">Третя (союзна) сторона</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const enabled = !versionForm.getValues('enableFriendlySide');
+                  versionForm.setValue('enableFriendlySide', enabled);
+                  if (!enabled) {
+                    versionForm.setValue('friendlySideName', '');
+                    versionForm.setValue('friendlySideSlots', null);
+                    versionForm.setValue('friendlyWeaponry', []);
+                    versionForm.setValue('friendlyScreenshots', []);
+                    versionForm.setValue('removeFriendlyScreenshotIds', []);
+                  } else {
+                    versionForm.setValue('friendlyTo', versionForm.getValues('attackSideType'));
+                  }
+                }}>
+                {versionForm.watch('enableFriendlySide') ? 'Прибрати' : 'Додати сторону'}
+              </Button>
+            </div>
+
+            {versionForm.watch('enableFriendlySide') && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Controller
+                    control={versionForm.control}
+                    name="friendlySideType"
+                    render={({ field }) => (
+                      <Select
+                        label="Тип союзної сторони"
+                        options={sideTypeOptions}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={versionForm.control}
+                    name="friendlyTo"
+                    render={({ field }) => (
+                      <Select
+                        label="Союзник до"
+                        options={[
+                          {
+                            value: versionForm.watch('attackSideType'),
+                            label: `${sideLabels.attack} (${versionForm.watch('attackSideType')})`,
+                          },
+                          {
+                            value: versionForm.watch('defenseSideType'),
+                            label: `${sideLabels.defense} (${versionForm.watch('defenseSideType')})`,
+                          },
+                        ]}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={versionForm.control}
+                    name="friendlySideName"
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        label="Назва союзної сторони"
+                        error={versionForm.formState.errors.friendlySideName?.message}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={versionForm.control}
+                    name="friendlySideSlots"
+                    render={({ field }) => (
+                      <NumericInput
+                        {...field}
+                        label="Слоти союзної сторони"
+                        value={field.value || ''}
+                        error={versionForm.formState.errors.friendlySideSlots?.message}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3 mt-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-zinc-300">
+                      Озброєння ({versionForm.watch('friendlySideType')})
+                    </h4>
+                  </div>
+                  {versionForm.watch('friendlyWeaponry').map((weaponry, index) => (
+                    <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1 flex flex-col gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <Controller
+                              control={versionForm.control}
+                              name={`friendlyWeaponry.${index}.name`}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  label="Назва"
+                                  placeholder="Назва озброєння"
+                                  error={versionForm.formState.errors.friendlyWeaponry?.[index]?.name?.message}
+                                />
+                              )}
+                            />
+                            <Controller
+                              control={versionForm.control}
+                              name={`friendlyWeaponry.${index}.description`}
+                              render={({ field }) => (
+                                <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
+                              )}
+                            />
+                          </div>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <Controller
+                              control={versionForm.control}
+                              name={`friendlyWeaponry.${index}.count`}
+                              render={({ field }) => (
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-xs font-semibold text-zinc-400">Кількість</label>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-9 w-9 p-0"
+                                      onClick={() => {
+                                        const current = field.value || 1;
+                                        field.onChange(Math.max(1, current - 1));
+                                      }}>
+                                      <MinusIcon className="size-3" />
+                                    </Button>
+                                    <NumericInput
+                                      {...field}
+                                      value={field.value || ''}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 1)}
+                                      className="w-20"
+                                      min={1}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-9 w-9 p-0"
+                                      onClick={() => {
+                                        const current = field.value || 1;
+                                        field.onChange(current + 1);
+                                      }}>
+                                      <PlusIcon className="size-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 mt-5 ml-auto"
+                              onClick={() => {
+                                const current = versionForm.getValues('friendlyWeaponry');
+                                versionForm.setValue(
+                                  'friendlyWeaponry',
+                                  current.filter((_, i) => i !== index),
+                                );
+                              }}>
+                              <TrashIcon className="size-4 text-red-400" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const current = versionForm.getValues('friendlyWeaponry');
+                      versionForm.setValue('friendlyWeaponry', [
+                        ...current,
+                        {
+                          name: '',
+                          description: '',
+                          count: 1,
+                          type: versionForm.getValues('friendlySideType') || MissionGameSide.GREEN,
+                        },
+                      ]);
+                    }}>
+                    <PlusIcon className="size-3" />
+                    Додати
+                  </Button>
+                </div>
+
+                <div className="flex flex-col gap-2 mt-2">
+                  <label className="text-sm font-semibold text-zinc-300">Скріншоти уніформи (союзник)</label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => friendlyScreenshotsRef.current?.click()}>
+                    <UploadIcon className="size-4" />
+                    Завантажити скріншоти
+                  </Button>
+                  <input
+                    ref={friendlyScreenshotsRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={e => {
+                      const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
+                      notifyOversizedUploadFiles(rejected);
+                      if (!accepted.length) {
+                        e.currentTarget.value = '';
+                        return;
+                      }
+                      const current = versionForm.getValues('friendlyScreenshots');
+                      versionForm.setValue('friendlyScreenshots', [...current, ...accepted], { shouldValidate: true });
+                      e.currentTarget.value = '';
+                    }}
+                    className="invisible"
+                  />
+
+                  {resolvedEditingScreenshots?.friendly
+                    ?.filter(s => !versionForm.watch('removeFriendlyScreenshotIds').includes(s.id))
+                    .map(screenshot => (
+                      <div
+                        key={screenshot.id}
+                        className="flex items-center justify-between rounded border border-white/10 p-2">
+                        <a
+                          href={screenshot.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 min-w-0 text-xs underline">
+                          <img
+                            src={screenshot.url}
+                            alt="Існуючий скріншот уніформи"
+                            className="h-8 w-8 rounded object-cover border border-white/10 shrink-0"
+                          />
+                          <span className="truncate">Існуючий скріншот</span>
+                        </a>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            versionForm.setValue(
+                              'removeFriendlyScreenshotIds',
+                              [...versionForm.getValues('removeFriendlyScreenshotIds'), screenshot.id],
+                              { shouldValidate: true },
+                            )
+                          }>
+                          <TrashIcon className="size-4 text-red-400" />
+                        </Button>
+                      </div>
+                    ))}
+
+                  {versionForm.watch('friendlyScreenshots').map((file, index) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between rounded border border-white/10 p-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <LocalScreenshotPreview file={file} />
+                        <span className="text-xs text-zinc-300 truncate">{file.name}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          const current = versionForm.getValues('friendlyScreenshots');
+                          versionForm.setValue(
+                            'friendlyScreenshots',
+                            current.filter((_, i) => i !== index),
+                            { shouldValidate: true },
+                          );
+                        }}>
+                        <TrashIcon className="size-4 text-red-400" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {mission.missionType === MissionType.mini && (

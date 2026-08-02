@@ -22,6 +22,11 @@ export enum MissionType {
   mini = 'mini',
 }
 
+export enum MissionObjective {
+  ATTACK_DEFEND = 'ATTACK_DEFEND',
+  ENCOUTER_BATTLE = 'ENCOUTER_BATTLE',
+}
+
 export enum State {
   ACTIVE = 'ACTIVE',
   ARCHIVED = 'ARCHIVED',
@@ -600,6 +605,7 @@ export type FindMissionsDto = PaginatedRequest<{
   maxSlots?: number;
   minSlotsToPlay?: number;
   missionType?: MissionType;
+  missionObjective?: MissionObjective;
   orderBy?: 'createdAt';
   orderType?: 'asc' | 'desc';
 }>;
@@ -609,6 +615,7 @@ export type CreateMissionDto = {
   name: string;
   description: MissionCommentMessage;
   missionType: MissionType;
+  missionObjective?: MissionObjective;
   coauthorIds?: string[];
   image?: File;
 };
@@ -645,6 +652,7 @@ export type Mission = {
   name: string;
   description: MissionCommentMessage;
   missionType: MissionType;
+  missionObjective: MissionObjective;
   state: State;
   imageId: string | null;
   image?: {
@@ -666,11 +674,15 @@ export type MissionVersion = {
   missionId: string;
   attackSideType: MissionGameSide;
   defenseSideType: MissionGameSide;
+  friendlySideType?: MissionGameSide | null;
+  friendlyTo?: MissionGameSide | null;
   attackSideSlots: number;
   defenseSideSlots: number;
+  friendlySideSlots?: number | null;
   minSlotsToPlay?: number | null;
   attackSideName: string;
   defenseSideName: string;
+  friendlySideName?: string | null;
   changesDescription: string | null;
   fileId: string;
   file?: {
@@ -681,6 +693,12 @@ export type MissionVersion = {
   weaponry?: MissionWeaponry[];
   attackScreenshots?: MissionVersionScreenshot[];
   defenseScreenshots?: MissionVersionScreenshot[];
+  friendlyScreenshots?: MissionVersionScreenshot[];
+  uniformScreenshots?: Array<{
+    id: string;
+    side: MissionGameSide;
+    file?: { id: string; url: string };
+  }>;
   inGameTime?: string | null;
   weather?: string | null;
   changelog?: MissionCommentMessage | null;
@@ -723,9 +741,14 @@ export type CreateMissionVersionDto = {
   minSlotsToPlay?: number | null;
   attackSideName: string;
   defenseSideName: string;
+  friendlySideType?: MissionGameSide;
+  friendlyTo?: MissionGameSide;
+  friendlySideName?: string;
+  friendlySideSlots?: number;
   file: File;
   attackScreenshots?: File[];
   defenseScreenshots?: File[];
+  friendlyScreenshots?: File[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
   inGameTime?: string | Date | null;
@@ -742,11 +765,18 @@ export type UpdateMissionVersionDto = {
   minSlotsToPlay?: number | null;
   attackSideName?: string;
   defenseSideName?: string;
+  friendlySideType?: MissionGameSide | null;
+  friendlyTo?: MissionGameSide | null;
+  friendlySideName?: string | null;
+  friendlySideSlots?: number | null;
+  clearFriendlySide?: boolean;
   file?: File;
   attackScreenshots?: File[];
   defenseScreenshots?: File[];
+  friendlyScreenshots?: File[];
   removeAttackScreenshotIds?: string[];
   removeDefenseScreenshotIds?: string[];
+  removeFriendlyScreenshotIds?: string[];
   rating?: number;
   weaponry?: CreateMissionWeaponryDto[];
   inGameTime?: string | Date | null;
@@ -896,6 +926,7 @@ export type HeadquartersSlot = {
   name: string | null;
   weaponry: string | null;
   slotCount: number | null;
+  missionGameSide?: MissionGameSide | null;
   comment: string | null;
   spawnPoint: string | null;
   assignedSquads: HeadquartersSquadShort[];

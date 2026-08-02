@@ -659,6 +659,9 @@ class ApiModel {
     appendFormDataValue(formData, 'description', dto.description);
     formData.append('islandId', dto.islandId);
     formData.append('missionType', dto.missionType);
+    if (dto.missionObjective) {
+      formData.append('missionObjective', dto.missionObjective);
+    }
     appendStringArrayToFormData(formData, 'coauthorIds', dto.coauthorIds);
 
     return await this.instance.post<Mission>('/missions', formData, {
@@ -687,6 +690,10 @@ class ApiModel {
 
     if (dto.missionType) {
       formData.append('missionType', dto.missionType);
+    }
+
+    if (dto.missionObjective) {
+      formData.append('missionObjective', dto.missionObjective);
     }
 
     appendStringArrayToFormData(formData, 'coauthorIds', dto.coauthorIds);
@@ -721,6 +728,19 @@ class ApiModel {
     formData.append('attackSideName', dto.attackSideName);
     formData.append('defenseSideName', dto.defenseSideName);
 
+    if (dto.friendlySideType) {
+      formData.append('friendlySideType', dto.friendlySideType);
+    }
+    if (dto.friendlyTo) {
+      formData.append('friendlyTo', dto.friendlyTo);
+    }
+    if (dto.friendlySideName) {
+      formData.append('friendlySideName', dto.friendlySideName);
+    }
+    if (dto.friendlySideSlots !== undefined && dto.friendlySideSlots !== null) {
+      formData.append('friendlySideSlots', dto.friendlySideSlots.toString());
+    }
+
     if (dto.minSlotsToPlay !== undefined && dto.minSlotsToPlay !== null) {
       formData.append('minSlotsToPlay', dto.minSlotsToPlay.toString());
     }
@@ -745,6 +765,12 @@ class ApiModel {
     if (dto.defenseScreenshots?.length) {
       dto.defenseScreenshots.forEach(file => {
         formData.append('defenseScreenshots', file);
+      });
+    }
+
+    if (dto.friendlyScreenshots?.length) {
+      dto.friendlyScreenshots.forEach(file => {
+        formData.append('friendlyScreenshots', file);
       });
     }
 
@@ -793,6 +819,21 @@ class ApiModel {
     if (dto.defenseSideName) {
       formData.append('defenseSideName', dto.defenseSideName);
     }
+    if (dto.clearFriendlySide) {
+      formData.append('clearFriendlySide', 'true');
+    }
+    if (dto.friendlySideType !== undefined && dto.friendlySideType !== null) {
+      formData.append('friendlySideType', dto.friendlySideType);
+    }
+    if (dto.friendlyTo !== undefined && dto.friendlyTo !== null) {
+      formData.append('friendlyTo', dto.friendlyTo);
+    }
+    if (dto.friendlySideName !== undefined && dto.friendlySideName !== null) {
+      formData.append('friendlySideName', dto.friendlySideName);
+    }
+    if (dto.friendlySideSlots !== undefined && dto.friendlySideSlots !== null) {
+      formData.append('friendlySideSlots', dto.friendlySideSlots.toString());
+    }
 
     if (dto.weaponry !== undefined) {
       if (dto.weaponry.length > 0) {
@@ -822,6 +863,12 @@ class ApiModel {
       });
     }
 
+    if (dto.friendlyScreenshots?.length) {
+      dto.friendlyScreenshots.forEach(file => {
+        formData.append('friendlyScreenshots', file);
+      });
+    }
+
     if (dto.removeAttackScreenshotIds?.length) {
       dto.removeAttackScreenshotIds.forEach((id, index) => {
         formData.append(`removeAttackScreenshotIds[${index}]`, id);
@@ -831,6 +878,12 @@ class ApiModel {
     if (dto.removeDefenseScreenshotIds?.length) {
       dto.removeDefenseScreenshotIds.forEach((id, index) => {
         formData.append(`removeDefenseScreenshotIds[${index}]`, id);
+      });
+    }
+
+    if (dto.removeFriendlyScreenshotIds?.length) {
+      dto.removeFriendlyScreenshotIds.forEach((id, index) => {
+        formData.append(`removeFriendlyScreenshotIds[${index}]`, id);
       });
     }
 

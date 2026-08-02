@@ -1,15 +1,23 @@
 'use client';
 
 import { FC } from 'react';
-import { Mission, MissionGameSide, State, MissionType } from '@/shared/sdk/types';
+import { Mission, MissionGameSide, MissionWeaponry, State, MissionType } from '@/shared/sdk/types';
 import { Card } from '@/shared/ui/atoms/card';
 import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
 import Link from 'next/link';
 import Image from 'next/image';
-import { EyeIcon, UsersIcon, LayersIcon, MilestoneIcon } from 'lucide-react';
+import { EyeIcon, UsersIcon, MilestoneIcon } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
-import { missionTypeLabels, statusLabels, statusColors, sideTypeColors } from '@/entities/mission/lib';
+import {
+  missionTypeLabels,
+  missionObjectiveLabels,
+  statusLabels,
+  statusColors,
+  sideTypeColors,
+  getMissionSideRoleLabels,
+  formatWeaponrySummary,
+} from '@/entities/mission/lib';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 import { MessageContent } from '@/entities/comment/lexical-message';
 
@@ -18,19 +26,27 @@ type SideInfoProps = {
   sideName: string;
   sideType: MissionGameSide;
   slots: number;
+  weaponry?: MissionWeaponry[] | null;
 };
 
-const SideInfo: FC<SideInfoProps> = ({ label, sideName, sideType, slots }) => {
+const SideInfo: FC<SideInfoProps> = ({ label, sideName, sideType, slots, weaponry }) => {
+  const weaponrySummary = formatWeaponrySummary(weaponry);
+
   return (
-    <div className="flex items-center justify-between text-xs">
-      <div className="flex items-center gap-2">
-        <span className="text-zinc-500">{label}:</span>
-        <span className={cn('font-semibold', sideTypeColors[sideType])}>{sideName}</span>
+    <div className="flex flex-col gap-1 text-xs">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-500">{label}:</span>
+          <span className={cn('font-semibold', sideTypeColors[sideType])}>{sideName}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <UsersIcon className="size-3 text-zinc-400" />
+          <span className={cn('text-xs font-medium', sideTypeColors[sideType])}>{slots}</span>
+        </div>
       </div>
-      <div className="flex items-center gap-1">
-        <UsersIcon className="size-3 text-zinc-400" />
-        <span className={cn('text-xs font-medium', sideTypeColors[sideType])}>{slots}</span>
-      </div>
+      {weaponrySummary && (
+        <span className={cn('pl-0 text-[11px] leading-snug', sideTypeColors[sideType])}>{weaponrySummary}</span>
+      )}
     </div>
   );
 };
@@ -41,7 +57,24 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
       ? mission.missionVersions[mission.missionVersions.length - 1]
       : null;
 
-  const totalSlots = lastVersion ? lastVersion.attackSideSlots + lastVersion.defenseSideSlots : 0;
+  const sideLabels = getMissionSideRoleLabels(mission.missionObjective);
+  const totalSlots = lastVersion
+    ? lastVersion.attackSideSlots +
+      lastVersion.defenseSideSlots +
+      (lastVersion.friendlySideSlots ?? 0)
+    : 0;
+
+  const attackWeaponry = lastVersion
+    ? (lastVersion.weaponry || []).filter(w => w.type === lastVersion.attackSideType)
+    : [];
+  const defenseWeaponry = lastVersion
+    ? (lastVersion.weaponry || []).filter(w => w.type === lastVersion.defenseSideType)
+    : [];
+  const friendlyWeaponry =
+    lastVersion?.friendlySideType != null
+      ? (lastVersion.weaponry || []).filter(w => w.type === lastVersion.friendlySideType)
+      : [];
+
   return (
     <Card className="group hover:border-lime-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-lime-500/10">
       <div className="flex flex-col gap-4">
@@ -81,6 +114,14 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
               </span>
             </div>
           )}
+
+          <div className="absolute bottom-3 right-3">
+            {mission.missionObjective && (
+              <span className="px-2 py-1 rounded text-xs font-semibold border border-lime-500/40 bg-black/40 text-lime-200">
+                {missionObjectiveLabels[mission.missionObjective]}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Content */}
@@ -129,17 +170,34 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
             {lastVersion && (
               <div className="flex flex-col gap-2 pt-2 border-t border-white/5">
                 <SideInfo
-                  label="Атака"
+                  label={sideLabels.attack}
                   sideName={lastVersion.attackSideName}
                   sideType={lastVersion.attackSideType}
                   slots={lastVersion.attackSideSlots}
+                  weaponry={attackWeaponry}
                 />
                 <SideInfo
-                  label="Оборона"
+                  label={sideLabels.defense}
                   sideName={lastVersion.defenseSideName}
                   sideType={lastVersion.defenseSideType}
                   slots={lastVersion.defenseSideSlots}
+                  weaponry={defenseWeaponry}
                 />
+                {lastVersion.friendlySideName &&
+                  lastVersion.friendlySideType &&
+                  lastVersion.friendlySideSlots != null && (
+                    <SideInfo
+                      label={`Союзник (${
+                        lastVersion.friendlyTo === lastVersion.attackSideType
+                          ? sideLabels.attackShort
+                          : sideLabels.defenseShort
+                      })`}
+                      sideName={lastVersion.friendlySideName}
+                      sideType={lastVersion.friendlySideType}
+                      slots={lastVersion.friendlySideSlots}
+                      weaponry={friendlyWeaponry}
+                    />
+                  )}
                 {mission.missionType === MissionType.mini && lastVersion.minSlotsToPlay != null && (
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500">Мін. слотів для гри:</span>

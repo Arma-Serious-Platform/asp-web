@@ -3,7 +3,7 @@
 import { observer } from 'mobx-react-lite';
 
 import { DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
-import { HeadquartersComment, HeadquartersGamePlan, Side, User } from '@/shared/sdk/types';
+import { Game, HeadquartersComment, HeadquartersGamePlan, Side, User } from '@/shared/sdk/types';
 import { session } from '@/entities/session/model';
 
 import { HqPlansModel } from '../model';
@@ -16,6 +16,7 @@ import { PlanUrlSection } from './plan-url-section';
 type PlanManagementSectionsProps = {
   model: HqPlansModel;
   selectedPlan: HeadquartersGamePlan;
+  selectedGame?: Game;
   selectedCommander?: HeadquartersGamePlan['gameCommander'];
   currentSquad?: User['squad'];
   currentUserId?: string;
@@ -33,6 +34,7 @@ export const PlanManagementSections = observer(
   ({
     model,
     selectedPlan,
+    selectedGame,
     selectedCommander,
     currentSquad,
     currentUserId,
@@ -72,6 +74,7 @@ export const PlanManagementSections = observer(
         <PlanSlotsSection
           model={model}
           selectedPlan={selectedPlan}
+          selectedGame={selectedGame}
           currentSquad={currentSquad}
           canEditCommanderFields={canEditCommanderFields}
           squadOptions={model.getSquadOptions(currentSide)}

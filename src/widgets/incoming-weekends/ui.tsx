@@ -11,6 +11,7 @@ import { IncomingWeekendsModel } from './model';
 import dayjs from 'dayjs';
 import { cn } from '@/shared/utils/cn';
 import { resolveMissionSideColor } from '@/entities/mission/mission-side-colors';
+import { formatWeaponrySummary, getMissionSideRoleLabels } from '@/entities/mission/lib';
 import { MessageContent } from '@/entities/comment/lexical-message';
 
 export const IncomingWeekends: FC<{
@@ -63,6 +64,13 @@ export const IncomingWeekends: FC<{
               {upcomingGames.map(game => {
                 const attackColor = resolveMissionSideColor(game.missionVersion.attackSideType);
                 const defenseColor = resolveMissionSideColor(game.missionVersion.defenseSideType);
+                const sideLabels = getMissionSideRoleLabels(game.mission.missionObjective);
+                const attackWeaponrySummary = formatWeaponrySummary(
+                  game.missionVersion.weaponry?.filter(w => w.type === game.missionVersion.attackSideType),
+                );
+                const defenseWeaponrySummary = formatWeaponrySummary(
+                  game.missionVersion.weaponry?.filter(w => w.type === game.missionVersion.defenseSideType),
+                );
                 const weekendId = game.weekendId ?? model.weekend?.id;
 
                 return (
@@ -115,7 +123,7 @@ export const IncomingWeekends: FC<{
                           )}
                         </div>
 
-                        {/* Sides — same pattern as MissionDetails combatants */}
+                        {/* Sides — slots + weaponry with SideType colors */}
                         <div className="rounded-md border border-white/10 bg-black/35 px-2 py-1.5">
                           <div className="mb-1 flex items-center gap-1.5">
                             <ShieldIcon className="size-3 shrink-0 text-lime-500" />
@@ -123,39 +131,52 @@ export const IncomingWeekends: FC<{
                               Сторони конфлікту
                             </span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                            <div className="flex min-w-0 items-center gap-1">
-                              <div className={cn('size-1.5 shrink-0 rounded-full', attackColor.dot)} />
-                              <span className={cn('truncate text-xs font-semibold', attackColor.text)}>
-                                {game.missionVersion.attackSideName}
-                              </span>
-                              <span className="shrink-0 text-[11px] text-zinc-500">
-                                ({game.missionVersion.attackSideSlots})
-                              </span>
-                              <span
-                                className={cn(
-                                  'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
-                                  attackColor.soft,
-                                )}>
-                                Атака
-                              </span>
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex min-w-0 flex-wrap items-center gap-1">
+                                <div className={cn('size-1.5 shrink-0 rounded-full', attackColor.dot)} />
+                                <span className={cn('truncate text-xs font-semibold', attackColor.text)}>
+                                  {game.missionVersion.attackSideName}
+                                </span>
+                                <span className={cn('shrink-0 text-[11px] font-medium', attackColor.text)}>
+                                  ({game.missionVersion.attackSideSlots})
+                                </span>
+                                <span
+                                  className={cn(
+                                    'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
+                                    attackColor.soft,
+                                  )}>
+                                  {sideLabels.attack}
+                                </span>
+                              </div>
+                              {attackWeaponrySummary && (
+                                <span className={cn('pl-2.5 text-[10px] leading-snug', attackColor.text)}>
+                                  {attackWeaponrySummary}
+                                </span>
+                              )}
                             </div>
-                            <span className="shrink-0 text-[11px] font-bold text-zinc-500">vs</span>
-                            <div className="flex min-w-0 items-center gap-1">
-                              <div className={cn('size-1.5 shrink-0 rounded-full', defenseColor.dot)} />
-                              <span className={cn('truncate text-xs font-semibold', defenseColor.text)}>
-                                {game.missionVersion.defenseSideName}
-                              </span>
-                              <span className="shrink-0 text-[11px] text-zinc-500">
-                                ({game.missionVersion.defenseSideSlots})
-                              </span>
-                              <span
-                                className={cn(
-                                  'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
-                                  defenseColor.soft,
-                                )}>
-                                Оборона
-                              </span>
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex min-w-0 flex-wrap items-center gap-1">
+                                <div className={cn('size-1.5 shrink-0 rounded-full', defenseColor.dot)} />
+                                <span className={cn('truncate text-xs font-semibold', defenseColor.text)}>
+                                  {game.missionVersion.defenseSideName}
+                                </span>
+                                <span className={cn('shrink-0 text-[11px] font-medium', defenseColor.text)}>
+                                  ({game.missionVersion.defenseSideSlots})
+                                </span>
+                                <span
+                                  className={cn(
+                                    'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
+                                    defenseColor.soft,
+                                  )}>
+                                  {sideLabels.defense}
+                                </span>
+                              </div>
+                              {defenseWeaponrySummary && (
+                                <span className={cn('pl-2.5 text-[10px] leading-snug', defenseColor.text)}>
+                                  {defenseWeaponrySummary}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>

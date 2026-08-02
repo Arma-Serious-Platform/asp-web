@@ -263,6 +263,7 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
             <PlanManagementSections
               model={model}
               selectedPlan={selectedPlan}
+              selectedGame={selectedGame}
               selectedCommander={selectedCommander}
               currentSquad={currentSquad}
               currentUserId={currentUser?.id}

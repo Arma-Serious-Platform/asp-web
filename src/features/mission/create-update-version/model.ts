@@ -1,7 +1,17 @@
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
-import { Mission, MissionGameSide, MissionVersion, MissionCommentMessage, State, MissionType, CreateMissionVersionDto, UpdateMissionVersionDto, CreateMissionWeaponryDto } from '@/shared/sdk/types';
+import {
+  Mission,
+  MissionGameSide,
+  MissionVersion,
+  MissionCommentMessage,
+  State,
+  MissionType,
+  CreateMissionVersionDto,
+  UpdateMissionVersionDto,
+  CreateMissionWeaponryDto,
+} from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -22,13 +32,21 @@ export type VersionFormData = {
   minSlotsToPlay: number | null;
   attackSideName: string;
   defenseSideName: string;
+  enableFriendlySide: boolean;
+  friendlySideType: MissionGameSide | null;
+  friendlyTo: MissionGameSide | null;
+  friendlySideName: string;
+  friendlySideSlots: number | null;
   file: File | null;
   attackScreenshots: File[];
   defenseScreenshots: File[];
+  friendlyScreenshots: File[];
   removeAttackScreenshotIds: string[];
   removeDefenseScreenshotIds: string[];
+  removeFriendlyScreenshotIds: string[];
   attackWeaponry: WeaponryFormItem[];
   defenseWeaponry: WeaponryFormItem[];
+  friendlyWeaponry: WeaponryFormItem[];
   inGameTime: string;
   weather: string;
   changelog: MissionCommentMessage | null;
@@ -83,6 +101,14 @@ export class CreateUpdateMissionVersionModel {
           count: w.count,
           type: w.type,
         })),
+        ...(data.enableFriendlySide
+          ? data.friendlyWeaponry.map(w => ({
+              name: w.name,
+              description: w.description || undefined,
+              count: w.count,
+              type: w.type,
+            }))
+          : []),
       ];
       const inGameTime = buildInGameTimeDate(data.inGameTime);
       const weather = data.weather.trim() || null;
@@ -90,8 +116,22 @@ export class CreateUpdateMissionVersionModel {
       const minSlotsToPlay =
         isMiniMission && data.minSlotsToPlay !== null && data.minSlotsToPlay > 0 ? data.minSlotsToPlay : null;
 
+      const friendlyPayload =
+        data.enableFriendlySide &&
+        data.friendlySideType &&
+        data.friendlyTo &&
+        data.friendlySideName &&
+        data.friendlySideSlots != null
+          ? {
+              friendlySideType: data.friendlySideType,
+              friendlyTo: data.friendlyTo,
+              friendlySideName: data.friendlySideName,
+              friendlySideSlots: data.friendlySideSlots,
+            }
+          : null;
+
       if (version) {
-        // Update existing version
+        const hadFriendly = Boolean(version.friendlySideType);
         const updateDto: UpdateMissionVersionDto = {
           version: data.version,
           attackSideType: data.attackSideType,
@@ -104,13 +144,26 @@ export class CreateUpdateMissionVersionModel {
           weaponry: weaponry.length > 0 ? weaponry : [],
           attackScreenshots: data.attackScreenshots.length > 0 ? data.attackScreenshots : undefined,
           defenseScreenshots: data.defenseScreenshots.length > 0 ? data.defenseScreenshots : undefined,
+          friendlyScreenshots:
+            data.enableFriendlySide && data.friendlyScreenshots.length > 0
+              ? data.friendlyScreenshots
+              : undefined,
           removeAttackScreenshotIds:
             data.removeAttackScreenshotIds.length > 0 ? data.removeAttackScreenshotIds : undefined,
           removeDefenseScreenshotIds:
             data.removeDefenseScreenshotIds.length > 0 ? data.removeDefenseScreenshotIds : undefined,
+          removeFriendlyScreenshotIds:
+            data.removeFriendlyScreenshotIds.length > 0
+              ? data.removeFriendlyScreenshotIds
+              : undefined,
           inGameTime,
           weather,
           changelog: data.changelog,
+          ...(friendlyPayload
+            ? friendlyPayload
+            : hadFriendly
+              ? { clearFriendlySide: true }
+              : {}),
         };
 
         if (data.file) {
@@ -120,9 +173,12 @@ export class CreateUpdateMissionVersionModel {
         await api.updateMissionVersion(missionId, version.id, updateDto);
         toast.success('Версію місії оновлено');
       } else {
-        // Create new version
         if (!data.file) {
           throw new Error("Файл є обов'язковим");
+        }
+
+        if (data.enableFriendlySide && !friendlyPayload) {
+          throw new Error("Заповніть усі поля третьої сторони");
         }
 
         await api.createMissionVersion(missionId, {
@@ -135,9 +191,14 @@ export class CreateUpdateMissionVersionModel {
           ...(isMiniMission && minSlotsToPlay !== null && { minSlotsToPlay }),
           attackSideName: data.attackSideName,
           defenseSideName: data.defenseSideName,
+          ...(friendlyPayload ?? {}),
           file: data.file,
           attackScreenshots: data.attackScreenshots.length > 0 ? data.attackScreenshots : undefined,
           defenseScreenshots: data.defenseScreenshots.length > 0 ? data.defenseScreenshots : undefined,
+          friendlyScreenshots:
+            data.enableFriendlySide && data.friendlyScreenshots.length > 0
+              ? data.friendlyScreenshots
+              : undefined,
           weaponry: weaponry.length > 0 ? weaponry : undefined,
           inGameTime,
           weather,
@@ -151,8 +212,8 @@ export class CreateUpdateMissionVersionModel {
       }
 
       this.visibility.close();
-    } catch (error: any) {
-      toast.error(error?.message || 'Не вдалося зберегти версію місії');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не вдалося зберегти версію');
       throw error;
     } finally {
       this.loader.stop();

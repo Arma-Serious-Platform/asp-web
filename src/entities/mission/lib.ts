@@ -1,4 +1,4 @@
-import { MissionStatus, MissionGameSide, MissionType, State } from '@/shared/sdk/types';
+import { MissionStatus, MissionGameSide, MissionType, MissionObjective, State } from '@/shared/sdk/types';
 
 export const statusLabels: Record<MissionStatus, string> = {
   [MissionStatus.APPROVED]: 'Перевірено',
@@ -9,14 +9,11 @@ export const statusLabels: Record<MissionStatus, string> = {
 };
 
 export const statusColors: Record<MissionStatus, string> = {
-  [MissionStatus.APPROVED]:
-    'border border-green-500/50 bg-green-950/90 text-green-100 shadow-sm shadow-black/20',
+  [MissionStatus.APPROVED]: 'border border-green-500/50 bg-green-950/90 text-green-100 shadow-sm shadow-black/20',
   [MissionStatus.PENDING_APPROVAL]:
     'border border-amber-500/50 bg-amber-950/90 text-amber-100 shadow-sm shadow-black/20',
-  [MissionStatus.CHANGES_REQUESTED]:
-    'border border-red-500/50 bg-red-950/90 text-red-100 shadow-sm shadow-black/20',
-  [MissionStatus.IN_REVIEW]:
-    'border border-sky-500/50 bg-sky-950/90 text-sky-100 shadow-sm shadow-black/20',
+  [MissionStatus.CHANGES_REQUESTED]: 'border border-red-500/50 bg-red-950/90 text-red-100 shadow-sm shadow-black/20',
+  [MissionStatus.IN_REVIEW]: 'border border-sky-500/50 bg-sky-950/90 text-sky-100 shadow-sm shadow-black/20',
   [MissionStatus.PENDING_GAME_APPROVAL]:
     'border border-violet-500/50 bg-violet-950/90 text-violet-100 shadow-sm shadow-black/20',
 };
@@ -54,6 +51,100 @@ export const missionTypeOptions = [
   { label: 'Всі типи', value: '' },
   { label: missionTypeLabels[MissionType.SG], value: MissionType.SG },
   { label: missionTypeLabels[MissionType.mini], value: MissionType.mini },
+];
+
+export const missionObjectiveLabels: Record<MissionObjective, string> = {
+  [MissionObjective.ATTACK_DEFEND]: 'Атака / Захист',
+  [MissionObjective.ENCOUTER_BATTLE]: 'Зустрічний бій',
+};
+
+export const getMissionSideRoleLabels = (objective?: MissionObjective | null) => {
+  if (objective === MissionObjective.ENCOUTER_BATTLE) {
+    return {
+      attack: 'Сторона №1',
+      defense: 'Сторона №2',
+      attackShort: '№1',
+      defenseShort: '№2',
+      attackTitle: 'Сторона №1',
+      defenseTitle: 'Сторона №2',
+      attackTypeLabel: 'Тип сторони №1',
+      defenseTypeLabel: 'Тип сторони №2',
+      attackNameLabel: 'Назва сторони №1',
+      defenseNameLabel: 'Назва сторони №2',
+      attackSlotsLabel: 'Слоти сторони №1',
+      defenseSlotsLabel: 'Слоти сторони №2',
+      attackScreenshotsLabel: 'Скріншоти уніформи (сторона №1)',
+      defenseScreenshotsLabel: 'Скріншоти уніформи (сторона №2)',
+    };
+  }
+
+  return {
+    attack: 'Атака',
+    defense: 'Оборона',
+    attackShort: 'атака',
+    defenseShort: 'оборона',
+    attackTitle: 'Атакуюча сторона',
+    defenseTitle: 'Оборонна сторона',
+    attackTypeLabel: 'Тип атакуючої сторони',
+    defenseTypeLabel: 'Тип оборонної сторони',
+    attackNameLabel: 'Назва атакуючої сторони',
+    defenseNameLabel: 'Назва оборонної сторони',
+    attackSlotsLabel: 'Слоти атакуючої сторони',
+    defenseSlotsLabel: 'Слоти оборонної сторони',
+    attackScreenshotsLabel: 'Скріншоти уніформи (атака)',
+    defenseScreenshotsLabel: 'Скріншоти уніформи (оборона)',
+  };
+};
+
+export const formatWeaponrySummary = (
+  weaponry?: { name: string; count: number }[] | null,
+): string => {
+  if (!weaponry?.length) return '';
+
+  return weaponry.map(item => `${item.name} ×${item.count}`).join(', ');
+};
+
+/** Side assignment labels for weekend/game forms: "USMC" or "USMC + UN" when allies exist. */
+export const getMissionVersionSideAssignmentLabels = (
+  version?: {
+    attackSideName: string;
+    defenseSideName: string;
+    attackSideType: MissionGameSide;
+    defenseSideType: MissionGameSide;
+    friendlySideName?: string | null;
+    friendlyTo?: MissionGameSide | null;
+  } | null,
+) => {
+  if (!version) {
+    return {
+      attack: 'Сторона атаки',
+      defense: 'Сторона оборони',
+    };
+  }
+
+  const allyName = version.friendlySideName?.trim();
+  const attack =
+    allyName && version.friendlyTo === version.attackSideType
+      ? `${version.attackSideName} + ${allyName}`
+      : version.attackSideName;
+  const defense =
+    allyName && version.friendlyTo === version.defenseSideType
+      ? `${version.defenseSideName} + ${allyName}`
+      : version.defenseSideName;
+
+  return { attack, defense };
+};
+
+export const missionObjectiveOptions = [
+  { label: 'Всі типи боїв', value: '' },
+  {
+    label: missionObjectiveLabels[MissionObjective.ATTACK_DEFEND],
+    value: MissionObjective.ATTACK_DEFEND,
+  },
+  {
+    label: missionObjectiveLabels[MissionObjective.ENCOUTER_BATTLE],
+    value: MissionObjective.ENCOUTER_BATTLE,
+  },
 ];
 
 export const stateLabels: Record<State, string> = {

@@ -16,8 +16,14 @@ import {
   ChevronUpIcon,
   UserCheckIcon,
 } from 'lucide-react';
-import { MissionVersion, MissionStatus } from '@/shared/sdk/types';
-import { statusLabels, statusColors, statusTextColors, sideTypeColors } from '@/entities/mission/lib';
+import { MissionVersion, MissionStatus, MissionObjective } from '@/shared/sdk/types';
+import {
+  statusLabels,
+  statusColors,
+  statusTextColors,
+  sideTypeColors,
+  getMissionSideRoleLabels,
+} from '@/entities/mission/lib';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
 import { FC, useState } from 'react';
@@ -38,6 +44,7 @@ type MissionVersionCardProps = {
   canEdit: boolean;
   version: MissionVersion;
   missionId: string;
+  missionObjective?: MissionObjective | null;
   fullWidth?: boolean;
   onEdit: (version: MissionVersion) => void;
   canDelete?: boolean;
@@ -50,6 +57,7 @@ type MissionVersionCardProps = {
 export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   version,
   missionId,
+  missionObjective,
   canEdit,
   fullWidth = false,
   onEdit,
@@ -63,14 +71,20 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(defaultSectionsOpen);
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(defaultSectionsOpen);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(defaultSectionsOpen);
+  const [isFriendlyWeaponryOpen, setIsFriendlyWeaponryOpen] = useState(defaultSectionsOpen);
+  const [isFriendlyUniformOpen, setIsFriendlyUniformOpen] = useState(defaultSectionsOpen);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [previewScreenshots, setPreviewScreenshots] = useState<MissionVersion['attackScreenshots']>([]);
   const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
 
+  const sideLabels = getMissionSideRoleLabels(missionObjective);
   const attackWeaponry = (version.weaponry || []).filter(w => w.type === version.attackSideType);
   const defenseWeaponry = (version.weaponry || []).filter(w => w.type === version.defenseSideType);
-  const { attack: resolvedAttackUniformScreenshots, defense: resolvedDefenseUniformScreenshots } =
-    resolveUniformScreenshots(version);
+  const {
+    attack: resolvedAttackUniformScreenshots,
+    defense: resolvedDefenseUniformScreenshots,
+    friendly: resolvedFriendlyUniformScreenshots,
+  } = resolveUniformScreenshots(version);
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
   const canNavigatePreview = (previewScreenshots?.length || 0) > 1;
@@ -202,7 +216,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               fullWidth ? 'flex-1' : 'w-72 shrink-0',
             )}>
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Атака</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{sideLabels.attack}</span>
               <div className="flex items-center justify-between">
                 <span className={cn('text-base font-bold', sideTypeColors[version.attackSideType])}>
                   {version.attackSideName}
@@ -236,7 +250,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               fullWidth ? 'flex-1' : 'w-72 shrink-0',
             )}>
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Оборона</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{sideLabels.defense}</span>
               <div className="flex items-center justify-between">
                 <span className={cn('text-base font-bold', sideTypeColors[version.defenseSideType])}>
                   {version.defenseSideName}
@@ -262,6 +276,47 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
               onPreview={handleOpenPreview}
             />
           </div>
+
+          {version.friendlySideType && version.friendlySideName && version.friendlySideSlots != null && (
+            <div
+              className={cn(
+                'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
+                fullWidth ? 'flex-1' : 'w-72 shrink-0',
+              )}>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  Союзник (
+                  {version.friendlyTo === version.attackSideType
+                    ? sideLabels.attackShort
+                    : sideLabels.defenseShort}
+                  )
+                </span>
+                <div className="flex items-center justify-between">
+                  <span className={cn('text-base font-bold', sideTypeColors[version.friendlySideType])}>
+                    {version.friendlySideName}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <UsersIcon className="size-4 text-zinc-400" />
+                    <span className={cn('text-sm font-semibold', sideTypeColors[version.friendlySideType])}>
+                      {version.friendlySideSlots}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <WeaponrySection
+                weaponry={(version.weaponry || []).filter(w => w.type === version.friendlySideType)}
+                isOpen={isFriendlyWeaponryOpen}
+                setIsOpen={setIsFriendlyWeaponryOpen}
+                sideType={version.friendlySideType}
+              />
+              <UniformSection
+                screenshots={resolvedFriendlyUniformScreenshots}
+                isOpen={isFriendlyUniformOpen}
+                setIsOpen={setIsFriendlyUniformOpen}
+                onPreview={handleOpenPreview}
+              />
+            </div>
+          )}
         </div>
 
         {/* Footer */}

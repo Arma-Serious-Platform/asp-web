@@ -3,27 +3,49 @@
 import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
 
-import { HeadquartersGamePlan, HeadquartersSlot, Squad } from '@/shared/sdk/types';
+import { Game, HeadquartersGamePlan, HeadquartersSlot, MissionGameSide, Squad } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { FormReadonlyField } from '@/shared/ui/atoms/form-readonly-field';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { sideTypeColors } from '@/entities/mission/lib';
 
 import { joinSquadTags, normalizeSlotCount } from '../lib';
 import { HqPlansModel } from '../model';
 import { TableCellTooltip } from './table-cell-tooltip';
+import { cn } from '@/shared/utils/cn';
+import { useMemo } from 'react';
+
+const getInGameSideName = (
+  side: MissionGameSide | null | undefined,
+  version?: Game['missionVersion'] | null,
+): string | null => {
+  if (!side || !version) return null;
+  if (side === version.attackSideType) return version.attackSideName;
+  if (side === version.defenseSideType) return version.defenseSideName;
+  if (side === version.friendlySideType) return version.friendlySideName ?? null;
+  return null;
+};
 
 type PlanSlotsSectionProps = {
   model: HqPlansModel;
   selectedPlan: HeadquartersGamePlan;
+  selectedGame?: Game;
   currentSquad?: Squad | null;
   canEditCommanderFields: boolean;
   squadOptions: { value: string; label: string }[];
 };
 
 export const PlanSlotsSection = observer(
-  ({ model, selectedPlan, currentSquad, canEditCommanderFields, squadOptions }: PlanSlotsSectionProps) => {
+  ({
+    model,
+    selectedPlan,
+    selectedGame,
+    currentSquad,
+    canEditCommanderFields,
+    squadOptions,
+  }: PlanSlotsSectionProps) => {
     const totalSlots = selectedPlan.slots.reduce((sum, slot) => sum + normalizeSlotCount(slot.slotCount), 0);
     const totalOccupied = selectedPlan.slots.reduce((sum, slot) => {
       if (!slot.assignedSquads.length) {
@@ -210,6 +232,67 @@ export const PlanSlotsSection = observer(
       );
     };
 
+    const { primarySlots, secondarySlots, primarySide, secondarySide } = useMemo(() => {
+      const sides = selectedPlan.slots
+        .map(slot => slot.missionGameSide)
+        .filter((side): side is MissionGameSide => Boolean(side));
+      const uniqueSides = [...new Set(sides)];
+      if (uniqueSides.length < 2) {
+        return {
+          primarySlots: selectedPlan.slots,
+          secondarySlots: [] as HeadquartersSlot[],
+          primarySide: uniqueSides[0] ?? null,
+          secondarySide: null as MissionGameSide | null,
+        };
+      }
+
+      const planSideType = selectedPlan.side?.type as unknown as MissionGameSide | undefined;
+      const primarySide =
+        (planSideType && uniqueSides.includes(planSideType) ? planSideType : null) || uniqueSides[0];
+      const secondarySide = uniqueSides.find(side => side !== primarySide) ?? null;
+
+      return {
+        primarySlots: selectedPlan.slots.filter(
+          slot => !slot.missionGameSide || slot.missionGameSide === primarySide,
+        ),
+        secondarySlots: secondarySide
+          ? selectedPlan.slots.filter(slot => slot.missionGameSide === secondarySide)
+          : [],
+        primarySide,
+        secondarySide,
+      };
+    }, [selectedPlan.slots, selectedPlan.side?.type]);
+
+    const missionVersion = selectedGame?.missionVersion;
+    const primaryTitle =
+      getInGameSideName(primarySide, missionVersion) ?? (secondarySlots.length > 0 ? 'Основна сторона' : null);
+    const secondaryTitle = getInGameSideName(secondarySide, missionVersion) ?? 'Союзна сторона';
+
+    const renderSlotsTable = (slots: HeadquartersSlot[], title: string | null, side?: MissionGameSide | null) => (
+      <div className="overflow-x-auto">
+        {title && (
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
+            <span className={cn(side ? sideTypeColors[side] : 'text-zinc-400')}>{title}</span>
+          </div>
+        )}
+        <table className="w-fit border-collapse text-left text-xs">
+          <thead>
+            <tr className="border-b border-white/10 text-zinc-400">
+              <th className="px-2 py-2">Відділення</th>
+              <th className="px-2 py-2 min-w-[380px]">Типологія</th>
+              <th className="px-2 py-2 min-w-[400px]">Техніка, озброєння</th>
+              <th className="px-2 py-2 min-w-[50px]">Слоти</th>
+              <th className="px-2 py-2 min-w-[170px]">Бронювання</th>
+              <th className="px-2 py-2">Бажаючі</th>
+              <th className="px-2 py-2 min-w-[200px]">Спавн</th>
+              <th className="px-2 py-2 min-w-[400px]">Коментар</th>
+            </tr>
+          </thead>
+          <tbody>{slots.map(renderSlotRow)}</tbody>
+        </table>
+      </div>
+    );
+
     return (
       <div className="rounded-lg border border-white/10 bg-black/20 p-3">
         <button
@@ -229,22 +312,9 @@ export const PlanSlotsSection = observer(
           )}
         </button>
         {model.isSlotsOpen && (
-          <div className="overflow-x-auto">
-            <table className="w-fit border-collapse text-left text-xs">
-              <thead>
-                <tr className="border-b border-white/10 text-zinc-400">
-                  <th className="px-2 py-2">Відділення</th>
-                  <th className="px-2 py-2 min-w-[380px]">Типологія</th>
-                  <th className="px-2 py-2 min-w-[400px]">Техніка, озброєння</th>
-                  <th className="px-2 py-2 min-w-[50px]">Слоти</th>
-                  <th className="px-2 py-2 min-w-[170px]">Бронювання</th>
-                  <th className="px-2 py-2">Бажаючі</th>
-                  <th className="px-2 py-2 min-w-[200px]">Спавн</th>
-                  <th className="px-2 py-2 min-w-[400px]">Коментар</th>
-                </tr>
-              </thead>
-              <tbody>{selectedPlan.slots.map(renderSlotRow)}</tbody>
-            </table>
+          <div className="flex flex-col gap-4">
+            {renderSlotsTable(primarySlots, primaryTitle, primarySide)}
+            {secondarySlots.length > 0 && renderSlotsTable(secondarySlots, secondaryTitle, secondarySide)}
           </div>
         )}
       </div>

@@ -422,6 +422,7 @@ const MissionDetailsPage = observer(() => {
                 fullWidth
                 version={mission.missionVersions?.[0]}
                 missionId={missionId}
+                missionObjective={mission.missionObjective}
                 canEdit={canEditMissionVersion}
                 canDelete={canDeleteMissionVersion}
                 canChangeStatus={canChangeMissionVersionStatus}
@@ -475,6 +476,7 @@ const MissionDetailsPage = observer(() => {
                     canChangeStatus={canChangeMissionVersionStatus}
                     version={version}
                     missionId={missionId}
+                    missionObjective={mission.missionObjective}
                     onEdit={handleEditVersion}
                     onDelete={setVersionToDelete}
                     onChangeStatus={params => {

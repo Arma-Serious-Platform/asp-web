@@ -5,7 +5,7 @@ import { MissionCard } from '@/entities/mission/ui/mission-card';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
-import { MissionStatus, MissionType, State } from '@/shared/sdk/types';
+import { MissionStatus, MissionType, MissionObjective, State } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 
 import { observer } from 'mobx-react-lite';
@@ -17,7 +17,7 @@ import { CreateMissionModal } from '@/features/mission/create-mission/ui';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
-import { missionTypeOptions, stateOptions, statusOptions } from '@/entities/mission/lib';
+import { missionObjectiveOptions, missionTypeOptions, stateOptions, statusOptions } from '@/entities/mission/lib';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/model';
@@ -34,6 +34,7 @@ type MissionFiltersState = {
   maxSlots: number | null;
   minSlotsToPlay: number | null;
   missionType: MissionType | null;
+  missionObjective: MissionObjective | null;
   orderType: 'asc' | 'desc';
 };
 
@@ -94,6 +95,17 @@ const MissionFilters = observer(
           onChange={value =>
             setFilters({
               missionType: value ? (value as MissionType) : null,
+            })
+          }
+        />
+
+        <Select
+          label="Тип бою"
+          options={missionObjectiveOptions}
+          value={filters.missionObjective || ''}
+          onChange={value =>
+            setFilters({
+              missionObjective: value ? (value as MissionObjective) : null,
             })
           }
         />
@@ -212,6 +224,7 @@ const MissionsPageContent = observer(() => {
     maxSlots: parseAsInteger,
     minSlotsToPlay: parseAsInteger,
     missionType: parseAsStringEnum(Object.values(MissionType)),
+    missionObjective: parseAsStringEnum(Object.values(MissionObjective)),
     orderType: parseAsStringEnum(['asc', 'desc']).withDefault('desc'),
   });
 
@@ -237,6 +250,7 @@ const MissionsPageContent = observer(() => {
     maxSlots: filters.maxSlots ?? undefined,
     minSlotsToPlay: filters.minSlotsToPlay ?? undefined,
     missionType: filters.missionType || undefined,
+    missionObjective: filters.missionObjective || undefined,
     orderBy: 'createdAt' as const,
     orderType,
     take: 25,
@@ -272,6 +286,7 @@ const MissionsPageContent = observer(() => {
       maxSlots: null,
       minSlotsToPlay: null,
       missionType: null,
+      missionObjective: null,
     });
 
     model.missionModel.pagination.init({

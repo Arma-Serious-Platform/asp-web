@@ -40,6 +40,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import dayjs from 'dayjs';
 import { canAdminMission } from '@/entities/user/lib';
+import { getMissionVersionSideAssignmentLabels } from '@/entities/mission/lib';
 
 const defaultGame: CreateGameDto = {
   date: '',
@@ -100,6 +101,7 @@ type SortableGameItemProps = {
   sideOptions: Array<{ label: string; value: string }>;
   userOptions: Array<{ label: string; value: string }>;
   getVersionOptionsForMission: (missionId: string) => Array<{ label: string; value: string }>;
+  getMissionVersion: (missionId: string, versionId: string) => MissionVersion | undefined;
   getSquadOptionsForSide: (sideId: string) => Array<{ label: string; value: string }>;
   fetchMissionVersions: (missionId: string) => Promise<MissionVersion[]>;
   onRemove: () => void;
@@ -114,12 +116,18 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
   sideOptions,
   userOptions,
   getVersionOptionsForMission,
+  getMissionVersion,
   getSquadOptionsForSide,
   fetchMissionVersions,
   onRemove,
   canRemove,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const missionId = form.watch(`games.${index}.missionId`) as string;
+  const missionVersionId = form.watch(`games.${index}.missionVersionId`) as string;
+  const sideAssignmentLabels = getMissionVersionSideAssignmentLabels(
+    getMissionVersion(missionId ?? '', missionVersionId ?? ''),
+  );
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -213,7 +221,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
             name={`games.${index}.attackSideId`}
             render={({ field: f }) => (
               <Select
-                label="Сторона атаки"
+                label={sideAssignmentLabels.attack}
                 options={sideOptions}
                 value={f.value || null}
                 onChange={v => {
@@ -229,7 +237,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
             name={`games.${index}.defenseSideId`}
             render={({ field: f }) => (
               <Select
-                label="Сторона оборони"
+                label={sideAssignmentLabels.defense}
                 options={sideOptions}
                 value={f.value || null}
                 onChange={v => {
@@ -251,7 +259,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
 
               return (
                 <Select
-                  label="Штабний загін (атака)"
+                  label={`Штабний загін (${sideAssignmentLabels.attack})`}
                   localSearch
                   options={squadOptions}
                   value={f.value || null}
@@ -271,7 +279,7 @@ const SortableGameItem: FC<SortableGameItemProps> = ({
 
               return (
                 <Select
-                  label="Штабний загін (оборона)"
+                  label={`Штабний загін (${sideAssignmentLabels.defense})`}
                   localSearch
                   options={squadOptions}
                   value={f.value || null}
@@ -509,6 +517,9 @@ const ManageWeekendModal: FC<
       .sort((a, b) => dayjs(b.createdAt).valueOf() - dayjs(a.createdAt).valueOf())
       .map(v => ({ label: v.version, value: v.id }));
 
+  const getMissionVersion = (missionId: string, versionId: string) =>
+    (missionVersionsCache[missionId] ?? []).find(version => version.id === versionId);
+
   const getSquadOptionsForSide = (sideId: string) =>
     model.squads.pagination.data
       .filter(squad => squad.sideId === sideId || squad.side?.id === sideId)
@@ -610,6 +621,7 @@ const ManageWeekendModal: FC<
                           sideOptions={sideOptions}
                           userOptions={userOptions}
                           getVersionOptionsForMission={getVersionOptionsForMission}
+                          getMissionVersion={getMissionVersion}
                           getSquadOptionsForSide={getSquadOptionsForSide}
                           fetchMissionVersions={fetchMissionVersions}
                           onRemove={() => remove(index)}

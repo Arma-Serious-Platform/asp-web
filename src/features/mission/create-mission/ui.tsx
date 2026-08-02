@@ -14,10 +14,10 @@ import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from 
 import { CreateMissionModel, MissionFormData } from './model';
 import { Select } from '@/shared/ui/atoms/select';
 import { api } from '@/shared/sdk';
-import { Island, MissionType, User } from '@/shared/sdk/types';
+import { Island, MissionObjective, MissionType, User } from '@/shared/sdk/types';
 import { Section } from '@/shared/ui/organisms/section';
 import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
-import { missionTypeLabels } from '@/entities/mission/lib';
+import { missionObjectiveLabels, missionTypeLabels } from '@/entities/mission/lib';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { session } from '@/entities/session/model';
 import { MessageEditor } from '@/features/chat/editor';
@@ -27,12 +27,18 @@ const missionSchema = yup.object().shape({
   name: yup.string().required("Назва є обов'язковою"),
   description: yup
     .mixed()
-    .test('required-description', "Опис є обов'язковим", value => Boolean(value && getMessageText(value as any).trim())),
+    .test('required-description', "Опис є обов'язковим", value =>
+      Boolean(value && getMessageText(value as any).trim()),
+    ),
   islandId: yup.string().required("Карта є обов'язковою"),
   missionType: yup
     .mixed<MissionType>()
     .oneOf(Object.values(MissionType) as MissionType[])
     .required("Тип місії є обов'язковим"),
+  missionObjective: yup
+    .mixed<MissionObjective>()
+    .oneOf(Object.values(MissionObjective) as MissionObjective[])
+    .required("Тип бою є обов'язковим"),
   coauthorIds: yup.array(yup.string().required()).default([]),
 });
 
@@ -69,6 +75,7 @@ const CreateMissionModal: FC<{
       description: null,
       islandId: '',
       missionType: MissionType.SG,
+      missionObjective: MissionObjective.ATTACK_DEFEND,
       image: null,
       coauthorIds: [],
     },
@@ -106,6 +113,7 @@ const CreateMissionModal: FC<{
         description: null,
         islandId: '',
         missionType: MissionType.SG,
+        missionObjective: MissionObjective.ATTACK_DEFEND,
         image: null,
         coauthorIds: [],
       });
@@ -226,145 +234,176 @@ const CreateMissionModal: FC<{
       </Dialog>
 
       <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
-      <DialogOverlay />
-      <DialogContent className="w-[min(calc(100vw-2rem),64rem)] max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Створити місію</DialogTitle>
-        </DialogHeader>
-        <form className="flex min-h-0 flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
-          <div className="flex max-h-[calc(90vh-9rem)] flex-col gap-4 overflow-y-auto pr-2">
-            <div className="flex flex-col gap-4">
-              <input
-                ref={imageRef}
-                type="file"
-                accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
-                onChange={handleImageChange}
-                className="hidden"
+        <DialogOverlay />
+        <DialogContent className="w-[min(calc(100vw-2rem),64rem)] max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Створити місію</DialogTitle>
+          </DialogHeader>
+          <form className="flex min-h-0 flex-col gap-4" onSubmit={missionForm.handleSubmit(handleSubmit)}>
+            <div className="flex max-h-[calc(90vh-9rem)] flex-col gap-4 overflow-y-auto pr-2">
+              <div className="flex flex-col gap-4">
+                <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                {croppedPreview ? (
+                  <div className="relative aspect-video w-full max-w-full overflow-hidden rounded-lg border border-white/10 bg-black/80">
+                    <img
+                      src={croppedPreview}
+                      alt="Попередній перегляд зображення місії"
+                      className="size-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/80">
+                    <span className="text-zinc-500 text-sm">Рекомендовано 512x256</span>
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant={croppedPreview ? 'outline' : 'default'}
+                  className="w-full"
+                  onClick={() => imageRef.current?.click()}>
+                  <UploadIcon className="size-4" />
+                  {croppedPreview ? 'Обрати інше зображення' : 'Обрати зображення'}
+                </Button>
+              </div>
+
+              <Controller
+                control={missionForm.control}
+                name="name"
+                render={({ field }) => (
+                  <Input {...field} label="Назва місії" autoFocus error={missionForm.formState.errors.name?.message} />
+                )}
               />
-              {croppedPreview ? (
-                <div className="relative aspect-video w-full max-w-full overflow-hidden rounded-lg border border-white/10 bg-black/80">
-                  <img src={croppedPreview} alt="Попередній перегляд зображення місії" className="size-full object-contain" />
-                </div>
-              ) : (
-                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/80">
-                  <span className="text-zinc-500 text-sm">Рекомендовано 512x256</span>
-                </div>
-              )}
-              <Button
-                type="button"
-                variant={croppedPreview ? 'outline' : 'default'}
-                className="w-full"
-                onClick={() => imageRef.current?.click()}>
-                <UploadIcon className="size-4" />
-                {croppedPreview ? 'Обрати інше зображення' : 'Обрати зображення'}
-              </Button>
+
+              <Controller
+                control={missionForm.control}
+                name="islandId"
+                render={({ field }) => (
+                  <Select
+                    label="Карта"
+                    localSearch
+                    resultsClassName="max-h-[150px] overflow-y-auto"
+                    options={islandsOptions}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    isLoading={isLoadingIslands}
+                    error={missionForm.formState.errors.islandId?.message}
+                  />
+                )}
+              />
+
+              <Controller
+                control={missionForm.control}
+                name="missionType"
+                render={({ field }) => (
+                  <Select
+                    label="Тип місії"
+                    options={[
+                      { value: MissionType.SG, label: missionTypeLabels[MissionType.SG] },
+                      { value: MissionType.mini, label: missionTypeLabels[MissionType.mini] },
+                    ]}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    error={missionForm.formState.errors.missionType?.message as string | undefined}
+                  />
+                )}
+              />
+
+              <Controller
+                control={missionForm.control}
+                name="missionObjective"
+                render={({ field }) => (
+                  <Select
+                    label="Тип бою"
+                    options={[
+                      {
+                        value: MissionObjective.ATTACK_DEFEND,
+                        label: missionObjectiveLabels[MissionObjective.ATTACK_DEFEND],
+                      },
+                      {
+                        value: MissionObjective.ENCOUTER_BATTLE,
+                        label: missionObjectiveLabels[MissionObjective.ENCOUTER_BATTLE],
+                      },
+                    ]}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    error={missionForm.formState.errors.missionObjective?.message as string | undefined}
+                  />
+                )}
+              />
+
+              <Controller
+                control={missionForm.control}
+                name="coauthorIds"
+                render={({ field }) => (
+                  <Select
+                    multiple
+                    label="Співавтори"
+                    resultsClassName="max-h-[150px] overflow-y-auto"
+                    localSearch
+                    placeholder="Без співавторів"
+                    options={coauthorOptions}
+                    value={field.value || []}
+                    onChange={field.onChange}
+                    isLoading={isLoadingUsers}
+                  />
+                )}
+              />
+
+              <Controller
+                control={missionForm.control}
+                name="description"
+                render={({ field }) => (
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-zinc-300">Опис місії</label>
+                    <MessageEditor
+                      key={
+                        model.visibility.isOpen
+                          ? 'create-mission-description-open'
+                          : 'create-mission-description-closed'
+                      }
+                      initialState={field.value}
+                      placeholder="Опишіть місію..."
+                      maxCharacters={2000}
+                      showSubmit={false}
+                      textFormattingOnly
+                      onChange={({ lexicalState }) => field.onChange(lexicalState)}
+                    />
+                    {missionForm.formState.errors.description?.message && (
+                      <p className="text-sm text-red-400">{missionForm.formState.errors.description.message}</p>
+                    )}
+                  </div>
+                )}
+              />
+
+              <Section className="text-center p-2 text-sm text-muted">
+                Після створення місії ви зможете додати її першу версію
+              </Section>
             </div>
 
-            <Controller
-              control={missionForm.control}
-              name="name"
-              render={({ field }) => (
-                <Input {...field} label="Назва місії" autoFocus error={missionForm.formState.errors.name?.message} />
-              )}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="islandId"
-              render={({ field }) => (
-                <Select
-                  label="Карта"
-                  localSearch
-                  resultsClassName="max-h-[150px] overflow-y-auto"
-                  options={islandsOptions}
-                  value={field.value || null}
-                  onChange={field.onChange}
-                  isLoading={isLoadingIslands}
-                  error={missionForm.formState.errors.islandId?.message}
-                />
-              )}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="missionType"
-              render={({ field }) => (
-                <Select
-                  label="Тип місії"
-                  options={[
-                    { value: MissionType.SG, label: missionTypeLabels[MissionType.SG] },
-                    { value: MissionType.mini, label: missionTypeLabels[MissionType.mini] },
-                  ]}
-                  value={field.value || null}
-                  onChange={field.onChange}
-                  error={missionForm.formState.errors.missionType?.message as string | undefined}
-                />
-              )}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="coauthorIds"
-              render={({ field }) => (
-                <Select
-                  multiple
-                  label="Співавтори"
-                  resultsClassName="max-h-[150px] overflow-y-auto"
-                  localSearch
-                  placeholder="Без співавторів"
-                  options={coauthorOptions}
-                  value={field.value || []}
-                  onChange={field.onChange}
-                  isLoading={isLoadingUsers}
-                />
-              )}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="description"
-              render={({ field }) => (
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-zinc-300">Опис місії</label>
-                  <MessageEditor
-                    key={model.visibility.isOpen ? 'create-mission-description-open' : 'create-mission-description-closed'}
-                    initialState={field.value}
-                    placeholder="Опишіть місію..."
-                    maxCharacters={2000}
-                    showSubmit={false}
-                    textFormattingOnly
-                    onChange={({ lexicalState }) => field.onChange(lexicalState)}
-                  />
-                  {missionForm.formState.errors.description?.message && (
-                    <p className="text-sm text-red-400">{missionForm.formState.errors.description.message}</p>
-                  )}
-                </div>
-              )}
-            />
-
-            <Section className="text-center p-2 text-sm text-muted">
-              Після створення місії ви зможете додати її першу версію
-            </Section>
-          </div>
-
-          <div className="flex justify-between pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Скасувати
-            </Button>
-            <Button type="submit" disabled={model.loader.isLoading || !missionForm.formState.isValid}>
-              {model.loader.isLoading ? (
-                <>
-                  <LoaderIcon className="size-4 animate-spin" />
-                  Створення...
-                </>
-              ) : (
-                'Створити місію'
-              )}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="flex justify-between pt-4">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Скасувати
+              </Button>
+              <Button type="submit" disabled={model.loader.isLoading || !missionForm.formState.isValid}>
+                {model.loader.isLoading ? (
+                  <>
+                    <LoaderIcon className="size-4 animate-spin" />
+                    Створення...
+                  </>
+                ) : (
+                  'Створити місію'
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 });

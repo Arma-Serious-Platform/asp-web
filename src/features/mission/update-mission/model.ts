@@ -1,7 +1,13 @@
 import { Loader } from '@/shared/model/loader';
 import { Visibility } from '@/shared/model/visibility';
 import { api } from '@/shared/sdk';
-import { Mission, MissionCommentMessage, MissionType, UpdateMissionDto } from '@/shared/sdk/types';
+import {
+  Mission,
+  MissionCommentMessage,
+  MissionObjective,
+  MissionType,
+  UpdateMissionDto,
+} from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -10,6 +16,7 @@ export type MissionFormData = {
   description: MissionCommentMessage | null;
   islandId: string;
   missionType: MissionType;
+  missionObjective: MissionObjective;
   coauthorIds: string[];
   image: File | null;
 };
@@ -59,6 +66,10 @@ export class UpdateMissionModel {
 
       if (data.missionType !== mission.missionType) {
         dto.missionType = data.missionType;
+      }
+
+      if (data.missionObjective !== mission.missionObjective) {
+        dto.missionObjective = data.missionObjective;
       }
 
       if (imageFile) {
