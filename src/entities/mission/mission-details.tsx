@@ -82,30 +82,40 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
   return (
     <div className="flex flex-col gap-5">
       {/* Header Section */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-4">
-          <h2 className="text-3xl font-bold text-white leading-tight">{game.mission.name}</h2>
-          {game.mission.missionObjective && (
-            <span className="shrink-0 rounded border border-lime-500/40 bg-lime-950/40 px-2 py-1 text-xs font-semibold text-lime-200">
-              {MissionModel.missionObjectiveLabels[game.mission.missionObjective]}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-4 flex-wrap">
-          {game.date && (
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
-              <CalendarIcon className="size-4" />
-              <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
-            </div>
-          )}
-          {game.mission.island && (
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
-              <MapIcon className="size-4" />
-              <span>{game.mission.island.name}</span>
-            </div>
-          )}
-        </div>
+      <div className="flex items-start justify-between gap-4">
+        <h2 className="text-3xl font-bold text-white leading-tight">{game.mission.name}</h2>
+        {game.mission.missionObjective && (
+          <span className="shrink-0 rounded border border-lime-500/40 bg-lime-950/40 px-2 py-1 text-xs font-semibold text-lime-200">
+            {MissionModel.missionObjectiveLabels[game.mission.missionObjective]}
+          </span>
+        )}
       </div>
+
+      {(game.date || game.mission.island) && (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          {game.date && (
+            <Card>
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="size-4 text-lime-500" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  {dayjs(game.date).format('DD.MM.YYYY')}
+                </span>
+              </div>
+            </Card>
+          )}
+
+          {game.mission.island && (
+            <Card>
+              <div className="flex items-center gap-2">
+                <MapIcon className="size-4 text-lime-500" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  {game.mission.island.name}
+                </span>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
 
       {hasVersionMeta && (
         <Card>

@@ -31,9 +31,7 @@ export const MissionImagePanel: FC<{
     !isDescriptionEmpty &&
     descriptionText.length > descriptionMaxLength;
   const truncatedDescription =
-    shouldCollapse && !isDescriptionExpanded
-      ? `${descriptionText.slice(0, descriptionMaxLength).trimEnd()}…`
-      : null;
+    shouldCollapse && !isDescriptionExpanded ? `${descriptionText.slice(0, descriptionMaxLength).trimEnd()}…` : null;
 
   return (
     <div className="lg:w-2/5 flex flex-col gap-4">
@@ -57,9 +55,9 @@ export const MissionImagePanel: FC<{
       {/* Action Buttons */}
       <div className="flex gap-3">
         <Button asChild variant="default" className="flex-1">
-          <Link className="hover:text-white" href={ROUTES.missions.id(game.mission.id)}>
-            <EyeIcon className="size-4" />
-            Переглянути
+          <Link className="group" href={ROUTES.missions.id(game.mission.id)}>
+            <EyeIcon className="size-4 text-white group-hover:text-white hover:text-white" />
+            <span className="text-white">Переглянути</span>
           </Link>
         </Button>
         <Button asChild variant="outline" className="flex-1">
