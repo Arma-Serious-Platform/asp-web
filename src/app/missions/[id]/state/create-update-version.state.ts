@@ -25,8 +25,8 @@ export type WeaponryFormItem = {
 export type VersionFormData = {
   version: string;
   missionId: string;
-  attackSideType: MissionGameSide;
-  defenseSideType: MissionGameSide;
+  attackSideType: MissionGameSide | '';
+  defenseSideType: MissionGameSide | '';
   attackSideSlots: number;
   defenseSideSlots: number;
   minSlotsToPlay: number | null;
@@ -134,8 +134,8 @@ export class CreateUpdateMissionVersionState {
         const hadFriendly = Boolean(version.friendlySideType);
         const updateDto: UpdateMissionVersionDto = {
           version: data.version,
-          attackSideType: data.attackSideType,
-          defenseSideType: data.defenseSideType,
+          attackSideType: data.attackSideType as MissionGameSide,
+          defenseSideType: data.defenseSideType as MissionGameSide,
           attackSideSlots: data.attackSideSlots,
           defenseSideSlots: data.defenseSideSlots,
           ...(isMiniMission && { minSlotsToPlay }),

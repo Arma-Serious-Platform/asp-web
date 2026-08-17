@@ -38,6 +38,7 @@ import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { Popover } from '@/shared/ui/moleculas/popover';
+import { MissionModel } from '@/entities/mission/mission.model';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -312,6 +313,24 @@ const MissionDetailsPage = observer(() => {
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-neutral-800 to-neutral-900">
                   <span className="text-sm text-zinc-500">Немає зображення</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute top-3 left-3 flex items-center gap-2">
+                <span className="rounded border border-white/20 bg-black/40 px-2 py-1 text-xs font-semibold text-white">
+                  {MissionModel.missionTypeLabels[mission.missionType]}
+                </span>
+                {mission.state === State.ARCHIVED && (
+                  <span className="rounded border border-zinc-500/50 bg-zinc-900/90 px-2 py-1 text-xs font-semibold text-zinc-300">
+                    Архів
+                  </span>
+                )}
+              </div>
+              {mission.missionObjective && (
+                <div className="absolute bottom-3 right-3">
+                  <span className="rounded border border-lime-500/40 bg-black/40 px-2 py-1 text-xs font-semibold text-lime-200">
+                    {MissionModel.missionObjectiveLabels[mission.missionObjective]}
+                  </span>
                 </div>
               )}
             </div>

@@ -195,16 +195,16 @@ const CreateUpdateMissionVersionModal: FC<{
     defaultValues: {
       version: '',
       missionId: missionId || '',
-      attackSideType: MissionGameSide.BLUE,
-      defenseSideType: MissionGameSide.RED,
+      attackSideType: '',
+      defenseSideType: '',
       attackSideSlots: 0,
       defenseSideSlots: 0,
       minSlotsToPlay: null,
       attackSideName: '',
       defenseSideName: '',
       enableFriendlySide: false,
-      friendlySideType: MissionGameSide.GREEN,
-      friendlyTo: MissionGameSide.BLUE,
+      friendlySideType: null,
+      friendlyTo: null,
       friendlySideName: '',
       friendlySideSlots: null,
       file: null,
@@ -402,16 +402,16 @@ const CreateUpdateMissionVersionModal: FC<{
       versionForm.reset({
         version: 'v1.0',
         missionId: missionId,
-        attackSideType: MissionGameSide.BLUE,
-        defenseSideType: MissionGameSide.RED,
+        attackSideType: '',
+        defenseSideType: '',
         attackSideSlots: 0,
         defenseSideSlots: 0,
         minSlotsToPlay: null,
         attackSideName: '',
         defenseSideName: '',
         enableFriendlySide: false,
-        friendlySideType: MissionGameSide.GREEN,
-        friendlyTo: MissionGameSide.BLUE,
+        friendlySideType: null,
+        friendlyTo: null,
         friendlySideName: '',
         friendlySideSlots: null,
         file: null,
@@ -430,9 +430,9 @@ const CreateUpdateMissionVersionModal: FC<{
       });
 
       // Initialize refs to current values
-      prevAttackSideType.current = MissionGameSide.BLUE;
-      prevDefenseSideType.current = MissionGameSide.RED;
-      prevFriendlySideType.current = MissionGameSide.GREEN;
+      prevAttackSideType.current = '';
+      prevDefenseSideType.current = '';
+      prevFriendlySideType.current = null;
     }
   }, [state.visibility.isOpen, mission, editingVersion, missionId]);
 
@@ -543,7 +543,7 @@ const CreateUpdateMissionVersionModal: FC<{
                   <Select
                     label={sideLabels.attackTypeLabel}
                     options={attackSideTypeSelectOptions}
-                    value={field.value}
+                    value={field.value || null}
                     onChange={field.onChange}
                     error={versionForm.formState.errors.attackSideType?.message}
                   />
@@ -668,15 +668,18 @@ const CreateUpdateMissionVersionModal: FC<{
                   type="button"
                   variant="outline"
                   size="sm"
+                  disabled={!attackSideType}
                   onClick={() => {
                     const current = versionForm.getValues('attackWeaponry');
+                    const sideType = versionForm.getValues('attackSideType');
+                    if (!sideType) return;
                     versionForm.setValue('attackWeaponry', [
                       ...current,
                       {
                         name: '',
                         description: '',
                         count: 1,
-                        type: versionForm.getValues('attackSideType'),
+                        type: sideType,
                       },
                     ]);
                   }}>
@@ -783,7 +786,7 @@ const CreateUpdateMissionVersionModal: FC<{
                   <Select
                     label={sideLabels.defenseTypeLabel}
                     options={defenseSideTypeSelectOptions}
-                    value={field.value}
+                    value={field.value || null}
                     onChange={field.onChange}
                     error={versionForm.formState.errors.defenseSideType?.message}
                   />
@@ -808,6 +811,7 @@ const CreateUpdateMissionVersionModal: FC<{
                     {...field}
                     label={`Слоти ${defenseFactionLabel}`}
                     value={field.value || ''}
+                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                     error={versionForm.formState.errors.defenseSideSlots?.message}
                   />
                 )}
@@ -907,15 +911,18 @@ const CreateUpdateMissionVersionModal: FC<{
                   type="button"
                   variant="outline"
                   size="sm"
+                  disabled={!defenseSideType}
                   onClick={() => {
                     const current = versionForm.getValues('defenseWeaponry');
+                    const sideType = versionForm.getValues('defenseSideType');
+                    if (!sideType) return;
                     versionForm.setValue('defenseWeaponry', [
                       ...current,
                       {
                         name: '',
                         description: '',
                         count: 1,
-                        type: versionForm.getValues('defenseSideType'),
+                        type: sideType,
                       },
                     ]);
                   }}>
@@ -1042,7 +1049,7 @@ const CreateUpdateMissionVersionModal: FC<{
                       sideTypeOptions.find(option => option.value !== attackType && option.value !== defenseType)
                         ?.value ?? MissionGameSide.GREEN;
                     versionForm.setValue('friendlySideType', freeType);
-                    versionForm.setValue('friendlyTo', attackType);
+                    versionForm.setValue('friendlyTo', attackType || defenseType || null);
                   }
                 }}>
                 {enableFriendlySide ? 'Прибрати' : 'Додати фракцію'}
@@ -1072,16 +1079,24 @@ const CreateUpdateMissionVersionModal: FC<{
                       <Select
                         label="Союзник до"
                         options={[
-                          {
-                            value: attackSideType,
-                            label: `${attackFactionLabel} (${attackSideType})`,
-                          },
-                          {
-                            value: defenseSideType,
-                            label: `${defenseFactionLabel} (${defenseSideType})`,
-                          },
+                          ...(attackSideType
+                            ? [
+                                {
+                                  value: attackSideType,
+                                  label: `${attackFactionLabel} (${attackSideType})`,
+                                },
+                              ]
+                            : []),
+                          ...(defenseSideType
+                            ? [
+                                {
+                                  value: defenseSideType,
+                                  label: `${defenseFactionLabel} (${defenseSideType})`,
+                                },
+                              ]
+                            : []),
                         ]}
-                        value={field.value}
+                        value={field.value || null}
                         onChange={field.onChange}
                       />
                     )}
@@ -1106,6 +1121,10 @@ const CreateUpdateMissionVersionModal: FC<{
                         {...field}
                         label={`Слоти ${friendlyFactionLabel}`}
                         value={field.value || ''}
+                        onChange={e => {
+                          const parsed = parseInt(e.target.value, 10);
+                          field.onChange(Number.isFinite(parsed) ? parsed : null);
+                        }}
                         error={versionForm.formState.errors.friendlySideSlots?.message}
                       />
                     )}
