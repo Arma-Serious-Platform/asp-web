@@ -197,131 +197,139 @@ const UpdateMissionModal: FC<
             <DrawerTitle>Редагувати місію</DrawerTitle>
           </DrawerHeader>
           <DrawerBody>
-            <MissionImageField
-              key={
-                state.visibility.isOpen
-                  ? `update-mission-image-${mission.id}-${mission.updatedAt}`
-                  : 'update-mission-image-closed'
-              }
-              previewUrl={croppedPreview || null}
-              existingUrl={mission.image?.url}
-              onCropped={handleCropped}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="name"
-              render={({ field }) => (
-                <Input {...field} label="Назва місії" error={missionForm.formState.errors.name?.message} />
-              )}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="islandId"
-              render={({ field }) => (
-                <Select
-                  label="Карта"
-                  localSearch
-                  resultsClassName="max-h-[150px] overflow-y-auto"
-                  options={islandsOptions}
-                  value={field.value || null}
-                  onChange={field.onChange}
-                  isLoading={isLoadingIslands}
-                  error={missionForm.formState.errors.islandId?.message}
+            <div className="flex flex-wrap gap-4">
+              <div className="min-w-[240px] flex-1 basis-[280px]">
+                <MissionImageField
+                  key={
+                    state.visibility.isOpen
+                      ? `update-mission-image-${mission.id}-${mission.updatedAt}`
+                      : 'update-mission-image-closed'
+                  }
+                  previewUrl={croppedPreview || null}
+                  existingUrl={mission.image?.url}
+                  onCropped={handleCropped}
                 />
-              )}
-            />
+              </div>
 
-            <Controller
-              control={missionForm.control}
-              name="missionType"
-              render={({ field }) => (
-                <Select
-                  label="Тип місії"
-                  options={[
-                    { value: MissionType.SG, label: MissionModel.missionTypeLabels[MissionType.SG] },
-                    { value: MissionType.mini, label: MissionModel.missionTypeLabels[MissionType.mini] },
-                  ]}
-                  value={field.value || null}
-                  onChange={field.onChange}
-                  error={missionForm.formState.errors.missionType?.message as string | undefined}
-                />
-              )}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="missionObjective"
-              render={({ field }) => (
-                <Select
-                  label="Тип бою"
-                  options={[
-                    {
-                      value: MissionObjective.ATTACK_DEFEND,
-                      label: MissionModel.missionObjectiveLabels[MissionObjective.ATTACK_DEFEND],
-                    },
-                    {
-                      value: MissionObjective.ENCOUTER_BATTLE,
-                      label: MissionModel.missionObjectiveLabels[MissionObjective.ENCOUTER_BATTLE],
-                    },
-                  ]}
-                  value={field.value || null}
-                  onChange={field.onChange}
-                  error={missionForm.formState.errors.missionObjective?.message as string | undefined}
-                />
-              )}
-            />
-
-            <Controller
-              control={missionForm.control}
-              name="coauthorIds"
-              render={({ field }) => (
-                <div className="flex flex-col gap-2">
-                  <Select
-                    multiple
-                    label="Співавтори"
-                    localSearch
-                    resultsClassName="max-h-[150px] overflow-y-auto"
-                    placeholder="Без співавторів"
-                    options={coauthorOptions}
-                    value={field.value || []}
-                    onChange={field.onChange}
-                    isLoading={isLoadingUsers}
-                    disabled={!canUpdateCoauthors}
-                  />
-                  {!canUpdateCoauthors && (
-                    <p className="text-xs text-zinc-500">Співавтор не може змінювати список співавторів місії.</p>
+              <div className="flex min-w-[240px] flex-1 basis-[280px] flex-col gap-4">
+                <Controller
+                  control={missionForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <Input {...field} label="Назва місії" error={missionForm.formState.errors.name?.message} />
                   )}
-                </div>
-              )}
-            />
+                />
 
-            <Controller
-              control={missionForm.control}
-              name="description"
-              render={({ field }) => (
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-zinc-300">Опис місії</label>
-                  <MessageEditor
-                    key={
-                      state.visibility.isOpen
-                        ? `update-mission-description-${mission.id}-${mission.updatedAt}`
-                        : 'update-mission-description-closed'
-                    }
-                    initialState={field.value}
-                    placeholder="Опишіть місію..."
-                    maxCharacters={2000}
-                    showSubmit={false}
-                    textFormattingOnly
-                    onChange={({ lexicalState }) => field.onChange(lexicalState)}
-                  />
-                  {missionForm.formState.errors.description?.message && (
-                    <p className="text-sm text-red-400">{missionForm.formState.errors.description.message}</p>
+                <Controller
+                  control={missionForm.control}
+                  name="islandId"
+                  render={({ field }) => (
+                    <Select
+                      label="Карта"
+                      localSearch
+                      resultsClassName="max-h-[150px] overflow-y-auto"
+                      options={islandsOptions}
+                      value={field.value || null}
+                      onChange={field.onChange}
+                      isLoading={isLoadingIslands}
+                      error={missionForm.formState.errors.islandId?.message}
+                    />
                   )}
-                </div>
-              )}
-            />
+                />
+
+                <Controller
+                  control={missionForm.control}
+                  name="missionType"
+                  render={({ field }) => (
+                    <Select
+                      label="Тип місії"
+                      options={[
+                        { value: MissionType.SG, label: MissionModel.missionTypeLabels[MissionType.SG] },
+                        { value: MissionType.mini, label: MissionModel.missionTypeLabels[MissionType.mini] },
+                      ]}
+                      value={field.value || null}
+                      onChange={field.onChange}
+                      error={missionForm.formState.errors.missionType?.message as string | undefined}
+                    />
+                  )}
+                />
+
+                <Controller
+                  control={missionForm.control}
+                  name="missionObjective"
+                  render={({ field }) => (
+                    <Select
+                      label="Тип бою"
+                      options={[
+                        {
+                          value: MissionObjective.ATTACK_DEFEND,
+                          label: MissionModel.missionObjectiveLabels[MissionObjective.ATTACK_DEFEND],
+                        },
+                        {
+                          value: MissionObjective.ENCOUTER_BATTLE,
+                          label: MissionModel.missionObjectiveLabels[MissionObjective.ENCOUTER_BATTLE],
+                        },
+                      ]}
+                      value={field.value || null}
+                      onChange={field.onChange}
+                      error={missionForm.formState.errors.missionObjective?.message as string | undefined}
+                    />
+                  )}
+                />
+
+                <Controller
+                  control={missionForm.control}
+                  name="coauthorIds"
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-2">
+                      <Select
+                        multiple
+                        label="Співавтори"
+                        localSearch
+                        resultsClassName="max-h-[150px] overflow-y-auto"
+                        placeholder="Без співавторів"
+                        options={coauthorOptions}
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        isLoading={isLoadingUsers}
+                        disabled={!canUpdateCoauthors}
+                      />
+                      {!canUpdateCoauthors && (
+                        <p className="text-xs text-zinc-500">Співавтор не може змінювати список співавторів місії.</p>
+                      )}
+                    </div>
+                  )}
+                />
+              </div>
+
+              <div className="flex w-full basis-full flex-col gap-4">
+                <Controller
+                  control={missionForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-semibold text-zinc-300">Опис місії</label>
+                      <MessageEditor
+                        key={
+                          state.visibility.isOpen
+                            ? `update-mission-description-${mission.id}-${mission.updatedAt}`
+                            : 'update-mission-description-closed'
+                        }
+                        initialState={field.value}
+                        placeholder="Опишіть місію..."
+                        maxCharacters={2000}
+                        showSubmit={false}
+                        textFormattingOnly
+                        onChange={({ lexicalState }) => field.onChange(lexicalState)}
+                      />
+                      {missionForm.formState.errors.description?.message && (
+                        <p className="text-sm text-red-400">{missionForm.formState.errors.description.message}</p>
+                      )}
+                    </div>
+                  )}
+                />
+              </div>
+            </div>
           </DrawerBody>
 
           <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">

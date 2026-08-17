@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
-import { MissionStatus, MissionType, MissionObjective, State } from '@/shared/sdk/types';
+import { MissionStatus, MissionType, MissionObjective, State, type MissionOrderBy, type MissionOrderType } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { missionsState } from '../state/missions-page.state';
@@ -22,7 +22,8 @@ export type MissionFiltersState = {
   minSlotsToPlay: number | null;
   missionType: MissionType | null;
   missionObjective: MissionObjective | null;
-  orderType: 'asc' | 'desc';
+  orderBy: MissionOrderBy;
+  orderType: MissionOrderType;
 };
 
 type MissionFiltersProps = {

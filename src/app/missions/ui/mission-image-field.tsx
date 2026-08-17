@@ -74,7 +74,6 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
 
     setIsRecropLoading(true);
     try {
-      // Prefer URL as cropper src (same-origin / CORS-enabled CDN).
       startCropFromSrc(existingUrl, false);
     } catch {
       toast.error('Не вдалося завантажити зображення для обрізання');
@@ -104,7 +103,7 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
   };
 
   return (
-    <div className={cn('flex flex-col gap-3', className)}>
+    <div className={cn('flex flex-col gap-2', className)}>
       <input
         ref={inputRef}
         type="file"
@@ -114,8 +113,8 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
       />
 
       {isCropping && cropSrc ? (
-        <div className="flex flex-col gap-3">
-          <div className="mx-auto w-full max-w-sm overflow-hidden rounded-lg border border-white/10">
+        <div className="flex flex-col gap-2">
+          <div className="w-full overflow-hidden rounded-lg border border-white/10">
             <CropperWithZoom
               ref={cropperRef}
               className="aspect-[2/1] h-auto max-w-full rounded-lg"
@@ -130,11 +129,11 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
               stencilSize={STENCIL}
             />
           </div>
-          <div className="flex justify-between gap-2">
-            <Button type="button" variant="outline" onClick={clearCropSession}>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" className="flex-1" onClick={clearCropSession}>
               Скасувати
             </Button>
-            <Button type="button" onClick={handleApplyCrop}>
+            <Button type="button" className="flex-1" onClick={handleApplyCrop}>
               Застосувати
             </Button>
           </div>
@@ -142,7 +141,7 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
       ) : (
         <>
           {displayUrl ? (
-            <div className="relative mx-auto aspect-[2/1] w-full max-w-sm overflow-hidden rounded-lg border border-white/10 bg-black/80">
+            <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg border border-white/10 bg-black/80">
               {previewUrl ? (
                 // Object URL from crop
                 // eslint-disable-next-line @next/next/no-img-element
@@ -158,12 +157,12 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
               )}
             </div>
           ) : (
-            <div className="relative mx-auto flex aspect-[2/1] w-full max-w-sm items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/80">
+            <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/80">
               <span className="text-sm text-zinc-500">Рекомендовано 512×256</span>
             </div>
           )}
 
-          <div className="mx-auto flex w-full max-w-sm flex-col gap-2 sm:flex-row">
+          <div className="flex w-full flex-col gap-2 sm:flex-row">
             <Button
               type="button"
               variant={displayUrl ? 'outline' : 'default'}

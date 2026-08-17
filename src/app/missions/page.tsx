@@ -9,7 +9,7 @@ import { cn } from '@/shared/utils/cn';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
-import { missionsState } from './state/missions-page.state';
+import { MISSIONS_PAGE_SIZE, missionsState } from './state/missions-page.state';
 
 import { CreateMissionModal } from './ui/create-mission';
 import { MissionFilters, type MissionFiltersState } from './ui/mission-filters';
@@ -19,6 +19,7 @@ import { ROUTES } from '@/shared/config/routes';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
 import { View } from '@/features/view';
 import { session } from '@/entities/session/session.state';
+import { MissionOrderBySchema, MissionOrderTypeSchema } from '@/shared/sdk/types';
 
 const MissionsPageContent = observer(() => {
   const router = useRouter();
@@ -36,14 +37,15 @@ const MissionsPageContent = observer(() => {
     minSlotsToPlay: parseAsInteger,
     missionType: parseAsStringEnum(Object.values(MissionType)),
     missionObjective: parseAsStringEnum(Object.values(MissionObjective)),
-    orderType: parseAsStringEnum(['asc', 'desc']).withDefault('desc'),
+    orderBy: parseAsStringEnum(MissionOrderBySchema.options).withDefault(MissionOrderBySchema.enum.createdAt),
+    orderType: parseAsStringEnum(MissionOrderTypeSchema.options).withDefault(MissionOrderTypeSchema.enum.desc),
   });
 
   /** Draft edits in the sidebar; URL `filters` stay as the last applied / navigated state. */
   const [draftFilters, setDraftFilters] = useState<MissionFiltersState>(filters);
 
   const hasFilterValues = (value: MissionFiltersState) => {
-    const { orderType: _orderType, ...filterValues } = value;
+    const { orderType: _orderType, orderBy: _orderBy, ...filterValues } = value;
     return Object.values(filterValues).some(entry =>
       entry !== undefined && typeof entry === 'number' ? true : Boolean(entry),
     );
@@ -70,6 +72,7 @@ const MissionsPageContent = observer(() => {
         minSlotsToPlay: filters.minSlotsToPlay,
         missionType: filters.missionType,
         missionObjective: filters.missionObjective,
+        orderBy: filters.orderBy,
         orderType: filters.orderType,
       }),
     [filters],
@@ -79,10 +82,7 @@ const MissionsPageContent = observer(() => {
     setDraftFilters(current => ({ ...current, ...patch }));
   };
 
-  const getMissionParams = (
-    source: MissionFiltersState = filters,
-    orderType: 'asc' | 'desc' = source.orderType,
-  ) => ({
+  const getMissionParams = (source: MissionFiltersState = filters) => ({
     authorId: source.authorId || undefined,
     reviewerId: source.reviewerId || undefined,
     status: source.status || undefined,
@@ -94,14 +94,17 @@ const MissionsPageContent = observer(() => {
     minSlotsToPlay: source.minSlotsToPlay ?? undefined,
     missionType: source.missionType || undefined,
     missionObjective: source.missionObjective || undefined,
-    orderBy: 'createdAt' as const,
-    orderType,
-    take: 25,
+    orderBy: source.orderBy,
+    orderType: source.orderType,
+    take: MISSIONS_PAGE_SIZE,
   });
 
-  const handleSortChange = (orderType: 'asc' | 'desc') => {
-    if (orderType === filters.orderType) return;
-    void setFiltersState({ orderType });
+  const handleSortChange = (value: {
+    orderBy: MissionFiltersState['orderBy'];
+    orderType: MissionFiltersState['orderType'];
+  }) => {
+    if (value.orderBy === filters.orderBy && value.orderType === filters.orderType) return;
+    void setFiltersState({ orderBy: value.orderBy, orderType: value.orderType });
   };
 
   const applyFilters = () => {
@@ -192,6 +195,12 @@ const MissionsPageContent = observer(() => {
   const missions = missionsState.missionsPagination.data;
   const hasNoMissions = !isLoading && missions.length === 0;
 
+  useEffect(() => {
+    return () => {
+      missionsState.pageLoader.start();
+    };
+  }, []);
+
   if (!session.isSessionReady || !session.isAuthorized) {
     return null;
   }
@@ -201,18 +210,28 @@ const MissionsPageContent = observer(() => {
       <CreateMissionModal state={missionsState.createMissionState} onSuccess={handleMissionCreated} />
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:py-8">
         {/* Mobile header */}
-        <div className="mb-4 flex flex-col gap-3 lg:hidden">
+        <div className="mb-3 flex flex-col gap-3 lg:hidden">
           <div>
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h1 className="text-2xl font-bold leading-tight tracking-tight text-white">Місії</h1>
-                <MissionSortControls orderType={filters.orderType} onChange={handleSortChange} />
               </div>
+              <MissionSortControls
+                value={{ orderBy: filters.orderBy, orderType: filters.orderType }}
+                onChange={handleSortChange}
+              />
             </div>
             <p className="mt-1 text-sm text-zinc-400">Перегляньте доступні місії або створіть нову</p>
           </div>
+        </div>
 
-          <div className="flex gap-2">
+        {/* Sticky under layout header (h-16). Must stay a sibling of the list, not inside a short wrapper. */}
+        <div
+          className={cn(
+            'sticky top-16 z-20 -mx-3 mb-4 flex flex-col gap-3 border-b border-white/10 bg-card/95 px-3 py-3 backdrop-blur-md sm:-mx-4 sm:px-4 lg:hidden',
+            mobileFiltersOpen && 'h-[calc(100dvh-4rem)]',
+          )}>
+          <div className="flex shrink-0 gap-2">
             <View.Condition if={session.isAuthorized}>
               <Button variant="default" onClick={handleCreateMission} className="min-w-0 flex-1">
                 <PlusIcon className="size-4 shrink-0" />
@@ -233,15 +252,17 @@ const MissionsPageContent = observer(() => {
           </div>
 
           {mobileFiltersOpen && (
-            <aside className="rounded-xl border border-white/10 bg-black/40 p-4 shadow-md">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-400">Фільтри</h2>
-              <MissionFilters
-                filters={draftFilters}
-                setFilters={setDraftFilterPatch}
-                isFilterApplied={canResetFilters}
-                onApply={applyFilters}
-                onReset={resetFilters}
-              />
+            <aside className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl border border-white/10 bg-black/40 p-4 shadow-md">
+              <h2 className="mb-3 shrink-0 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-400">Фільтри</h2>
+              <div className="min-h-0 flex-1">
+                <MissionFilters
+                  filters={draftFilters}
+                  setFilters={setDraftFilterPatch}
+                  isFilterApplied={canResetFilters}
+                  onApply={applyFilters}
+                  onReset={resetFilters}
+                />
+              </div>
             </aside>
           )}
         </div>
@@ -266,7 +287,10 @@ const MissionsPageContent = observer(() => {
             <div className="mb-6 hidden lg:block lg:mb-8">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                 <h1 className="text-3xl font-bold leading-tight tracking-tight text-white">Місії</h1>
-                <MissionSortControls orderType={filters.orderType} onChange={handleSortChange} />
+                <MissionSortControls
+                  value={{ orderBy: filters.orderBy, orderType: filters.orderType }}
+                  onChange={handleSortChange}
+                />
               </div>
               <p className="text-zinc-400">Перегляньте доступні місії або створіть нову</p>
             </div>
@@ -319,12 +343,9 @@ const MissionsPageContent = observer(() => {
             {!hasNoMissions && missionsState.missionsPagination.canLoadMore && (
               <Button
                 variant="outline"
-                className="mx-auto mt-2 w-full sm:mt-0 sm:w-fit"
+                className="mx-auto mt-2 w-full sm:mt-0 sm:w-fit flex"
                 onClick={() => missionsState.missionsPagination.loadMore()}>
-                <span className="text-center text-sm sm:text-base">
-                  Показати більше: {missionsState.missionsPagination.data.length} з{' '}
-                  {missionsState.missionsPagination.total}
-                </span>
+                <span className="text-center text-sm sm:text-base">Показати більше</span>
               </Button>
             )}
           </main>

@@ -34,6 +34,10 @@ class Preloader {
   remove = () => {
     this.stop();
   };
+
+  clear = () => {
+    this.loaders = 0;
+  };
 }
 
 export { Preloader, Preloader as Loader };

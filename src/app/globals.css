@@ -73,3 +73,11 @@ a:active {
 ::-webkit-scrollbar-thumb {
   background: #799a63;
 }
+
+.advanced-cropper-rectangle-stencil__draggable-area {
+  cursor: move;
+}
+
+/* .advanced-cropper-rectangle-stencil__draggable-area:active {
+  cursor: ;
+} */

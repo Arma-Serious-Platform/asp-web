@@ -7,25 +7,16 @@ import { Pagination } from '@/shared/state/pagination';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 import { CreateMissionState } from './create-mission.state';
+import { Loader } from '@/shared/state/loader';
 
-const findUsersWithMissionParams = (params: Partial<FindUsersDto> = {}): FindUsersDto => ({
-  hasMission: true,
-  take: 50,
-  skip: 0,
-  ...params,
-});
-
-const findMissionReviewersParams = (params: Partial<FindUsersDto> = {}): FindUsersDto => ({
-  canReviewMissions: true,
-  take: 50,
-  skip: 0,
-  ...params,
-});
+export const MISSIONS_PAGE_SIZE = 10;
 
 class MissionsPageState {
   constructor() {
     makeAutoObservable(this);
   }
+
+  pageLoader = new Loader(true);
 
   missionsPagination = new Pagination<Mission, FindMissionsDto, MissionModel>({
     api: missionsApi.findMissions,
@@ -62,16 +53,28 @@ class MissionsPageState {
     }
   };
 
+  private findUsersWithMissionParams = (params: Partial<FindUsersDto> = {}): FindUsersDto => ({
+    hasMission: true,
+    ...params,
+  });
+
+  private findMissionReviewersParams = (params: Partial<FindUsersDto> = {}): FindUsersDto => ({
+    canReviewMissions: true,
+    ...params,
+  });
+
   init = async (dto: FindMissionsDto) => {
     try {
       this.getIslands();
       await this.missionsPagination.init(dto);
       await Promise.all([
-        this.authorsPagination.loadAll(findUsersWithMissionParams({ take: 100 })),
-        this.reviewersPagination.loadAll(findMissionReviewersParams({ take: 100 })),
+        this.authorsPagination.loadAll(this.findUsersWithMissionParams()),
+        this.reviewersPagination.loadAll(this.findMissionReviewersParams()),
       ]);
     } catch {
       toast.error('Не вдалося завантажити місії та острови');
+    } finally {
+      this.pageLoader.clear();
     }
   };
 }

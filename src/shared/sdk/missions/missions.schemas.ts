@@ -117,6 +117,12 @@ export const MissionCommentSchema = z
   .passthrough();
 export type MissionComment = z.infer<typeof MissionCommentSchema>;
 
+export const MissionOrderBySchema = z.enum(['createdAt', 'latestVersionUpdatedAt']);
+export type MissionOrderBy = z.infer<typeof MissionOrderBySchema>;
+
+export const MissionOrderTypeSchema = z.enum(['asc', 'desc']);
+export type MissionOrderType = z.infer<typeof MissionOrderTypeSchema>;
+
 export type FindMissionsDto = PaginatedRequest<{
   search?: string;
   status?: MissionStatus;
@@ -129,8 +135,8 @@ export type FindMissionsDto = PaginatedRequest<{
   minSlotsToPlay?: number;
   missionType?: MissionType;
   missionObjective?: MissionObjective;
-  orderBy?: 'createdAt';
-  orderType?: 'asc' | 'desc';
+  orderBy?: MissionOrderBy;
+  orderType?: MissionOrderType;
 }>;
 
 export const FindMissionsDtoSchema = z
@@ -148,8 +154,8 @@ export const FindMissionsDtoSchema = z
     minSlotsToPlay: z.number().optional(),
     missionType: MissionTypeSchema.optional(),
     missionObjective: MissionObjectiveSchema.optional(),
-    orderBy: z.literal('createdAt').optional(),
-    orderType: z.enum(['asc', 'desc']).optional(),
+    orderBy: MissionOrderBySchema.optional(),
+    orderType: MissionOrderTypeSchema.optional(),
   })
   .passthrough();
 
