@@ -36,11 +36,11 @@ export const columns: ColumnDef<WeekendModel>[] = [
     header: () => <div>Опубліковано</div>,
     cell: ({ row }) => <div>{row.original.data.published ? 'Так' : 'Ні'}</div>,
   },
-  {
-    accessorKey: 'publishedAt',
-    header: () => <div>Дата публікації</div>,
-    cell: ({ row }) => <div>{formatDate(row.original.data.publishedAt)}</div>,
-  },
+  // {
+  //   accessorKey: 'publishedAt',
+  //   header: () => <div>Дата публікації</div>,
+  //   cell: ({ row }) => <div>{formatDate(row.original.data.publishedAt)}</div>,
+  // },
   {
     accessorKey: 'actions',
     header: () => <div>Дії</div>,

@@ -17,6 +17,17 @@ type MissionDetailsProps = {
   defenseSideType?: SideType;
 };
 
+export const MissionDetailsHeader: FC<{ game: Game; className?: string }> = ({ game, className }) => (
+  <div className={cn('flex flex-col items-start justify-between gap-4', className)}>
+    <h2 className="text-xl lg:text-3xl font-bold text-white leading-tight">{game.mission.name}</h2>
+    {game.mission.missionObjective && (
+      <span className="shrink-0 rounded border border-lime-500/40 bg-lime-950/40 px-2 py-1 text-xs font-semibold text-lime-200">
+        {MissionModel.missionObjectiveLabels[game.mission.missionObjective]}
+      </span>
+    )}
+  </div>
+);
+
 export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, defenseSideType }) => {
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(true);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(true);
@@ -85,15 +96,8 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Header Section */}
-      <div className="flex items-start justify-between gap-4">
-        <h2 className="text-3xl font-bold text-white leading-tight">{game.mission.name}</h2>
-        {game.mission.missionObjective && (
-          <span className="shrink-0 rounded border border-lime-500/40 bg-lime-950/40 px-2 py-1 text-xs font-semibold text-lime-200">
-            {MissionModel.missionObjectiveLabels[game.mission.missionObjective]}
-          </span>
-        )}
-      </div>
+      {/* Header — desktop only; mobile shows above image via MissionImagePanel */}
+      <MissionDetailsHeader game={game} className="hidden lg:flex" />
 
       {(game.date || game.mission.island) && (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

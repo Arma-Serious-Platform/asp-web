@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
+import { MissionDetailsHeader } from '@/entities/mission/mission-details';
 import { getMessageText, MessageContent } from '@/entities/comment/lexical-message';
 import { session } from '../session/session.state';
 
@@ -40,6 +41,7 @@ export const MissionImagePanel: FC<{
 
   return (
     <div className="lg:w-2/5 flex flex-col gap-4">
+      <MissionDetailsHeader game={game} className="lg:hidden" />
       <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-white/10 group">
         <img
           src={game.mission.image?.url ?? ''}
