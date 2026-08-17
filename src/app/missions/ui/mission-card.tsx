@@ -178,17 +178,22 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
                 {lastVersion.friendlySideName &&
                   lastVersion.friendlySideType &&
                   lastVersion.friendlySideSlots != null && (
-                    <SideInfo
-                      label={`Союзник (${
-                        lastVersion.friendlyTo === lastVersion.attackSideType
-                          ? sideLabels.attackShort
-                          : sideLabels.defenseShort
-                      })`}
-                      sideName={lastVersion.friendlySideName}
-                      sideType={lastVersion.friendlySideType}
-                      slots={lastVersion.friendlySideSlots}
-                      weaponry={friendlyWeaponry}
-                    />
+                    <>
+                      <span className="pt-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                        Союзні фракції
+                      </span>
+                      <SideInfo
+                        label={`на боці ${
+                          lastVersion.friendlyTo === lastVersion.attackSideType
+                            ? lastVersion.attackSideName
+                            : lastVersion.defenseSideName
+                        }`}
+                        sideName={lastVersion.friendlySideName}
+                        sideType={lastVersion.friendlySideType}
+                        slots={lastVersion.friendlySideSlots}
+                        weaponry={friendlyWeaponry}
+                      />
+                    </>
                   )}
                 {mission.missionType === MissionType.mini && lastVersion.minSlotsToPlay != null && (
                   <div className="flex items-center justify-between text-xs">

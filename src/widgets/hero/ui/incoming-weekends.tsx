@@ -127,7 +127,7 @@ export const IncomingWeekends: FC<{
                           <div className="mb-1 flex items-center gap-1.5">
                             <ShieldIcon className="size-3 shrink-0 text-lime-500" />
                             <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-                              Сторони конфлікту
+                              Фракції конфлікту
                             </span>
                           </div>
                           <div className="flex flex-col gap-1.5">

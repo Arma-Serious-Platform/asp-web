@@ -201,113 +201,118 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
           </div>
         )}
 
-        <div className={cn('flex flex-col gap-3 sm:flex-row', fullWidth ? 'w-full' : COMPACT_CARD_WIDTH)}>
-          {/* Attack Side */}
-          <div
-            className={cn(
-              'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
-              fullWidth ? 'flex-1' : 'w-72 shrink-0',
-            )}>
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{sideLabels.attack}</span>
-              <div className="flex items-center justify-between">
-                <span className={cn('text-base font-bold', MissionModel.sideTypeColors[version.attackSideType])}>
-                  {version.attackSideName}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <UsersIcon className="size-4 text-zinc-400" />
-                  <span className={cn('text-sm font-semibold', MissionModel.sideTypeColors[version.attackSideType])}>
-                    {version.attackSideSlots}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <WeaponrySection
-              weaponry={attackWeaponry}
-              isOpen={isAttackWeaponryOpen}
-              setIsOpen={setIsAttackWeaponryOpen}
-              sideType={version.attackSideType}
-            />
-            <UniformSection
-              screenshots={resolvedAttackUniformScreenshots}
-              isOpen={isAttackUniformOpen}
-              setIsOpen={setIsAttackUniformOpen}
-              onPreview={handleOpenPreview}
-            />
-          </div>
-
-          {/* Defense Side */}
-          <div
-            className={cn(
-              'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
-              fullWidth ? 'flex-1' : 'w-72 shrink-0',
-            )}>
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{sideLabels.defense}</span>
-              <div className="flex items-center justify-between">
-                <span className={cn('text-base font-bold', MissionModel.sideTypeColors[version.defenseSideType])}>
-                  {version.defenseSideName}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <UsersIcon className="size-4 text-zinc-400" />
-                  <span className={cn('text-sm font-semibold', MissionModel.sideTypeColors[version.defenseSideType])}>
-                    {version.defenseSideSlots}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <WeaponrySection
-              weaponry={defenseWeaponry}
-              isOpen={isDefenseWeaponryOpen}
-              setIsOpen={setIsDefenseWeaponryOpen}
-              sideType={version.defenseSideType}
-            />
-            <UniformSection
-              screenshots={resolvedDefenseUniformScreenshots}
-              isOpen={isDefenseUniformOpen}
-              setIsOpen={setIsDefenseUniformOpen}
-              onPreview={handleOpenPreview}
-            />
-          </div>
-
-          {version.friendlySideType && version.friendlySideName && version.friendlySideSlots != null && (
+        <div className={cn('flex flex-col gap-3', fullWidth ? 'w-full' : COMPACT_CARD_WIDTH)}>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {/* Attack Side */}
             <div
               className={cn(
                 'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
                 fullWidth ? 'flex-1' : 'w-72 shrink-0',
               )}>
               <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  Союзник (
-                  {version.friendlyTo === version.attackSideType
-                    ? sideLabels.attackShort
-                    : sideLabels.defenseShort}
-                  )
-                </span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{sideLabels.attack}</span>
                 <div className="flex items-center justify-between">
-                  <span className={cn('text-base font-bold', MissionModel.sideTypeColors[version.friendlySideType])}>
-                    {version.friendlySideName}
+                  <span className={cn('text-base font-bold', MissionModel.sideTypeColors[version.attackSideType])}>
+                    {version.attackSideName}
                   </span>
                   <div className="flex items-center gap-1.5">
                     <UsersIcon className="size-4 text-zinc-400" />
-                    <span className={cn('text-sm font-semibold', MissionModel.sideTypeColors[version.friendlySideType])}>
-                      {version.friendlySideSlots}
+                    <span className={cn('text-sm font-semibold', MissionModel.sideTypeColors[version.attackSideType])}>
+                      {version.attackSideSlots}
                     </span>
                   </div>
                 </div>
               </div>
               <WeaponrySection
-                weaponry={(version.weaponry || []).filter(w => w.type === version.friendlySideType)}
-                isOpen={isFriendlyWeaponryOpen}
-                setIsOpen={setIsFriendlyWeaponryOpen}
-                sideType={version.friendlySideType}
+                weaponry={attackWeaponry}
+                isOpen={isAttackWeaponryOpen}
+                setIsOpen={setIsAttackWeaponryOpen}
+                sideType={version.attackSideType}
               />
               <UniformSection
-                screenshots={resolvedFriendlyUniformScreenshots}
-                isOpen={isFriendlyUniformOpen}
-                setIsOpen={setIsFriendlyUniformOpen}
+                screenshots={resolvedAttackUniformScreenshots}
+                isOpen={isAttackUniformOpen}
+                setIsOpen={setIsAttackUniformOpen}
                 onPreview={handleOpenPreview}
               />
+            </div>
+
+            {/* Defense Side */}
+            <div
+              className={cn(
+                'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
+                fullWidth ? 'flex-1' : 'w-72 shrink-0',
+              )}>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{sideLabels.defense}</span>
+                <div className="flex items-center justify-between">
+                  <span className={cn('text-base font-bold', MissionModel.sideTypeColors[version.defenseSideType])}>
+                    {version.defenseSideName}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <UsersIcon className="size-4 text-zinc-400" />
+                    <span className={cn('text-sm font-semibold', MissionModel.sideTypeColors[version.defenseSideType])}>
+                      {version.defenseSideSlots}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <WeaponrySection
+                weaponry={defenseWeaponry}
+                isOpen={isDefenseWeaponryOpen}
+                setIsOpen={setIsDefenseWeaponryOpen}
+                sideType={version.defenseSideType}
+              />
+              <UniformSection
+                screenshots={resolvedDefenseUniformScreenshots}
+                isOpen={isDefenseUniformOpen}
+                setIsOpen={setIsDefenseUniformOpen}
+                onPreview={handleOpenPreview}
+              />
+            </div>
+          </div>
+
+          {version.friendlySideType && version.friendlySideName && version.friendlySideSlots != null && (
+            <div className="flex flex-col gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Союзні фракції</span>
+              <div
+                className={cn(
+                  'flex min-w-0 flex-col gap-3 rounded-lg border border-white/5 bg-black/40 p-4 transition-colors hover:border-white/10',
+                  fullWidth ? 'w-full' : 'w-72',
+                )}>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className={cn('text-base font-bold', MissionModel.sideTypeColors[version.friendlySideType])}>
+                      {version.friendlySideName}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <UsersIcon className="size-4 text-zinc-400" />
+                      <span
+                        className={cn('text-sm font-semibold', MissionModel.sideTypeColors[version.friendlySideType])}>
+                        {version.friendlySideSlots}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-zinc-500">
+                    на боці{' '}
+                    {version.friendlyTo === version.attackSideType
+                      ? version.attackSideName
+                      : version.defenseSideName}
+                  </span>
+                </div>
+                <WeaponrySection
+                  weaponry={(version.weaponry || []).filter(w => w.type === version.friendlySideType)}
+                  isOpen={isFriendlyWeaponryOpen}
+                  setIsOpen={setIsFriendlyWeaponryOpen}
+                  sideType={version.friendlySideType}
+                />
+                <UniformSection
+                  screenshots={resolvedFriendlyUniformScreenshots}
+                  isOpen={isFriendlyUniformOpen}
+                  setIsOpen={setIsFriendlyUniformOpen}
+                  onPreview={handleOpenPreview}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -322,19 +327,15 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
       {/* Fixed Bottom Actions */}
       <div className="absolute bottom-0 left-0 right-0 p-5 pt-0 flex gap-2 bg-linear-to-t from-black/95 via-black/90 to-transparent">
         {version.file?.url && (
-          <Button variant="outline" className="flex-1" onClick={() => window.open(version.file?.url, '_blank')}>
+          <Button variant="outline" className="w-fit" onClick={() => window.open(version.file?.url, '_blank')}>
             <DownloadIcon className="size-4" />
             Завантажити
           </Button>
         )}
         <View.Condition if={canEdit}>
-          <Button
-            variant="outline"
-            size={version.file?.url ? 'default' : 'default'}
-            className={version.file?.url ? '' : 'w-full'}
-            onClick={() => onEdit(version)}>
+          <Button variant="outline" className="w-fit" onClick={() => onEdit(version)}>
             <EditIcon className="size-4" />
-            {version.file?.url ? '' : 'Редагувати'}
+            Редагувати
           </Button>
         </View.Condition>
         {/* <View.Condition if={Boolean(canDelete)}>

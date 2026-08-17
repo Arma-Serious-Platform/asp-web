@@ -170,7 +170,7 @@ export class CreateUpdateMissionVersionState {
         }
 
         if (data.enableFriendlySide && !friendlyPayload) {
-          throw new Error('Заповніть усі поля третьої сторони');
+          throw new Error('Заповніть усі поля третьої фракції');
         }
 
         await missionsApi.createMissionVersion(missionId, {

@@ -33,9 +33,12 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
   const resolvedDefenseSideType = defenseSideType ?? game.missionVersion.defenseSideType;
   const attackColor = MissionModel.resolveMissionSideColor(resolvedAttackSideType);
   const defenseColor = MissionModel.resolveMissionSideColor(resolvedDefenseSideType);
-  const friendlyColor = game.missionVersion.friendlySideType
-    ? MissionModel.resolveMissionSideColor(game.missionVersion.friendlySideType)
-    : null;
+  const friendlyColor =
+    game.missionVersion.friendlySideType != null
+      ? game.missionVersion.friendlyTo === game.missionVersion.attackSideType
+        ? attackColor
+        : defenseColor
+      : null;
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
   const hasVersionMeta = Boolean(game.missionVersion.inGameTime || game.missionVersion.weather);
@@ -144,9 +147,9 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <ShieldIcon className="size-4 text-lime-500" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Сторони конфлікту</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Фракції конфлікту</span>
         </div>
-        <div className={cn('grid grid-cols-1 gap-4', hasFriendlySide ? 'md:grid-cols-3' : 'md:grid-cols-2')}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-2.5 rounded-lg border border-white/5 bg-black/30 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <div className={classNames('w-2 h-2 rounded-full', attackColor.dot)} />
@@ -192,8 +195,11 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
               </div>
             ))}
           </div>
+        </div>
 
-          {hasFriendlySide && friendlyColor && (
+        {hasFriendlySide && friendlyColor && (
+          <div className="mt-4 flex flex-col gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Союзні фракції</span>
             <div className="flex flex-col gap-2.5 rounded-lg border border-white/5 bg-black/30 p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <div className={classNames('w-2 h-2 rounded-full', friendlyColor.dot)} />
@@ -204,14 +210,13 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
                   <UsersIcon className="size-3.5" />
                   {game.missionVersion.friendlySideSlots}
                 </span>
-                <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-200">
-                  Союзник (
-                  {game.missionVersion.friendlyTo === game.missionVersion.attackSideType
-                    ? sideLabels.attackShort
-                    : sideLabels.defenseShort}
-                  )
-                </span>
               </div>
+              <span className="text-xs text-zinc-500">
+                на боці{' '}
+                {game.missionVersion.friendlyTo === game.missionVersion.attackSideType
+                  ? game.missionVersion.attackSideName
+                  : game.missionVersion.defenseSideName}
+              </span>
               {friendlyWeaponry.map((unit, idx) => (
                 <div key={idx} className="text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
                   <span className={cn(friendlyColor.accent)}>{unit.name}</span>{' '}
@@ -220,8 +225,8 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </Card>
 
       <Card>

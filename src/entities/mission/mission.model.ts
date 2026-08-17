@@ -244,20 +244,20 @@ class MissionModel extends createEntity(MissionSchema) {
   static getMissionSideRoleLabels = (objective?: MissionObjective | null) => {
     if (objective === MissionObjective.ENCOUTER_BATTLE) {
       return {
-        attack: 'Сторона №1',
-        defense: 'Сторона №2',
+        attack: 'Фракція №1',
+        defense: 'Фракція №2',
         attackShort: '№1',
         defenseShort: '№2',
-        attackTitle: 'Сторона №1',
-        defenseTitle: 'Сторона №2',
-        attackTypeLabel: 'Тип сторони №1',
-        defenseTypeLabel: 'Тип сторони №2',
-        attackNameLabel: 'Назва сторони №1',
-        defenseNameLabel: 'Назва сторони №2',
-        attackSlotsLabel: 'Слоти сторони №1',
-        defenseSlotsLabel: 'Слоти сторони №2',
-        attackScreenshotsLabel: 'Скріншоти уніформи (сторона №1)',
-        defenseScreenshotsLabel: 'Скріншоти уніформи (сторона №2)',
+        attackTitle: 'Фракція №1',
+        defenseTitle: 'Фракція №2',
+        attackTypeLabel: 'Тип фракції №1',
+        defenseTypeLabel: 'Тип фракції №2',
+        attackNameLabel: 'Назва фракції №1',
+        defenseNameLabel: 'Назва фракції №2',
+        attackSlotsLabel: 'Слоти фракції №1',
+        defenseSlotsLabel: 'Слоти фракції №2',
+        attackScreenshotsLabel: 'Скріншоти уніформи (фракція №1)',
+        defenseScreenshotsLabel: 'Скріншоти уніформи (фракція №2)',
       };
     }
 
@@ -266,14 +266,14 @@ class MissionModel extends createEntity(MissionSchema) {
       defense: 'Оборона',
       attackShort: 'атака',
       defenseShort: 'оборона',
-      attackTitle: 'Атакуюча сторона',
-      defenseTitle: 'Оборонна сторона',
-      attackTypeLabel: 'Тип атакуючої сторони',
-      defenseTypeLabel: 'Тип оборонної сторони',
-      attackNameLabel: 'Назва атакуючої сторони',
-      defenseNameLabel: 'Назва оборонної сторони',
-      attackSlotsLabel: 'Слоти атакуючої сторони',
-      defenseSlotsLabel: 'Слоти оборонної сторони',
+      attackTitle: 'Атакуюча фракція',
+      defenseTitle: 'Оборонна фракція',
+      attackTypeLabel: 'Тип атакуючої фракції',
+      defenseTypeLabel: 'Тип оборонної фракції',
+      attackNameLabel: 'Назва атакуючої фракції',
+      defenseNameLabel: 'Назва оборонної фракції',
+      attackSlotsLabel: 'Слоти атакуючої фракції',
+      defenseSlotsLabel: 'Слоти оборонної фракції',
       attackScreenshotsLabel: 'Скріншоти уніформи (атака)',
       defenseScreenshotsLabel: 'Скріншоти уніформи (оборона)',
     };
@@ -298,8 +298,8 @@ class MissionModel extends createEntity(MissionSchema) {
   ) => {
     if (!version) {
       return {
-        attack: 'Сторона атаки',
-        defense: 'Сторона оборони',
+        attack: 'Фракція атаки',
+        defense: 'Фракція оборони',
       };
     }
 

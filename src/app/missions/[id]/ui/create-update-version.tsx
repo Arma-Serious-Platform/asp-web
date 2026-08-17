@@ -7,7 +7,7 @@ import { Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, DrawerTi
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect, useRef, useState, FC } from 'react';
+import { useEffect, useMemo, useRef, useState, FC } from 'react';
 import { PlusIcon, LoaderIcon, UploadIcon, TrashIcon, MinusIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionType, MissionVersion } from '@/shared/sdk/types';
@@ -27,6 +27,13 @@ const sideTypeOptions = [
   { label: 'RED', value: MissionGameSide.RED },
   { label: 'GREEN', value: MissionGameSide.GREEN },
 ];
+
+const factionLabel = (name: string | undefined | null, fallback: string) => name?.trim() || fallback;
+
+const filterSideTypeOptions = (
+  current: string | null | undefined,
+  ...excluded: Array<string | null | undefined>
+) => sideTypeOptions.filter(option => option.value === current || !excluded.includes(option.value));
 
 const fileSizeSchema = z.custom<File>(file => file instanceof File && isValidUploadFileSize(file), {
   message: uploadFileSizeLimitMessage,
@@ -76,12 +83,31 @@ const createVersionSchema = (missionId: string) =>
       changelog: z.any().nullable().default(null),
     })
     .superRefine((data, ctx) => {
+      if (data.attackSideType && data.defenseSideType && data.attackSideType === data.defenseSideType) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Фракції не можуть мати однаковий тип',
+          path: ['defenseSideType'],
+        });
+      }
+
       if (!data.enableFriendlySide) return;
+
       if (!data.friendlySideName?.trim()) {
         ctx.addIssue({ code: 'custom', message: "Обов'язково", path: ['friendlySideName'] });
       }
       if (data.friendlySideSlots == null || data.friendlySideSlots < 1) {
         ctx.addIssue({ code: 'custom', message: "Обов'язково", path: ['friendlySideSlots'] });
+      }
+      if (
+        data.friendlySideType &&
+        (data.friendlySideType === data.attackSideType || data.friendlySideType === data.defenseSideType)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Фракції не можуть мати однаковий тип',
+          path: ['friendlySideType'],
+        });
       }
     });
 
@@ -201,9 +227,40 @@ const CreateUpdateMissionVersionModal: FC<{
   const attackSideType = versionForm.watch('attackSideType');
   const defenseSideType = versionForm.watch('defenseSideType');
   const friendlySideType = versionForm.watch('friendlySideType');
+  const attackSideName = versionForm.watch('attackSideName');
+  const defenseSideName = versionForm.watch('defenseSideName');
+  const friendlySideName = versionForm.watch('friendlySideName');
+  const enableFriendlySide = versionForm.watch('enableFriendlySide');
   const prevAttackSideType = useRef(attackSideType);
   const prevDefenseSideType = useRef(defenseSideType);
   const prevFriendlySideType = useRef(friendlySideType);
+
+  const attackFactionLabel = factionLabel(attackSideName, sideLabels.attackTitle);
+  const defenseFactionLabel = factionLabel(defenseSideName, sideLabels.defenseTitle);
+  const friendlyFactionLabel = factionLabel(friendlySideName, 'Союзна фракція');
+
+  const attackSideTypeSelectOptions = useMemo(
+    () =>
+      filterSideTypeOptions(
+        attackSideType,
+        defenseSideType,
+        enableFriendlySide ? friendlySideType : null,
+      ),
+    [attackSideType, defenseSideType, enableFriendlySide, friendlySideType],
+  );
+  const defenseSideTypeSelectOptions = useMemo(
+    () =>
+      filterSideTypeOptions(
+        defenseSideType,
+        attackSideType,
+        enableFriendlySide ? friendlySideType : null,
+      ),
+    [attackSideType, defenseSideType, enableFriendlySide, friendlySideType],
+  );
+  const friendlySideTypeSelectOptions = useMemo(
+    () => filterSideTypeOptions(friendlySideType, attackSideType, defenseSideType),
+    [friendlySideType, attackSideType, defenseSideType],
+  );
 
   useEffect(() => {
     // Reset weaponry arrays when side types change (but not on initial load)
@@ -478,14 +535,14 @@ const CreateUpdateMissionVersionModal: FC<{
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Attack Side Column */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-white">{sideLabels.attackTitle}</h3>
+              <h3 className="text-lg font-semibold text-white">{attackFactionLabel}</h3>
               <Controller
                 control={versionForm.control}
                 name="attackSideType"
                 render={({ field }) => (
                   <Select
                     label={sideLabels.attackTypeLabel}
-                    options={sideTypeOptions}
+                    options={attackSideTypeSelectOptions}
                     value={field.value}
                     onChange={field.onChange}
                     error={versionForm.formState.errors.attackSideType?.message}
@@ -509,7 +566,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 render={({ field }) => (
                   <NumericInput
                     {...field}
-                    label={sideLabels.attackSlotsLabel}
+                    label={`Слоти ${attackFactionLabel}`}
                     value={field.value || ''}
                     onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                     error={versionForm.formState.errors.attackSideSlots?.message}
@@ -520,9 +577,7 @@ const CreateUpdateMissionVersionModal: FC<{
               {/* Attack Side Weaponry */}
               <div className="flex flex-col gap-3 mt-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-zinc-300">
-                    Озброєння ({versionForm.watch('attackSideType')})
-                  </h4>
+                  <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({attackFactionLabel})</h4>
                 </div>
                 {versionForm.watch('attackWeaponry').map((weaponry, index) => (
                   <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
@@ -631,7 +686,9 @@ const CreateUpdateMissionVersionModal: FC<{
               </div>
 
               <div className="flex flex-col gap-2 mt-2">
-                <label className="text-sm font-semibold text-zinc-300">{sideLabels.attackScreenshotsLabel}</label>
+                <label className="text-sm font-semibold text-zinc-300">
+                  Скріншоти уніформи ({attackFactionLabel})
+                </label>
                 <Button type="button" variant="outline" size="sm" onClick={() => attackScreenshotsRef.current?.click()}>
                   <UploadIcon className="size-4" />
                   Завантажити скріншоти
@@ -718,14 +775,14 @@ const CreateUpdateMissionVersionModal: FC<{
 
             {/* Defense Side Column */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-white">{sideLabels.defenseTitle}</h3>
+              <h3 className="text-lg font-semibold text-white">{defenseFactionLabel}</h3>
               <Controller
                 control={versionForm.control}
                 name="defenseSideType"
                 render={({ field }) => (
                   <Select
                     label={sideLabels.defenseTypeLabel}
-                    options={sideTypeOptions}
+                    options={defenseSideTypeSelectOptions}
                     value={field.value}
                     onChange={field.onChange}
                     error={versionForm.formState.errors.defenseSideType?.message}
@@ -749,7 +806,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 render={({ field }) => (
                   <NumericInput
                     {...field}
-                    label={sideLabels.defenseSlotsLabel}
+                    label={`Слоти ${defenseFactionLabel}`}
                     value={field.value || ''}
                     error={versionForm.formState.errors.defenseSideSlots?.message}
                   />
@@ -759,9 +816,7 @@ const CreateUpdateMissionVersionModal: FC<{
               {/* Defense Side Weaponry */}
               <div className="flex flex-col gap-3 mt-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-zinc-300">
-                    Озброєння ({versionForm.watch('defenseSideType')})
-                  </h4>
+                  <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({defenseFactionLabel})</h4>
                 </div>
                 {versionForm.watch('defenseWeaponry').map((weaponry, index) => (
                   <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
@@ -870,7 +925,9 @@ const CreateUpdateMissionVersionModal: FC<{
               </div>
 
               <div className="flex flex-col gap-2 mt-2">
-                <label className="text-sm font-semibold text-zinc-300">{sideLabels.defenseScreenshotsLabel}</label>
+                <label className="text-sm font-semibold text-zinc-300">
+                  Скріншоти уніформи ({defenseFactionLabel})
+                </label>
                 <Button
                   type="button"
                   variant="outline"
@@ -962,7 +1019,9 @@ const CreateUpdateMissionVersionModal: FC<{
 
           <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-black/20 p-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Третя (союзна) сторона</h3>
+              <h3 className="text-lg font-semibold text-white">
+                {enableFriendlySide ? friendlyFactionLabel : 'Третя (союзна) фракція'}
+              </h3>
               <Button
                 type="button"
                 variant="outline"
@@ -977,14 +1036,20 @@ const CreateUpdateMissionVersionModal: FC<{
                     versionForm.setValue('friendlyScreenshots', []);
                     versionForm.setValue('removeFriendlyScreenshotIds', []);
                   } else {
-                    versionForm.setValue('friendlyTo', versionForm.getValues('attackSideType'));
+                    const attackType = versionForm.getValues('attackSideType');
+                    const defenseType = versionForm.getValues('defenseSideType');
+                    const freeType =
+                      sideTypeOptions.find(option => option.value !== attackType && option.value !== defenseType)
+                        ?.value ?? MissionGameSide.GREEN;
+                    versionForm.setValue('friendlySideType', freeType);
+                    versionForm.setValue('friendlyTo', attackType);
                   }
                 }}>
-                {versionForm.watch('enableFriendlySide') ? 'Прибрати' : 'Додати сторону'}
+                {enableFriendlySide ? 'Прибрати' : 'Додати фракцію'}
               </Button>
             </div>
 
-            {versionForm.watch('enableFriendlySide') && (
+            {enableFriendlySide && (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Controller
@@ -992,10 +1057,11 @@ const CreateUpdateMissionVersionModal: FC<{
                     name="friendlySideType"
                     render={({ field }) => (
                       <Select
-                        label="Тип союзної сторони"
-                        options={sideTypeOptions}
+                        label="Тип союзної фракції"
+                        options={friendlySideTypeSelectOptions}
                         value={field.value}
                         onChange={field.onChange}
+                        error={versionForm.formState.errors.friendlySideType?.message}
                       />
                     )}
                   />
@@ -1007,12 +1073,12 @@ const CreateUpdateMissionVersionModal: FC<{
                         label="Союзник до"
                         options={[
                           {
-                            value: versionForm.watch('attackSideType'),
-                            label: `${sideLabels.attack} (${versionForm.watch('attackSideType')})`,
+                            value: attackSideType,
+                            label: `${attackFactionLabel} (${attackSideType})`,
                           },
                           {
-                            value: versionForm.watch('defenseSideType'),
-                            label: `${sideLabels.defense} (${versionForm.watch('defenseSideType')})`,
+                            value: defenseSideType,
+                            label: `${defenseFactionLabel} (${defenseSideType})`,
                           },
                         ]}
                         value={field.value}
@@ -1026,7 +1092,8 @@ const CreateUpdateMissionVersionModal: FC<{
                     render={({ field }) => (
                       <Input
                         {...field}
-                        label="Назва союзної сторони"
+                        value={field.value ?? ''}
+                        label="Назва союзної фракції"
                         error={versionForm.formState.errors.friendlySideName?.message}
                       />
                     )}
@@ -1037,7 +1104,7 @@ const CreateUpdateMissionVersionModal: FC<{
                     render={({ field }) => (
                       <NumericInput
                         {...field}
-                        label="Слоти союзної сторони"
+                        label={`Слоти ${friendlyFactionLabel}`}
                         value={field.value || ''}
                         error={versionForm.formState.errors.friendlySideSlots?.message}
                       />
@@ -1047,9 +1114,7 @@ const CreateUpdateMissionVersionModal: FC<{
 
                 <div className="flex flex-col gap-3 mt-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-zinc-300">
-                      Озброєння ({versionForm.watch('friendlySideType')})
-                    </h4>
+                    <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({friendlyFactionLabel})</h4>
                   </div>
                   {versionForm.watch('friendlyWeaponry').map((weaponry, index) => (
                     <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
@@ -1158,7 +1223,9 @@ const CreateUpdateMissionVersionModal: FC<{
                 </div>
 
                 <div className="flex flex-col gap-2 mt-2">
-                  <label className="text-sm font-semibold text-zinc-300">Скріншоти уніформи (союзник)</label>
+                  <label className="text-sm font-semibold text-zinc-300">
+                    Скріншоти уніформи ({friendlyFactionLabel})
+                  </label>
                   <Button
                     type="button"
                     variant="outline"
