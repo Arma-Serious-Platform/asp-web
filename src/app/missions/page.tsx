@@ -7,7 +7,7 @@ import { MissionStatus, MissionType, MissionObjective, State } from '@/shared/sd
 import { cn } from '@/shared/utils/cn';
 
 import { observer } from 'mobx-react-lite';
-import { useEffect, useMemo, useState, Suspense } from 'react';
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { missionsState } from './state/missions-page.state';
 
@@ -23,6 +23,7 @@ import { session } from '@/entities/session/session.state';
 const MissionsPageContent = observer(() => {
   const router = useRouter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const hasLoadedPageExtras = useRef(false);
   const [filters, setFiltersState] = useQueryStates({
     search: parseAsString,
     status: parseAsStringEnum(Object.values(MissionStatus)),
@@ -38,29 +39,61 @@ const MissionsPageContent = observer(() => {
     orderType: parseAsStringEnum(['asc', 'desc']).withDefault('desc'),
   });
 
-  const isFilterApplied = useMemo(() => {
-    const { orderType, ...filterValues } = filters;
-    return Object.values(filterValues).some(value =>
-      value !== undefined && typeof value === 'number' ? true : Boolean(value),
-    );
-  }, [filters]);
+  /** Draft edits in the sidebar; URL `filters` stay as the last applied / navigated state. */
+  const [draftFilters, setDraftFilters] = useState<MissionFiltersState>(filters);
 
-  const setFilters = (patch: Partial<MissionFiltersState>) => {
-    void setFiltersState(patch);
+  const hasFilterValues = (value: MissionFiltersState) => {
+    const { orderType: _orderType, ...filterValues } = value;
+    return Object.values(filterValues).some(entry =>
+      entry !== undefined && typeof entry === 'number' ? true : Boolean(entry),
+    );
   };
 
-  const getMissionParams = (orderType: 'asc' | 'desc' = filters.orderType) => ({
-    authorId: filters.authorId || undefined,
-    reviewerId: filters.reviewerId || undefined,
-    status: filters.status || undefined,
-    state: filters.state || undefined,
-    islandId: filters.islandId || undefined,
-    search: filters.search || undefined,
-    minSlots: filters.minSlots ?? undefined,
-    maxSlots: filters.maxSlots ?? undefined,
-    minSlotsToPlay: filters.minSlotsToPlay ?? undefined,
-    missionType: filters.missionType || undefined,
-    missionObjective: filters.missionObjective || undefined,
+  const isFilterApplied = useMemo(() => hasFilterValues(filters), [filters]);
+  const canResetFilters = useMemo(
+    () => hasFilterValues(filters) || hasFilterValues(draftFilters),
+    [filters, draftFilters],
+  );
+
+  /** Applied URL query — changes from Apply/Reset, sort, or external links like header "Мої місії". */
+  const appliedFiltersKey = useMemo(
+    () =>
+      JSON.stringify({
+        search: filters.search,
+        authorId: filters.authorId,
+        reviewerId: filters.reviewerId,
+        status: filters.status,
+        state: filters.state,
+        islandId: filters.islandId,
+        minSlots: filters.minSlots,
+        maxSlots: filters.maxSlots,
+        minSlotsToPlay: filters.minSlotsToPlay,
+        missionType: filters.missionType,
+        missionObjective: filters.missionObjective,
+        orderType: filters.orderType,
+      }),
+    [filters],
+  );
+
+  const setDraftFilterPatch = (patch: Partial<MissionFiltersState>) => {
+    setDraftFilters(current => ({ ...current, ...patch }));
+  };
+
+  const getMissionParams = (
+    source: MissionFiltersState = filters,
+    orderType: 'asc' | 'desc' = source.orderType,
+  ) => ({
+    authorId: source.authorId || undefined,
+    reviewerId: source.reviewerId || undefined,
+    status: source.status || undefined,
+    state: source.state || undefined,
+    islandId: source.islandId || undefined,
+    search: source.search || undefined,
+    minSlots: source.minSlots ?? undefined,
+    maxSlots: source.maxSlots ?? undefined,
+    minSlotsToPlay: source.minSlotsToPlay ?? undefined,
+    missionType: source.missionType || undefined,
+    missionObjective: source.missionObjective || undefined,
     orderBy: 'createdAt' as const,
     orderType,
     take: 25,
@@ -68,18 +101,22 @@ const MissionsPageContent = observer(() => {
 
   const handleSortChange = (orderType: 'asc' | 'desc') => {
     if (orderType === filters.orderType) return;
-
     void setFiltersState({ orderType });
-    void missionsState.missionsPagination.init({
-      ...getMissionParams(orderType),
-      skip: 0,
-    });
   };
 
   const applyFilters = () => {
-    missionsState.missionsPagination.init({
-      ...getMissionParams(),
-      skip: 0,
+    void setFiltersState({
+      search: draftFilters.search,
+      status: draftFilters.status,
+      state: draftFilters.state,
+      islandId: draftFilters.islandId,
+      authorId: draftFilters.authorId,
+      reviewerId: draftFilters.reviewerId,
+      minSlots: draftFilters.minSlots,
+      maxSlots: draftFilters.maxSlots,
+      minSlotsToPlay: draftFilters.minSlotsToPlay,
+      missionType: draftFilters.missionType,
+      missionObjective: draftFilters.missionObjective,
     });
     setMobileFiltersOpen(false);
   };
@@ -98,13 +135,20 @@ const MissionsPageContent = observer(() => {
       missionType: null,
       missionObjective: null,
     });
-
-    missionsState.missionsPagination.init({
-      skip: 0,
-      take: 25,
-      orderBy: 'createdAt',
-      orderType: filters.orderType,
-    });
+    setDraftFilters(current => ({
+      ...current,
+      search: null,
+      status: null,
+      state: null,
+      islandId: null,
+      authorId: null,
+      reviewerId: null,
+      minSlots: null,
+      maxSlots: null,
+      minSlotsToPlay: null,
+      missionType: null,
+      missionObjective: null,
+    }));
     setMobileFiltersOpen(false);
   };
 
@@ -112,6 +156,7 @@ const MissionsPageContent = observer(() => {
     if (!session.isSessionReady) return;
 
     if (!session.isAuthorized) {
+      hasLoadedPageExtras.current = false;
       router.push(ROUTES.auth.login);
     }
   }, [router, session.isAuthorized, session.isSessionReady]);
@@ -119,10 +164,21 @@ const MissionsPageContent = observer(() => {
   useEffect(() => {
     if (!session.isSessionReady || !session.isAuthorized) return;
 
-    missionsState.init({
-      ...getMissionParams(),
-    });
-  }, [session.isAuthorized, session.isSessionReady]);
+    setDraftFilters(filters);
+
+    const params = {
+      ...getMissionParams(filters),
+      skip: 0,
+    };
+
+    if (!hasLoadedPageExtras.current) {
+      hasLoadedPageExtras.current = true;
+      void missionsState.init(params);
+      return;
+    }
+
+    void missionsState.missionsPagination.init(params);
+  }, [session.isAuthorized, session.isSessionReady, appliedFiltersKey]);
 
   const handleCreateMission = () => {
     missionsState.createMissionState.visibility.open();
@@ -180,9 +236,9 @@ const MissionsPageContent = observer(() => {
             <aside className="rounded-xl border border-white/10 bg-black/40 p-4 shadow-md">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.16em] text-zinc-400">Фільтри</h2>
               <MissionFilters
-                filters={filters}
-                setFilters={setFilters}
-                isFilterApplied={isFilterApplied}
+                filters={draftFilters}
+                setFilters={setDraftFilterPatch}
+                isFilterApplied={canResetFilters}
                 onApply={applyFilters}
                 onReset={resetFilters}
               />
@@ -196,9 +252,9 @@ const MissionsPageContent = observer(() => {
             <div className="sticky top-24">
               <h2 className="mb-4 text-xl font-semibold text-white">Фільтри</h2>
               <MissionFilters
-                filters={filters}
-                setFilters={setFilters}
-                isFilterApplied={isFilterApplied}
+                filters={draftFilters}
+                setFilters={setDraftFilterPatch}
+                isFilterApplied={canResetFilters}
                 onApply={applyFilters}
                 onReset={resetFilters}
               />
