@@ -24,14 +24,11 @@ class MissionModel extends createEntity(MissionSchema) {
   };
 
   static statusColors: Record<MissionStatus, string> = {
-    [MissionStatus.APPROVED]:
-      'border border-green-500/50 bg-green-950/90 text-green-100 shadow-sm shadow-black/20',
+    [MissionStatus.APPROVED]: 'border border-green-500/50 bg-green-950/90 text-green-100 shadow-sm shadow-black/20',
     [MissionStatus.PENDING_APPROVAL]:
       'border border-amber-500/50 bg-amber-950/90 text-amber-100 shadow-sm shadow-black/20',
-    [MissionStatus.CHANGES_REQUESTED]:
-      'border border-red-500/50 bg-red-950/90 text-red-100 shadow-sm shadow-black/20',
-    [MissionStatus.IN_REVIEW]:
-      'border border-sky-500/50 bg-sky-950/90 text-sky-100 shadow-sm shadow-black/20',
+    [MissionStatus.CHANGES_REQUESTED]: 'border border-red-500/50 bg-red-950/90 text-red-100 shadow-sm shadow-black/20',
+    [MissionStatus.IN_REVIEW]: 'border border-sky-500/50 bg-sky-950/90 text-sky-100 shadow-sm shadow-black/20',
     [MissionStatus.PENDING_GAME_APPROVAL]:
       'border border-violet-500/50 bg-violet-950/90 text-violet-100 shadow-sm shadow-black/20',
   };
@@ -72,7 +69,7 @@ class MissionModel extends createEntity(MissionSchema) {
   ];
 
   static missionObjectiveLabels: Record<MissionObjective, string> = {
-    [MissionObjective.ATTACK_DEFEND]: 'Атака / Захист',
+    [MissionObjective.ATTACK_DEFEND]: 'Атака / Оборона',
     [MissionObjective.ENCOUTER_BATTLE]: 'Зустрічний бій',
   };
 
@@ -135,9 +132,7 @@ class MissionModel extends createEntity(MissionSchema) {
     };
   };
 
-  private static normalizeScreenshotList = (
-    raw: unknown,
-  ): NonNullable<MissionVersion['attackScreenshots']> => {
+  private static normalizeScreenshotList = (raw: unknown): NonNullable<MissionVersion['attackScreenshots']> => {
     if (!Array.isArray(raw)) return [];
 
     return raw
@@ -202,15 +197,11 @@ class MissionModel extends createEntity(MissionSchema) {
       ) || [];
     const defenseUniformScreenshots =
       MissionModel.normalizeScreenshotList(
-        rawVersion.defenseScreenshots ||
-          rawVersion.defense_screenshots ||
-          rawVersion.defenseUniformScreenshots,
+        rawVersion.defenseScreenshots || rawVersion.defense_screenshots || rawVersion.defenseUniformScreenshots,
       ) || [];
     const friendlyUniformScreenshots =
       MissionModel.normalizeScreenshotList(
-        rawVersion.friendlyScreenshots ||
-          rawVersion.friendly_screenshots ||
-          rawVersion.friendlyUniformScreenshots,
+        rawVersion.friendlyScreenshots || rawVersion.friendly_screenshots || rawVersion.friendlyUniformScreenshots,
       ) || [];
 
     const attackFromShared = MissionModel.getSideScreenshotsFromSharedList(
