@@ -87,35 +87,26 @@ export const PlanSlotsSection = observer(
       const isWantedUpdating = slot.id in model.wantedSlotOverrides;
       const slotCountDisplay = String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)));
 
+      const nazvaDisplay = canEditCommanderFields
+        ? model.getSlotNazvaDraft(slot)
+        : [slot.name, slot.weaponry].filter(Boolean).join(' | ');
       const nameField = (
-        <TableCellTooltip text={canEditCommanderFields ? model.getSlotTextDraft(slot, 'name') : slot.name ?? ''}>
+        <TableCellTooltip text={nazvaDisplay}>
           {canEditCommanderFields ? (
             <Input
               className="min-w-0 w-full"
-              value={model.getSlotTextDraft(slot, 'name')}
+              value={model.getSlotNazvaDraft(slot)}
               onChange={event => model.setSlotDraft(slot.id, 'name', event.target.value)}
-              onBlur={event => void model.updateSlotField(slot.id, { name: event.target.value || null }, ['name'])}
-            />
-          ) : (
-            <FormReadonlyField className="text-xs leading-relaxed" value={slot.name ?? ''} />
-          )}
-        </TableCellTooltip>
-      );
-
-      const weaponryField = (
-        <TableCellTooltip
-          text={canEditCommanderFields ? model.getSlotTextDraft(slot, 'weaponry') : slot.weaponry ?? ''}>
-          {canEditCommanderFields ? (
-            <Input
-              className="min-w-0 w-full"
-              value={model.getSlotTextDraft(slot, 'weaponry')}
-              onChange={event => model.setSlotDraft(slot.id, 'weaponry', event.target.value)}
               onBlur={event =>
-                void model.updateSlotField(slot.id, { weaponry: event.target.value || null }, ['weaponry'])
+                void model.updateSlotField(
+                  slot.id,
+                  { name: event.target.value || null, weaponry: null },
+                  ['name', 'weaponry'],
+                )
               }
             />
           ) : (
-            <FormReadonlyField className="text-xs leading-relaxed" value={slot.weaponry ?? ''} />
+            <FormReadonlyField className="text-xs leading-relaxed" value={nazvaDisplay} />
           )}
         </TableCellTooltip>
       );
@@ -221,7 +212,6 @@ export const PlanSlotsSection = observer(
           </TableCellTooltip>
         ),
         nameField,
-        weaponryField,
         slotCountField,
         assignedField,
         wantedField,
@@ -237,7 +227,6 @@ export const PlanSlotsSection = observer(
         <tr key={slot.id} className="border-b border-white/5 align-top">
           <td className="px-2 py-2">{fields.slotNumber}</td>
           <td className="px-2 py-2">{fields.nameField}</td>
-          <td className="px-2 py-2">{fields.weaponryField}</td>
           <td className="px-2 py-2">{fields.slotCountField}</td>
           <td className="px-2 py-2">{fields.assignedField}</td>
           <td className="px-2 py-2">{fields.wantedField}</td>
@@ -258,13 +247,8 @@ export const PlanSlotsSection = observer(
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <SlotFieldLabel>Типологія</SlotFieldLabel>
+            <SlotFieldLabel>Назва</SlotFieldLabel>
             {fields.nameField}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <SlotFieldLabel>Техніка, озброєння</SlotFieldLabel>
-            {fields.weaponryField}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -344,8 +328,7 @@ export const PlanSlotsSection = observer(
             <thead>
               <tr className="border-b border-white/10 text-zinc-400">
                 <th className="px-2 py-2">Відділення</th>
-                <th className="min-w-[380px] px-2 py-2">Типологія</th>
-                <th className="min-w-[400px] px-2 py-2">Техніка, озброєння</th>
+                <th className="min-w-[780px] px-2 py-2">Назва</th>
                 <th className="min-w-[50px] px-2 py-2">Слоти</th>
                 <th className="min-w-[170px] px-2 py-2">Бронювання</th>
                 <th className="px-2 py-2">Бажаючі</th>

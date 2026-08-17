@@ -295,6 +295,14 @@ class HqPlansState {
   getSlotTextDraft = (slot: HeadquartersSlot, field: Exclude<SlotDraftField, 'slotCount'>) =>
     this.slotDrafts[slot.id]?.[field] ?? slot[field] ?? '';
 
+  getSlotNazvaDraft = (slot: HeadquartersSlot) => {
+    if (this.slotDrafts[slot.id]?.name !== undefined) {
+      return this.slotDrafts[slot.id]?.name ?? '';
+    }
+
+    return [slot.name, slot.weaponry].filter(Boolean).join(' | ');
+  };
+
   getSlotCountDraft = (slot: HeadquartersSlot) =>
     this.slotDrafts[slot.id]?.slotCount ?? String(Math.min(99, Math.max(0, Number(slot.slotCount) || 0)));
 

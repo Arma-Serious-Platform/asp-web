@@ -27,6 +27,7 @@ export const HeadquartersSlotSchema = z
     slotNumber: z.string(),
     name: z.string().nullable(),
     weaponry: z.string().nullable(),
+    position: z.number().optional(),
     slotCount: z.number().nullable(),
     missionGameSide: MissionGameSideSchema.nullable().optional(),
     comment: z.string().nullable(),

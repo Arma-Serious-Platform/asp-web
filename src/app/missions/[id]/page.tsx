@@ -14,6 +14,9 @@ import {
   LoaderIcon,
   EditIcon,
   Trash2Icon,
+  UserIcon,
+  SwordsIcon,
+  MapIcon,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/shared/config/routes';
@@ -346,12 +349,37 @@ const MissionDetailsPage = observer(() => {
                       Архівовано
                     </span>
                   )}
+                  <div className="mb-3 flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-sm text-zinc-500">
+                      <UserIcon className="size-3.5 shrink-0" />
+                      <MissionAuthorsText
+                        mission={mission}
+                        className="min-w-0"
+                        userClassName="text-zinc-300"
+                      />
+                    </div>
+                    {mission.missionObjective && (
+                      <div className="flex items-center gap-1.5 text-sm text-zinc-500">
+                        <SwordsIcon className="size-3.5 shrink-0" />
+                        <span>
+                          <span className="text-zinc-500">Тип бою: </span>
+                          <span className="text-zinc-300">
+                            {MissionModel.missionObjectiveLabels[mission.missionObjective]}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                    {mission.island && (
+                      <div className="flex items-center gap-1.5 text-sm text-zinc-500">
+                        <MapIcon className="size-3.5 shrink-0" />
+                        <span>
+                          <span className="text-zinc-500">Карта: </span>
+                          <span className="text-zinc-300">{mission.island.name}</span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <MessageContent message={mission.description} textOnly />
-                  <MissionAuthorsText
-                    mission={mission}
-                    className="mt-3 text-sm text-zinc-500"
-                    userClassName="text-zinc-300"
-                  />
                 </div>
 
                 <View.Condition if={hasMissionActions}>
