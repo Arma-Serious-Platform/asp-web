@@ -194,7 +194,7 @@ const CreateMissionModal: FC<{
           </DrawerHeader>
           <DrawerBody>
             <div className="flex flex-wrap gap-4">
-              <div className="min-w-[240px] flex-1 basis-[280px]">
+              <div className="min-w-0 flex-1 basis-[280px]">
                 <MissionImageField
                   key={state.visibility.isOpen ? 'create-mission-image-open' : 'create-mission-image-closed'}
                   previewUrl={croppedPreview || null}
@@ -202,7 +202,7 @@ const CreateMissionModal: FC<{
                 />
               </div>
 
-              <div className="flex min-w-[240px] flex-1 basis-[280px] flex-col gap-4">
+              <div className="flex min-w-0 flex-1 basis-[280px] flex-col gap-4">
                 <Controller
                   control={missionForm.control}
                   name="name"

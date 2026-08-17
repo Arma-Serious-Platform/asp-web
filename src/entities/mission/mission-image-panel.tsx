@@ -1,9 +1,10 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/shared/ui/atoms/button';
 import { Card } from '@/shared/ui/atoms/card';
-import { EyeIcon, DownloadIcon, CalendarIcon, InfoIcon, UserIcon, UserRoundCog } from 'lucide-react';
+import { EyeIcon, DownloadIcon, CalendarIcon, InfoIcon, UserIcon, UserRoundCog, LandmarkIcon } from 'lucide-react';
 import { Game } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 import Link from 'next/link';
@@ -11,13 +12,17 @@ import { ROUTES } from '@/shared/config/routes';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 import { getMessageText, MessageContent } from '@/entities/comment/lexical-message';
+import { session } from '../session/session.state';
 
 export const MissionImagePanel: FC<{
   game: Game;
   showDescription?: boolean;
   descriptionMaxLength?: number;
 }> = ({ game, showDescription = true, descriptionMaxLength }) => {
+  const pathname = usePathname();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const showHqLink = Boolean(game.planId) && !pathname.startsWith(ROUTES.hq.root);
+  const showDetailsLink = session.isAuthorized;
 
   useEffect(() => {
     setIsDescriptionExpanded(false);
@@ -53,19 +58,29 @@ export const MissionImagePanel: FC<{
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
-        <Button asChild variant="default" className="flex-1">
-          <Link className="group" href={ROUTES.missions.id(game.mission.id)}>
-            <EyeIcon className="size-4 text-white group-hover:text-white hover:text-white" />
-            <span className="text-white">Переглянути</span>
-          </Link>
-        </Button>
+      <div className="flex gap-3 flex-wrap">
+        {showDetailsLink && (
+          <Button asChild variant="default" className="flex-1">
+            <Link className="group" href={ROUTES.missions.id(game.mission.id)}>
+              <EyeIcon className="size-4 text-white group-hover:text-white hover:text-white" />
+              <span className="text-white">Переглянути</span>
+            </Link>
+          </Button>
+        )}
         <Button asChild variant="outline" className="flex-1">
           <Link href={game.missionVersion.file?.url ?? ''} download>
             <DownloadIcon className="size-4" />
             Завантажити
           </Link>
         </Button>
+        {showHqLink && game.planId ? (
+          <Button asChild variant="outline" className="flex-1">
+            <Link href={ROUTES.hq.planById(game.planId)}>
+              <LandmarkIcon className="size-4" />
+              Штаб
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       {/* Author & game admin */}

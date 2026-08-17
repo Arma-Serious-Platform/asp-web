@@ -103,7 +103,7 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
   };
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn('flex min-w-0 flex-col gap-2', className)}>
       <input
         ref={inputRef}
         type="file"
@@ -113,7 +113,7 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
       />
 
       {isCropping && cropSrc ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex min-w-0 flex-col gap-2">
           <div className="w-full overflow-hidden rounded-lg border border-white/10">
             <CropperWithZoom
               ref={cropperRef}
@@ -129,11 +129,11 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
               stencilSize={STENCIL}
             />
           </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={clearCropSession}>
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+            <Button type="button" variant="outline" className="min-w-0 flex-1" onClick={clearCropSession}>
               Скасувати
             </Button>
-            <Button type="button" className="flex-1" onClick={handleApplyCrop}>
+            <Button type="button" className="min-w-0 flex-1" onClick={handleApplyCrop}>
               Застосувати
             </Button>
           </div>
@@ -162,23 +162,23 @@ export const MissionImageField: FC<MissionImageFieldProps> = ({
             </div>
           )}
 
-          <div className="flex w-full flex-col gap-2 sm:flex-row">
+          <div className="flex min-w-0 w-full flex-col gap-2">
             <Button
               type="button"
               variant={displayUrl ? 'outline' : 'default'}
-              className="w-full"
+              className="h-auto min-w-0 w-full whitespace-normal"
               onClick={() => inputRef.current?.click()}>
-              <UploadIcon className="size-4" />
+              <UploadIcon className="size-4 shrink-0" />
               {displayUrl ? 'Обрати інше зображення' : 'Обрати зображення'}
             </Button>
             {existingUrl && !previewUrl && (
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="h-auto min-w-0 w-full whitespace-normal"
                 disabled={isRecropLoading}
                 onClick={handleRecropExisting}>
-                <CropIcon className="size-4" />
+                <CropIcon className="size-4 shrink-0" />
                 Обрізати
               </Button>
             )}

@@ -7,6 +7,7 @@ export const GameSchema = z
     name: z.string().optional(),
     date: z.string(),
     position: z.number(),
+    planId: z.string().nullable().optional(),
     missionId: z.string(),
     missionVersionId: z.string(),
     attackSideId: z.string(),

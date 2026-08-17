@@ -5,6 +5,7 @@ import { Card } from '@/shared/ui/atoms/card';
 import classNames from 'classnames';
 import { Game, SideType } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
+import 'dayjs/locale/uk';
 import { cn } from '@/shared/utils/cn';
 import { UniformSection } from '@/entities/mission/uniform-section';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
@@ -101,7 +102,7 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
               <div className="flex items-center gap-2">
                 <CalendarIcon className="size-4 text-lime-500" />
                 <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  {dayjs(game.date).format('DD.MM.YYYY')}
+                  {dayjs(game.date).locale('uk').format('dd, DD.MM.YYYY')}
                 </span>
               </div>
             </Card>
