@@ -1,13 +1,14 @@
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/organisms/dialog';
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/shared/ui/organisms/drawer';
 import { User } from '@/shared/sdk/types';
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useEffect, useState } from 'react';
@@ -44,35 +45,37 @@ const AdminChangeNicknameModal: FC<
   };
 
   return (
-    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
-      <DialogOverlay />
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            Змінити позивний <span className="text-primary">{user?.nickname}</span>
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-4">
-          <Input
-            label="Новий позивний"
-            value={nickname}
-            autoFocus
-            disabled={model.loader.isLoading}
-            onChange={event => setNickname(event.target.value)}
-          />
+    <Drawer open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
+      {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
+      <DrawerContent>
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <DrawerHeader>
+            <DrawerTitle>
+              Змінити позивний <span className="text-primary">{user?.nickname}</span>
+            </DrawerTitle>
+          </DrawerHeader>
 
-          <div className="flex justify-between mt-2">
+          <DrawerBody>
+            <Input
+              label="Новий позивний"
+              value={nickname}
+              autoFocus
+              disabled={model.loader.isLoading}
+              onChange={event => setNickname(event.target.value)}
+            />
+          </DrawerBody>
+
+          <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">
             <Button variant="outline" disabled={model.loader.isLoading} onClick={() => model.visibility.close()}>
               Скасувати
             </Button>
             <Button disabled={model.loader.isLoading || nickname.trim() === user?.nickname} onClick={submit}>
               Зберегти
             </Button>
-          </div>
+          </DrawerFooter>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 });
 

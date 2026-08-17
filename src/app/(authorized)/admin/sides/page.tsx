@@ -22,7 +22,7 @@ const AdminPage = observer(() => {
 
   return (
     <Layout className="flex w-full mt-10 container mx-auto h-full">
-      <div className="flex flex-col bg-card w-full p-4">
+      <div className="flex flex-col bg-card w-full p-4 paper">
         <ManageServerModal state={sidesPageState.manageServer} />
         <AdminSidebar className="mb-4" />
         <div className="mb-2 flex justify-between items-center">

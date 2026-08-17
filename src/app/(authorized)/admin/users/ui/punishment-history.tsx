@@ -1,13 +1,13 @@
 import { Button } from '@/shared/ui/atoms/button';
 import { Textarea } from '@/shared/ui/atoms/textarea';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/organisms/dialog';
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/shared/ui/organisms/drawer';
 import { UserPunishment, UserPunishmentType, UserWarning } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 import { LoaderIcon } from 'lucide-react';
@@ -91,54 +91,57 @@ const PunishmentHistoryModal: FC<
   }, [model, model.visibility.isOpen]);
 
   return (
-    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
-      <DialogOverlay />
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            Історія покарань <span className="text-primary">{user?.nickname}</span>
-          </DialogTitle>
-        </DialogHeader>
+    <Drawer open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
+      {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
+      <DrawerContent className="w-full max-w-full overflow-hidden sm:w-[60vw] sm:max-w-[60vw]">
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <DrawerHeader>
+            <DrawerTitle>
+              Історія покарань <span className="text-primary">{user?.nickname}</span>
+            </DrawerTitle>
+          </DrawerHeader>
 
-        {model.loader.isLoading ? (
-          <div className="flex min-h-40 items-center justify-center">
-            <LoaderIcon className="size-5 animate-spin" />
-          </div>
-        ) : (
-          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <section className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Активні попередження</h3>
-              {model.warnings.length ? (
-                model.warnings.map(warning => (
-                  <ActiveWarningItem
-                    key={warning.id}
-                    warning={warning}
-                    disabled={model.removeLoader.isLoading}
-                    onRemove={(warningId, reason) => model.removeWarning(warningId, reason, onWarningRemoved)}
-                  />
-                ))
-              ) : (
-                <div className="rounded-md border border-white/10 p-3 text-sm text-zinc-400">
-                  Активних попереджень немає
-                </div>
-              )}
-            </section>
+          <DrawerBody>
+            {model.loader.isLoading ? (
+              <div className="flex min-h-40 items-center justify-center">
+                <LoaderIcon className="size-5 animate-spin" />
+              </div>
+            ) : (
+              <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Активні попередження</h3>
+                  {model.warnings.length ? (
+                    model.warnings.map(warning => (
+                      <ActiveWarningItem
+                        key={warning.id}
+                        warning={warning}
+                        disabled={model.removeLoader.isLoading}
+                        onRemove={(warningId, reason) => model.removeWarning(warningId, reason, onWarningRemoved)}
+                      />
+                    ))
+                  ) : (
+                    <div className="rounded-md border border-white/10 p-3 text-sm text-zinc-400">
+                      Активних попереджень немає
+                    </div>
+                  )}
+                </section>
 
-            <section className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Уся історія</h3>
-              {model.history.length ? (
-                model.history.map(item => <PunishmentHistoryItem key={item.id} item={item} />)
-              ) : (
-                <div className="rounded-md border border-white/10 p-3 text-sm text-zinc-400">
-                  Історія покарань порожня
-                </div>
-              )}
-            </section>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Уся історія</h3>
+                  {model.history.length ? (
+                    model.history.map(item => <PunishmentHistoryItem key={item.id} item={item} />)
+                  ) : (
+                    <div className="rounded-md border border-white/10 p-3 text-sm text-zinc-400">
+                      Історія покарань порожня
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </DrawerBody>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 });
 

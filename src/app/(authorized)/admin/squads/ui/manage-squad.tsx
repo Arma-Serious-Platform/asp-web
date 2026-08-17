@@ -5,8 +5,16 @@ import {
   DialogHeader,
   DialogOverlay,
   DialogTitle,
-  DialogTrigger,
 } from '@/shared/ui/organisms/dialog';
+import {
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/shared/ui/organisms/drawer';
 import { Observer, observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { ManageSquadState } from '../state/manage-squad.state';
@@ -155,73 +163,72 @@ const ManageSquadModal: FC<
 
   return (
     <>
-      <Dialog open={model.modal.isOpen && model.modal?.payload?.mode !== 'delete'} onOpenChange={model.modal.switch}>
-        <DialogOverlay />
-        {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{isEdit ? 'Редагувати загін' : 'Створити загін'}</DialogTitle>
-          </DialogHeader>
-
+      <Drawer open={model.modal.isOpen && model.modal?.payload?.mode !== 'delete'} onOpenChange={model.modal.switch}>
+        {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
+        <DrawerContent className="w-full max-w-full overflow-hidden sm:w-[60vw] sm:max-w-[60vw]">
           <Preloader
             isLoading={
               model.loader.isLoading ||
               model.users.pagination.preloader.isLoading ||
               model.sides.pagination.preloader.isLoading
             }>
-            <form className="flex flex-col gap-2" onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex flex-col gap-2 ">
-                <input
-                  ref={imageRef}
-                  className="hidden"
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
-                  disabled={model.loader.isLoading}
-                  onChange={e => setFile(resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget))}
-                />
+            <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+              <DrawerHeader>
+                <DrawerTitle>{isEdit ? 'Редагувати загін' : 'Створити загін'}</DrawerTitle>
+              </DrawerHeader>
 
-                {Boolean(image) && (
-                  <CropperWithZoom
-                    ref={cropperRef}
-                    className="h-64 rounded-sm"
-                    src={image}
-                    imageRestriction={ImageRestriction.stencil}
-                    stencilProps={{
-                      handlers: false,
-                      lines: true,
-                      movable: false,
-                      resizable: false,
-                    }}
-                    stencilSize={{
-                      height: 256,
-                      width: 256,
-                    }}
+              <DrawerBody>
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={imageRef}
+                    className="hidden"
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
+                    disabled={model.loader.isLoading}
+                    onChange={e => setFile(resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget))}
                   />
-                )}
 
-                {oldLogo && (
-                  <Image
-                    className="size-64 mx-auto object-cover rounded-sm"
-                    src={oldLogo}
-                    alt="Old logo"
-                    width={256}
-                    height={256}
-                    unoptimized={!oldLogo.startsWith('https')}
-                  />
-                )}
+                  {Boolean(image) && (
+                    <CropperWithZoom
+                      ref={cropperRef}
+                      className="h-64 rounded-sm"
+                      src={image}
+                      imageRestriction={ImageRestriction.stencil}
+                      stencilProps={{
+                        handlers: false,
+                        lines: true,
+                        movable: false,
+                        resizable: false,
+                      }}
+                      stencilSize={{
+                        height: 256,
+                        width: 256,
+                      }}
+                    />
+                  )}
 
-                {!image && !oldLogo && <div className="size-64 mx-auto bg-black/80 rounded-sm" />}
-                <Button
-                  type="button"
-                  className="w-64 mx-auto"
-                  variant={file ? 'outline' : 'default'}
-                  disabled={model.loader.isLoading}
-                  onClick={() => imageRef.current?.click()}>
-                  {file || oldLogo ? 'Змінити лого' : 'Обрати лого'}
-                </Button>
-              </div>
+                  {oldLogo && !image && (
+                    <Image
+                      className="size-64 mx-auto object-cover rounded-sm"
+                      src={oldLogo}
+                      alt="Old logo"
+                      width={256}
+                      height={256}
+                      unoptimized={!oldLogo.startsWith('https')}
+                    />
+                  )}
 
-              <div className="flex flex-col gap-4">
+                  {!image && !oldLogo && <div className="size-64 mx-auto bg-black/80 rounded-sm" />}
+                  <Button
+                    type="button"
+                    className="w-64 mx-auto"
+                    variant={file ? 'outline' : 'default'}
+                    disabled={model.loader.isLoading}
+                    onClick={() => imageRef.current?.click()}>
+                    {file || oldLogo ? 'Змінити лого' : 'Обрати лого'}
+                  </Button>
+                </div>
+
                 <Controller
                   control={form.control}
                   name="name"
@@ -282,20 +289,20 @@ const ManageSquadModal: FC<
                     </Observer>
                   )}
                 />
-              </div>
+              </DrawerBody>
 
-              <div className="flex justify-between mt-4">
-                <Button variant="outline" onClick={() => model.modal.close()}>
+              <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">
+                <Button type="button" variant="outline" onClick={() => model.modal.close()}>
                   Скасувати
                 </Button>
                 <Button type="submit" disabled={!isValid}>
                   {model?.modal?.payload?.squad ? 'Зберегти' : 'Створити'}
                 </Button>
-              </div>
+              </DrawerFooter>
             </form>
           </Preloader>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
 
       <Dialog open={model.modal.isOpen && model.modal?.payload?.mode === 'delete'} onOpenChange={model.modal.switch}>
         <DialogOverlay />

@@ -5,8 +5,16 @@ import {
   DialogHeader,
   DialogOverlay,
   DialogTitle,
-  DialogTrigger,
 } from '@/shared/ui/organisms/dialog';
+import {
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/shared/ui/organisms/drawer';
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useEffect } from 'react';
 import { manageServerState, ManageServerState } from '../state/manage-server.state';
@@ -96,16 +104,15 @@ const ManageServerModal: FC<
 
     return (
       <>
-        <Dialog open={state.modal.isOpen && state.modal?.payload?.mode !== 'delete'} onOpenChange={state.modal.switch}>
-          <DialogOverlay />
-          {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{isEdit ? 'Редагувати сервер' : 'Створити сервер'}</DialogTitle>
-            </DialogHeader>
+        <Drawer open={state.modal.isOpen && state.modal?.payload?.mode !== 'delete'} onOpenChange={state.modal.switch}>
+          {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
+          <DrawerContent>
+            <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+              <DrawerHeader>
+                <DrawerTitle>{isEdit ? 'Редагувати сервер' : 'Створити сервер'}</DrawerTitle>
+              </DrawerHeader>
 
-            <form className="flex flex-col gap-2" onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex flex-col gap-6">
+              <DrawerBody className="gap-6">
                 <Controller
                   control={form.control}
                   name="name"
@@ -153,17 +160,17 @@ const ManageServerModal: FC<
                     </div>
                   )}
                 />
-              </div>
+              </DrawerBody>
 
-              <div className="flex justify-between mt-4">
+              <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">
                 <Button variant="outline" type="button" onClick={() => state.modal.close()}>
                   Скасувати
                 </Button>
                 <Button type="submit">{state?.modal?.payload?.server ? 'Зберегти' : 'Створити'}</Button>
-              </div>
+              </DrawerFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
 
         <Dialog open={state.modal.isOpen && state.modal?.payload?.mode === 'delete'} onOpenChange={state.modal.switch}>
           <DialogOverlay />

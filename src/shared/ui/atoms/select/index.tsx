@@ -191,11 +191,11 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
           </div>
         )
       }>
-      <div className="flex flex-col w-full max-h-[calc(50vh)] overflow-y-auto">
+      <div className="flex w-full max-h-[min(15rem,var(--radix-popover-content-available-height,15rem))] flex-col overflow-hidden">
         {(onSearch || localSearch) && (
           <Input
             value={searchValue}
-            className="border-t-0 border-b border-x-0 outline-0"
+            className="shrink-0 border-t-0 border-b border-x-0 outline-0"
             placeholder="Пошук"
             searchIcon
             error={error}
@@ -209,7 +209,7 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
           />
         )}
         <Preloader isLoading={isLoading || false}>
-          <div className={cn('flex flex-col w-full', resultsClassName)}>
+          <div className={cn('flex max-h-60 w-full flex-col overflow-y-auto', resultsClassName)}>
             {!combinedOptions.length && (
               <div className="p-8 h-8 mx-auto flex items-center justify-between text-sm">
                 {!isLoading && 'Результатів не знайдено'}

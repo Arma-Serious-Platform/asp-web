@@ -40,7 +40,7 @@ const AdminPage = observer(() => {
 
   return (
     <Layout className="flex w-full mt-10 container mx-auto h-full">
-      <div className="flex flex-col bg-card w-full p-4">
+      <div className="flex flex-col bg-card w-full p-4 paper">
         <AdminSidebar className="mb-4" />
 
         <h1 className="text-2xl font-bold mb-2">Гравці</h1>

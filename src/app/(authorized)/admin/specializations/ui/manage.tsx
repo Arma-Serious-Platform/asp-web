@@ -11,6 +11,14 @@ import { Specialization } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
+import {
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/shared/ui/organisms/drawer';
 import { CropperWithZoom } from '@/shared/ui/organisms/cropper-with-zoom';
 import { base64ToFile, ensureValidUploadFile, resolveUploadFileFromInput } from '@/shared/utils/file';
 
@@ -34,7 +42,8 @@ export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = obs
     const [iconPreview, setIconPreview] = useState('');
     const [iconToCrop, setIconToCrop] = useState<File | null>(null);
     const [iconToCropPreview, setIconToCropPreview] = useState('');
-    const [cropperOpen, setCropperOpen] = useState(false);
+
+    const isCropping = Boolean(iconToCropPreview);
 
     useEffect(() => {
       if (state.modal.isOpen && state.modal.payload?.mode === 'manage') {
@@ -44,7 +53,6 @@ export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = obs
         setIconPreview('');
         setIconToCrop(null);
         setIconToCropPreview('');
-        setCropperOpen(false);
       }
 
       if (!state.modal.isOpen) {
@@ -54,7 +62,6 @@ export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = obs
         setIconPreview('');
         setIconToCrop(null);
         setIconToCropPreview('');
-        setCropperOpen(false);
       }
     }, [state.modal.isOpen, state.modal.payload?.mode, specialization]);
 
@@ -88,7 +95,6 @@ export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = obs
       if (!file) return;
 
       setIconToCrop(file);
-      setCropperOpen(true);
     };
 
     const handleSaveCroppedIcon = async () => {
@@ -101,15 +107,13 @@ export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = obs
       if (!ensureValidUploadFile(file)) return;
 
       setIcon(file);
-      setCropperOpen(false);
       setIconToCrop(null);
     };
 
-    const handleCloseCropper = (open: boolean) => {
-      setCropperOpen(open);
-
-      if (!open) {
-        setIconToCrop(null);
+    const handleCancelCrop = () => {
+      setIconToCrop(null);
+      if (iconInputRef.current) {
+        iconInputRef.current.value = '';
       }
     };
 
@@ -136,125 +140,129 @@ export const ManageSpecializationModal: FC<ManageSpecializationModalProps> = obs
 
     return (
       <>
-        <Dialog open={cropperOpen} onOpenChange={handleCloseCropper}>
-          <DialogOverlay />
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold">Обрізати іконку спеціалізації</DialogTitle>
-            </DialogHeader>
-
-            <div className="flex flex-col gap-3 overflow-hidden">
-              {iconToCropPreview && (
-                <CropperWithZoom
-                  ref={cropperRef}
-                  className="h-64 rounded-sm"
-                  src={iconToCropPreview}
-                  imageRestriction={ImageRestriction.stencil}
-                  stencilProps={{
-                    handlers: false,
-                    lines: true,
-                    movable: false,
-                    resizable: false,
-                  }}
-                  stencilSize={{
-                    height: 256,
-                    width: 256,
-                  }}
-                />
-              )}
-
-              <div className="flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleCloseCropper(false)}>
-                  Скасувати
-                </Button>
-                <Button type="button" onClick={handleSaveCroppedIcon} disabled={!iconToCropPreview}>
-                  Застосувати
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog
+        <Drawer
           open={state.modal.isOpen && state.modal.payload?.mode === 'manage'}
           onOpenChange={state.modal.switch}>
-          <DialogOverlay />
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{isEdit ? 'Редагувати спеціалізацію' : 'Нова спеціалізація'}</DialogTitle>
-            </DialogHeader>
+          <DrawerContent>
+            <div className="flex min-h-0 flex-1 flex-col gap-4">
+              <DrawerHeader>
+                <DrawerTitle>{isEdit ? 'Редагувати спеціалізацію' : 'Нова спеціалізація'}</DrawerTitle>
+              </DrawerHeader>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col items-center gap-2">
-                <input
-                  ref={iconInputRef}
-                  className="hidden"
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
-                  disabled={state.loader.isLoading}
-                  onChange={handleIconChange}
-                />
-                <div className="flex size-24 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/70">
-                  {iconSrc ? (
-                    <Image
-                      src={iconSrc}
-                      alt={name || 'Іконка спеціалізації'}
-                      width={96}
-                      height={96}
-                      className="size-24 object-cover"
-                      unoptimized={!iconSrc.startsWith('https')}
-                    />
+              <DrawerBody>
+                <div className="flex flex-col items-center gap-2">
+                  <input
+                    ref={iconInputRef}
+                    className="hidden"
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
+                    disabled={state.loader.isLoading}
+                    onChange={handleIconChange}
+                  />
+
+                  {isCropping ? (
+                    <div className="flex w-full flex-col gap-3">
+                      <CropperWithZoom
+                        ref={cropperRef}
+                        className="h-64 rounded-sm"
+                        src={iconToCropPreview}
+                        imageRestriction={ImageRestriction.stencil}
+                        stencilProps={{
+                          handlers: false,
+                          lines: true,
+                          movable: false,
+                          resizable: false,
+                        }}
+                        stencilSize={{
+                          height: 256,
+                          width: 256,
+                        }}
+                      />
+                      <div className="flex justify-between gap-2">
+                        <Button type="button" variant="outline" onClick={handleCancelCrop}>
+                          Скасувати
+                        </Button>
+                        <Button type="button" onClick={handleSaveCroppedIcon}>
+                          Застосувати
+                        </Button>
+                      </div>
+                    </div>
                   ) : (
-                    <span className="text-xs text-zinc-500">Без іконки</span>
+                    <>
+                      <div className="flex size-24 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/70">
+                        {iconSrc ? (
+                          <Image
+                            src={iconSrc}
+                            alt={name || 'Іконка спеціалізації'}
+                            width={96}
+                            height={96}
+                            className="size-24 object-cover"
+                            unoptimized={!iconSrc.startsWith('https')}
+                          />
+                        ) : (
+                          <span className="text-xs text-zinc-500">Без іконки</span>
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={state.loader.isLoading}
+                        onClick={() => iconInputRef.current?.click()}>
+                        <UploadIcon className="size-4" />
+                        {iconSrc ? 'Змінити іконку' : 'Обрати іконку'}
+                      </Button>
+                    </>
                   )}
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={state.loader.isLoading}
-                  onClick={() => iconInputRef.current?.click()}>
-                  <UploadIcon className="size-4" />
-                  {iconSrc ? 'Змінити іконку' : 'Обрати іконку'}
-                </Button>
-              </div>
 
-              <Input
-                autoFocus
-                label="Назва"
-                value={name}
-                disabled={state.loader.isLoading}
-                onChange={event => setName(event.target.value)}
-              />
+                {!isCropping && (
+                  <>
+                    <Input
+                      autoFocus
+                      label="Назва"
+                      value={name}
+                      disabled={state.loader.isLoading}
+                      onChange={event => setName(event.target.value)}
+                    />
 
-              <div className="grid grid-cols-[3rem_1fr] items-center gap-3">
-                <input
-                  type="color"
-                  value={color}
-                  disabled={state.loader.isLoading}
-                  onChange={event => setColor(event.target.value)}
-                  className="h-9 w-12 cursor-pointer rounded-md border border-neutral-700 bg-black/70 p-1 disabled:cursor-not-allowed disabled:opacity-45"
-                />
-                <Input
-                  label="Колір"
-                  value={color}
-                  disabled={state.loader.isLoading}
-                  onChange={event => setColor(event.target.value)}
-                />
-              </div>
+                    <div className="grid grid-cols-[3rem_1fr] items-center gap-3">
+                      <input
+                        type="color"
+                        value={color}
+                        disabled={state.loader.isLoading}
+                        onChange={event => setColor(event.target.value)}
+                        className="h-9 w-12 cursor-pointer rounded-md border border-neutral-700 bg-black/70 p-1 disabled:cursor-not-allowed disabled:opacity-45"
+                      />
+                      <Input
+                        label="Колір"
+                        value={color}
+                        disabled={state.loader.isLoading}
+                        onChange={event => setColor(event.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
+              </DrawerBody>
 
-              <div className="mt-2 flex justify-between gap-2">
-                <Button type="button" variant="outline" disabled={state.loader.isLoading} onClick={() => state.modal.close()}>
-                  Скасувати
-                </Button>
-                <Button type="button" disabled={state.loader.isLoading || !name.trim()} onClick={handleSubmit}>
-                  {state.loader.isLoading && <LoaderIcon className="size-4 animate-spin" />}
-                  {isEdit ? 'Зберегти' : 'Створити'}
-                </Button>
-              </div>
+              {!isCropping && (
+                <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={state.loader.isLoading}
+                    onClick={() => state.modal.close()}>
+                    Скасувати
+                  </Button>
+                  <Button type="button" disabled={state.loader.isLoading || !name.trim()} onClick={handleSubmit}>
+                    {state.loader.isLoading && <LoaderIcon className="size-4 animate-spin" />}
+                    {isEdit ? 'Зберегти' : 'Створити'}
+                  </Button>
+                </DrawerFooter>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
 
         <Dialog
           open={state.modal.isOpen && state.modal.payload?.mode === 'delete'}

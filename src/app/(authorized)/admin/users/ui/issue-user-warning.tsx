@@ -1,13 +1,14 @@
 import { Button } from '@/shared/ui/atoms/button';
 import { Textarea } from '@/shared/ui/atoms/textarea';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/organisms/dialog';
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/shared/ui/organisms/drawer';
 import { UserWarning } from '@/shared/sdk/types';
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useEffect, useState } from 'react';
@@ -41,35 +42,37 @@ const IssueUserWarningModal: FC<
   };
 
   return (
-    <Dialog open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
-      <DialogOverlay />
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            Видати попередження <span className="text-primary">{user?.nickname}</span>
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-4">
-          <Textarea
-            label="Причина"
-            value={reason}
-            autoFocus
-            disabled={model.loader.isLoading}
-            onChange={event => setReason(event.target.value)}
-          />
+    <Drawer open={model.visibility.isOpen} onOpenChange={model.visibility.switch}>
+      {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
+      <DrawerContent>
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <DrawerHeader>
+            <DrawerTitle>
+              Видати попередження <span className="text-primary">{user?.nickname}</span>
+            </DrawerTitle>
+          </DrawerHeader>
 
-          <div className="flex justify-between mt-2">
+          <DrawerBody>
+            <Textarea
+              label="Причина"
+              value={reason}
+              autoFocus
+              disabled={model.loader.isLoading}
+              onChange={event => setReason(event.target.value)}
+            />
+          </DrawerBody>
+
+          <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">
             <Button variant="outline" disabled={model.loader.isLoading} onClick={() => model.visibility.close()}>
               Скасувати
             </Button>
             <Button disabled={model.loader.isLoading} onClick={submit}>
               Видати
             </Button>
-          </div>
+          </DrawerFooter>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 });
 

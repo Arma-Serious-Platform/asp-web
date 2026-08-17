@@ -34,7 +34,7 @@ const AdminSpecializationsPage = observer(() => {
 
   return (
     <Layout className="container mx-auto mt-10 flex h-full w-full">
-      <div className="flex w-full flex-col bg-card p-4">
+      <div className="flex w-full flex-col bg-card p-4 paper">
         <ManageSpecializationModal
           state={specializationsPageState.manageSpecialization}
           onCreateSuccess={() => void specializationsPageState.load()}

@@ -5,8 +5,16 @@ import {
   DialogHeader,
   DialogOverlay,
   DialogTitle,
-  DialogTrigger,
 } from '@/shared/ui/organisms/dialog';
+import {
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/shared/ui/organisms/drawer';
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { manageWeekendState, ManageWeekendState } from '../state/manage-weekends.state';
@@ -528,11 +536,10 @@ const ManageWeekendModal: FC<
 
   return (
     <>
-      <Dialog open={state.modal.isOpen && state.modal?.payload?.mode !== 'delete'} onOpenChange={state.modal.switch}>
-        <DialogOverlay />
-        {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto max-w-2xl"
+      <Drawer open={state.modal.isOpen && state.modal?.payload?.mode !== 'delete'} onOpenChange={state.modal.switch}>
+        {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
+        <DrawerContent
+          className="w-full max-w-full overflow-hidden sm:w-[60vw] sm:max-w-[60vw]"
           onPointerDownOutside={event => {
             if (isDirty) event.preventDefault();
           }}
@@ -542,12 +549,12 @@ const ManageWeekendModal: FC<
           onEscapeKeyDown={event => {
             if (isDirty) event.preventDefault();
           }}>
-          <DialogHeader>
-            <DialogTitle>{isEdit ? 'Редагувати анонс' : 'Створити анонс'}</DialogTitle>
-          </DialogHeader>
+          <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+            <DrawerHeader>
+              <DrawerTitle>{isEdit ? 'Редагувати анонс' : 'Створити анонс'}</DrawerTitle>
+            </DrawerHeader>
 
-          <form className="flex flex-col gap-2" onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="flex flex-col gap-6">
+            <DrawerBody className="gap-6">
               <Controller
                 control={form.control}
                 name="name"
@@ -630,19 +637,19 @@ const ManageWeekendModal: FC<
                   </SortableContext>
                 </DndContext>
               </div>
-            </div>
+            </DrawerBody>
 
-            <div className="flex justify-between mt-4">
+            <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">
               <Button variant="outline" type="button" onClick={() => state.modal.close()}>
                 Скасувати
               </Button>
               <Button type="submit" disabled={state.loader.isLoading}>
                 {state?.modal?.payload?.weekend ? 'Зберегти' : 'Створити'}
               </Button>
-            </div>
+            </DrawerFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
 
       <Dialog open={state.modal.isOpen && state.modal?.payload?.mode === 'delete'} onOpenChange={state.modal.switch}>
         <DialogOverlay />
