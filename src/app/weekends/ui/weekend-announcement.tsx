@@ -6,6 +6,7 @@ import { MissionDetails } from '@/entities/mission/mission-details';
 import { Tab } from '@/shared/ui/moleculas/tab';
 import { Side, Weekend } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
+import { cn } from '@/shared/utils/cn';
 
 export const WeekendAnnouncement: FC<{
   weekend: Weekend;
@@ -51,13 +52,29 @@ export const WeekendAnnouncement: FC<{
         <div className="paper rounded-b-2xl rounded-t-none overflow-hidden shadow-xl border-lime-700/20 border-t-none">
           {/* Navigation Tabs - Connected to card */}
           <div className="w-full bg-black/40 border-b border-white/10 backdrop-blur-sm">
-            <div className="flex justify-center items-center gap-0 overflow-x-auto w-full">
+            <div className="flex justify-center items-stretch gap-0 overflow-x-auto w-full max-lg:flex-col">
               {sortedGames.map((game, index) => (
                 <Tab
                   key={game.id}
-                  className="w-full justify-center items-center"
-                  title={game.mission?.name || `Гра ${index + 1} ${dayjs(game.date).format('DD.MM')}`}
-                  index={index}
+                  className="min-h-14 w-full justify-start pl-12 sm:justify-center"
+                  watermark={(game.position ?? index) + 1}
+                  watermarkClassName={cn(
+                    'px-2 font-black leading-none tracking-tighter',
+                    'text-[2.75rem] sm:text-[3.5rem]',
+                    activeGameIndex === index ? 'text-white/75' : 'text-white/[0.08]',
+                  )}
+                  title={
+                    <span className="flex min-w-0 flex-col gap-0.5 sm:items-center">
+                      <span className="truncate font-semibold leading-tight">
+                        {game.mission?.name || `Гра ${index + 1}`}
+                      </span>
+                      {game.date && (
+                        <span className="text-[10px] font-medium uppercase tracking-wide text-white/60">
+                          {dayjs(game.date).format('DD.MM')}
+                        </span>
+                      )}
+                    </span>
+                  }
                   isActive={activeGameIndex === index}
                   onClick={() => setActiveGameIndex(index)}
                 />

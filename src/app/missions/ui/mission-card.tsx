@@ -37,7 +37,9 @@ const SideInfo: FC<SideInfoProps> = ({ label, sideName, sideType, slots, weaponr
         </div>
       </div>
       {weaponrySummary && (
-        <span className={cn('pl-0 text-[11px] leading-snug', MissionModel.sideTypeColors[sideType])}>{weaponrySummary}</span>
+        <span className={cn('pl-0 text-[11px] leading-snug', MissionModel.sideTypeColors[sideType])}>
+          {weaponrySummary}
+        </span>
       )}
     </div>
   );
@@ -51,9 +53,7 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
 
   const sideLabels = MissionModel.getMissionSideRoleLabels(mission.missionObjective);
   const totalSlots = lastVersion
-    ? lastVersion.attackSideSlots +
-      lastVersion.defenseSideSlots +
-      (lastVersion.friendlySideSlots ?? 0)
+    ? lastVersion.attackSideSlots + lastVersion.defenseSideSlots + (lastVersion.friendlySideSlots ?? 0)
     : 0;
 
   const attackWeaponry = lastVersion
@@ -101,7 +101,11 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
           {/* Status Badge */}
           {lastVersion?.status && (
             <div className="absolute top-3 right-3">
-              <span className={cn('px-2 py-1 rounded text-xs font-semibold border', MissionModel.statusColors[lastVersion.status])}>
+              <span
+                className={cn(
+                  'px-2 py-1 rounded text-xs font-semibold border',
+                  MissionModel.statusColors[lastVersion.status],
+                )}>
                 {MissionModel.statusLabels[lastVersion.status]}
               </span>
             </div>

@@ -1,27 +1,45 @@
 import { FC, ReactNode } from 'react';
-import classNames from 'classnames';
 import { cn } from '@/shared/utils/cn';
 
 export type TabProps = {
   title: ReactNode;
-  index?: number;
+  /** Decorative layer behind the title (non-interactive, non-selectable). */
+  watermark?: ReactNode;
+  watermarkClassName?: string;
   isActive: boolean;
   className?: string;
   onClick: () => void;
 };
 
-export const Tab: FC<TabProps> = ({ className, title, index, isActive, onClick }) => (
+export const Tab: FC<TabProps> = ({
+  className,
+  title,
+  watermark,
+  watermarkClassName,
+  isActive,
+  onClick,
+}) => (
   <button
+    type="button"
     onClick={onClick}
     className={cn(
-      'relative flex w-full px-4 py-2 text-sm font-medium transition-colors border-b-2 z-10 cursor-pointer',
+      'relative z-10 flex w-full cursor-pointer items-center overflow-hidden border-b-2 px-4 py-2 text-sm font-medium transition-colors',
       {
-        'bg-lime-700 text-white border-lime-600': isActive,
-        'bg-black/40 text-white border-transparent hover:bg-lime-700 hover:border-lime-600': !isActive,
+        'border-lime-500 bg-lime-700 text-white': isActive,
+        'border-transparent bg-black/40 text-white hover:border-lime-600 hover:bg-lime-700/80': !isActive,
       },
       className,
     )}>
-    {typeof index === 'number' ? `${index + 1}. ` : ''}
-    {title}
+    {watermark != null && (
+      <span
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute inset-y-0 left-0 flex select-none items-center justify-center',
+          watermarkClassName,
+        )}>
+        {watermark}
+      </span>
+    )}
+    <span className="relative z-10 truncate text-left">{title}</span>
   </button>
 );
