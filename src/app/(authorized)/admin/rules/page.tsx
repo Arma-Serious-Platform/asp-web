@@ -1,6 +1,6 @@
 'use client';
 
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 import {
   cloneRuleSections,
   DEFAULT_RULE_SECTIONS,
@@ -8,12 +8,12 @@ import {
   RuleSection,
   serializeRuleSections,
 } from '@/app/rules/data';
-import { api } from '@/shared/sdk';
+import { rulesApi } from '@/shared/sdk';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
 import { Textarea } from '@/shared/ui/atoms/textarea';
-import { AdminSidebar } from '@/widgets/admin/sidebar';
-import { useAdminRouteGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
+import { AdminSidebar } from '@/app/(authorized)/admin/ui/admin-sidebar';
+import { useAdminRouteGuard } from '@/app/(authorized)/admin/state/use-tech-admin-routes-guard';
 import { Layout } from '@/widgets/layout';
 import { LoaderIcon, RotateCcwIcon, SaveIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
@@ -37,7 +37,7 @@ const AdminRulesPage = observer(() => {
     const loadRules = async () => {
       try {
         setIsLoading(true);
-        const { data } = await api.getRules();
+        const { data } = await rulesApi.getRules();
         const parsedSections = parseRuleSections(data.content);
 
         setSections(parsedSections);
@@ -83,7 +83,7 @@ const AdminRulesPage = observer(() => {
   const saveRules = async () => {
     try {
       setIsSaving(true);
-      const { data } = await api.updateRules({ content: serializeRuleSections(sections) });
+      const { data } = await rulesApi.updateRules({ content: serializeRuleSections(sections) });
       const parsedSections = parseRuleSections(data.content);
 
       setSections(parsedSections);

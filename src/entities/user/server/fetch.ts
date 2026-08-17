@@ -1,8 +1,8 @@
-import { api } from '@/shared/sdk';
+import { usersApi } from '@/shared/sdk';
 
 // export const getUser = async () => {
 //   try {
-//     const { data: user } = await api.getMe();
+//     const { data: user } = await usersApi.getMe();
 
 //     return user;
 //   } catch {

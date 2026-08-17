@@ -11,7 +11,7 @@ import {
   isPreviewableAttachment,
   isVideoAttachment,
   MessageAttachmentItem,
-} from '@/entities/attachment/lib';
+} from '@/entities/attachment/ui/attachment';
 import { MediaPreviewDialog } from '@/shared/ui/moleculas/media-preview-dialog';
 import { AttachmentActionButton } from './attachment-action-button';
 

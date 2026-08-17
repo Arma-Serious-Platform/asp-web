@@ -4,11 +4,11 @@ import { ColumnDef } from '@tanstack/react-table';
 import { BanIcon, EditIcon, HandHeartIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
 
 import { observer } from 'mobx-react-lite';
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 import { View } from '@/features/view';
 import { ServerStatusText } from '@/entities/server/ui/server-text';
 import { Popover } from '@/shared/ui/moleculas/popover';
-import { serversModel } from './model';
+import { serversPageState } from './state/servers-page.state';
 
 export const columns: ColumnDef<Server>[] = [
   {
@@ -51,7 +51,7 @@ export const columns: ColumnDef<Server>[] = [
     accessorKey: 'actions',
     header: () => <div>Дії</div>,
     cell: observer(({ row }) => {
-      if (session.user?.user?.id === row.original.id) {
+      if (session.user?.data?.id === row.original.id) {
         return null;
       }
 
@@ -68,7 +68,7 @@ export const columns: ColumnDef<Server>[] = [
             variant="secondary"
             align="left"
             onClick={() => {
-              serversModel.manageServer.modal.open({
+              serversPageState.manageServer.modal.open({
                 server: row.original,
                 mode: 'manage',
               });
@@ -82,7 +82,7 @@ export const columns: ColumnDef<Server>[] = [
             align="left"
             size="sm"
             onClick={() => {
-              serversModel.manageServer.modal.open({
+              serversPageState.manageServer.modal.open({
                 server: row.original,
                 mode: 'delete',
               });

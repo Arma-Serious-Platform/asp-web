@@ -3,15 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { session } from '@/entities/session/model';
-import { ManageSpecializationModal } from '@/features/specializations/manage/ui';
+import { session } from '@/entities/session/session.state';
+import { ManageSpecializationModal } from './ui/manage';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input } from '@/shared/ui/atoms/input';
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { Layout } from '@/widgets/layout';
-import { AdminSidebar } from '@/widgets/admin/sidebar';
-import { useAdminRouteGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
-import { adminSpecializationsModel } from './model';
+import { AdminSidebar } from '@/app/(authorized)/admin/ui/admin-sidebar';
+import { useAdminRouteGuard } from '@/app/(authorized)/admin/state/use-tech-admin-routes-guard';
+import { specializationsPageState } from './state/specializations-page.state';
 import { columns } from './data';
 
 const AdminSpecializationsPage = observer(() => {
@@ -19,27 +19,27 @@ const AdminSpecializationsPage = observer(() => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    void adminSpecializationsModel.load();
+    void specializationsPageState.load();
   }, []);
 
   const filteredSpecializations = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
-    if (!normalizedSearch) return adminSpecializationsModel.specializations;
+    if (!normalizedSearch) return specializationsPageState.specializations;
 
-    return adminSpecializationsModel.specializations.filter(specialization =>
+    return specializationsPageState.specializations.filter(specialization =>
       specialization.name.toLowerCase().includes(normalizedSearch),
     );
-  }, [search, adminSpecializationsModel.specializations]);
+  }, [search, specializationsPageState.specializations]);
 
   return (
     <Layout className="container mx-auto mt-10 flex h-full w-full">
       <div className="flex w-full flex-col bg-card p-4">
         <ManageSpecializationModal
-          model={adminSpecializationsModel.manageSpecialization}
-          onCreateSuccess={() => void adminSpecializationsModel.load()}
-          onUpdateSuccess={() => void adminSpecializationsModel.load()}
-          onDeleteSuccess={() => void adminSpecializationsModel.load()}
+          state={specializationsPageState.manageSpecialization}
+          onCreateSuccess={() => void specializationsPageState.load()}
+          onUpdateSuccess={() => void specializationsPageState.load()}
+          onDeleteSuccess={() => void specializationsPageState.load()}
         />
         <AdminSidebar className="mb-4" />
         <div className="mb-2 flex items-center justify-between">
@@ -47,7 +47,7 @@ const AdminSpecializationsPage = observer(() => {
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => adminSpecializationsModel.manageSpecialization.modal.open({ mode: 'manage' })}>
+            onClick={() => specializationsPageState.manageSpecialization.modal.open({ mode: 'manage' })}>
             Додати спеціалізацію
           </Button>
         </div>
@@ -65,7 +65,7 @@ const AdminSpecializationsPage = observer(() => {
           columns={columns}
           data={filteredSpecializations}
           total={filteredSpecializations.length}
-          isLoading={adminSpecializationsModel.loader.isLoading}
+          isLoading={specializationsPageState.loader.isLoading}
         />
       </div>
     </Layout>

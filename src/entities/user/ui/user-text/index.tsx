@@ -1,13 +1,7 @@
 import { SideType, SquadRole, User, UserRole, UserStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC, PropsWithChildren } from 'react';
-import {
-  getPrimaryDisplayRole,
-  getUserRoleColor,
-  getUserStatusText,
-  sortRolesByPriority,
-  USER_ROLE_LABELS,
-} from '../../lib';
+import { UserModel } from '../../user.model';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
@@ -48,7 +42,7 @@ export const UserNicknameText: FC<{
 }> = ({ user, tag, sideType, className, link = true }) => {
   if (!user?.nickname) return '';
 
-  const nicknameColor = getUserRoleColor(getPrimaryDisplayRole(user.roles));
+  const nicknameColor = UserModel.getRoleColor(UserModel.getPrimaryDisplayRole(user.roles));
 
   if ((tag && sideType) || user?.squad?.tag) {
     const type = sideType || user?.squad?.side?.type;
@@ -83,14 +77,14 @@ export const UserRoleText: FC<{
 }> = ({ roles, className }) => {
   if (!roles?.length) return null;
 
-  const sortedRoles = sortRolesByPriority(roles);
+  const sortedRoles = UserModel.sortRolesByPriority(roles);
 
   return (
     <span className={cn(className)}>
       {sortedRoles.map((role, index) => (
         <span key={role}>
           {index > 0 && <span className="text-zinc-500">, </span>}
-          <span className={getUserRoleColor(role)}>{USER_ROLE_LABELS[role]}</span>
+          <span className={UserModel.getRoleColor(role)}>{UserModel.roleLabels[role]}</span>
         </span>
       ))}
     </span>
@@ -117,7 +111,7 @@ export const UserStatusText: FC<{
         },
         className,
       )}>
-      {getUserStatusText(status)}
+      {UserModel.getStatusText(status)}
       {bannedUntil && <span className="text-red-500"> {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
       {isPermanentBan && <span className="text-red-500"> назавжди</span>}
       {status === UserStatus.BANNED && banReason && <span className="ml-1 text-zinc-400">— {banReason}</span>}

@@ -1,7 +1,7 @@
 'use client';
 
-import { session } from '@/entities/session/model';
-import { ScheduleInfo } from '@/features/schedule';
+import { session } from '@/entities/session/session.state';
+import { ScheduleInfo } from '@/widgets/layout/header/ui/schedule-info';
 import { View } from '@/features/view';
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
@@ -26,10 +26,10 @@ import Image from 'next/image';
 import { FC, useEffect, useState } from 'react';
 
 import { cn } from '@/shared/utils/cn';
-import { getUserRoleText } from '@/entities/user/lib';
+import { UserModel } from '@/entities/user/user.model';
 import { env } from '@/shared/config/env';
-import { Social } from '@/features/social/ui';
-import { headerModel } from './model';
+import { Social } from '@/widgets/layout/ui/social-links';
+import { headerState } from './state/header.state';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 
 export type HeaderProps = {
@@ -114,7 +114,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
 
   return (
     <>
-      {(!session.isAuthorized || !session.user?.user) && !env.isLanding && (
+      {(!session.isAuthorized || !session.user?.data) && !env.isLanding && (
         <>
           <Link className={className} activeClassName={activeClassName} href={ROUTES.auth.login}>
             Увійти
@@ -125,7 +125,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
         </>
       )}
 
-      {session.isAuthorized && session.user?.user && !env.isLanding && (
+      {session.isAuthorized && session.user?.data && !env.isLanding && (
         <>
           <Popover
             className="flex flex-col p-1 w-48 border border-white/5 bg-neutral-900/90 backdrop-blur-md shadow-xl rounded-xl duration-300 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[state=open]:slide-in-from-top-2 data-[state=closed]:slide-out-to-top-2"
@@ -134,15 +134,15 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
                 type="button"
                 className="group flex items-center gap-2 px-2.5 py-1 rounded-md bg-transparent hover:bg-white/5 active:bg-white/10 data-[state=open]:bg-white/5 transition-all duration-200 cursor-pointer outline-hidden"
               >
-                <Avatar size="sm" src={session.user?.user?.avatar?.url} />
-                <UserNicknameText user={session.user?.user} link={false} className="text-xs font-semibold tracking-wide text-zinc-200" />
+                <Avatar size="sm" src={session.user?.data?.avatar?.url} />
+                <UserNicknameText user={session.user?.data} link={false} className="text-xs font-semibold tracking-wide text-zinc-200" />
                 <ChevronDownIcon className="size-3 text-zinc-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
               </button>
             }>
             
             {/* Minimalist Header with User Role */}
             <div className="px-2 py-1 text-[9px] font-semibold text-zinc-500 uppercase tracking-wider">
-              {getUserRoleText(session.user?.user?.roles)}
+              {UserModel.getRoleText(session.user?.data?.roles)}
             </div>
 
             <div className="h-px bg-white/5 my-0.5" />
@@ -169,7 +169,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
               </Button>
             </NextLink>
 
-            {session.user?.user?.squad && (
+            {session.user?.data?.squad && (
               <NextLink href={`${ROUTES.user.profile}?tab=squad`} className="w-full block">
                 <Button
                   variant="ghost"
@@ -181,8 +181,8 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
               </NextLink>
             )}
 
-            {Boolean(session.user?.user?._count?.missions) && session.user?.user?._count?.missions > 0 && (
-              <NextLink href={`${ROUTES.missions.root}?authorId=${session.user?.user?.id}`} className="w-full block">
+            {Boolean(session.user?.data?._count?.missions) && session.user?.data?._count?.missions > 0 && (
+              <NextLink href={`${ROUTES.missions.root}?authorId=${session.user?.data?.id}`} className="w-full block">
                 <Button
                   variant="ghost"
                   align="left"
@@ -235,11 +235,11 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
 
 export const MobileMenu = observer(() => {
   useEffect(() => {
-    window.document.body.style.overflow = headerModel.mobileMenu.isOpen ? 'hidden' : 'auto';
-  }, [headerModel.mobileMenu.isOpen]);
+    window.document.body.style.overflow = headerState.mobileMenu.isOpen ? 'hidden' : 'auto';
+  }, [headerState.mobileMenu.isOpen]);
 
   useEffect(() => {
-    return () => headerModel.mobileMenu.close();
+    return () => headerState.mobileMenu.close();
   }, []);
 
   return (
@@ -247,12 +247,12 @@ export const MobileMenu = observer(() => {
       className={cn(
         'fixed top-0 left-0 z-50 flex h-screen w-screen flex-col bg-linear-to-b from-black/95 via-neutral-950/98 to-black/95 transition-transform duration-300',
         {
-          'translate-x-full': !headerModel.mobileMenu.isOpen,
+          'translate-x-full': !headerState.mobileMenu.isOpen,
         },
       )}>
       <div className="relative mx-auto flex w-full max-w-xl flex-col px-4 pt-4">
         <div className="flex items-center justify-between">
-          <Link className="w-fit shrink-0" href={ROUTES.home} onClick={headerModel.mobileMenu.close}>
+          <Link className="w-fit shrink-0" href={ROUTES.home} onClick={headerState.mobileMenu.close}>
             <Image
               className="mr-2 transition-transform duration-300 hover:scale-105"
               priority
@@ -266,7 +266,7 @@ export const MobileMenu = observer(() => {
             type="button"
             aria-label="Закрити меню"
             className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-black/60 text-zinc-200 shadow-md transition-colors hover:bg-white/10"
-            onClick={headerModel.mobileMenu.close}>
+            onClick={headerState.mobileMenu.close}>
             <XIcon className="h-5 w-5" />
           </button>
         </div>
@@ -346,7 +346,7 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
           fixed: enableScrollVisibility,
           'bg-transparent': !isScrolled && enableScrollVisibility,
           'bg-card/75 backdrop-blur-xs': isScrolled && enableScrollVisibility,
-          'overflow-hidden': !headerModel.mobileMenu.isOpen,
+          'overflow-hidden': !headerState.mobileMenu.isOpen,
         },
       )}>
       <div className="container max-lg:mx-4 flex items-center justify-between">
@@ -381,7 +381,7 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
           </div>
         </div>
         <div className="flex items-center justify-center lg:hidden">
-          <MenuIcon className="w-6 h-6" onClick={() => headerModel.mobileMenu.open()} />
+          <MenuIcon className="w-6 h-6" onClick={() => headerState.mobileMenu.open()} />
         </div>
       </div>
     </header>

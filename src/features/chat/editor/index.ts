@@ -1,2 +1,2 @@
-export { MessageEditor } from './ui';
-export type { MessageEditorProps, MessageEditorSubmitPayload } from './ui';
+export { MessageEditor } from './message-editor';
+export type { MessageEditorProps, MessageEditorSubmitPayload } from './message-editor';

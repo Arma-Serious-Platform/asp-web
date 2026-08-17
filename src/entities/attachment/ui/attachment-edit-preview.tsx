@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useMemo } from 'react';
 import { cn } from '@/shared/utils/cn';
-import { isPreviewableUploadFile, MessageAttachmentItem } from '@/entities/attachment/lib';
+import { isPreviewableUploadFile, MessageAttachmentItem } from '@/entities/attachment/ui/attachment';
 import { AttachmentTiles, AttachmentTileItem } from './attachment-tiles';
 
 type AttachmentEditPreviewProps = {

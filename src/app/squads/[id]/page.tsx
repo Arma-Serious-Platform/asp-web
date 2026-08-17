@@ -1,14 +1,14 @@
 'use client';
 
 import { UserNicknameText } from '@/entities/user/ui/user-text';
-import { session } from '@/entities/session/model';
-import { getSquadSubleaders, sortSquadMembersByRole, SQUAD_ROLE_LABELS } from '@/entities/squad/lib';
+import { session } from '@/entities/session/session.state';
+import { SquadModel } from '@/entities/squad/squad.model';
 import { SpecializationBadges } from '@/entities/specialization/ui/specialization-badges';
 import { ChangeSocials } from '@/features/user/change-socials';
-import { RequestToJoinSquadButton } from '@/features/squads/request-to-join/ui';
+import { RequestToJoinSquadButton } from '@/app/squads/ui/request-to-join';
 import { ROUTES } from '@/shared/config/routes';
-import { api } from '@/shared/sdk';
-import { SideType, Squad, SquadJoinRequest, SquadRole, User } from '@/shared/sdk/types';
+import { squadsApi } from '@/shared/sdk';
+import { SideType, SquadJoinRequest, SquadRole, User } from '@/shared/sdk/types';
 import { Avatar } from '@/shared/ui/organisms/avatar';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
@@ -18,7 +18,7 @@ import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { MessageContent } from '@/entities/comment/lexical-message';
-
+import { observer } from 'mobx-react-lite';
 const sideAppearance = (sideType?: SideType) => {
   if (sideType === SideType.RED) {
     return { label: 'OPFOR', badge: 'bg-red-500/20 text-red-300 border-red-500/40', dot: 'bg-red-500' };
@@ -35,12 +35,12 @@ const SquadRoleBadge = ({ label }: { label: string }) => (
   </span>
 );
 
-export default function SquadDetailPage() {
+export default observer(function SquadDetailPage() {
   const params = useParams();
   const router = useRouter();
   const squadId = params?.id as string;
 
-  const [squad, setSquad] = useState<Squad | null>(null);
+  const [squad, setSquad] = useState<SquadModel | null>(null);
   const [joinRequests, setJoinRequests] = useState<SquadJoinRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -52,8 +52,8 @@ export default function SquadDetailPage() {
     setNotFound(false);
 
     try {
-      const { data } = await api.findSquadById(squadId);
-      setSquad(data);
+      const { data } = await squadsApi.findSquadById(squadId);
+      setSquad(new SquadModel(data));
     } catch (error) {
       console.error(error);
       setSquad(null);
@@ -67,7 +67,7 @@ export default function SquadDetailPage() {
     void loadSquad();
   }, [loadSquad]);
 
-  const canRequestToJoin = Boolean(session.isAuthorized && session.user?.user && !session.user.user.squad);
+  const canRequestToJoin = Boolean(session.isAuthorized && session.user?.data && !session.user?.data.squad);
 
   useEffect(() => {
     if (!canRequestToJoin) {
@@ -77,7 +77,7 @@ export default function SquadDetailPage() {
 
     const loadJoinRequests = async () => {
       try {
-        const { data } = await api.mySquadJoinRequests();
+        const { data } = await squadsApi.mySquadJoinRequests();
         setJoinRequests(data);
       } catch (error) {
         console.error(error);
@@ -87,13 +87,14 @@ export default function SquadDetailPage() {
     void loadJoinRequests();
   }, [canRequestToJoin]);
 
-  const sideType = squad?.side?.type;
+  const squadData = squad?.data;
+  const sideType = squadData?.side?.type;
   const appearance = sideAppearance(sideType);
-  const currentUserId = session.user?.user?.id;
-  const subleaders = getSquadSubleaders(squad?.members ?? []);
+  const currentUserId = session.user?.data?.id;
+  const subleaders = squad?.subleaders ?? [];
   const specializationStats = Array.from(
-    (squad?.members ?? [])
-      .flatMap(member => member.specializations ?? [])
+    (squadData?.members ?? [])
+      .flatMap(member => (member.specializations ?? []) as { id: string; name: string; color?: string | null; icon?: { url: string } | null }[])
       .reduce((stats, specialization) => {
         const current = stats.get(specialization.id);
 
@@ -109,9 +110,9 @@ export default function SquadDetailPage() {
       }, new Map<string, { id: string; name: string; color?: string | null; icon?: { url: string } | null; count: number }>())
       .values(),
   ).sort((first, second) => first.name.localeCompare(second.name, 'uk'));
-  const pendingJoinRequest = squad
-    ? (joinRequests.find(request => request.squadId === squad.id && request.status === 'PENDING') ??
-      squad.joinRequests?.find(request => request.userId === currentUserId && request.status === 'PENDING') ??
+  const pendingJoinRequest = squadData
+    ? (joinRequests.find(request => request.squadId === squadData.id && request.status === 'PENDING') ??
+      squadData.joinRequests?.find(request => request.userId === currentUserId && request.status === 'PENDING') ??
       null)
     : null;
 
@@ -129,7 +130,7 @@ export default function SquadDetailPage() {
           <div className="flex min-h-[280px] items-center justify-center rounded-xl border border-white/10 bg-black/30">
             <LoaderIcon className="size-8 animate-spin text-zinc-400" />
           </div>
-        ) : notFound || !squad ? (
+        ) : notFound || !squadData ? (
           <div className="paper flex flex-col items-center gap-4 rounded-xl border px-6 py-12 text-center">
             <p className="text-lg text-zinc-300">Загін не знайдено або недоступний.</p>
             <Button variant="outline" onClick={() => router.push(ROUTES.squads)}>
@@ -145,17 +146,17 @@ export default function SquadDetailPage() {
                   <div className="flex min-w-0 flex-col items-center gap-3">
                     <div className="w-full max-w-[260px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 shadow-lg">
                       <Image
-                        src={squad.logo?.url || '/images/avatar.jpg'}
-                        alt={squad.name}
+                        src={squadData.logo?.url || '/images/avatar.jpg'}
+                        alt={squadData.name}
                         width={260}
                         height={260}
                         className="aspect-square w-full object-cover"
-                        unoptimized={!squad.logo?.url?.startsWith('https')}
+                        unoptimized={!squadData.logo?.url?.startsWith('https')}
                       />
                     </div>
-                    {squad.tag && (
+                    {squadData.tag && (
                       <div className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-1 text-center text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
-                        {squad.tag}
+                        {squadData.tag}
                       </div>
                     )}
                     {specializationStats.length > 0 && (
@@ -200,35 +201,35 @@ export default function SquadDetailPage() {
                           )}>
                           <span className={cn('size-1.5 rounded-full', appearance.dot)} />
                           {appearance.label}
-                          {squad.side?.name ? (
-                            <span className="font-normal normal-case text-zinc-400">· {squad.side.name}</span>
+                          {squadData.side?.name ? (
+                            <span className="font-normal normal-case text-zinc-400">· {squadData.side.name}</span>
                           ) : null}
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-2.5 py-0.5 text-xs text-zinc-400">
                           <UsersRoundIcon className="size-3.5" />
-                          Учасників: {squad._count?.members ?? squad.members?.length ?? 0}
+                          Учасників: {squadData._count?.members ?? squadData.members?.length ?? 0}
                         </span>
-                        {typeof squad.activeCount === 'number' ? (
+                        {typeof squadData.activeCount === 'number' ? (
                           <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-2.5 py-0.5 text-xs text-zinc-400">
                             <ActivityIcon className="size-3.5 text-lime-400" />
-                            Активних: {squad.activeCount}
+                            Активних: {squadData.activeCount}
                           </span>
                         ) : null}
                         <span
                           className={cn(
                             'inline-flex rounded-full border px-2.5 py-0.5 text-xs',
-                            squad.recruiting
+                            squadData.recruiting
                               ? 'border-lime-500/40 bg-lime-500/10 text-lime-200'
                               : 'border-zinc-600/60 bg-zinc-800/60 text-zinc-400',
                           )}>
-                          {squad.recruiting ? 'Набір відкрито' : 'Набір закрито'}
+                          {squadData.recruiting ? 'Набір відкрито' : 'Набір закрито'}
                         </span>
                       </div>
                       <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{squad.name}</h1>
-                        {squad.description ? (
+                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{squadData.name}</h1>
+                        {squadData.description ? (
                           <div className="mt-3 max-w-3xl rounded-lg border border-white/10 bg-black/25 p-4 text-sm leading-relaxed text-zinc-300">
-                            <MessageContent message={squad.description} />
+                            <MessageContent message={squadData.description} />
                           </div>
                         ) : (
                           <div className="mt-3 max-w-3xl rounded-lg border border-white/10 bg-black/25 p-4 text-sm text-zinc-500">
@@ -239,7 +240,7 @@ export default function SquadDetailPage() {
                     </div>
 
                     <RequestToJoinSquadButton
-                      squad={squad}
+                      squad={squadData}
                       pendingRequest={pendingJoinRequest}
                       onRequestCreated={request =>
                         setJoinRequests(current => [...current.filter(item => item.id !== request.id), request])
@@ -256,15 +257,15 @@ export default function SquadDetailPage() {
                         <div className="flex items-center gap-3">
                           <Avatar
                             size="md"
-                            toProfileId={squad.leader?.nickname}
-                            src={squad.leader?.avatar?.url ?? undefined}
-                            alt={squad.leader?.nickname ?? ''}
+                            toProfileId={squadData.leader?.nickname}
+                            src={squadData.leader?.avatar?.url ?? undefined}
+                            alt={squadData.leader?.nickname ?? ''}
                           />
                           <div className="min-w-0">
                             <div className="text-base font-semibold text-zinc-100">
-                              {squad.leader ? (
+                              {squadData.leader ? (
                                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                  <UserNicknameText user={{ ...squad.leader, squad } as User} />
+                                  <UserNicknameText user={{ ...squadData.leader, squad: squadData } as User} />
                                   <SquadRoleBadge label="Лідер" />
                                 </div>
                               ) : (
@@ -272,7 +273,7 @@ export default function SquadDetailPage() {
                               )}
                             </div>
                             <SpecializationBadges
-                              specializations={squad.leader?.specializations}
+                              specializations={squadData.leader?.specializations}
                               className="mt-1"
                               compact
                             />
@@ -296,8 +297,8 @@ export default function SquadDetailPage() {
                                   alt={subleader.nickname}
                                 />
                                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                  <UserNicknameText user={{ ...subleader, squad } as User} />
-                                  <SquadRoleBadge label={SQUAD_ROLE_LABELS[subleader.squadRole ?? SquadRole.MEMBER]} />
+                                  <UserNicknameText user={{ ...subleader, squadData } as User} />
+                                  <SquadRoleBadge label={SquadModel.roleLabels[subleader.squadRole ?? SquadRole.MEMBER]} />
                                   <SpecializationBadges specializations={subleader.specializations} compact />
                                 </div>
                               </div>
@@ -310,7 +311,7 @@ export default function SquadDetailPage() {
                 </div>
 
                 <ChangeSocials
-                  socials={squad}
+                  socials={squadData}
                   readonly
                   className="min-w-0 overflow-hidden border-t border-white/10 pt-4"
                   linksClassName="w-full min-w-0 max-w-full flex-nowrap overflow-x-auto pb-1"
@@ -325,10 +326,8 @@ export default function SquadDetailPage() {
                 Учасники
               </h2>
               {(() => {
-                const members = sortSquadMembersByRole(
-                  Array.from(new Map((squad.members ?? []).map(member => [member.id, member])).values()).filter(
-                    member => member.id !== squad.leader?.id && member.squadRole !== SquadRole.SUBLEADER,
-                  ),
+                const members = (squad?.membersSortedByRole ?? []).filter(
+                  member => member.id !== squadData?.leader?.id && member.squadRole !== SquadRole.SUBLEADER,
                 );
 
                 if (!members.length) {
@@ -346,8 +345,8 @@ export default function SquadDetailPage() {
                           alt={member.nickname}
                         />
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                          <UserNicknameText user={{ ...member, squad } as User} />
-                          <SquadRoleBadge label={SQUAD_ROLE_LABELS[member.squadRole ?? SquadRole.MEMBER]} />
+                          <UserNicknameText user={{ ...member, squad: squadData } as User} />
+                          <SquadRoleBadge label={SquadModel.roleLabels[member.squadRole ?? SquadRole.MEMBER]} />
                           <SpecializationBadges specializations={member.specializations} compact />
                         </div>
                       </li>
@@ -361,4 +360,4 @@ export default function SquadDetailPage() {
       </div>
     </Layout>
   );
-}
+});

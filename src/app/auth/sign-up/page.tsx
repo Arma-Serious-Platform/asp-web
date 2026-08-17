@@ -1,4 +1,4 @@
-import { SignUpForm } from '@/features/auth/sign-up/ui';
+import { SignUpForm } from './ui/sign-up';
 import { Layout } from '@/widgets/layout';
 
 export default function SignUpPage() {

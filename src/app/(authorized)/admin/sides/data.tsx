@@ -1,16 +1,16 @@
-import { Side } from '@/shared/sdk/types';
+import { SideModel } from '@/entities/side/side.model';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
 import { EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
 
 import { observer } from 'mobx-react-lite';
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 
 import { Popover } from '@/shared/ui/moleculas/popover';
-import { sidesModel } from './model';
+import { sidesPageState } from './state/sides-page.state';
 import { SideTypeText } from '@/entities/side/ui/side-text';
 
-export const columns: ColumnDef<Side>[] = [
+export const columns: ColumnDef<SideModel>[] = [
   {
     accessorKey: 'name',
     header: () => <div>Назва</div>,
@@ -25,7 +25,7 @@ export const columns: ColumnDef<Side>[] = [
     cell: observer(({ row }) => {
       return (
         <div>
-          <SideTypeText type={row.original.type} />
+          <SideTypeText type={row.original.data.type} />
         </div>
       );
     }),
@@ -35,7 +35,7 @@ export const columns: ColumnDef<Side>[] = [
     accessorKey: 'server',
     header: () => <div>Сервер</div>,
     cell: observer(({ row }) => {
-      return <div>{row.original.server?.name}</div>;
+      return <div>{row.original.data.server?.name}</div>;
     }),
   },
 
@@ -43,7 +43,7 @@ export const columns: ColumnDef<Side>[] = [
     accessorKey: 'squds',
     header: () => <div>Загонів</div>,
     cell: observer(({ row }) => {
-      return <div>{row.original.squads.length}</div>;
+      return <div>{row.original.data.squads.length}</div>;
     }),
   },
 
@@ -51,7 +51,7 @@ export const columns: ColumnDef<Side>[] = [
   //   accessorKey: 'actions',
   //   header: () => <div>Дії</div>,
   //   cell: observer(({ row }) => {
-  //     if (session.user?.user?.id === row.original.id) {
+  //     if (session.user?.data?.id === row.original.id) {
   //       return null;
   //     }
 

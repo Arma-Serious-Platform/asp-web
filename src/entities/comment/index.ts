@@ -1,2 +1,2 @@
-export { CommentItem, CommentList } from './ui';
-export type { CommentItemProps, CommentListProps } from './ui';
+export { CommentItem, CommentList } from './comment-list';
+export type { CommentItemProps, CommentListProps } from './comment-list';

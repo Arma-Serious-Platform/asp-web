@@ -1,4 +1,4 @@
-import { LoginForm } from '@/features/auth/login/ui';
+import { LoginForm } from './ui/login';
 import { Layout } from '@/widgets/layout';
 
 export default function LoginPage() {

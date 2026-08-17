@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Dialog, DialogContent } from '@/shared/ui/organisms/dialog';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { FC, ReactNode, useEffect } from 'react';
-import { isImageAttachment, isVideoAttachment, MessageAttachmentItem } from '@/entities/attachment/lib';
+import { isImageAttachment, isVideoAttachment, MessageAttachmentItem } from '@/entities/attachment/ui/attachment';
 
 type MediaPreviewDialogProps = {
   open: boolean;

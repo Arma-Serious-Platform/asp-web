@@ -1,0 +1,56 @@
+import { Loader } from '@/shared/state/loader';
+import { Visibility } from '@/shared/state/visibility';
+import { missionsApi } from '@/shared/sdk';
+import { CreateMissionDto, MissionCommentMessage, MissionObjective, MissionType } from '@/shared/sdk/types';
+import { makeAutoObservable } from 'mobx';
+import toast from 'react-hot-toast';
+
+export type MissionFormData = {
+  name: string;
+  description: MissionCommentMessage | null;
+  islandId: string;
+  missionType: MissionType;
+  missionObjective: MissionObjective;
+  coauthorIds: string[];
+  image: File | null;
+};
+
+export class CreateMissionState {
+  constructor() {
+    makeAutoObservable(this);
+  }
+
+  loader = new Loader();
+
+  visibility = new Visibility();
+
+  async save(data: MissionFormData, imageFile: File | null, onSuccess?: (missionId: string) => void) {
+    try {
+      this.loader.start();
+
+      const dto: CreateMissionDto = {
+        name: data.name,
+        description: data.description as MissionCommentMessage,
+        islandId: data.islandId,
+        missionType: data.missionType,
+        missionObjective: data.missionObjective,
+        coauthorIds: data.coauthorIds.length ? data.coauthorIds : undefined,
+        image: imageFile,
+      };
+
+      const response = await missionsApi.createMission(dto);
+
+      if (onSuccess) {
+        onSuccess(response.data.id);
+      }
+
+      toast.success('Місію створено');
+      this.visibility.close();
+    } catch (error) {
+      toast.error('Не вдалося створити місію');
+      throw error;
+    } finally {
+      this.loader.stop();
+    }
+  }
+}

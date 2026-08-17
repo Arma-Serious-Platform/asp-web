@@ -1,11 +1,11 @@
-import { Weekend } from '@/shared/sdk/types';
+import { WeekendModel } from '@/entities/weekend/weekend.model';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
 import { EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
 
 import { observer } from 'mobx-react-lite';
 import { Popover } from '@/shared/ui/moleculas/popover';
-import { weekendsModel } from './model';
+import { weekendsPageState } from './state/weekends-page.state';
 
 function formatDate(iso: string | null | undefined) {
   if (!iso) return '—';
@@ -16,7 +16,7 @@ function formatDate(iso: string | null | undefined) {
   });
 }
 
-export const columns: ColumnDef<Weekend>[] = [
+export const columns: ColumnDef<WeekendModel>[] = [
   {
     accessorKey: 'name',
     header: () => <div>Назва</div>,
@@ -26,20 +26,20 @@ export const columns: ColumnDef<Weekend>[] = [
     accessorKey: 'description',
     header: () => <div>Опис</div>,
     cell: ({ row }) => (
-      <div className="max-w-[200px] truncate" title={row.original.description}>
-        {row.original.description ?? '—'}
+      <div className="max-w-[200px] truncate" title={row.original.data.description}>
+        {row.original.data.description ?? '—'}
       </div>
     ),
   },
   {
     accessorKey: 'published',
     header: () => <div>Опубліковано</div>,
-    cell: ({ row }) => <div>{row.original.published ? 'Так' : 'Ні'}</div>,
+    cell: ({ row }) => <div>{row.original.data.published ? 'Так' : 'Ні'}</div>,
   },
   {
     accessorKey: 'publishedAt',
     header: () => <div>Дата публікації</div>,
-    cell: ({ row }) => <div>{formatDate(row.original.publishedAt)}</div>,
+    cell: ({ row }) => <div>{formatDate(row.original.data.publishedAt)}</div>,
   },
   {
     accessorKey: 'actions',
@@ -58,8 +58,8 @@ export const columns: ColumnDef<Weekend>[] = [
             variant="secondary"
             align="left"
             onClick={() => {
-              weekendsModel.manageWeekend.modal.open({
-                weekend: row.original,
+              weekendsPageState.manageWeekend.modal.open({
+                weekend: row.original.data,
                 mode: 'manage',
               });
             }}>
@@ -72,8 +72,8 @@ export const columns: ColumnDef<Weekend>[] = [
             align="left"
             size="sm"
             onClick={() => {
-              weekendsModel.manageWeekend.modal.open({
-                weekend: row.original,
+              weekendsPageState.manageWeekend.modal.open({
+                weekend: row.original.data,
                 mode: 'delete',
               });
             }}>

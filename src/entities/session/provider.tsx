@@ -4,7 +4,7 @@ import type { User } from '@/shared/sdk/types';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef } from 'react';
 
-import { session } from './model';
+import { session } from './session.state';
 
 export const SessionProvider = observer(
   ({ children, initialUser }: { children: React.ReactNode; initialUser: User | null }) => {

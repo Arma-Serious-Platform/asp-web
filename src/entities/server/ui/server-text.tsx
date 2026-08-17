@@ -1,7 +1,17 @@
 import { ServerStatus } from '@/shared/sdk/types';
 import classNames from 'classnames';
 import { FC } from 'react';
-import { getServerStatusText } from '../lib';
+
+const getServerStatusText = (status: ServerStatus) => {
+  switch (status) {
+    case ServerStatus.ACTIVE:
+      return 'Активний';
+    case ServerStatus.INACTIVE:
+      return 'Не активний';
+    default:
+      return '';
+  }
+};
 
 export const ServerStatusText: FC<{
   status?: ServerStatus;

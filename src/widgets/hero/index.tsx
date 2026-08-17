@@ -1,7 +1,7 @@
 'use client';
 
-import { ServerInfo } from '@/features/server-info';
-import { IncomingWeekends } from '@/widgets/incoming-weekends/ui';
+import { ServerInfo } from '@/widgets/hero/ui/server-info';
+import { IncomingWeekends } from '@/widgets/hero/ui/incoming-weekends';
 
 import { Button } from '@/shared/ui/atoms/button';
 import { Link } from '@/shared/ui/atoms/link';
@@ -9,7 +9,7 @@ import classNames from 'classnames';
 
 import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
-import { model } from './model';
+import { heroState } from './state/hero.state';
 
 const LogoAndTitle: FC<{
   size?: 'md' | 'lg';
@@ -47,7 +47,7 @@ export const Hero: FC<{
   if (variant === 'default') {
     return (
       <div className={classNames('relative w-full', className)}>
-        <IncomingWeekends model={model.incomingWeekends} />
+        <IncomingWeekends model={heroState.incomingWeekends} />
       </div>
     );
   }

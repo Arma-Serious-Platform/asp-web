@@ -8,13 +8,13 @@ import { observer } from 'mobx-react-lite';
 
 import { Layout } from '@/widgets/layout';
 
-import { SquadListingCard } from '@/entities/squad/ui/squad-listing-card';
+import { SquadListingCard } from '@/app/squads/ui/squad-listing-card';
 
-import { model } from './model';
+import { squadsPageState } from './state/squads-page.state';
 import { SideType, Squad, SquadJoinRequest } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
-import { session } from '@/entities/session/model';
-import { api } from '@/shared/sdk';
+import { session } from '@/entities/session/session.state';
+import { squadsApi } from '@/shared/sdk';
 
 const NoSquadsInformer: FC<{
   type: SideType;
@@ -41,11 +41,11 @@ const SquadsPage = observer(() => {
   const [joinRequests, setJoinRequests] = useState<SquadJoinRequest[]>([]);
 
   useEffect(() => {
-    void model.squads.init();
+    void squadsPageState.squads.init();
   }, []);
 
-  const currentUserId = session.user?.user?.id;
-  const canRequestToJoin = Boolean(session.isAuthorized && session.user?.user && !session.user.user.squad);
+  const currentUserId = session.user?.data?.id;
+  const canRequestToJoin = Boolean(session.isAuthorized && session.user?.data && !session.user?.data.squad);
 
   useEffect(() => {
     if (!canRequestToJoin) {
@@ -55,7 +55,7 @@ const SquadsPage = observer(() => {
 
     const loadJoinRequests = async () => {
       try {
-        const { data } = await api.mySquadJoinRequests();
+        const { data } = await squadsApi.mySquadJoinRequests();
         setJoinRequests(data);
       } catch (error) {
         console.error(error);
@@ -77,12 +77,7 @@ const SquadsPage = observer(() => {
     setJoinRequests(current => [...current.filter(item => item.id !== request.id), request]);
   }, []);
 
-  const isInitialLoading = model.squads.pagination.preloader.isLoading && model.squads.pagination.data.length === 0;
-  const blueSquads = model.squads.blueSquads;
-  const redSquads = model.squads.redSquads;
-  const unassignedSquads = model.squads.unassignedSquads;
-  const blueStats = getSideSquadStats(blueSquads);
-  const redStats = getSideSquadStats(redSquads);
+  const isInitialLoading = squadsPageState.squads.loader.isLoading && squadsPageState.squads.data.length === 0;
 
   return (
     <Layout showHero className="w-full mx-auto">
@@ -122,11 +117,11 @@ const SquadsPage = observer(() => {
                   <span className="absolute inset-[2px] rounded-full bg-linear-to-r from-blue-500/20 via-white/5 to-red-500/25" />
                   <span className="relative whitespace-nowrap">
                     <span className="text-blue-200">
-                      {blueStats.active}/{blueStats.total}
+                      {squadsPageState.blueStats.active}/{squadsPageState.blueStats.total}
                     </span>
                     <span className="mx-2 text-zinc-400">VS</span>
                     <span className="text-red-200">
-                      {redStats.active}/{redStats.total}
+                      {squadsPageState.redStats.active}/{squadsPageState.redStats.total}
                     </span>
                   </span>
                 </div>
@@ -147,12 +142,12 @@ const SquadsPage = observer(() => {
                 {/* BLUFOR side */}
                 <section className="flex w-full flex-col gap-3">
                   <div className="flex flex-col gap-3">
-                    {blueSquads.length === 0 && <NoSquadsInformer type={SideType.BLUE} />}
-                    {blueSquads.map(squad => (
+                    {squadsPageState.blueSquads.length === 0 && <NoSquadsInformer type={SideType.BLUE} />}
+                    {squadsPageState.blueSquads.map(squad => (
                       <SquadListingCard
                         key={squad.id}
-                        squad={squad}
-                        pendingJoinRequest={getPendingRequestForSquad(squad)}
+                        squad={squad.data}
+                        pendingJoinRequest={getPendingRequestForSquad(squad.data)}
                         onJoinRequestCreated={handleJoinRequestCreated}
                       />
                     ))}
@@ -162,13 +157,13 @@ const SquadsPage = observer(() => {
                 {/* OPFOR side */}
                 <section className="flex w-full flex-col gap-3">
                   <div className="flex flex-col gap-3">
-                    {redSquads.length === 0 && <NoSquadsInformer type={SideType.RED} />}
-                    {redSquads.map(squad => (
+                    {squadsPageState.redSquads.length === 0 && <NoSquadsInformer type={SideType.RED} />}
+                    {squadsPageState.redSquads.map(squad => (
                       <SquadListingCard
                         key={squad.id}
-                        squad={squad}
+                        squad={squad.data}
                         align="left"
-                        pendingJoinRequest={getPendingRequestForSquad(squad)}
+                        pendingJoinRequest={getPendingRequestForSquad(squad.data)}
                         onJoinRequestCreated={handleJoinRequestCreated}
                       />
                     ))}
@@ -180,7 +175,7 @@ const SquadsPage = observer(() => {
         </div>
 
         {/* Independent squads */}
-        {!isInitialLoading && unassignedSquads.length > 0 && (
+        {!isInitialLoading && squadsPageState.unassignedSquads.length > 0 && (
           <section className="mb-4 mt-1 flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-linear-to-r from-transparent via-zinc-500/60 to-transparent" />
@@ -190,13 +185,13 @@ const SquadsPage = observer(() => {
               <span className="h-px flex-1 bg-linear-to-r from-transparent via-zinc-500/60 to-transparent" />
             </div>
             <div className="paper flex flex-wrap gap-3 rounded-xl border p-4 shadow-lg">
-              {unassignedSquads.map(squad => (
+              {squadsPageState.unassignedSquads.map(squad => (
                 <SquadListingCard
                   key={squad.id}
                   className="w-1/2 mx-auto"
-                  squad={squad}
+                  squad={squad.data}
                   align="left"
-                  pendingJoinRequest={getPendingRequestForSquad(squad)}
+                  pendingJoinRequest={getPendingRequestForSquad(squad.data)}
                   onJoinRequestCreated={handleJoinRequestCreated}
                 />
               ))}

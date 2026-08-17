@@ -1,7 +1,17 @@
 import { SideType } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 import { FC } from 'react';
-import { getSideTypeText } from '../../lib';
+
+const getSideTypeText = (type: SideType) => {
+  switch (type) {
+    case SideType.BLUE:
+      return 'BLUFOR';
+    case SideType.RED:
+      return 'OPFOR';
+    case SideType.UNASSIGNED:
+      return 'Нейтральна';
+  }
+};
 
 export const SideTypeText: FC<{
   type: SideType;

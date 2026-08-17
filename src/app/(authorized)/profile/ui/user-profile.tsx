@@ -1,0 +1,336 @@
+'use client';
+
+import { observer } from 'mobx-react-lite';
+import { useEffect } from 'react';
+import { Button } from '@/shared/ui/atoms/button';
+import Image from 'next/image';
+import {
+  ActivityIcon,
+  IdCardIcon,
+  MailIcon,
+  MessageCircleIcon,
+  SendIcon,
+  ShieldUserIcon,
+  UserIcon,
+} from 'lucide-react';
+
+import { UserNicknameText, UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
+import { View } from '@/features/view';
+import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
+import { UserSquad } from './user-squad';
+import ChangePassword from './change-password';
+import { ManageSessions } from './manage-sessions';
+import { ManageTwoFactor } from './manage-two-factor';
+import { ChangeNicknameModal, ProfileNickname } from './change-nickname';
+import { ChangeAvatarModal } from './change-avatar';
+import { InfoTile } from '@/shared/ui/moleculas/info-tile';
+import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
+import { ChangeSocials } from '@/features/user/change-socials';
+import { UserHistorySection } from './user-history';
+import { UserAdminActionsButtons, UserAdminActionsModals } from '@/app/(authorized)/admin/users';
+import { UserProfileState } from '../state/user-profile.state';
+import { Preloader } from '@/shared/ui/atoms/preloader';
+import { ProfileSidebar } from './profile-sidebar';
+import { ProfileChat } from './profile-chat';
+import { ROUTES } from '@/shared/config/routes';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ProfileSteamConnect } from './steam-connect';
+import toast from 'react-hot-toast';
+import { Card } from '@/shared/ui/atoms/card';
+
+export enum ProfileTab {
+  PROFILE = 'profile',
+  CHAT = 'chat',
+  SQUAD = 'squad',
+  SECURITY = 'security',
+}
+import { User } from '@/shared/sdk/types';
+
+type UserProfileProps = {
+  model: UserProfileState;
+  userIdOrNickname?: string;
+};
+
+const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useQueryState(
+    'tab',
+    parseAsStringEnum([ProfileTab.PROFILE, ProfileTab.CHAT, ProfileTab.SQUAD, ProfileTab.SECURITY]).withDefault(
+      ProfileTab.PROFILE,
+    ),
+  );
+  const [chatUserId, setChatUserId] = useQueryState('userId', parseAsString);
+
+  useEffect(() => {
+    model.init(userIdOrNickname ?? undefined);
+  }, [userIdOrNickname]);
+
+  useEffect(() => {
+    if (!model.isOwnProfile || searchParams.get('steam') !== 'linked') {
+      return;
+    }
+
+    toast.success('Steam успішно підключено');
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete('steam');
+
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${ROUTES.user.profile}?${nextQuery}` : ROUTES.user.profile);
+  }, [model.isOwnProfile, router, searchParams]);
+
+  const refreshOtherUser = () => {
+    if (!model.isOwnProfile && userIdOrNickname) {
+      void model.init(userIdOrNickname, { refresh: true });
+    }
+  };
+
+  const handleChangeNicknameSuccess = (user: User) => {
+    model.otherUser = user;
+
+    if (userIdOrNickname !== user.nickname) {
+      router.replace(ROUTES.user.profileById(user.nickname));
+    }
+  };
+
+  return (
+    <>
+      {model.isOwnProfile && (
+        <>
+          <ChangeAvatarModal model={model.avatar} autoInputClick />
+          <ChangeNicknameModal
+            model={model.nickname}
+            user={model.user}
+            onSuccess={() => model.init(undefined, { refresh: true })}
+          />
+        </>
+      )}
+
+      {!model.isOwnProfile && model.user && (
+        <UserAdminActionsModals
+          model={model.adminActions}
+          onBanSuccess={refreshOtherUser}
+          onUnbanSuccess={refreshOtherUser}
+          onChangeNicknameSuccess={handleChangeNicknameSuccess}
+          onChangeRoleSuccess={refreshOtherUser}
+          onIssueWarningSuccess={refreshOtherUser}
+          onWarningRemoved={refreshOtherUser}
+        />
+      )}
+
+      <div className="container relative mx-auto my-6 w-full px-4">
+        <Preloader isLoading={model.loader.isLoading}>
+          <div className="paper mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:flex-row lg:items-start lg:px-7 lg:py-6">
+            {/* Left column: avatar + tabs */}
+            <div className="flex w-full lg:max-w-[195px] shrink-0 flex-col gap-4 lg:w-64">
+              <div className="group relative aspect-square w-full overflow-hidden rounded-lg border border-white/10 bg-black/70 shadow-lg">
+                <Image
+                  className="h-full w-full object-cover"
+                  src={model.user?.avatar?.url || '/images/avatar.jpg'}
+                  width={256}
+                  height={256}
+                  alt="avatar"
+                  unoptimized={!model.user?.avatar?.url?.startsWith('https')}
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-70" />
+                {model.isOwnProfile && (
+                  <Button
+                    onClick={() => model.avatar.modal.open()}
+                    size="sm"
+                    variant="secondary"
+                    className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/20 bg-black/80 px-4 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-100 hover:bg-black">
+                    Змінити аватар
+                  </Button>
+                )}
+              </div>
+
+              {!model.isOwnProfile && (
+                <>
+                  <Button
+                    size="sm"
+                    disabled={!model.user?.id}
+                    onClick={() =>
+                      router.push(
+                        `${ROUTES.user.profile}?tab=${ProfileTab.CHAT}&userId=${encodeURIComponent(model.user?.id ?? '')}`,
+                      )
+                    }
+                    className="w-full">
+                    <MessageCircleIcon className="size-4" />
+                    Написати
+                  </Button>
+
+                  <UserAdminActionsButtons user={model.user} model={model.adminActions} />
+                </>
+              )}
+
+              {model.isOwnProfile && <ProfileSidebar tab={tab} setTab={setTab} isOwnProfile={model.isOwnProfile} />}
+            </div>
+
+            {/* Right column: tab content */}
+            <div className="flex min-w-0 flex-1 flex-col gap-4 border-t border-white/10 pt-4 lg:min-w-0 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+              <View.Condition if={tab === 'profile' || !model.isOwnProfile}>
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                      Основна інформація
+                    </span>
+                    {model.isOwnProfile ? (
+                      <ProfileNickname user={model.user} model={model.nickname} />
+                    ) : (
+                      <div className="flex items-center gap-2 text-lg font-semibold text-white">
+                        <UserIcon className="size-5 text-primary" />
+                        <UserNicknameText
+                          user={model.user}
+                          tag={model?.user?.squad?.tag}
+                          sideType={model?.user?.squad?.side?.type}
+                          link={false}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <View.Condition if={model.isOwnProfile}>
+                    <InfoTile
+                      icon={<IdCardIcon className="size-4" />}
+                      title="Steam ID"
+                      description={
+                        <ProfileSteamConnect
+                          user={model.user}
+                          disconnectModel={model.steamDisconnect}
+                          onChanged={() => model.init(undefined, { refresh: true })}
+                        />
+                      }
+                    />
+                  </View.Condition>
+
+                  <View.Condition if={!model.isOwnProfile}>
+                    <InfoTile
+                      icon={<IdCardIcon className="size-4" />}
+                      title="Steam ID"
+                      description={model.user?.steamId ? model.user.steamId : 'Не підключено'}
+                    />
+                  </View.Condition>
+
+                  <div className="grid gap-3 text-sm text-zinc-200 sm:grid-cols-2">
+                    <InfoTile
+                      icon={<ShieldUserIcon className="size-4" />}
+                      title="Ролі"
+                      description={<UserRoleText roles={model.user?.roles} />}
+                    />
+                    <InfoTile
+                      icon={<ActivityIcon className="size-4" />}
+                      title="Статус"
+                      description={
+                        <UserStatusText
+                          status={model.user?.status}
+                          bannedUntil={model.user?.bannedUntil as Date | null | undefined}
+                          banReason={model.user?.banReason}
+                        />
+                      }
+                    />
+
+                    {model.isOwnProfile && (
+                      <InfoTile
+                        className="sm:col-span-2"
+                        icon={<MailIcon className="size-4" />}
+                        title="Електронна пошта"
+                        description={
+                          model.user?.email ? (
+                            <RevealableBlurredText toggleAriaLabel="Показати або приховати електронну пошту">
+                              {model.user.email}
+                            </RevealableBlurredText>
+                          ) : (
+                            '—'
+                          )
+                        }
+                      />
+                    )}
+
+                    <InfoTile
+                      className="sm:col-span-2"
+                      icon={<SendIcon className="size-4" />}
+                      title="Соціальні мережі"
+                      description={
+                        <ChangeSocials
+                          className="mt-1"
+                          user={model.user}
+                          isLoading={model.socialsLoader.isLoading}
+                          readonly={!model.isOwnProfile}
+                          onChange={changes => {
+                            if (Object.keys(changes).length === 0) return;
+
+                            model.updateUser(changes);
+                          }}
+                        />
+                      }
+                    />
+                  </div>
+
+                  <UserHistorySection userId={model.user?.id} />
+                </div>
+              </View.Condition>
+
+              {model.isOwnProfile && (
+                <>
+                  <View.Condition if={tab === 'squad'}>
+                    <div className="flex flex-col gap-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                        Мій загін
+                      </span>
+                      <UserSquad user={model.user} onSquadChanged={() => model.init(undefined, { refresh: true })} />
+                    </div>
+                  </View.Condition>
+
+                  <View.Condition if={tab === 'security'}>
+                    <div className="flex min-w-0 flex-col gap-5">
+                      <section className="flex min-w-0 flex-col gap-3">
+                        <h2 className="text-sm font-semibold text-white">Змінити пароль</h2>
+                        <ChangePassword user={model.user} />
+                      </section>
+
+                      <section className="flex min-w-0 flex-col gap-3 border-t border-white/10 pt-5">
+                        <div className="flex flex-col gap-0.5">
+                          <h2 className="text-sm font-semibold text-white">Двофакторна автентифікація</h2>
+                          <p className="text-xs text-zinc-500">Google Authenticator, Authy та інші TOTP-застосунки.</p>
+                        </div>
+                        <ManageTwoFactor
+                          onStatusChange={enabled => {
+                            if (model.user) {
+                              model.user.twoFactorEnabled = enabled;
+                            }
+                          }}
+                        />
+                      </section>
+
+                      <section className="flex min-w-0 flex-col gap-3 border-t border-white/10 pt-5">
+                        <div className="flex flex-col gap-0.5">
+                          <h2 className="text-sm font-semibold text-white">Активні сесії</h2>
+                          <p className="text-xs text-zinc-500">
+                            Завершіть інші входи. Поточну сесію завершити не можна.
+                          </p>
+                        </div>
+                        <ManageSessions />
+                      </section>
+                    </div>
+                  </View.Condition>
+
+                  <View.Condition if={tab === 'chat'}>
+                    <ProfileChat
+                      initialUserId={chatUserId ?? undefined}
+                      onInitialUserHandled={() => {
+                        setChatUserId(null);
+                      }}
+                    />
+                  </View.Condition>
+                </>
+              )}
+            </div>
+          </div>
+        </Preloader>
+      </div>
+    </>
+  );
+});
+
+export { UserProfile };

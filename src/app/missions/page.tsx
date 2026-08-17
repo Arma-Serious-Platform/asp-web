@@ -1,214 +1,24 @@
 'use client';
 
 import { Layout } from '@/widgets/layout';
-import { MissionCard } from '@/entities/mission/ui/mission-card';
+import { MissionCard } from '@/app/missions/ui/mission-card';
 import { Button } from '@/shared/ui/atoms/button';
-import { Input, NumericInput } from '@/shared/ui/atoms/input';
-import { Select } from '@/shared/ui/atoms/select';
 import { MissionStatus, MissionType, MissionObjective, State } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import { PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
-import { model } from './model';
+import { missionsState } from './state/missions-page.state';
 
-import { CreateMissionModal } from '@/features/mission/create-mission/ui';
+import { CreateMissionModal } from './ui/create-mission';
+import { MissionFilters, type MissionFiltersState } from './ui/mission-filters';
+import { MissionSortControls } from './ui/mission-sort-controls';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/config/routes';
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs';
-import { missionObjectiveOptions, missionTypeOptions, stateOptions, statusOptions } from '@/entities/mission/lib';
-import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { View } from '@/features/view';
-import { session } from '@/entities/session/model';
-import { Tab } from '@/shared/ui/moleculas/tab';
-
-type MissionFiltersState = {
-  search: string | null;
-  status: MissionStatus | null;
-  state: State | null;
-  islandId: string | null;
-  authorId: string | null;
-  reviewerId: string | null;
-  minSlots: number | null;
-  maxSlots: number | null;
-  minSlotsToPlay: number | null;
-  missionType: MissionType | null;
-  missionObjective: MissionObjective | null;
-  orderType: 'asc' | 'desc';
-};
-
-type MissionFiltersProps = {
-  filters: MissionFiltersState;
-  setFilters: (patch: Partial<MissionFiltersState>) => void;
-  isFilterApplied: boolean;
-  onApply: () => void;
-  onReset: () => void;
-  className?: string;
-};
-
-type MissionSortControlsProps = {
-  orderType: 'asc' | 'desc';
-  onChange: (orderType: 'asc' | 'desc') => void;
-  className?: string;
-};
-
-const missionSortOptions = [
-  { label: 'Спочатку новіші', value: 'desc' },
-  { label: 'Спочатку старіші', value: 'asc' },
-] as const;
-
-const MissionSortControls = ({ orderType, onChange, className }: MissionSortControlsProps) => (
-  <div
-    aria-label="Сортування місій"
-    className={cn('flex overflow-hidden rounded-lg border border-white/10 bg-black/30', className)}>
-    {missionSortOptions.map(option => (
-      <Tab
-        key={option.value}
-        title={option.label}
-        isActive={orderType === option.value}
-        className="w-auto border-b-0 px-3 py-1.5 text-xs"
-        onClick={() => onChange(option.value)}
-      />
-    ))}
-  </div>
-);
-
-const MissionFilters = observer(
-  ({ filters, setFilters, isFilterApplied, onApply, onReset, className }: MissionFiltersProps) => {
-    const isLoading = model.missionModel.pagination.preloader.isLoading;
-
-    return (
-      <div className={cn('flex flex-col gap-4', className)}>
-        <Input
-          label="Пошук"
-          placeholder="По назві"
-          value={filters.search || ''}
-          onChange={e => setFilters({ search: e.target.value || null })}
-          searchIcon
-        />
-
-        <Select
-          label="Тип місії"
-          options={missionTypeOptions}
-          value={filters.missionType || ''}
-          onChange={value =>
-            setFilters({
-              missionType: value ? (value as MissionType) : null,
-            })
-          }
-        />
-
-        <Select
-          label="Тип бою"
-          options={missionObjectiveOptions}
-          value={filters.missionObjective || ''}
-          onChange={value =>
-            setFilters({
-              missionObjective: value ? (value as MissionObjective) : null,
-            })
-          }
-        />
-
-        <Select
-          label="Статус останньої версії"
-          options={statusOptions}
-          value={filters.status || ''}
-          onChange={value =>
-            setFilters({
-              status: value ? (value as MissionStatus) : null,
-            })
-          }
-        />
-
-        <Select
-          label="Стан"
-          options={stateOptions}
-          value={filters.state || ''}
-          onChange={value =>
-            setFilters({
-              state: value ? (value as State) : null,
-            })
-          }
-        />
-
-        <Select
-          label="Автор"
-          options={mapUsersToSelectOptions(model.userModel.pagination.data)}
-          localSearch
-          placeholder="Усі автори"
-          value={filters.authorId || ''}
-          onChange={value => setFilters({ authorId: value || null })}
-        />
-
-        <Select
-          label="Перевіряючий"
-          options={mapUsersToSelectOptions(model.reviewerUserModel.pagination.data)}
-          localSearch
-          placeholder="Усі перевіряючі"
-          value={filters.reviewerId || ''}
-          onChange={value => setFilters({ reviewerId: value || null })}
-        />
-
-        <Select
-          label="Карта"
-          resultsClassName="max-h-[150px] overflow-y-auto"
-          multiple={false}
-          placeholder="Усі карти"
-          options={model.missionModel.islandsOptions}
-          value={filters.islandId || ''}
-          localSearch
-          onChange={value => setFilters({ islandId: value || null })}
-        />
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
-          <NumericInput
-            label="Мін. слотів"
-            placeholder="0"
-            value={filters.minSlots?.toString() || ''}
-            onChange={e =>
-              setFilters({
-                minSlots: e.target.value ? parseInt(e.target.value, 10) : null,
-              })
-            }
-          />
-
-          <NumericInput
-            label="Макс. слотів"
-            placeholder="0"
-            value={filters.maxSlots?.toString() || ''}
-            onChange={e =>
-              setFilters({
-                maxSlots: e.target.value ? parseInt(e.target.value, 10) : null,
-              })
-            }
-          />
-        </div>
-
-        <NumericInput
-          label="Мінімальні слоти для гри mVTG"
-          placeholder="0"
-          value={filters.minSlotsToPlay?.toString() || ''}
-          onChange={e =>
-            setFilters({
-              minSlotsToPlay: e.target.value ? parseInt(e.target.value, 10) : null,
-            })
-          }
-        />
-
-        <div className="grid grid-cols-2 gap-2 pt-1 sm:flex sm:flex-col sm:gap-2 sm:pt-2">
-          <Button variant="outline" disabled={isLoading} onClick={onApply} className="w-full">
-            Застосувати
-          </Button>
-
-          <Button variant="ghost" disabled={isLoading || !isFilterApplied} onClick={onReset} className="w-full">
-            Скинути
-          </Button>
-        </div>
-      </div>
-    );
-  },
-);
+import { session } from '@/entities/session/session.state';
 
 const MissionsPageContent = observer(() => {
   const router = useRouter();
@@ -260,14 +70,14 @@ const MissionsPageContent = observer(() => {
     if (orderType === filters.orderType) return;
 
     void setFiltersState({ orderType });
-    void model.missionModel.pagination.init({
+    void missionsState.missionsPagination.init({
       ...getMissionParams(orderType),
       skip: 0,
     });
   };
 
   const applyFilters = () => {
-    model.missionModel.pagination.init({
+    missionsState.missionsPagination.init({
       ...getMissionParams(),
       skip: 0,
     });
@@ -289,7 +99,7 @@ const MissionsPageContent = observer(() => {
       missionObjective: null,
     });
 
-    model.missionModel.pagination.init({
+    missionsState.missionsPagination.init({
       skip: 0,
       take: 25,
       orderBy: 'createdAt',
@@ -309,21 +119,21 @@ const MissionsPageContent = observer(() => {
   useEffect(() => {
     if (!session.isSessionReady || !session.isAuthorized) return;
 
-    model.init({
+    missionsState.init({
       ...getMissionParams(),
     });
   }, [session.isAuthorized, session.isSessionReady]);
 
   const handleCreateMission = () => {
-    model.createMissionModel.visibility.open();
+    missionsState.createMissionState.visibility.open();
   };
 
   const handleMissionCreated = (missionId: string) => {
     router.push(ROUTES.missions.id(missionId));
   };
 
-  const isLoading = model.missionModel.pagination.preloader.isLoading;
-  const missions = model.missionModel.pagination.data;
+  const isLoading = missionsState.missionsPagination.loader.isLoading;
+  const missions = missionsState.missionsPagination.data;
   const hasNoMissions = !isLoading && missions.length === 0;
 
   if (!session.isSessionReady || !session.isAuthorized) {
@@ -332,7 +142,7 @@ const MissionsPageContent = observer(() => {
 
   return (
     <Layout showHero={false} className="container paper mx-auto my-2 sm:my-4">
-      <CreateMissionModal model={model.createMissionModel} onSuccess={handleMissionCreated} />
+      <CreateMissionModal state={missionsState.createMissionState} onSuccess={handleMissionCreated} />
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:py-8">
         {/* Mobile header */}
         <div className="mb-4 flex flex-col gap-3 lg:hidden">
@@ -444,19 +254,20 @@ const MissionsPageContent = observer(() => {
 
                 <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {missions.map(mission => (
-                    <MissionCard key={mission.id} mission={mission} />
+                    <MissionCard key={mission.id} mission={mission.data} />
                   ))}
                 </div>
               </>
             )}
 
-            {!hasNoMissions && model.missionModel.pagination.canLoadMore && (
+            {!hasNoMissions && missionsState.missionsPagination.canLoadMore && (
               <Button
                 variant="outline"
                 className="mx-auto mt-2 w-full sm:mt-0 sm:w-fit"
-                onClick={() => model.missionModel.pagination.loadMore()}>
+                onClick={() => missionsState.missionsPagination.loadMore()}>
                 <span className="text-center text-sm sm:text-base">
-                  Показати більше: {model.missionModel.pagination.data.length} з {model.missionModel.pagination.total}
+                  Показати більше: {missionsState.missionsPagination.data.length} з{' '}
+                  {missionsState.missionsPagination.total}
                 </span>
               </Button>
             )}

@@ -1,42 +1,42 @@
 'use client';
 
-import { session } from '@/entities/session/model';
-import { useAdminRouteGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
-import { AdminSidebar } from '@/widgets/admin/sidebar';
+import { session } from '@/entities/session/session.state';
+import { useAdminRouteGuard } from '@/app/(authorized)/admin/state/use-tech-admin-routes-guard';
+import { AdminSidebar } from '@/app/(authorized)/admin/ui/admin-sidebar';
 import { Layout } from '@/widgets/layout';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 
-import { squadsPageModel } from './model';
+import { squadsPageState } from './state/squads-page.state';
 
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
 
 import { Button } from '@/shared/ui/atoms/button';
-import { ManageSquadModal } from '@/features/squads/manage/ui';
+import { ManageSquadModal } from '@/app/(authorized)/admin/squads/ui/manage-squad';
 
 const AdminPage = observer(() => {
   useAdminRouteGuard(session.canManageSquadsAndSides);
 
   useEffect(() => {
-    squadsPageModel.squads.init();
+    squadsPageState.init();
   }, []);
 
   return (
     <Layout className="flex w-full mt-10 container mx-auto h-full">
       <div className="flex flex-col bg-card w-full p-4">
         <ManageSquadModal
-          model={squadsPageModel.manageSquad}
+          model={squadsPageState.manageSquad}
           onCreateSuccess={() => {
-            squadsPageModel.squads.init();
+            squadsPageState.init();
           }}
           onUpdateSuccess={() => {
-            squadsPageModel.squads.init();
+            squadsPageState.init();
           }}
           onDeleteSuccess={() => {
-            squadsPageModel.squads.init();
+            squadsPageState.init();
           }}
-          existedSquads={squadsPageModel.squads.pagination.data}
+          existedSquads={squadsPageState.pagination.data.map(squad => squad.data)}
         />
         <AdminSidebar className="mb-4" />
         <div className="mb-2 flex justify-between items-center">
@@ -45,7 +45,7 @@ const AdminPage = observer(() => {
             size="sm"
             variant="secondary"
             onClick={() => {
-              squadsPageModel.manageSquad.modal.open({
+              squadsPageState.manageSquad.modal.open({
                 mode: 'manage',
               });
             }}>
@@ -55,9 +55,9 @@ const AdminPage = observer(() => {
 
         <DataTable
           columns={columns}
-          data={squadsPageModel.squads.pagination.data}
-          total={squadsPageModel.squads.pagination.total}
-          isLoading={squadsPageModel.squads.pagination.preloader.isLoading}
+          data={squadsPageState.pagination.data}
+          total={squadsPageState.pagination.total}
+          isLoading={squadsPageState.pagination.loader.isLoading}
         />
       </div>
     </Layout>

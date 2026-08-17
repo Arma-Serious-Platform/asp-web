@@ -4,12 +4,12 @@ import { Layout } from '@/widgets/layout';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo } from 'react';
 import { Hero } from '@/widgets/hero';
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 import { ROUTES } from '@/shared/config/routes';
 import { useRouter, useParams, redirect } from 'next/navigation';
-import { UserProfile } from '@/widgets/users/profile/ui';
+import { UserProfile } from '@/app/(authorized)/profile/ui/user-profile';
 
-import { model } from './model';
+import { userProfilePageState } from './state/user-profile-page.state';
 
 const UserProfilePage = observer(() => {
   const router = useRouter();
@@ -23,22 +23,22 @@ const UserProfilePage = observer(() => {
     }
 
     if (userIdOrNickname) {
-      model.userProfile.init(userIdOrNickname);
+      userProfilePageState.userProfile.init(userIdOrNickname);
     }
-  }, [userIdOrNickname, model, router]);
+  }, [userIdOrNickname, router]);
 
   if (!session.isAuthorized || !userIdOrNickname) {
     return null;
   }
 
-  if (userIdOrNickname === session?.user?.user?.id || model.userProfile.user?.id === session.user?.user?.id) {
+  if (userIdOrNickname === session.user?.data?.id || userProfilePageState.userProfile.user?.id === session.user?.data?.id) {
     return redirect(`${ROUTES.user.profile}?tab=profile`);
   }
 
   return (
     <Layout>
       <Hero />
-      <UserProfile userIdOrNickname={userIdOrNickname} model={model.userProfile} />
+      <UserProfile userIdOrNickname={userIdOrNickname} model={userProfilePageState.userProfile} />
     </Layout>
   );
 });

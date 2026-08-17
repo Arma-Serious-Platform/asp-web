@@ -2,8 +2,8 @@
 
 import { Layout } from '@/widgets/layout';
 import { Button } from '@/shared/ui/atoms/button';
-import { api } from '@/shared/sdk';
-import { Mission, MissionStatus, MissionVersion, State, UserRole } from '@/shared/sdk/types';
+import { missionsApi } from '@/shared/sdk';
+import { Mission, MissionVersion, State, UserRole } from '@/shared/sdk/types';
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -11,33 +11,33 @@ import {
   ArchiveIcon,
   ArchiveRestoreIcon,
   EllipsisIcon,
-  PlusIcon,
   LoaderIcon,
   EditIcon,
   Trash2Icon,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/shared/config/routes';
-import { ChangeMissionVersionStatusModal } from '@/features/mission/change-mission-status/ui';
-import { CreateUpdateMissionVersionModal } from '@/features/mission/create-update-version/ui';
-import { UpdateMissionModal } from '@/features/mission/update-mission/ui';
-import { MissionDetailsModel } from './model';
-import { MissionVersionCard } from '@/entities/mission/version/version-card/ui';
+import { ChangeMissionVersionStatusModal } from './ui/change-mission-status';
+import { CreateUpdateMissionVersionModal } from './ui/create-update-version';
+import { UpdateMissionModal } from './ui/update-mission';
+import { MissionDetailsState } from './state/mission-details.state';
+import { DeleteMissionState } from './state/delete-mission.state';
+import { VersionsSection } from './ui/versions-section';
+import { CommentsSection } from './ui/comments-section';
 import { View } from '@/features/view';
-import { session } from '@/entities/session/model';
-import { hasAnyRole } from '@/entities/user/lib';
+import { session } from '@/entities/session/session.state';
+import { UserModel } from '@/entities/user/user.model';
 import { observer } from 'mobx-react-lite';
-import { CommentList } from '@/entities/comment';
-import { MessageComposer, MessageComposerSubmitPayload } from '@/features/chat/message-composer/ui';
-import type { MissionComment } from '@/shared/sdk/types';
-import { DeleteMissionCommentModal, DeleteMissionCommentModel } from '@/features/mission/comment/delete-comment';
-import { DeleteMissionModal, DeleteMissionModel } from '@/features/mission/delete-mission';
-import { ChangeMissionStateModal } from '@/features/mission/change-mission-state';
+import { MessageComposerSubmitPayload } from '@/features/chat/message-composer/message-composer';
+import type { CommentViewModel } from '@/entities/comment/types';
+import { DeleteMissionCommentModal } from '@/app/missions/[id]/ui/delete-comment';
+import { DeleteMissionCommentState } from '@/app/missions/[id]/state/delete-comment.state';
+import { DeleteMissionModal } from './ui/delete-mission';
+import { ChangeMissionStateModal } from './ui/change-mission-state';
 import { MissionAuthorsText } from '@/entities/mission/mission-authors-text';
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/shared/ui/organisms/dialog';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { Popover } from '@/shared/ui/moleculas/popover';
-import dayjs from 'dayjs';
 
 const MissionDetailsPage = observer(() => {
   const params = useParams();
@@ -48,10 +48,10 @@ const MissionDetailsPage = observer(() => {
   const [versionToDelete, setVersionToDelete] = useState<MissionVersion | null>(null);
   const [isDeletingVersion, setIsDeletingVersion] = useState(false);
   const [missionActionsOpen, setMissionActionsOpen] = useState(false);
-  const missionDetailsModel = useMemo(() => new MissionDetailsModel(), []);
-  const deleteCommentModel = useMemo(() => new DeleteMissionCommentModel(), []);
-  const deleteMissionModel = useMemo(() => new DeleteMissionModel(), []);
-  const currentUserId = session.user?.user?.id;
+  const missionDetailsState = useMemo(() => new MissionDetailsState(), []);
+  const deleteCommentModel = useMemo(() => new DeleteMissionCommentState(), []);
+  const deleteMissionState = useMemo(() => new DeleteMissionState(), []);
+  const currentUserId = session.user?.data?.id;
 
   useEffect(() => {
     if (!session.isSessionReady) return;
@@ -76,7 +76,7 @@ const MissionDetailsPage = observer(() => {
   const canChangeMissionState =
     isMissionAuthor ||
     isMissionCoauthor ||
-    hasAnyRole(session.user?.user?.roles, [UserRole.OWNER, UserRole.UVK]);
+    UserModel.hasAnyRole(session.user?.data?.roles, [UserRole.OWNER, UserRole.UVK]);
   const hasMissionActions = canEditMission || canChangeMissionState || canDeleteMission;
 
   useEffect(() => {
@@ -85,7 +85,7 @@ const MissionDetailsPage = observer(() => {
     const loadMission = async () => {
       try {
         setIsLoading(true);
-        const response = await api.findMissionById(missionId);
+        const response = await missionsApi.findMissionById(missionId);
         setMission(response.data);
       } catch (error) {
         console.error('Failed to load mission:', error);
@@ -103,11 +103,11 @@ const MissionDetailsPage = observer(() => {
     if (!session.isSessionReady || !session.isAuthorized) return;
 
     if (missionId) {
-      missionDetailsModel.commentModel.pagination.loadAll({
+      missionDetailsState.commentModel.pagination.loadAll({
         missionId,
       });
     }
-  }, [missionId, session.isAuthorized, session.isSessionReady, missionDetailsModel.commentModel.pagination]);
+  }, [missionId, session.isAuthorized, session.isSessionReady, missionDetailsState.commentModel.pagination]);
 
   const handleCreateVersion = () => {
     if (!mission) return;
@@ -116,7 +116,7 @@ const MissionDetailsPage = observer(() => {
       return;
     }
 
-    missionDetailsModel.createUpdateMissionVersionModel.visibility.open({
+    missionDetailsState.createUpdateMissionVersionState.visibility.open({
       missionId,
       mission,
     });
@@ -129,7 +129,7 @@ const MissionDetailsPage = observer(() => {
       return;
     }
 
-    missionDetailsModel.createUpdateMissionVersionModel.visibility.open({
+    missionDetailsState.createUpdateMissionVersionState.visibility.open({
       missionId,
       mission,
       version,
@@ -137,27 +137,25 @@ const MissionDetailsPage = observer(() => {
   };
 
   const handleVersionSaved = async () => {
-    // Reload mission to get updated versions
-    const response = await api.findMissionById(missionId);
+    const response = await missionsApi.findMissionById(missionId);
     setMission(response.data);
   };
 
   const handleMissionUpdate = () => {
     if (!mission) return;
-    missionDetailsModel.updateMissionModel.visibility.open({
+    missionDetailsState.updateMissionState.visibility.open({
       mission,
     });
   };
 
   const handleMissionSaved = async () => {
-    // Reload mission
-    const response = await api.findMissionById(missionId);
+    const response = await missionsApi.findMissionById(missionId);
     setMission(response.data);
   };
 
   const handleDeleteMission = async (id: string) => {
     try {
-      await api.deleteMission(id);
+      await missionsApi.deleteMission(id);
       toast.success('Місію видалено');
       router.push(ROUTES.missions.root);
     } catch {
@@ -170,7 +168,7 @@ const MissionDetailsPage = observer(() => {
     if (!mission) return;
 
     const nextState = mission.state === State.ARCHIVED ? State.ACTIVE : State.ARCHIVED;
-    missionDetailsModel.changeMissionStateModel.visibility.open({
+    missionDetailsState.changeMissionStateState.visibility.open({
       mission,
       state: nextState,
     });
@@ -181,7 +179,7 @@ const MissionDetailsPage = observer(() => {
 
     try {
       setIsDeletingVersion(true);
-      await api.deleteMissionVersion(missionId, versionToDelete.id);
+      await missionsApi.deleteMissionVersion(missionId, versionToDelete.id);
       toast.success('Версію місії видалено');
       setVersionToDelete(null);
       await handleVersionSaved();
@@ -192,30 +190,28 @@ const MissionDetailsPage = observer(() => {
     }
   };
 
-  const canDeleteComment = (comment: MissionComment) => {
-    const currentUserId = session.user?.user?.id;
-    const isCommentAuthor = Boolean(
-      currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId),
-    );
+  const canDeleteComment = (comment: CommentViewModel) => {
+    const userId = session.user?.data?.id;
+    const isCommentAuthor = Boolean(userId && (comment.userId === userId || comment.user?.id === userId));
 
     return session.isHasAdminPanelAccess || isCommentAuthor;
   };
 
-  const canEditComment = (comment: MissionComment) => {
+  const canEditComment = (comment: CommentViewModel) => {
     if (session.isCommunicationMuted) {
       return false;
     }
 
-    const currentUserId = session.user?.user?.id;
-    return Boolean(currentUserId && (comment.userId === currentUserId || comment.user?.id === currentUserId));
+    const userId = session.user?.data?.id;
+    return Boolean(userId && (comment.userId === userId || comment.user?.id === userId));
   };
 
-  const handleDeleteComment = (comment: MissionComment) => {
-    deleteCommentModel.visibility.open({ comment });
+  const handleDeleteComment = (comment: CommentViewModel) => {
+    deleteCommentModel.visibility.open({ comment: comment as any });
   };
 
-  const handleEditComment = async (comment: MissionComment, payload: MessageComposerSubmitPayload) => {
-    await missionDetailsModel.commentModel.update(comment.id, missionId, payload);
+  const handleEditComment = async (comment: CommentViewModel, payload: MessageComposerSubmitPayload) => {
+    await missionDetailsState.commentModel.update(comment.id, missionId, payload);
   };
 
   if (!session.isSessionReady || !session.isAuthorized) {
@@ -239,7 +235,7 @@ const MissionDetailsPage = observer(() => {
       <Layout showHero={false}>
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-zinc-400 mb-4">Місію не знайдено</p>
+            <p className="mb-4 text-zinc-400">Місію не знайдено</p>
             <Button variant="outline" onClick={() => router.push(ROUTES.missions.root)}>
               Повернутися до списку
             </Button>
@@ -252,29 +248,28 @@ const MissionDetailsPage = observer(() => {
   return (
     <Layout showHero={false}>
       <ChangeMissionVersionStatusModal
-        model={missionDetailsModel.changeMissionVersionStatusModel}
-        onSuccess={async status => {
-          // Reload mission to get updated versions
-          const response = await api.findMissionById(missionId);
+        state={missionDetailsState.changeMissionVersionStatusState}
+        onSuccess={async () => {
+          const response = await missionsApi.findMissionById(missionId);
           setMission(response.data);
         }}
       />
       <CreateUpdateMissionVersionModal
-        model={missionDetailsModel.createUpdateMissionVersionModel}
+        state={missionDetailsState.createUpdateMissionVersionState}
         onSuccess={handleVersionSaved}
       />
-      <UpdateMissionModal model={missionDetailsModel.updateMissionModel} onSuccess={handleMissionSaved} />
+      <UpdateMissionModal state={missionDetailsState.updateMissionState} onSuccess={handleMissionSaved} />
       <ChangeMissionStateModal
-        model={missionDetailsModel.changeMissionStateModel}
+        state={missionDetailsState.changeMissionStateState}
         onSuccess={state =>
           setMission(currentMission => (currentMission ? { ...currentMission, state } : currentMission))
         }
       />
       <DeleteMissionCommentModal
         model={deleteCommentModel}
-        onConfirm={commentId => missionDetailsModel.commentModel.remove(missionId, commentId)}
+        onConfirm={commentId => missionDetailsState.commentModel.remove(missionId, commentId)}
       />
-      <DeleteMissionModal model={deleteMissionModel} onConfirm={handleDeleteMission} />
+      <DeleteMissionModal state={deleteMissionState} onConfirm={handleDeleteMission} />
       <Dialog open={Boolean(versionToDelete)} onOpenChange={open => !open && setVersionToDelete(null)}>
         <DialogOverlay />
         <DialogContent>
@@ -304,9 +299,7 @@ const MissionDetailsPage = observer(() => {
         </Button>
 
         <div className="paper mx-auto flex w-full max-w-7xl flex-col gap-6 rounded-xl border px-5 py-5 shadow-xl lg:px-7 lg:py-6">
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-start gap-6">
-            {/* Mission Image */}
+          <div className="flex flex-col gap-6 md:flex-row md:items-start">
             <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg border border-white/10 md:w-80">
               {mission.image?.url ? (
                 <Image
@@ -317,17 +310,16 @@ const MissionDetailsPage = observer(() => {
                   unoptimized={!mission.image.url.startsWith('https')}
                 />
               ) : (
-                <div className="w-full h-full bg-linear-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
-                  <span className="text-zinc-500 text-sm">Немає зображення</span>
+                <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-neutral-800 to-neutral-900">
+                  <span className="text-sm text-zinc-500">Немає зображення</span>
                 </div>
               )}
             </div>
 
-            {/* Mission Info */}
-            <div className="flex-1 flex flex-col gap-4">
+            <div className="flex flex-1 flex-col gap-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white mb-3">
+                  <h1 className="mb-3 text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl">
                     {mission?.name}
                   </h1>
                   {mission.state === State.ARCHIVED && (
@@ -395,7 +387,7 @@ const MissionDetailsPage = observer(() => {
                         className="w-full justify-start gap-2 text-red-400 hover:bg-red-500/10 hover:text-red-300"
                         onClick={() => {
                           setMissionActionsOpen(false);
-                          deleteMissionModel.visibility.open({
+                          deleteMissionState.visibility.open({
                             missionId: mission.id,
                             missionName: mission.name,
                           });
@@ -410,127 +402,29 @@ const MissionDetailsPage = observer(() => {
             </div>
           </div>
 
-          {/* Last Version Details */}
-          {mission?.missionVersions && mission.missionVersions.length > 0 && (
-            <div key={mission.missionVersions?.[0]?.id} className="border-t border-white/10 pt-6">
-              {mission.missionVersions?.[0]?.version && (
-                <h2 className="text-xl font-bold text-white mb-4">
-                  Остання версія: {mission.missionVersions?.[0]?.version}
-                </h2>
-              )}
-              <MissionVersionCard
-                fullWidth
-                version={mission.missionVersions?.[0]}
-                missionId={missionId}
-                missionObjective={mission.missionObjective}
-                canEdit={canEditMissionVersion}
-                canDelete={canDeleteMissionVersion}
-                canChangeStatus={canChangeMissionVersionStatus}
-                defaultSectionsOpen
-                onEdit={handleEditVersion}
-                onDelete={setVersionToDelete}
-                onChangeStatus={params => {
-                  missionDetailsModel.changeMissionVersionStatusModel.visibility.open(params);
-                }}
-              />
-            </div>
-          )}
+          <VersionsSection
+            mission={mission}
+            missionId={missionId}
+            canEditMissionVersion={canEditMissionVersion}
+            canDeleteMissionVersion={canDeleteMissionVersion}
+            canChangeMissionVersionStatus={canChangeMissionVersionStatus}
+            isMissionArchived={isMissionArchived}
+            onCreateVersion={handleCreateVersion}
+            onEditVersion={handleEditVersion}
+            onDeleteVersion={setVersionToDelete}
+            onChangeStatus={params => {
+              missionDetailsState.changeMissionVersionStatusState.visibility.open(params);
+            }}
+          />
 
-          {/* Versions Section */}
-          <div className="border-t border-white/10 pt-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white">Версії місії</h2>
-                {isMissionArchived && (
-                  <p className="mt-1 text-sm text-zinc-500">
-                    Місія в архіві: створення та редагування версій недоступне.
-                  </p>
-                )}
-              </div>
-              <View.Condition if={canEditMissionVersion}>
-                <Button variant="default" onClick={handleCreateVersion}>
-                  <PlusIcon className="size-4" />
-                  Створити версію
-                </Button>
-              </View.Condition>
-            </div>
-
-            {mission?.missionVersions?.length === 0 ? (
-              <div className="paper flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed p-8 text-center">
-                <p className="text-zinc-400">Версій поки немає</p>
-                <View.Condition if={canEditMissionVersion}>
-                  <Button variant="default" onClick={handleCreateVersion}>
-                    <PlusIcon className="size-4" />
-                    Створити першу версію
-                  </Button>
-                </View.Condition>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {mission?.missionVersions?.map(version => (
-                  <MissionVersionCard
-                    key={version.id}
-                    fullWidth
-                    canEdit={canEditMissionVersion}
-                    canDelete={canDeleteMissionVersion}
-                    canChangeStatus={canChangeMissionVersionStatus}
-                    version={version}
-                    missionId={missionId}
-                    missionObjective={mission.missionObjective}
-                    onEdit={handleEditVersion}
-                    onDelete={setVersionToDelete}
-                    onChangeStatus={params => {
-                      missionDetailsModel.changeMissionVersionStatusModel.visibility.open(params);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Comments Section */}
-          <div className="border-t border-white/10 mt-6 pt-2">
-            <h2 className="text-2xl font-bold text-white">Коментарі</h2>
-
-            {missionDetailsModel.commentModel.pagination.preloader.isLoading &&
-            missionDetailsModel.commentModel.pagination.data.length === 0 ? (
-              <p className="text-zinc-500 text-sm">
-                <LoaderIcon className="size-4 animate-spin flex items-center justify-center" />
-              </p>
-            ) : missionDetailsModel.commentModel.pagination.data.length === 0 ? (
-              <div className="text-white text-sm py-4 text-center h-10 mb-8">Наразі жодних коментарів немає</div>
-            ) : (
-              <CommentList
-                className="mb-2"
-                comments={missionDetailsModel.commentModel.pagination.data}
-                canDeleteComment={canDeleteComment}
-                canEditComment={canEditComment}
-                onDeleteComment={handleDeleteComment}
-                onEditComment={handleEditComment}
-              />
-            )}
-
-            <View.Condition if={session.isAuthorized}>
-              <div className="mb-4">
-                {session.isCommunicationMuted && (
-                  <div className="mb-2 text-xs text-amber-300">
-                    Вам заборонено писати коментарі на час блокування
-                    {session.user.user?.bannedUntil
-                      ? ` до ${dayjs(session.user.user.bannedUntil).format('DD.MM.YYYY HH:mm')}`
-                      : ''}
-                    .
-                  </div>
-                )}
-                <MessageComposer
-                  placeholder="Додати коментар..."
-                  disabled={session.isCommunicationMuted}
-                  onSubmit={async ({ lexicalState, attachments }) => {
-                    await missionDetailsModel.commentModel.create(missionId, lexicalState, attachments);
-                  }}
-                />
-              </div>
-            </View.Condition>
-          </div>
+          <CommentsSection
+            missionId={missionId}
+            commentModel={missionDetailsState.commentModel}
+            canDeleteComment={canDeleteComment}
+            canEditComment={canEditComment}
+            onDeleteComment={handleDeleteComment}
+            onEditComment={handleEditComment}
+          />
         </div>
       </div>
     </Layout>

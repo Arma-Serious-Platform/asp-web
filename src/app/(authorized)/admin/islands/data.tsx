@@ -1,13 +1,13 @@
-import { Island } from '@/shared/sdk/types';
+import { IslandModel } from '@/entities/island/island.model';
 import { Button } from '@/shared/ui/atoms/button';
 import { Popover } from '@/shared/ui/moleculas/popover';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
-import { islandsAdminModel } from './model';
+import { islandsPageState } from './state/islands-page.state';
 
-export const columns: ColumnDef<Island>[] = [
+export const columns: ColumnDef<IslandModel>[] = [
   {
     accessorKey: 'name',
     header: () => <div>Назва</div>,
@@ -16,13 +16,13 @@ export const columns: ColumnDef<Island>[] = [
   {
     accessorKey: 'code',
     header: () => <div>Код</div>,
-    cell: ({ row }) => <div className="font-mono text-sm">{row.original.code}</div>,
+    cell: ({ row }) => <div className="font-mono text-sm">{row.original.data.code}</div>,
   },
   {
     accessorKey: 'createdAt',
     header: () => <div>Створено</div>,
     cell: ({ row }) => (
-      <div className="text-sm text-zinc-400">{dayjs(row.original.createdAt).format('DD.MM.YYYY HH:mm')}</div>
+      <div className="text-sm text-zinc-400">{dayjs(row.original.data.createdAt).format('DD.MM.YYYY HH:mm')}</div>
     ),
   },
   {
@@ -41,7 +41,7 @@ export const columns: ColumnDef<Island>[] = [
             size="sm"
             variant="secondary"
             align="left"
-            onClick={() => islandsAdminModel.manageIsland.modal.open({ island: row.original, mode: 'manage' })}>
+            onClick={() => islandsPageState.manageIsland.modal.open({ island: row.original.data, mode: 'manage' })}>
             <EditIcon className="size-4 text-yellow-500" />
             Редагувати
           </Button>
@@ -49,7 +49,7 @@ export const columns: ColumnDef<Island>[] = [
             size="sm"
             variant="secondary"
             align="left"
-            onClick={() => islandsAdminModel.manageIsland.modal.open({ island: row.original, mode: 'delete' })}>
+            onClick={() => islandsPageState.manageIsland.modal.open({ island: row.original.data, mode: 'delete' })}>
             <TrashIcon className="size-4 text-red-500" />
             Видалити
           </Button>

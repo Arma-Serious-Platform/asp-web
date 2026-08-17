@@ -3,17 +3,16 @@
 import { Layout } from '@/widgets/layout';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
-import { confirmSignUpModel } from './model';
+import { confirmSignUpState, CONFIRM_SIGN_UP_MESSAGES } from './state/confirm-sign-up.state';
 import { View } from '@/features/view';
 import { LoaderIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { ROUTES } from '@/shared/config/routes';
 import { Link } from '@/shared/ui/atoms/link';
 import { Button } from '@/shared/ui/atoms/button';
-import { CONFIRM_SIGN_UP_MESSAGES } from './model';
 
 const ConfirmSignUpError = observer(() => {
-  switch (confirmSignUpModel.errorMessage) {
+  switch (confirmSignUpState.errorMessage) {
     case CONFIRM_SIGN_UP_MESSAGES.expiredTokenNewSent:
       return (
         <>
@@ -55,27 +54,27 @@ const ConfirmSignUpContent = observer(() => {
 
   useEffect(() => {
     if (!token) {
-      confirmSignUpModel.setFailure(CONFIRM_SIGN_UP_MESSAGES.invalidToken);
+      confirmSignUpState.setFailure(CONFIRM_SIGN_UP_MESSAGES.invalidToken);
 
       return;
     }
 
-    confirmSignUpModel.confirmSignUp(token);
+    confirmSignUpState.confirmSignUp(token);
   }, []);
 
   return (
     <>
-      <View.Condition if={confirmSignUpModel.loader.isLoading || typeof confirmSignUpModel.isSuccess === 'undefined'}>
+      <View.Condition if={confirmSignUpState.loader.isLoading || typeof confirmSignUpState.isSuccess === 'undefined'}>
         <div className="flex flex-col gap-2 text-center justify-center">
           <LoaderIcon className="size-10 animate-spin mx-auto" />
         </div>
       </View.Condition>
-      <View.Condition if={confirmSignUpModel.isSuccess === false}>
+      <View.Condition if={confirmSignUpState.isSuccess === false}>
         <div className="flex flex-col gap-2 text-center">
           <ConfirmSignUpError />
         </div>
       </View.Condition>
-      <View.Condition if={confirmSignUpModel.isSuccess}>
+      <View.Condition if={confirmSignUpState.isSuccess}>
         <div className="flex flex-col gap-2 text-center justify-center">
           <p>Аккаунт успішно підтверджений.</p>
           <p>Тепер ви можете авторизуватися.</p>

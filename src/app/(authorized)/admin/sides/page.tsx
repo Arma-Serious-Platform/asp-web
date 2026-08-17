@@ -1,60 +1,39 @@
 'use client';
 
-import { session } from '@/entities/session/model';
-import { useAdminRouteGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
-import { AdminSidebar } from '@/widgets/admin/sidebar';
+import { session } from '@/entities/session/session.state';
+import { useAdminRouteGuard } from '@/app/(authorized)/admin/state/use-tech-admin-routes-guard';
+import { AdminSidebar } from '@/app/(authorized)/admin/ui/admin-sidebar';
 import { Layout } from '@/widgets/layout';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 
-import { sidesModel } from './model';
+import { sidesPageState } from './state/sides-page.state';
 
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
-import { Button } from '@/shared/ui/atoms/button';
-import { ManageServerModal } from '@/features/servers/manage/ui';
+import { ManageServerModal } from '@/app/(authorized)/admin/servers/ui/manage-server';
 
 const AdminPage = observer(() => {
   useAdminRouteGuard(session.canManageSquadsAndSides);
 
   useEffect(() => {
-    sidesModel.sides.pagination.loadAll();
+    sidesPageState.pagination.loadAll();
   }, []);
 
   return (
     <Layout className="flex w-full mt-10 container mx-auto h-full">
       <div className="flex flex-col bg-card w-full p-4">
-        <ManageServerModal
-          model={sidesModel.manageServer}
-          onCreateSuccess={() => {
-            sidesModel.sides.pagination.loadAll();
-          }}
-          onUpdateSuccess={() => {
-            sidesModel.sides.pagination.loadAll();
-          }}
-          onDeleteSuccess={() => {
-            sidesModel.sides.pagination.loadAll();
-          }}
-          // existedServers={sidesModel.sides.pagination.data}
-        />
+        <ManageServerModal state={sidesPageState.manageServer} />
         <AdminSidebar className="mb-4" />
         <div className="mb-2 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Сторони</h1>
-          {/* <Button
-            size='sm'
-            variant='secondary'
-            onClick={() =>
-              sidesModel.manageServer.modal.open({ mode: 'manage' })
-            }>
-            Додати сторону
-          </Button> */}
         </div>
 
         <DataTable
           columns={columns}
-          data={sidesModel.sides.pagination.data}
-          total={sidesModel.sides.pagination.total}
-          isLoading={sidesModel.sides.pagination.preloader.isLoading}
+          data={sidesPageState.pagination.data}
+          total={sidesPageState.pagination.total}
+          isLoading={sidesPageState.pagination.loader.isLoading}
         />
       </div>
     </Layout>

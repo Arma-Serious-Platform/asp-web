@@ -1,6 +1,6 @@
 'use client';
 
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 import { env } from '@/shared/config/env';
 import { ROUTES } from '@/shared/config/routes';
 import { observer } from 'mobx-react-lite';

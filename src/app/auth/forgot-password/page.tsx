@@ -1,7 +1,7 @@
 'use client';
 
-import { ForgotPasswordConfirmForm } from '@/features/auth/forgot-password-confirm/ui';
-import { ForgotPasswordForm } from '@/features/auth/forgot-password/ui';
+import { ForgotPasswordConfirmForm } from './ui/forgot-password-confirm';
+import { ForgotPasswordForm } from './ui/forgot-password';
 import { Layout } from '@/widgets/layout';
 import { observer } from 'mobx-react-lite';
 import { useSearchParams } from 'next/navigation';

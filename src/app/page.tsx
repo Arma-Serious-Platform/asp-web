@@ -1,5 +1,5 @@
 'use client';
-import { InstallationGuide, InstallationGuideLinks, TeamSpeakGuide } from '@/features/guide/installation-guide/ui';
+import { InstallationGuide, InstallationGuideLinks, TeamSpeakGuide } from '@/app/ui/installation-guide';
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
 import { Hero } from '@/widgets/hero';
@@ -8,7 +8,7 @@ import { Section } from '@/shared/ui/organisms/section';
 import { AlertTriangleIcon } from 'lucide-react';
 import Link from 'next/link';
 import { View } from '@/features/view';
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 
 export default function Home() {
   return (

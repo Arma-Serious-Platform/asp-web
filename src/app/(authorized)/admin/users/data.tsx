@@ -1,27 +1,33 @@
+import { UserModel } from '@/entities/user/user.model';
 import { UserNicknameText, UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
 
-import { User } from '@/shared/sdk/types';
+import { UserRole, UserStatus, SideType } from '@/shared/sdk/types';
+
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontalIcon } from 'lucide-react';
-import { usersModel } from './model';
+import { usersPageState } from './state/users-page.state';
 import { observer } from 'mobx-react-lite';
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 import { Popover } from '@/shared/ui/moleculas/popover';
 import {
   UserAdminActionsButtons,
   getUserAdminActionsAvailability,
   hasAnyUserAdminAction,
-} from '@/features/user/admin-actions';
+} from '@/app/(authorized)/admin/users';
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<UserModel>[] = [
   {
     accessorKey: 'nickname',
     header: () => <div>Позивний</div>,
     cell: ({ row }) => {
       return (
         <div>
-          <UserNicknameText link user={row.original} sideType={row.original.squad?.side?.type} />
+          <UserNicknameText
+            link
+            user={row.original.data}
+            sideType={(row.original.data.squad?.side as { type?: SideType } | undefined)?.type}
+          />
         </div>
       );
     },
@@ -32,7 +38,7 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       return (
         <div>
-          <UserRoleText roles={row.original.roles} />
+          <UserRoleText roles={row.original.data.roles as UserRole[]} />
         </div>
       );
     },
@@ -43,7 +49,10 @@ export const columns: ColumnDef<User>[] = [
     cell: observer(({ row }) => {
       return (
         <div>
-          <UserStatusText status={row.original.status} bannedUntil={row.original.bannedUntil} />
+          <UserStatusText
+            status={row.original.data.status as UserStatus}
+            bannedUntil={row.original.data.bannedUntil as Date | null}
+          />
         </div>
       );
     }),
@@ -52,7 +61,7 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: 'warnings',
     header: () => <div>Попередження</div>,
     cell: ({ row }) => {
-      return <div>{row.original._count?.warnings ?? 0}</div>;
+      return <div>{row.original.data._count?.warnings ?? 0}</div>;
     },
   },
   {
@@ -65,18 +74,18 @@ export const columns: ColumnDef<User>[] = [
     cell: observer(({ row }) => {
       if (!session.canSeeSensitiveUsersData) return null;
 
-      return <div>{row.original.steamId || ''}</div>;
+      return <div>{row.original.data.steamId || ''}</div>;
     }),
   },
   {
     accessorKey: 'actions',
     header: () => <div className="text-center">Дії</div>,
     cell: observer(({ row }) => {
-      if (session.user?.user?.id === row.original.id) {
+      if (session.user?.data?.id === row.original.id) {
         return null;
       }
 
-      if (!hasAnyUserAdminAction(getUserAdminActionsAvailability(row.original))) {
+      if (!hasAnyUserAdminAction(getUserAdminActionsAvailability(row.original.data))) {
         return null;
       }
 
@@ -89,7 +98,7 @@ export const columns: ColumnDef<User>[] = [
                 <MoreHorizontalIcon className="w-4 h-4" />
               </Button>
             }>
-            <UserAdminActionsButtons user={row.original} model={usersModel.adminActions} className="w-fit" />
+            <UserAdminActionsButtons user={row.original.data} model={usersPageState.adminActions} className="w-fit" />
           </Popover>
         </div>
       );

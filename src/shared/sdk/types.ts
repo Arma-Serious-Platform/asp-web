@@ -1,1068 +1,297 @@
-export enum MissionGameSide {
-  BLUE = 'BLUE',
-  RED = 'RED',
-  GREEN = 'GREEN',
-}
-
-export enum ServerStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
-
-export enum MissionStatus {
-  APPROVED = 'APPROVED',
-  PENDING_APPROVAL = 'PENDING_APPROVAL',
-  CHANGES_REQUESTED = 'CHANGES_REQUESTED',
-  IN_REVIEW = 'IN_REVIEW',
-  PENDING_GAME_APPROVAL = 'PENDING_GAME_APPROVAL',
-}
-
-export enum MissionType {
-  SG = 'SG',
-  mini = 'mini',
-}
-
-export enum MissionObjective {
-  ATTACK_DEFEND = 'ATTACK_DEFEND',
-  ENCOUTER_BATTLE = 'ENCOUTER_BATTLE',
-}
-
-export enum State {
-  ACTIVE = 'ACTIVE',
-  ARCHIVED = 'ARCHIVED',
-}
-
-export enum SideType {
-  BLUE = 'BLUE',
-  RED = 'RED',
-  UNASSIGNED = 'UNASSIGNED',
-}
-
-export enum UserStatus {
-  ACTIVE = 'ACTIVE',
-  INVITED = 'INVITED',
-  BANNED = 'BANNED',
-}
-
-export enum UserRole {
-  OWNER = 'OWNER',
-  SERVER_ADMIN = 'SERVER_ADMIN',
-  TECH_ADMIN = 'TECH_ADMIN',
-  MISSION_REVIEWER = 'MISSION_REVIEWER',
-  UVK = 'UVK',
-  GAME_ADMIN = 'GAME_ADMIN',
-  MINI_ADMIN = 'MINI_ADMIN',
-  USER = 'USER',
-}
-
-export enum SquadRole {
-  MEMBER = 'MEMBER',
-  HQ = 'HQ',
-  SUBLEADER = 'SUBLEADER',
-  RECRUIT = 'RECRUIT',
-}
-
-export enum SoldierAbility {
-  COMMANDER = 'COMMANDER',
-  MEDIC = 'MEDIC',
-  SNIPER = 'SNIPER',
-  ANTI_TANK = 'ANTI_TANK',
-  ANTI_AIR = 'ANTI_AIR',
-  HELI_PILOT = 'HELI_PILOT',
-  JET_PILOT = 'JET_PILOT',
-  TANK_CREW = 'TANK_CREW',
-  VEHICLE_CREW = 'VEHICLE_CREW',
-}
-
-enum SquadInviteStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-  LEAVED = 'LEAVED',
-}
-
-export type PaginatedRequest<T = { take: number; skip: number }> = {
-  take?: number;
-  skip?: number;
-} & T;
-
-export type PaginatedResponse<T> = {
-  data: T[];
-  total: number;
-  take: number;
-  skip: number;
-};
-
-export type Side = {
-  id: string;
-  name: string;
-  type: SideType;
-  leaderId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  serverId: string | null;
-  leader: User | null;
-  server: Server | null;
-  squads: Squad[];
-};
-
-export type Server = {
-  id: string;
-  name: string;
-  status: ServerStatus;
-  createdAt: Date;
-  updatedAt: Date;
-  ip: string;
-  port: number;
-  sides: Side[];
-  info?: {
-    name: string;
-    game: string;
-    map: string;
-    maxPlayers: number;
-    players: number;
-    ping: number;
-  };
-};
-
-export type User = {
-  id: string;
-  email: string;
-  nickname: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
-  abilities: SoldierAbility[];
-  squadId: string | null;
-  activationToken: string | null;
-  activationTokenExpiresAt: Date | null;
-  status: UserStatus;
-  roles: UserRole[];
-  steamId: string | null;
-  lastIp: string | null;
-  resetPasswordToken: string | null;
-  resetPasswordTokenExpiresAt: Date | null;
-  avatar: {
-    name: string;
-    url: string;
-  } | null;
-  bannedUntil: Date | null;
-  banReason?: string | null;
-  isMuted?: boolean;
-  missions: Mission[];
-  side: Side | null;
-  leadingSquad: Squad | null;
-  squadInvites: SquadInvitation[];
-  squad: Squad | null;
-  squadRole?: SquadRole | null;
-  specializations?: Specialization[];
-  telegramUrl?: string;
-  discordUrl?: string;
-  twitchUrl?: string;
-  youtubeUrl?: string;
-  tiktokUrl?: string;
-  twoFactorEnabled?: boolean;
-  _count?: Partial<Record<'missions' | 'warnings', number>>;
-};
-
-export type Specialization = {
-  id: string;
-  name: string;
-  color?: string | null;
-  icon?: {
-    id: string;
-    url: string;
-  } | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type ChangeNicknameDto = {
-  nickname: string;
-};
-
-export type ChangeUserNicknameDto = ChangeNicknameDto & {
-  userId: string;
-};
-
-export type CreateUserWarningDto = {
-  userId: string;
-  reason: string;
-};
-
-export type UserWarning = {
-  id: string;
-  userId: string;
-  adminId: string | null;
-  removedById?: string | null;
-  reason: string;
-  removeReason?: string | null;
-  removedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  admin?: Pick<User, 'id' | 'nickname'> | null;
-  removedBy?: Pick<User, 'id' | 'nickname'> | null;
-};
-
-export enum UserPunishmentType {
-  WARNING = 'WARNING',
-  WARNING_REMOVED = 'WARNING_REMOVED',
-  TEMP_BAN = 'TEMP_BAN',
-  PERMANENT_BAN = 'PERMANENT_BAN',
-  UNBAN = 'UNBAN',
-}
-
-export type UserPunishment = {
-  id: string;
-  userId: string;
-  adminId: string | null;
-  warningId: string | null;
-  type: UserPunishmentType;
-  reason: string | null;
-  bannedUntil: string | null;
-  createdAt: string;
-  updatedAt: string;
-  admin?: Pick<User, 'id' | 'nickname'> | null;
-  warning?: Pick<UserWarning, 'id' | 'reason' | 'removedAt' | 'removeReason'> | null;
-};
-
-export enum UserHistoryEventType {
-  SIGN_UP = 'SIGN_UP',
-  SQUAD_JOIN = 'SQUAD_JOIN',
-  SQUAD_LEAVE = 'SQUAD_LEAVE',
-  WARNING = 'WARNING',
-  WARNING_REMOVED = 'WARNING_REMOVED',
-  TEMP_BAN = 'TEMP_BAN',
-  PERMANENT_BAN = 'PERMANENT_BAN',
-  UNBAN = 'UNBAN',
-  NICKNAME_CHANGE = 'NICKNAME_CHANGE',
-  ROLE_CHANGE = 'ROLE_CHANGE',
-  REVIEWER_CHANGE = 'REVIEWER_CHANGE',
-}
-
-export type UserHistoryEventPayload = {
-  reason?: string | null;
-  bannedUntil?: string | null;
-  punishmentId?: string | null;
-  warningId?: string | null;
-  squadId?: string | null;
-  squadTag?: string | null;
-  oldNickname?: string | null;
-  newNickname?: string | null;
-  oldRoles?: UserRole[] | null;
-  newRoles?: UserRole[] | null;
-  oldRole?: UserRole | null;
-  newRole?: UserRole | null;
-  oldValue?: boolean | null;
-  newValue?: boolean | null;
-  isMuted?: boolean | null;
-};
-
-export type UserHistoryEvent = {
-  id: string;
-  userId: string;
-  actorId: string | null;
-  type: UserHistoryEventType;
-  payload: UserHistoryEventPayload;
-  createdAt: string;
-  actor?:
-    | (Pick<User, 'id' | 'nickname' | 'roles'> &
-        Partial<Pick<User, 'squadRole'>> & {
-          squad?: {
-            tag?: string;
-            side?: { type?: SideType };
-          } | null;
-        })
-    | null;
-};
-
-export type UpdateMeDto = {
-  nickname?: string;
-  email?: string;
-  steamId?: string;
-  telegramUrl?: string;
-  discordUrl?: string;
-  youtubeUrl?: string;
-  twitchUrl?: string;
-  tiktokUrl?: string;
-};
-
-/** @deprecated Use UpdateMeDto for PATCH /users/me */
-export type UpdateUserDto = UpdateMeDto;
-
-export type SquadDescription = MissionCommentMessage | string;
-
-export type Squad = {
-  id: string;
-  name: string;
-  leaderId: string;
-  sideId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  activeCount: number;
-  description: SquadDescription | null;
-  logo: {
-    id: string;
-    url: string;
-  } | null;
-  tag: string;
-  recruiting: boolean;
-  telegramUrl?: string;
-  discordUrl?: string;
-  youtubeUrl?: string;
-  twitchUrl?: string;
-  tiktokUrl?: string;
-  leader: User;
-  side: Side;
-  invites: SquadInvitation[];
-  joinRequests?: SquadJoinRequest[];
-  members: User[];
-  _count: {
-    members: number;
-    invites: number;
-    joinRequests?: number;
-  };
-};
-
-export type SquadJoinRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
-
-export type SquadJoinRequest = {
-  id: string;
-  userId: string;
-  squadId: string;
-  status: SquadJoinRequestStatus;
-  createdAt: Date;
-  updatedAt: Date;
-  squad: Squad;
-  user: User;
-};
-
-export type SquadInvitation = {
-  id: string;
-  userId: string;
-  squadId: string;
-  status: SquadInviteStatus;
-  squadRole?: SquadRole;
-  createdAt: Date;
-  updatedAt: Date;
-  squad: Squad;
-  user: User;
-};
-
-export type SignUpDto = {
-  email: string;
-  password: string;
-  nickname: string;
-};
-
-export type ForgotPasswordDto = {
-  email: string;
-};
-
-export type ResetPasswordDto = {
-  token: string;
-  newPassword: string;
-};
-
-/** @deprecated Use ResetPasswordDto */
-export type ConfirmForgotPasswordDto = ResetPasswordDto;
-
-export type SessionLoginDto = {
-  emailOrNickname: string;
-  password: string;
-  device?: string;
-};
-
-export type UserSession = {
-  id: string;
-  device?: string | null;
-  ip?: string | null;
-  userAgent?: string | null;
-  createdAt?: string;
-  lastActiveAt?: string;
-  isCurrent?: boolean;
-};
-
-/** @deprecated Use LoginUserDto (emailOrNickname + password) */
-export type LoginDto = {
-  email: string;
-  password: string;
-};
-
-export type LoginUserDto = {
-  emailOrNickname: string;
-  password: string;
-};
-
-/** @deprecated Session auth no longer returns tokens */
-export type RefreshTokenDto = {
-  refreshToken: string;
-};
-
-export type SessionLoginResponse =
-  | { user: User }
-  | {
-      requiresTwoFactor: true;
-      twoFactorToken: string;
-    };
-
-export type TwoFactorSetupResponse = {
-  otpauthUrl: string;
-  qrCodeDataUrl: string;
-  secret: string;
-};
-
-export type TwoFactorStatusResponse = {
-  enabled: boolean;
-};
-
-export type EnableTwoFactorDto = {
-  code: string;
-};
-
-export type DisableTwoFactorDto = {
-  password: string;
-  code?: string;
-  recoveryCode?: string;
-};
-
-export type VerifyTwoFactorLoginDto = {
-  twoFactorToken: string;
-  code?: string;
-  recoveryCode?: string;
-};
-
-export type EnableTwoFactorResponse = {
-  recoveryCodes: string[];
-};
-
-/** @deprecated Session auth no longer returns tokens */
-export type LoginResponse = {
-  user: User;
-  token: string;
-  refreshToken: string;
-};
-
-export type RulesContent = {
-  content: string;
-};
-
-export type UpdateRulesDto = {
-  content: string;
-};
-
-export type ChangePasswordDto = {
-  oldPassword: string;
-  newPassword: string;
-};
-
-export type FindUsersDto = PaginatedRequest<{
-  search?: string;
-  status?: UserStatus;
-  role?: UserRole;
-  hasSquad?: boolean;
-  /** Filter users who have authored at least one mission */
-  hasMission?: boolean;
-  /** Filter users who can review mission versions */
-  canReviewMissions?: boolean;
-}>;
-
-/** bannedUntil is sent as path param (ISO string). Required by API. */
-export type BanUserDto = {
-  userId: string;
-  bannedUntil: string | Date;
-  reason: string;
-  mute?: boolean;
-};
-
-export type UnbanUserDto = {
-  userId: string;
-  reason?: string;
-};
-
-/** Body for PUT /users/change-role */
-export type ChangeUserRoleDto = {
-  id: string;
-  roles: UserRole[];
-};
-
-export type FindServersDto = PaginatedRequest<{
-  search?: string;
-  status?: ServerStatus;
-  fetchActualInfo?: boolean;
-}>;
-
-export type UpdateServerDto = {
-  id: string;
-  name?: string;
-  ip?: string;
-  port?: number;
-  status?: ServerStatus;
-};
-
-export type CreateServerDto = {
-  name: string;
-  ip: string;
-  port: number;
-  status: ServerStatus;
-};
-
-export type FindSidesDto = PaginatedRequest<{
-  type?: SideType;
-  search?: string;
-}>;
-
-export type CreateSideDto = {
-  name?: string;
-  description?: string;
-  serverId?: string;
-};
-
-export type UpdateSideDto = Record<string, unknown>;
-
-export type FindSquadsDto = PaginatedRequest<{
-  search?: string;
-  sideType?: SideType;
-}>;
-
-export type InviteToSquadDto = {
-  userId: string;
-  squadRole?: SquadRole.MEMBER | SquadRole.RECRUIT;
-};
-
-export type UpdateSquadMemberRoleDto = {
-  userId: string;
-  role: SquadRole;
-};
-
-export type CreateSpecializationDto = {
-  name: string;
-  color?: string;
-  icon?: File;
-};
-
-export type UpdateSpecializationDto = {
-  id: string;
-  name?: string;
-  color?: string;
-  icon?: File;
-};
-
-export type SetUserSpecializationsDto = {
-  userId: string;
-  specializationIds: string[];
-};
-
-export type CreateSquadDto = {
-  name: string;
-  tag: string;
-  description?: SquadDescription;
-  leaderId: string;
-  sideId: string;
-  activeCount?: number;
-  logo?: File;
-};
-
-export type UpdateSquadDto = {
-  id: string;
-  name?: string;
-  tag?: string;
-  description?: SquadDescription;
-  leaderId?: string;
-  sideId?: string;
-  recruiting?: boolean;
-  activeCount?: number;
-  logo?: File;
-  telegramUrl?: string;
-  discordUrl?: string;
-  youtubeUrl?: string;
-  twitchUrl?: string;
-  tiktokUrl?: string;
-};
-
-export type UpdateMySquadDto = {
-  name?: string;
-  tag?: string;
-  description?: SquadDescription;
-  recruiting?: boolean;
-  activeCount?: number;
-  logo?: File;
-  telegramUrl?: string;
-  discordUrl?: string;
-  youtubeUrl?: string;
-  twitchUrl?: string;
-  tiktokUrl?: string;
-};
-
-export type FindMissionsDto = PaginatedRequest<{
-  search?: string;
-  status?: MissionStatus;
-  state?: State;
-  authorId?: string;
-  reviewerId?: string;
-  islandId?: string;
-  minSlots?: number;
-  maxSlots?: number;
-  minSlotsToPlay?: number;
-  missionType?: MissionType;
-  missionObjective?: MissionObjective;
-  orderBy?: 'createdAt';
-  orderType?: 'asc' | 'desc';
-}>;
-
-export type CreateMissionDto = {
-  islandId: string;
-  name: string;
-  description: MissionCommentMessage;
-  missionType: MissionType;
-  missionObjective?: MissionObjective;
-  coauthorIds?: string[];
-  image?: File;
-};
-
-export type UpdateMissionDto = {
-  id: string;
-} & Partial<CreateMissionDto>;
-
-export type ChangeMissionStateDto = {
-  state: State;
-};
-
-export type Island = {
-  id: string;
-  name: string;
-  code: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type FindIslandsDto = PaginatedRequest<{
-  search?: string;
-}>;
-
-export type CreateIslandDto = {
-  name: string;
-  code: string;
-};
-
-export type UpdateIslandDto = Partial<Pick<Island, 'name' | 'code'>>;
-
-export type Mission = {
-  id: string;
-  name: string;
-  description: MissionCommentMessage;
-  missionType: MissionType;
-  missionObjective: MissionObjective;
-  state: State;
-  imageId: string | null;
-  image?: {
-    id: string;
-    url: string;
-  };
-  island: Island;
-  author: User;
-  coauthors: User[];
-  missionVersions: MissionVersion[];
-  authorId: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type MissionVersion = {
-  id: string;
-  version: string;
-  missionId: string;
-  attackSideType: MissionGameSide;
-  defenseSideType: MissionGameSide;
-  friendlySideType?: MissionGameSide | null;
-  friendlyTo?: MissionGameSide | null;
-  attackSideSlots: number;
-  defenseSideSlots: number;
-  friendlySideSlots?: number | null;
-  minSlotsToPlay?: number | null;
-  attackSideName: string;
-  defenseSideName: string;
-  friendlySideName?: string | null;
-  changesDescription: string | null;
-  fileId: string;
-  file?: {
-    id: string;
-    url: string;
-  };
-  rating?: number;
-  weaponry?: MissionWeaponry[];
-  attackScreenshots?: MissionVersionScreenshot[];
-  defenseScreenshots?: MissionVersionScreenshot[];
-  friendlyScreenshots?: MissionVersionScreenshot[];
-  uniformScreenshots?: Array<{
-    id: string;
-    side: MissionGameSide;
-    file?: { id: string; url: string };
-  }>;
-  inGameTime?: string | null;
-  weather?: string | null;
-  changelog?: MissionCommentMessage | null;
-  reviewerId?: string | null;
-  reviewer?: User | null;
-  status: MissionStatus;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type MissionVersionScreenshot = {
-  id: string;
-  url: string;
-};
-
-export type MissionWeaponry = {
-  id: string;
-  name: string;
-  description?: string;
-  count: number;
-  type: MissionGameSide;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type CreateMissionWeaponryDto = {
-  name: string;
-  description?: string;
-  count: number;
-  type: MissionGameSide;
-};
-
-export type CreateMissionVersionDto = {
-  version: string;
-  missionId: string;
-  attackSideType: MissionGameSide;
-  defenseSideType: MissionGameSide;
-  attackSideSlots: number;
-  defenseSideSlots: number;
-  minSlotsToPlay?: number | null;
-  attackSideName: string;
-  defenseSideName: string;
-  friendlySideType?: MissionGameSide;
-  friendlyTo?: MissionGameSide;
-  friendlySideName?: string;
-  friendlySideSlots?: number;
-  file: File;
-  attackScreenshots?: File[];
-  defenseScreenshots?: File[];
-  friendlyScreenshots?: File[];
-  rating?: number;
-  weaponry?: CreateMissionWeaponryDto[];
-  inGameTime?: string | Date | null;
-  weather?: string | null;
-  changelog?: MissionCommentMessage | null;
-};
-
-export type UpdateMissionVersionDto = {
-  version?: string;
-  attackSideType?: MissionGameSide;
-  defenseSideType?: MissionGameSide;
-  attackSideSlots?: number;
-  defenseSideSlots?: number;
-  minSlotsToPlay?: number | null;
-  attackSideName?: string;
-  defenseSideName?: string;
-  friendlySideType?: MissionGameSide | null;
-  friendlyTo?: MissionGameSide | null;
-  friendlySideName?: string | null;
-  friendlySideSlots?: number | null;
-  clearFriendlySide?: boolean;
-  file?: File;
-  attackScreenshots?: File[];
-  defenseScreenshots?: File[];
-  friendlyScreenshots?: File[];
-  removeAttackScreenshotIds?: string[];
-  removeDefenseScreenshotIds?: string[];
-  removeFriendlyScreenshotIds?: string[];
-  rating?: number;
-  weaponry?: CreateMissionWeaponryDto[];
-  inGameTime?: string | Date | null;
-  weather?: string | null;
-  changelog?: MissionCommentMessage | null;
-};
-
-/* Weekends & Games */
-
-export type Game = {
-  id: string;
-  name?: string;
-  date: string;
-  position: number;
-  missionId: string;
-  missionVersionId: string;
-  attackSideId: string;
-  defenseSideId: string;
-  adminId: string | null;
-  attackHqSquadId?: string | null;
-  defenseHqSquadId?: string | null;
-  weekendId?: string;
-  weekend?: Weekend;
-  missionVersion: MissionVersion;
-  mission: Mission;
-  admin?: User | null;
-};
-
-export type Weekend = {
-  id: string;
-  name: string;
-  description?: string;
-  published: boolean;
-  publishedAt: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  games?: Game[];
-};
-
-export type FindWeekendsDto = PaginatedRequest<{
-  search?: string;
-  published?: boolean;
-}>;
-
-export type CreateGameDto = {
-  date: string;
-  position: number;
-  missionId: string;
-  missionVersionId: string;
-  attackSideId: string;
-  defenseSideId: string;
-  adminId?: string | null;
-  attackHqSquadId?: string | null;
-  defenseHqSquadId?: string | null;
-};
-
-export type CreateWeekendDto = {
-  name: string;
-  description?: string;
-  games: CreateGameDto[];
-  published?: boolean;
-  publishedAt?: string | null;
-};
-
-export type UpdateWeekendDto = {
-  name?: string;
-  description?: string;
-  published?: boolean;
-  publishedAt?: string | null;
-};
-
-export type UpdateGameDto = {
-  date?: string;
-  position?: number;
-  missionId?: string;
-  missionVersionId?: string;
-  attackSideId?: string;
-  defenseSideId?: string;
-  adminId?: string | null;
-  attackHqSquadId?: string | null;
-  defenseHqSquadId?: string | null;
-};
-
-/* Mission comments */
-
-/** Lexical editor state / JSON content (object) */
-export type MissionCommentMessage = Record<string, unknown> | string;
-
-export type MessageAttachmentItem = {
-  id: string;
-  originalName: string;
-  mimeType?: string | null;
-  file?: {
-    id: string;
-    url: string;
-    filename?: string;
-  };
-};
-
-export type MissionComment = {
-  id: string;
-  /** Lexical JSON content */
-  message: MissionCommentMessage;
-  missionId: string;
-  createdAt: string;
-  updatedAt: string;
-  userId?: string;
-  user?: User;
-  attachments?: MessageAttachmentItem[];
-};
-
-export type CreateMissionCommentDto = {
-  /** Lexical JSON content */
-  message: MissionCommentMessage;
-  missionId: string;
-  attachments?: File[];
-};
-
-export type UpdateMissionCommentDto = {
-  /** Lexical JSON content */
-  message?: MissionCommentMessage;
-  replyId?: string | null;
-  attachments?: File[];
-  removedAttachmentIds?: string[];
-};
-
-export type FindMissionCommentsDto = PaginatedRequest<{
-  search?: string;
-  missionId?: string;
-}>;
-
-/* Headquarters */
-
-export type HeadquartersSquadShort = {
-  id: string;
-  name: string;
-  tag: string;
-  logo?: {
-    id: string;
-    url: string;
-  } | null;
-};
-
-export type HeadquartersSlot = {
-  id: string;
-  slotNumber: string;
-  name: string | null;
-  weaponry: string | null;
-  slotCount: number | null;
-  missionGameSide?: MissionGameSide | null;
-  comment: string | null;
-  spawnPoint: string | null;
-  assignedSquads: HeadquartersSquadShort[];
-  wantedSquads: HeadquartersSquadShort[];
-};
-
-export type HeadquartersGameShort = {
-  id: string;
-  date: string;
-  position: number;
-  mission?: {
-    id: string;
-    name: string;
-  };
-  missionVersion?: {
-    id: string;
-    version: string;
-  };
-};
-
-export type HeadquartersSideShort = {
-  id: string;
-  name: string;
-  type: SideType;
-};
-
-export type HeadquartersCommander = Pick<
+/**
+ * Compatibility barrel — all SDK types/schemas re-exported from domain modules.
+ * Prefer importing from domain paths for new code.
+ */
+
+export {
+  MissionGameSide,
+  ServerStatus,
+  MissionStatus,
+  MissionType,
+  MissionObjective,
+  State,
+  SideType,
+  UserStatus,
+  UserRole,
+  SquadRole,
+  SoldierAbility,
+  MissionGameSideSchema,
+  ServerStatusSchema,
+  MissionStatusSchema,
+  MissionTypeSchema,
+  MissionObjectiveSchema,
+  StateSchema,
+  SideTypeSchema,
+  UserStatusSchema,
+  UserRoleSchema,
+  SquadRoleSchema,
+  SoldierAbilitySchema,
+  dateLikeSchema,
+  fileRefSchema,
+  missionCommentMessageSchema,
+  messageAttachmentItemSchema,
+  paginatedResponseSchema,
+} from './api-model';
+
+export type {
+  PaginatedRequest,
+  PaginatedResponse,
+  MissionCommentMessage,
+  MessageAttachmentItem,
+} from './api-model';
+
+export {
+  UserSchema,
+  UserWarningSchema,
+  UserPunishmentTypeSchema,
+  UserPunishmentType,
+  UserPunishmentSchema,
+  UserHistoryEventTypeSchema,
+  UserHistoryEventType,
+  UserHistoryEventPayloadSchema,
+  UserHistoryEventSchema,
+  ChangeNicknameDtoSchema,
+  ChangeUserNicknameDtoSchema,
+  CreateUserWarningDtoSchema,
+  UpdateMeDtoSchema,
+  UpdateUserDtoSchema,
+  FindUsersDtoSchema,
+  BanUserDtoSchema,
+  UnbanUserDtoSchema,
+  ChangeUserRoleDtoSchema,
+} from './users/users.schemas';
+
+export type {
   User,
-  'id' | 'nickname' | 'roles' | 'squadRole' | 'avatar'
-> & {
-  squad?: {
-    id: string;
-    tag: string;
-    side?: {
-      type: SideType;
-    };
-  } | null;
-};
+  UserWarning,
+  UserPunishment,
+  UserHistoryEventPayload,
+  UserHistoryEvent,
+  ChangeNicknameDto,
+  ChangeUserNicknameDto,
+  CreateUserWarningDto,
+  UpdateMeDto,
+  UpdateUserDto,
+  FindUsersDto,
+  BanUserDto,
+  UnbanUserDto,
+  ChangeUserRoleDto,
+} from './users/users.schemas';
 
-export type HeadquartersGamePlan = {
-  id: string;
-  gameId: string;
-  planUrl: string | null;
-  gameCommanderId: string | null;
-  hqSquadId?: string | null;
-  hqSquad?: HeadquartersSquadShort | null;
-  gameCommander?: HeadquartersCommander | null;
-  game?: HeadquartersGameShort;
-  side?: HeadquartersSideShort;
-  slots: HeadquartersSlot[];
-};
+export {
+  SignUpDtoSchema,
+  ForgotPasswordDtoSchema,
+  ResetPasswordDtoSchema,
+  ConfirmForgotPasswordDtoSchema,
+  SessionLoginDtoSchema,
+  UserSessionSchema,
+  LoginDtoSchema,
+  LoginUserDtoSchema,
+  RefreshTokenDtoSchema,
+  SessionLoginResponseSchema,
+  TwoFactorSetupResponseSchema,
+  TwoFactorStatusResponseSchema,
+  EnableTwoFactorDtoSchema,
+  DisableTwoFactorDtoSchema,
+  VerifyTwoFactorLoginDtoSchema,
+  EnableTwoFactorResponseSchema,
+  LoginResponseSchema,
+  ChangePasswordDtoSchema,
+} from './auth/auth.schemas';
 
-export type UpdateHeadquartersGamePlanDto = {
-  planUrl?: string | null;
-};
+export type {
+  SignUpDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  ConfirmForgotPasswordDto,
+  SessionLoginDto,
+  UserSession,
+  LoginDto,
+  LoginUserDto,
+  RefreshTokenDto,
+  SessionLoginResponse,
+  TwoFactorSetupResponse,
+  TwoFactorStatusResponse,
+  EnableTwoFactorDto,
+  DisableTwoFactorDto,
+  EnableTwoFactorResponse,
+  VerifyTwoFactorLoginDto,
+  LoginResponse,
+  ChangePasswordDto,
+} from './auth/auth.schemas';
 
-export type UpdateHeadquartersGamePlanSlotDto = {
-  name?: string | null;
-  weaponry?: string | null;
-  slotCount?: number | null;
-  comment?: string | null;
-  spawnPoint?: string | null;
-};
+export {
+  IslandSchema,
+  FindIslandsDtoSchema,
+  CreateIslandDtoSchema,
+  UpdateIslandDtoSchema,
+} from './islands/islands.schemas';
 
-export type AssignHeadquartersSlotSquadDto = {
-  squadId: string;
-};
+export type { Island, FindIslandsDto, CreateIslandDto, UpdateIslandDto } from './islands/islands.schemas';
 
-export type HeadquartersComment = {
-  id: string;
-  gamePlanId: string;
-  userId: string;
-  replyId?: string | null;
-  message: MissionCommentMessage;
-  createdAt: string;
-  updatedAt: string;
-  user?: User;
-  attachments?: MessageAttachmentItem[];
-  replyTo?: {
-    id: string;
-    userId: string;
-    message: MissionCommentMessage;
-    createdAt: string;
-    user?: Pick<User, 'id' | 'nickname'>;
-  } | null;
-};
+export {
+  ServerSchema,
+  FindServersDtoSchema,
+  UpdateServerDtoSchema,
+  CreateServerDtoSchema,
+} from './servers/servers.schemas';
 
-export type FindHeadquartersCommentsDto = PaginatedRequest<{
-  replyId?: string;
-}>;
+export type { Server, FindServersDto, UpdateServerDto, CreateServerDto } from './servers/servers.schemas';
 
-export type CreateHeadquartersCommentDto = {
-  message: MissionCommentMessage;
-  replyId?: string;
-  attachments?: File[];
-};
+export {
+  SideSchema,
+  FindSidesDtoSchema,
+  CreateSideDtoSchema,
+  UpdateSideDtoSchema,
+} from './sides/sides.schemas';
 
-export type UpdateHeadquartersCommentDto = {
-  message?: MissionCommentMessage;
-  replyId?: string | null;
-  attachments?: File[];
-  removedAttachmentIds?: string[];
-};
+export type { Side, FindSidesDto, CreateSideDto, UpdateSideDto } from './sides/sides.schemas';
 
-export type UpdateChatMessageDto = {
-  content?: MissionCommentMessage;
-  attachments?: File[];
-  removedAttachmentIds?: string[];
-};
+export {
+  SpecializationSchema,
+  CreateSpecializationDtoSchema,
+  UpdateSpecializationDtoSchema,
+  SetUserSpecializationsDtoSchema,
+} from './specializations/specializations.schemas';
 
-/* Chats */
+export type {
+  Specialization,
+  CreateSpecializationDto,
+  UpdateSpecializationDto,
+  SetUserSpecializationsDto,
+} from './specializations/specializations.schemas';
 
-export enum ChatType {
-  DIRECT = 'DIRECT',
-  GROUP = 'GROUP',
-}
+export {
+  SquadSchema,
+  SquadInviteStatusSchema,
+  SquadInviteStatus,
+  SquadJoinRequestStatusSchema,
+  SquadDescriptionSchema,
+  SquadJoinRequestSchema,
+  SquadInvitationSchema,
+  FindSquadsDtoSchema,
+  InviteToSquadDtoSchema,
+  UpdateSquadMemberRoleDtoSchema,
+  CreateSquadDtoSchema,
+  UpdateSquadDtoSchema,
+  UpdateMySquadDtoSchema,
+  LeaveSquadDtoSchema,
+} from './squads/squads.schemas';
 
-export type Chat = {
-  id: string;
-  name?: string;
-  type: ChatType;
-  creatorId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
+export type {
+  Squad,
+  SquadJoinRequestStatus,
+  SquadDescription,
+  SquadJoinRequest,
+  SquadInvitation,
+  FindSquadsDto,
+  InviteToSquadDto,
+  UpdateSquadMemberRoleDto,
+  CreateSquadDto,
+  UpdateSquadDto,
+  UpdateMySquadDto,
+  LeaveSquadDto,
+} from './squads/squads.schemas';
 
-export type CreateChatDto = {
-  type: ChatType;
-  userIds: string[];
-  name?: string;
-};
+export {
+  MissionSchema,
+  MissionVersionSchema,
+  MissionCommentSchema,
+  MissionWeaponrySchema,
+  MissionVersionScreenshotSchema,
+  FindMissionsDtoSchema,
+  CreateMissionDtoSchema,
+  UpdateMissionDtoSchema,
+  ChangeMissionStateDtoSchema,
+  CreateMissionWeaponryDtoSchema,
+  CreateMissionVersionDtoSchema,
+  UpdateMissionVersionDtoSchema,
+  CreateMissionCommentDtoSchema,
+  UpdateMissionCommentDtoSchema,
+  FindMissionCommentsDtoSchema,
+} from './missions/missions.schemas';
 
-export type AddChatMembersDto = {
-  userIds: string[];
-};
+export type {
+  Mission,
+  MissionVersion,
+  MissionComment,
+  MissionWeaponry,
+  MissionVersionScreenshot,
+  FindMissionsDto,
+  CreateMissionDto,
+  UpdateMissionDto,
+  ChangeMissionStateDto,
+  CreateMissionWeaponryDto,
+  CreateMissionVersionDto,
+  UpdateMissionVersionDto,
+  CreateMissionCommentDto,
+  UpdateMissionCommentDto,
+  FindMissionCommentsDto,
+} from './missions/missions.schemas';
 
-export type LeaveSquadDto = {
-  newLeaderId?: string;
-};
+export {
+  WeekendSchema,
+  GameSchema,
+  FindWeekendsDtoSchema,
+  CreateGameDtoSchema,
+  CreateWeekendDtoSchema,
+  UpdateWeekendDtoSchema,
+  UpdateGameDtoSchema,
+} from './weekends/weekends.schemas';
+
+export type {
+  Weekend,
+  Game,
+  FindWeekendsDto,
+  CreateGameDto,
+  CreateWeekendDto,
+  UpdateWeekendDto,
+  UpdateGameDto,
+} from './weekends/weekends.schemas';
+
+export {
+  HeadquartersSquadShortSchema,
+  HeadquartersSlotSchema,
+  HeadquartersGameShortSchema,
+  HeadquartersSideShortSchema,
+  HeadquartersCommanderSchema,
+  HeadquartersGamePlanSchema,
+  UpdateHeadquartersGamePlanDtoSchema,
+  UpdateHeadquartersGamePlanSlotDtoSchema,
+  AssignHeadquartersSlotSquadDtoSchema,
+  HeadquartersCommentSchema,
+  FindHeadquartersCommentsDtoSchema,
+  CreateHeadquartersCommentDtoSchema,
+  UpdateHeadquartersCommentDtoSchema,
+} from './headquarters/headquarters.schemas';
+
+export type {
+  HeadquartersSquadShort,
+  HeadquartersSlot,
+  HeadquartersGameShort,
+  HeadquartersSideShort,
+  HeadquartersCommander,
+  HeadquartersGamePlan,
+  UpdateHeadquartersGamePlanDto,
+  UpdateHeadquartersGamePlanSlotDto,
+  AssignHeadquartersSlotSquadDto,
+  HeadquartersComment,
+  FindHeadquartersCommentsDto,
+  CreateHeadquartersCommentDto,
+  UpdateHeadquartersCommentDto,
+} from './headquarters/headquarters.schemas';
+
+export {
+  ChatTypeSchema,
+  ChatType,
+  ChatSchema,
+  CreateChatDtoSchema,
+  AddChatMembersDtoSchema,
+  UpdateChatMessageDtoSchema,
+} from './chat/chat.schemas';
+
+export type { Chat, CreateChatDto, AddChatMembersDto, UpdateChatMessageDto } from './chat/chat.schemas';
+
+export { RulesContentSchema, UpdateRulesDtoSchema } from './rules/rules.schemas';
+
+export type { RulesContent, UpdateRulesDto } from './rules/rules.schemas';

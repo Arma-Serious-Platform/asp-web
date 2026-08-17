@@ -2,8 +2,21 @@
 
 import { FC, useMemo } from 'react';
 import { cn } from '@/shared/utils/cn';
-import { MessageAttachmentItem } from '@/entities/attachment/lib';
+import type { MessageAttachmentItem } from './attachment';
 import { AttachmentTiles } from './attachment-tiles';
+
+export type { MessageAttachmentItem };
+export {
+  resolveAttachmentMimeType,
+  isImageAttachment,
+  isVideoAttachment,
+  isPreviewableAttachment,
+  getAttachmentUrl,
+  downloadAttachment,
+  downloadFile,
+  isPreviewableUploadFile,
+  normalizeMessageAttachments,
+} from './attachment';
 
 type MessageAttachmentsProps = {
   attachments?: MessageAttachmentItem[];

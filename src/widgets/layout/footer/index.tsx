@@ -1,4 +1,4 @@
-import { Social } from '@/features/social/ui';
+import { Social } from '@/widgets/layout/ui/social-links';
 
 export const Footer = () => (
   <footer className="mt-auto flex items-center justify-center border-t border-white/10 bg-black/80 py-4">

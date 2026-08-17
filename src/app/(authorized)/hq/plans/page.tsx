@@ -1,7 +1,7 @@
 'use client';
 
 import { Layout } from '@/widgets/layout';
-import { HqPlans } from '@/widgets/hq/plans';
+import { HqPlans } from '@/app/(authorized)/hq/plans/ui/hq-plans';
 
 export default function HqPlansPage() {
   return (

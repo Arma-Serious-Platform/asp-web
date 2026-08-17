@@ -1,8 +1,8 @@
 import type { FC, PropsWithChildren, ReactNode } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { session } from '@/entities/session/model';
-import { hasAnyRole } from '@/entities/user/lib';
+import { session } from '@/entities/session/session.state';
+import { UserModel } from '@/entities/user/user.model';
 import { UserRole } from '@/shared/sdk/types';
 
 type ConditionProps = PropsWithChildren<{
@@ -24,10 +24,10 @@ type RoleProps = PropsWithChildren<{
 }>;
 
 const Role: FC<RoleProps> = observer(({ role, children, if: condition = true }) => {
-  if (!session.user.user || !condition) return null;
+  if (!session.user?.data || !condition) return null;
 
   const allowed = Array.isArray(role) ? role : [role];
-  const isMatch = hasAnyRole(session.user.user.roles, allowed);
+  const isMatch = UserModel.hasAnyRole(session.user?.data.roles, allowed);
 
   if (!isMatch) return null;
 

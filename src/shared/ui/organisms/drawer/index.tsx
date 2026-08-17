@@ -64,6 +64,19 @@ const DrawerContent = React.forwardRef<
 });
 DrawerContent.displayName = 'DrawerContent';
 
+/** Scrollable drawer body with top padding so floating field labels are not clipped by the header. */
+const DrawerBody = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      data-slot="drawer-body"
+      className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pt-4 pr-2', className)}
+      {...props}
+    />
+  ),
+);
+DrawerBody.displayName = 'DrawerBody';
+
 export {
   Drawer,
   DrawerClose,
@@ -73,4 +86,5 @@ export {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  DrawerBody,
 };

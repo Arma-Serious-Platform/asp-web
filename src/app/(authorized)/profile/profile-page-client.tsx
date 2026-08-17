@@ -1,14 +1,14 @@
 'use client';
 
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 import { User } from '@/shared/sdk/types';
 import { Hero } from '@/widgets/hero';
 import { Layout } from '@/widgets/layout';
-import { UserProfile } from '@/widgets/users/profile/ui';
+import { UserProfile } from '@/app/(authorized)/profile/ui/user-profile';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 
-import { model } from './model';
+import { profilePageState } from './state/profile-page.state';
 
 const ProfilePageClient = observer(({ initialUser }: { initialUser: User }) => {
   useEffect(() => {
@@ -18,7 +18,7 @@ const ProfilePageClient = observer(({ initialUser }: { initialUser: User }) => {
   return (
     <Layout>
       <Hero />
-      <UserProfile model={model.profile} />
+      <UserProfile model={profilePageState.profile} />
     </Layout>
   );
 });

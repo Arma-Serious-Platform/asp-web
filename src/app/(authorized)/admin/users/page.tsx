@@ -1,18 +1,18 @@
 'use client';
 
 import { Input } from '@/shared/ui/atoms/input';
-import { AdminSidebar } from '@/widgets/admin/sidebar';
+import { AdminSidebar } from '@/app/(authorized)/admin/ui/admin-sidebar';
 import { Layout } from '@/widgets/layout';
-import { session } from '@/entities/session/model';
+import { session } from '@/entities/session/session.state';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import { parseAsString, useQueryStates } from 'nuqs';
-import { usersModel } from './model';
+import { usersPageState } from './state/users-page.state';
 import { useDebounce } from 'react-use';
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
-import { UserAdminActionsModals } from '@/features/user/admin-actions';
-import { useAdminRouteGuard } from '@/widgets/admin/sidebar/hooks/use-tech-admin-routes-guard';
+import { UserAdminActionsModals } from '@/app/(authorized)/admin/users';
+import { useAdminRouteGuard } from '@/app/(authorized)/admin/state/use-tech-admin-routes-guard';
 
 const AdminPage = observer(() => {
   useAdminRouteGuard(session.canManageUsers);
@@ -31,7 +31,7 @@ const AdminPage = observer(() => {
   );
 
   useEffect(() => {
-    usersModel.pagination.init({
+    usersPageState.pagination.init({
       take: 25,
       skip: 0,
       search: params.search || '',
@@ -46,24 +46,24 @@ const AdminPage = observer(() => {
         <h1 className="text-2xl font-bold mb-2">Гравці</h1>
 
         <UserAdminActionsModals
-          model={usersModel.adminActions}
+          model={usersPageState.adminActions}
           onBanSuccess={user => {
-            usersModel.afterBanUser(user);
+            usersPageState.afterBanUser(user);
           }}
           onUnbanSuccess={user => {
-            usersModel.afterUnbanUser(user);
+            usersPageState.afterUnbanUser(user);
           }}
           onChangeNicknameSuccess={user => {
-            usersModel.afterChangeNickname(user);
+            usersPageState.afterChangeNickname(user);
           }}
           onIssueWarningSuccess={warning => {
-            usersModel.afterIssueWarning(warning);
+            usersPageState.afterIssueWarning(warning);
           }}
           onWarningRemoved={warning => {
-            usersModel.afterWarningRemoved(warning);
+            usersPageState.afterWarningRemoved(warning);
           }}
           onChangeRoleSuccess={(userId, roles) => {
-            usersModel.afterChangeRole(userId, roles);
+            usersPageState.afterChangeRole(userId, roles);
           }}
         />
 
@@ -78,11 +78,11 @@ const AdminPage = observer(() => {
 
         <DataTable
           columns={columns}
-          data={usersModel.pagination.data}
-          total={usersModel.pagination.total}
-          isLoading={usersModel.pagination.preloader.isLoading}
+          data={usersPageState.pagination.data}
+          total={usersPageState.pagination.total}
+          isLoading={usersPageState.pagination.loader.isLoading}
           onLoadMore={() => {
-            usersModel.pagination.loadMore();
+            usersPageState.pagination.loadMore();
           }}
         />
       </div>

@@ -7,7 +7,7 @@ import { observer } from 'mobx-react-lite';
 import { Specialization } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { Popover } from '@/shared/ui/moleculas/popover';
-import { adminSpecializationsModel } from './model';
+import { specializationsPageState } from './state/specializations-page.state';
 
 export const columns: ColumnDef<Specialization>[] = [
   {
@@ -72,7 +72,7 @@ export const columns: ColumnDef<Specialization>[] = [
           variant="secondary"
           align="left"
           onClick={() =>
-            adminSpecializationsModel.manageSpecialization.modal.open({
+            specializationsPageState.manageSpecialization.modal.open({
               specialization: row.original,
               mode: 'manage',
             })
@@ -85,7 +85,7 @@ export const columns: ColumnDef<Specialization>[] = [
           variant="secondary"
           align="left"
           onClick={() =>
-            adminSpecializationsModel.manageSpecialization.modal.open({
+            specializationsPageState.manageSpecialization.modal.open({
               specialization: row.original,
               mode: 'delete',
             })
