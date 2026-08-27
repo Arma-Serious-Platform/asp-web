@@ -2,17 +2,15 @@ import dayjs from 'dayjs';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
-import { headquartersApi, sidesApi, squadsApi, usersApi, weekendsApi } from '@/shared/sdk';
+import { headquartersApi, squadsApi } from '@/shared/sdk';
 import {
-  Game,
   HeadquartersComment,
   HeadquartersGamePlan,
+  HeadquartersGamePlanListItem,
   HeadquartersSlot,
   MissionCommentMessage,
-  Side,
   SideType,
   Squad,
-  User,
 } from '@/shared/sdk/types';
 
 export const ARCHIVE_PLANS_PAGE_SIZE = 8;
@@ -56,12 +54,12 @@ class HqPlansState {
   }
 
   isLoading = false;
-  plans: HeadquartersGamePlan[] = [];
+  plans: HeadquartersGamePlanListItem[] = [];
+  selectedPlan: HeadquartersGamePlan | null = null;
+  isSelectedPlanLoading = false;
+  private requestedPlanId: string | null = null;
   visibleArchiveCount = ARCHIVE_PLANS_PAGE_SIZE;
-  usersById: Record<string, User> = {};
   squadsById: Record<string, Squad> = {};
-  gamesById: Record<string, Game> = {};
-  sidesById: Record<string, Side> = {};
   isSlotsOpen = true;
   comments: HeadquartersComment[] = [];
   isCommentsLoading = false;
@@ -71,14 +69,12 @@ class HqPlansState {
   wantedSlotOverrides: WantedSlotOverrides = {};
   wantedSlotOverrideTimeouts: Record<string, number> = {};
 
-  /** Prefer weekend game date from cache; fall back to plan.game.date. */
-  getPlanGameDate = (plan: HeadquartersGamePlan) =>
-    this.gamesById[plan.gameId]?.date ?? plan.game?.date ?? null;
+  getPlanGameDate = (plan: HeadquartersGamePlanListItem) => plan.game?.date ?? null;
 
-  private sortPlansByGameDateAsc = (a: HeadquartersGamePlan, b: HeadquartersGamePlan) =>
+  private sortPlansByGameDateAsc = (a: HeadquartersGamePlanListItem, b: HeadquartersGamePlanListItem) =>
     dayjs(this.getPlanGameDate(a)).valueOf() - dayjs(this.getPlanGameDate(b)).valueOf();
 
-  private sortPlansByGameDateDesc = (a: HeadquartersGamePlan, b: HeadquartersGamePlan) =>
+  private sortPlansByGameDateDesc = (a: HeadquartersGamePlanListItem, b: HeadquartersGamePlanListItem) =>
     dayjs(this.getPlanGameDate(b)).valueOf() - dayjs(this.getPlanGameDate(a)).valueOf();
 
   get todayPlans() {
@@ -122,7 +118,7 @@ class HqPlansState {
     );
   }
 
-  getPlanById = (planId?: string) => this.plans.find(plan => plan.id === planId) ?? null;
+  getPlanListItemById = (planId?: string) => this.plans.find(plan => plan.id === planId) ?? null;
 
   resetPlanDrafts = () => {
     this.planUrlDraft = null;
@@ -145,57 +141,59 @@ class HqPlansState {
     this.isLoading = true;
 
     try {
-      const [weekendsRes, usersRes, squadsRes, sidesRes] = await Promise.all([
-        weekendsApi.findWeekends({ take: 100, skip: 0 }),
-        usersApi.findUsers({ take: 1000, skip: 0 }),
+      const [plansRes, squadsRes] = await Promise.all([
+        headquartersApi.findHeadquartersPlans({ take: 200, skip: 0 }),
         squadsApi.findSquads({ take: 1000, skip: 0 }),
-        sidesApi.findSides({ take: 1000, skip: 0 }),
       ]);
 
-      const users = usersRes.data.data ?? [];
       const squads = squadsRes.data.data ?? [];
-      const sides = sidesRes.data.data ?? [];
-      this.usersById = Object.fromEntries(users.map(user => [user.id, user]));
       this.squadsById = Object.fromEntries(squads.map(squad => [squad.id, squad]));
-      this.sidesById = Object.fromEntries(sides.map(side => [side.id, side]));
 
-      const weekends = weekendsRes.data.data ?? [];
-      const today = dayjs().startOf('day');
-      const allWeekendGames = weekends.flatMap(weekend => weekend.games ?? []);
-
-      // Today + all future weekend games (not limited to the current ISO week)
-      const upcomingGames = allWeekendGames.filter(game => !dayjs(game.date).startOf('day').isBefore(today));
-
-      const historicalPastGames = allWeekendGames
-        .filter(game => dayjs(game.date).startOf('day').isBefore(today))
-        .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
-
-      const gamesById = new Map<string, Game>();
-      [...upcomingGames, ...historicalPastGames].forEach(game => {
-        gamesById.set(game.id, game);
-      });
-      const games = Array.from(gamesById.values());
-      this.gamesById = Object.fromEntries(games.map(game => [game.id, game]));
-
-      const plansByGame = await Promise.allSettled(games.map(game => headquartersApi.findHeadquartersPlansByGame(game.id)));
-      const loadedPlans = plansByGame.flatMap(result =>
-        result.status === 'fulfilled' ? (result.value.data ?? []) : ([] as HeadquartersGamePlan[]),
-      );
-
-      const uniquePlans = new Map<string, HeadquartersGamePlan>();
-      loadedPlans
-        .filter(plan => plan.side?.type === currentSide)
-        .forEach(plan => {
-          uniquePlans.set(plan.id, plan);
-        });
-
-      this.plans = Array.from(uniquePlans.values());
+      this.plans = (plansRes.data.data ?? []).filter(plan => plan.side?.type === currentSide);
       this.visibleArchiveCount = ARCHIVE_PLANS_PAGE_SIZE;
     } catch (error) {
       console.error(error);
       toast.error('Не вдалося завантажити плани штабу');
     } finally {
       this.isLoading = false;
+    }
+  };
+
+  loadPlan = async (planId?: string) => {
+    this.requestedPlanId = planId ?? null;
+
+    if (!planId) {
+      this.selectedPlan = null;
+      this.isSelectedPlanLoading = false;
+      return;
+    }
+
+    if (this.selectedPlan?.id !== planId) {
+      this.selectedPlan = null;
+    }
+
+    this.isSelectedPlanLoading = true;
+
+    try {
+      const { data } = await headquartersApi.findHeadquartersPlanById(planId);
+
+      // Drop the response if the user already navigated to another plan.
+      if (this.requestedPlanId !== planId) {
+        return;
+      }
+
+      this.selectedPlan = data;
+    } catch (error) {
+      if (this.requestedPlanId !== planId) {
+        return;
+      }
+
+      console.error(error);
+      toast.error('Не вдалося завантажити план');
+    } finally {
+      if (this.requestedPlanId === planId) {
+        this.isSelectedPlanLoading = false;
+      }
     }
   };
 
@@ -217,16 +215,6 @@ class HqPlansState {
   };
 
   replacePlan = (nextPlan: HeadquartersGamePlan) => {
-    if (nextPlan.gameCommander) {
-      this.usersById = {
-        ...this.usersById,
-        [nextPlan.gameCommander.id]: {
-          ...this.usersById[nextPlan.gameCommander.id],
-          ...nextPlan.gameCommander,
-        } as User,
-      };
-    }
-
     if (nextPlan.hqSquad) {
       this.squadsById = {
         ...this.squadsById,
@@ -237,26 +225,47 @@ class HqPlansState {
       };
     }
 
-    this.plans = this.plans.map(item =>
-      item.id === nextPlan.id ? (areSamePayload(item, nextPlan) ? item : nextPlan) : item,
-    );
+    if (this.selectedPlan?.id === nextPlan.id && !areSamePayload(this.selectedPlan, nextPlan)) {
+      this.selectedPlan = nextPlan;
+    }
+
+    // The list keeps its lightweight shape; only patch the fields it renders.
+    this.plans = this.plans.map(item => {
+      if (item.id !== nextPlan.id) {
+        return item;
+      }
+
+      const patched: HeadquartersGamePlanListItem = {
+        ...item,
+        gameCommanderId: nextPlan.gameCommanderId,
+        gameCommander: nextPlan.gameCommander,
+        hqSquadId: nextPlan.hqSquadId,
+        hqSquad: nextPlan.hqSquad,
+        side: nextPlan.side ?? item.side,
+      };
+
+      return areSamePayload(item, patched) ? item : patched;
+    });
   };
 
   replaceSlot = (slot: HeadquartersSlot) => {
-    this.plans = this.plans.map(plan => {
-      const slotIndex = plan.slots.findIndex(item => item.id === slot.id);
-      if (slotIndex === -1 || areSamePayload(plan.slots[slotIndex], slot)) {
-        return plan;
-      }
+    const plan = this.selectedPlan;
+    if (!plan) {
+      return;
+    }
 
-      const slots = [...plan.slots];
-      slots[slotIndex] = slot;
+    const slotIndex = plan.slots.findIndex(item => item.id === slot.id);
+    if (slotIndex === -1 || areSamePayload(plan.slots[slotIndex], slot)) {
+      return;
+    }
 
-      return {
-        ...plan,
-        slots,
-      };
-    });
+    const slots = [...plan.slots];
+    slots[slotIndex] = slot;
+
+    this.selectedPlan = {
+      ...plan,
+      slots,
+    };
   };
 
   setSlotDraft = (slotId: string, field: SlotDraftField, value: string) => {

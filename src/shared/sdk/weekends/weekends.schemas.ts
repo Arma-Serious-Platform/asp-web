@@ -1,5 +1,13 @@
 import { z } from 'zod';
-import { PaginatedRequest } from '../api-model';
+import { PaginatedRequest, SideTypeSchema } from '../api-model';
+
+const GameSideShortSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    type: SideTypeSchema,
+  })
+  .passthrough();
 
 export const GameSchema = z
   .object({
@@ -20,6 +28,8 @@ export const GameSchema = z
     missionVersion: z.any(),
     mission: z.any(),
     admin: z.any().nullable().optional(),
+    attackSide: GameSideShortSchema.optional(),
+    defenseSide: GameSideShortSchema.optional(),
   })
   .passthrough();
 export type Game = z.infer<typeof GameSchema>;

@@ -2,7 +2,7 @@
 
 import { observer } from 'mobx-react-lite';
 
-import { HeadquartersGamePlan } from '@/shared/sdk/types';
+import { HeadquartersGamePlanListItem } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 
 import { HqPlansState } from '../state/hq-plans.state';
@@ -17,12 +17,10 @@ type PlansSidebarProps = {
 function PlansSection({
   title,
   plans,
-  model,
   activePlanId,
 }: {
   title: string;
-  plans: HeadquartersGamePlan[];
-  model: HqPlansState;
+  plans: HeadquartersGamePlanListItem[];
   activePlanId?: string;
 }) {
   if (plans.length === 0) {
@@ -34,13 +32,7 @@ function PlansSection({
       <div className="px-2 text-lg font-bold text-zinc-100">{title}</div>
       <div className="flex flex-col gap-1">
         {plans.map(plan => (
-          <PlanCard
-            key={plan.id}
-            plan={plan}
-            activePlanId={activePlanId}
-            game={model.gamesById[plan.gameId]}
-            commander={plan.gameCommander ?? (plan.gameCommanderId ? model.usersById[plan.gameCommanderId] : null)}
-          />
+          <PlanCard key={plan.id} plan={plan} activePlanId={activePlanId} />
         ))}
       </div>
     </div>
@@ -58,24 +50,16 @@ export const PlansSidebar = observer(({ model, activePlanId }: PlansSidebarProps
         <div className="px-2 py-2 text-sm text-zinc-500">Плани не знайдено</div>
       ) : (
         <div className="flex flex-col gap-4">
-          <PlansSection title="Сьогодні" plans={model.todayPlans} model={model} activePlanId={activePlanId} />
-          <PlansSection title="Завтра" plans={model.tomorrowPlans} model={model} activePlanId={activePlanId} />
-          <PlansSection title="Майбутні" plans={model.futurePlans} model={model} activePlanId={activePlanId} />
+          <PlansSection title="Сьогодні" plans={model.todayPlans} activePlanId={activePlanId} />
+          <PlansSection title="Завтра" plans={model.tomorrowPlans} activePlanId={activePlanId} />
+          <PlansSection title="Майбутні" plans={model.futurePlans} activePlanId={activePlanId} />
 
           {model.archivePlans.length > 0 && (
             <div className="flex flex-col gap-1.5">
               <div className="px-2 text-lg font-bold text-zinc-100">Архів</div>
               <div className="flex flex-col gap-1">
                 {model.visibleArchivePlans.map(plan => (
-                  <PlanCard
-                    key={plan.id}
-                    plan={plan}
-                    activePlanId={activePlanId}
-                    game={model.gamesById[plan.gameId]}
-                    commander={
-                      plan.gameCommander ?? (plan.gameCommanderId ? model.usersById[plan.gameCommanderId] : null)
-                    }
-                  />
+                  <PlanCard key={plan.id} plan={plan} activePlanId={activePlanId} />
                 ))}
               </div>
               {model.hasMoreArchivePlans && (

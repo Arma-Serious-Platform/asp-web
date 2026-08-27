@@ -4,22 +4,20 @@ import { CalendarIcon } from 'lucide-react';
 
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel';
 import { MissionDetails } from '@/entities/mission/mission-details';
-import { Game, HeadquartersGamePlan, Side } from '@/shared/sdk/types';
+import { Game, SideType } from '@/shared/sdk/types';
 
 import { getGameHumanLabel } from './plan-card';
 
 type PlanGameDetailsSectionProps = {
-  selectedPlan: HeadquartersGamePlan;
   selectedGame?: Game;
-  attackSide?: Side;
-  defenseSide?: Side;
+  attackSideType?: SideType;
+  defenseSideType?: SideType;
 };
 
 export function PlanGameDetailsSection({
-  selectedPlan,
   selectedGame,
-  attackSide,
-  defenseSide,
+  attackSideType,
+  defenseSideType,
 }: PlanGameDetailsSectionProps) {
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
@@ -28,17 +26,15 @@ export function PlanGameDetailsSection({
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 text-lg font-bold text-zinc-100">
             <CalendarIcon className="size-5 shrink-0" />
-            <span>
-              {getGameHumanLabel(selectedGame.date, selectedGame.position ?? selectedPlan.game?.position)}
-            </span>
+            <span>{getGameHumanLabel(selectedGame.date, selectedGame.position)}</span>
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
             <MissionImagePanel game={selectedGame} descriptionMaxLength={100} />
             <div className="lg:w-3/5">
               <MissionDetails
                 game={selectedGame}
-                attackSideType={attackSide?.type}
-                defenseSideType={defenseSide?.type}
+                attackSideType={attackSideType}
+                defenseSideType={defenseSideType}
               />
             </div>
           </div>

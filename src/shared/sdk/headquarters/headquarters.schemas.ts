@@ -10,6 +10,7 @@ import {
   SquadRoleSchema,
   UserRoleSchema,
 } from '../api-model';
+import { GameSchema } from '../weekends/weekends.schemas';
 
 export const HeadquartersSquadShortSchema = z
   .object({
@@ -37,27 +38,6 @@ export const HeadquartersSlotSchema = z
   })
   .passthrough();
 export type HeadquartersSlot = z.infer<typeof HeadquartersSlotSchema>;
-
-export const HeadquartersGameShortSchema = z
-  .object({
-    id: z.string(),
-    date: z.string(),
-    position: z.number(),
-    mission: z
-      .object({
-        id: z.string(),
-        name: z.string(),
-      })
-      .optional(),
-    missionVersion: z
-      .object({
-        id: z.string(),
-        version: z.string(),
-      })
-      .optional(),
-  })
-  .passthrough();
-export type HeadquartersGameShort = z.infer<typeof HeadquartersGameShortSchema>;
 
 export const HeadquartersSideShortSchema = z
   .object({
@@ -100,12 +80,47 @@ export const HeadquartersGamePlanSchema = z
     hqSquadId: z.string().nullable().optional(),
     hqSquad: HeadquartersSquadShortSchema.nullable().optional(),
     gameCommander: HeadquartersCommanderSchema.nullable().optional(),
-    game: HeadquartersGameShortSchema.optional(),
+    /** The detail endpoint returns the full game payload, so the mission panels can render from it. */
+    game: GameSchema.optional(),
     side: HeadquartersSideShortSchema.optional(),
     slots: z.array(HeadquartersSlotSchema),
   })
   .passthrough();
 export type HeadquartersGamePlan = z.infer<typeof HeadquartersGamePlanSchema>;
+
+export const HeadquartersGamePlanListGameSchema = z
+  .object({
+    id: z.string(),
+    date: z.string(),
+    position: z.number(),
+    mission: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        image: fileRefSchema.nullable().optional(),
+      })
+      .nullable()
+      .optional(),
+  })
+  .passthrough();
+export type HeadquartersGamePlanListGame = z.infer<typeof HeadquartersGamePlanListGameSchema>;
+
+/** Lightweight plan shape used by the plans list; the selected plan is loaded in full by id. */
+export const HeadquartersGamePlanListItemSchema = z
+  .object({
+    id: z.string(),
+    gameId: z.string(),
+    gameCommanderId: z.string().nullable(),
+    hqSquadId: z.string().nullable().optional(),
+    hqSquad: HeadquartersSquadShortSchema.nullable().optional(),
+    gameCommander: HeadquartersCommanderSchema.nullable().optional(),
+    game: HeadquartersGamePlanListGameSchema.optional(),
+    side: HeadquartersSideShortSchema.optional(),
+  })
+  .passthrough();
+export type HeadquartersGamePlanListItem = z.infer<typeof HeadquartersGamePlanListItemSchema>;
+
+export type FindHeadquartersPlansDto = PaginatedRequest;
 
 export const UpdateHeadquartersGamePlanDtoSchema = z.object({
   planUrl: z.string().nullable().optional(),

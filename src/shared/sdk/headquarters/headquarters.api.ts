@@ -9,8 +9,10 @@ import type {
   AssignHeadquartersSlotSquadDto,
   CreateHeadquartersCommentDto,
   FindHeadquartersCommentsDto,
+  FindHeadquartersPlansDto,
   HeadquartersComment,
   HeadquartersGamePlan,
+  HeadquartersGamePlanListItem,
   HeadquartersSlot,
   UpdateHeadquartersCommentDto,
   UpdateHeadquartersGamePlanDto,
@@ -21,6 +23,15 @@ export type * from './headquarters.schemas';
 export * from './headquarters.schemas';
 
 class HeadquartersApi extends ApiModel {
+  findHeadquartersPlans = async (dto: FindHeadquartersPlansDto = {}) => {
+    return await this.instance.get<{ data: HeadquartersGamePlanListItem[]; total: number }>(
+      '/headquarters/plans',
+      {
+        params: dto,
+      },
+    );
+  };
+
   findHeadquartersPlansByGame = async (gameId: string) => {
     return await this.instance.get<HeadquartersGamePlan[]>(`/headquarters/games/${gameId}/plans`);
   };

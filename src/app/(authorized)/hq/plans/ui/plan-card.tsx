@@ -1,7 +1,7 @@
 'use client';
 
 import dayjs from 'dayjs';
-import { HeadquartersGamePlan, Game, SideType } from '@/shared/sdk/types';
+import { HeadquartersGamePlanListItem, SideType } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { CalendarIcon, UserIcon } from 'lucide-react';
@@ -36,15 +36,15 @@ export const getGameHumanLabel = (date?: string, position?: number) => {
 };
 
 type PlanCardProps = {
-  plan: HeadquartersGamePlan;
+  plan: HeadquartersGamePlanListItem;
   activePlanId?: string;
-  game?: Game;
-  commander?: HeadquartersGamePlan['gameCommander'];
 };
 
-export function PlanCard({ plan, activePlanId, game, commander }: PlanCardProps) {
-  const missionName = plan.game?.mission?.name ?? game?.mission?.name ?? `Гра #${plan.game?.position ?? '-'}`;
+export function PlanCard({ plan, activePlanId }: PlanCardProps) {
+  const commander = plan.gameCommander;
+  const missionName = plan.game?.mission?.name ?? `Гра #${plan.game?.position ?? '-'}`;
   const dateLabel = getGameHumanLabel(plan.game?.date, plan.game?.position);
+  const missionImageUrl = plan.game?.mission?.image?.url;
   const hqSideType = plan.hqSquad
     ? plan.side?.type ?? commander?.squad?.side?.type
     : undefined;
@@ -58,11 +58,11 @@ export function PlanCard({ plan, activePlanId, game, commander }: PlanCardProps)
         )}>
         <div className="relative size-12 shrink-0 overflow-hidden rounded border border-white/10">
           <Image
-            src={game?.mission?.image?.url || '/images/avatar.jpg'}
+            src={missionImageUrl || '/images/avatar.jpg'}
             alt={missionName}
             fill
             className="object-cover"
-            unoptimized={!game?.mission?.image?.url?.startsWith('https')}
+            unoptimized={!missionImageUrl?.startsWith('https')}
           />
         </div>
 

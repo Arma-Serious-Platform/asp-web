@@ -49,10 +49,8 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
     UserRole.UVK,
   ]);
 
-  const selectedPlan = model.getPlanById(activePlanId);
-  const selectedCommander =
-    selectedPlan?.gameCommander ??
-    (selectedPlan?.gameCommanderId ? model.usersById[selectedPlan.gameCommanderId] : null);
+  const selectedPlan = model.selectedPlan?.id === activePlanId ? model.selectedPlan : null;
+  const selectedCommander = selectedPlan?.gameCommander ?? null;
   const isCommander = Boolean(currentUser?.id && selectedPlan?.gameCommanderId === currentUser.id);
   const canManageHqSquad = Boolean(
     session.canAccessHeadquarters &&
@@ -64,9 +62,7 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
     isHqAdmin || (selectedPlan?.hqSquadId && isInHqSquad && canManageHqSquad),
   );
   const canEditCommanderFields = isCommander;
-  const selectedGame = selectedPlan?.gameId ? model.gamesById[selectedPlan.gameId] : undefined;
-  const attackSide = selectedGame?.attackSideId ? model.sidesById[selectedGame.attackSideId] : undefined;
-  const defenseSide = selectedGame?.defenseSideId ? model.sidesById[selectedGame.defenseSideId] : undefined;
+  const selectedGame = selectedPlan?.game;
 
   useEffect(() => {
     if (!hasAccess) {
@@ -85,8 +81,16 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
   }, [activePlanId, currentSide, hasAccess, model]);
 
   useEffect(() => {
+    if (!hasAccess) {
+      return;
+    }
+
+    void model.loadPlan(activePlanId);
+  }, [activePlanId, hasAccess, model]);
+
+  useEffect(() => {
     model.resetPlanDrafts();
-  }, [model, selectedPlan?.id]);
+  }, [activePlanId, model]);
 
   useEffect(() => {
     model.ensureArchivePlanVisible(activePlanId);
@@ -100,14 +104,13 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
   );
 
   useEffect(() => {
-    const gamePlanId = selectedPlan?.id;
-    if (!gamePlanId) {
+    if (!activePlanId) {
       model.comments = [];
       return;
     }
 
-    void model.loadComments(gamePlanId);
-  }, [model, selectedPlan?.id]);
+    void model.loadComments(activePlanId);
+  }, [activePlanId, model]);
 
   useEffect(() => {
     if (!hasAccess || !session.isAuthorized) {
@@ -247,14 +250,13 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
           <section className="rounded-lg border border-white/10 bg-black/40 p-4">
             {!selectedPlan ? (
               <div className="flex h-full items-center justify-center py-10 text-center text-lg font-bold text-zinc-300">
-                Оберіть план
+                {activePlanId ? 'Завантаження плану…' : 'Оберіть план'}
               </div>
             ) : (
               <PlanGameDetailsSection
-                selectedPlan={selectedPlan}
                 selectedGame={selectedGame}
-                attackSide={attackSide}
-                defenseSide={defenseSide}
+                attackSideType={selectedGame?.attackSide?.type}
+                defenseSideType={selectedGame?.defenseSide?.type}
               />
             )}
           </section>
