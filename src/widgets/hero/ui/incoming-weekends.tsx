@@ -9,6 +9,7 @@ import { CalendarIcon, ArrowRightIcon, MapIcon, ShieldIcon, ClockIcon, CloudSunI
 import { observer } from 'mobx-react-lite';
 import { IncomingWeekendsState } from '../state/incoming-weekends.state';
 import dayjs from 'dayjs';
+import { formatGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { MissionModel } from '@/entities/mission/mission.model';
@@ -99,7 +100,7 @@ export const IncomingWeekends: FC<{
                           {game.date && (
                             <div className="flex items-center gap-1 text-xs text-zinc-400">
                               <CalendarIcon className="size-3 shrink-0" />
-                              <span>{dayjs(game.date).format('DD.MM.YYYY')}</span>
+                              <span>{formatGameDate(game.date)}</span>
                             </div>
                           )}
                           {game.mission.island && (

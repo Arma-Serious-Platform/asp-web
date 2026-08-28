@@ -1,8 +1,8 @@
 'use client';
 
-import dayjs from 'dayjs';
 import { HeadquartersGamePlanListItem, SideType } from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
+import { toGameDate } from '@/shared/utils/date';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { CalendarIcon, UserIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -20,9 +20,10 @@ const weekDayByIndex: Record<number, string> = {
 
 export const getGameHumanLabel = (date?: string, position?: number) => {
   const normalizedPosition = typeof position === 'number' ? position + 1 : null;
-  const dayIndex = date ? dayjs(date).day() : null;
+  const parsedDate = date ? toGameDate(date) : null;
+  const dayIndex = parsedDate?.isValid() ? parsedDate.day() : null;
   const weekDay = dayIndex !== null && weekDayByIndex[dayIndex] ? weekDayByIndex[dayIndex] : 'Гра';
-  const datePart = date && dayjs(date).isValid() ? ` (${dayjs(date).format('DD.MM.YYYY')})` : '';
+  const datePart = parsedDate?.isValid() ? ` (${parsedDate.format('DD.MM.YYYY')})` : '';
 
   if (normalizedPosition !== null) {
     return `${weekDay}, ${normalizedPosition}-а${datePart}`;

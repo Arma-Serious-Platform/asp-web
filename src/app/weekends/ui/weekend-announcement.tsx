@@ -5,7 +5,7 @@ import { MissionImagePanel } from '@/entities/mission/mission-image-panel';
 import { MissionDetails } from '@/entities/mission/mission-details';
 import { Tab } from '@/shared/ui/moleculas/tab';
 import { Side, Weekend } from '@/shared/sdk/types';
-import dayjs from 'dayjs';
+import { formatGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
 
 export const WeekendAnnouncement: FC<{
@@ -70,7 +70,7 @@ export const WeekendAnnouncement: FC<{
                       </span>
                       {game.date && (
                         <span className="text-[10px] font-medium uppercase tracking-wide text-white/60">
-                          {dayjs(game.date).format('DD.MM')}
+                          {formatGameDate(game.date, 'DD.MM')}
                         </span>
                       )}
                     </span>

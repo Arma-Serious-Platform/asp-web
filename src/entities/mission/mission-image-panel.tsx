@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Card } from '@/shared/ui/atoms/card';
 import { EyeIcon, DownloadIcon, CalendarIcon, InfoIcon, UserIcon, UserRoundCog, LandmarkIcon } from 'lucide-react';
 import { Game } from '@/shared/sdk/types';
-import dayjs from 'dayjs';
+import { formatGameDate } from '@/shared/utils/date';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
@@ -54,7 +54,7 @@ export const MissionImagePanel: FC<{
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <div className="flex items-center gap-2 text-white">
             <CalendarIcon className="size-4" />
-            {game.date && <span className="text-sm font-semibold">{dayjs(game.date).format('DD.MM.YYYY')}</span>}
+            {game.date && <span className="text-sm font-semibold">{formatGameDate(game.date)}</span>}
           </div>
         </div>
       </div>
