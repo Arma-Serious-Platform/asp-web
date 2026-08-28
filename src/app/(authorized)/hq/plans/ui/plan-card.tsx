@@ -57,12 +57,12 @@ export function PlanCard({ plan, activePlanId }: PlanCardProps) {
           'flex gap-2.5 rounded-md border border-transparent bg-black/30 px-2 py-2 transition-colors',
           activePlanId === plan.id ? 'border-primary/40 bg-primary/15' : 'hover:bg-white/5',
         )}>
-        <div className="relative size-12 shrink-0 overflow-hidden rounded border border-white/10">
+        <div className="relative size-12 shrink-0 overflow-hidden rounded border border-white/10 bg-black/40">
           <Image
-            src={missionImageUrl || '/images/avatar.jpg'}
+            src={missionImageUrl || '/images/logo.webp'}
             alt={missionName}
             fill
-            className="object-cover"
+            className={missionImageUrl ? 'object-cover' : 'object-contain p-1'}
             unoptimized={!missionImageUrl?.startsWith('https')}
           />
         </div>

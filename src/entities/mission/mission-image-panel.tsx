@@ -7,6 +7,7 @@ import { Card } from '@/shared/ui/atoms/card';
 import { EyeIcon, DownloadIcon, CalendarIcon, InfoIcon, UserIcon, UserRoundCog, LandmarkIcon } from 'lucide-react';
 import { Game } from '@/shared/sdk/types';
 import { formatGameDate } from '@/shared/utils/date';
+import { cn } from '@/shared/utils/cn';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/config/routes';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
@@ -42,11 +43,14 @@ export const MissionImagePanel: FC<{
   return (
     <div className="lg:w-2/5 flex flex-col gap-4">
       <MissionDetailsHeader game={game} className="lg:hidden" />
-      <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-white/10 group">
+      <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-white/10 bg-black/40 group">
         <img
-          src={game.mission.image?.url ?? ''}
+          src={game.mission.image?.url || '/images/logo.webp'}
           alt={game.mission.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className={cn(
+            'h-full w-full transition-transform duration-300 group-hover:scale-105',
+            game.mission.image?.url ? 'object-cover' : 'object-contain p-8',
+          )}
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
 

@@ -5,14 +5,29 @@ import { Link } from '@/shared/ui/atoms/link';
 import { ROUTES } from '@/shared/config/routes';
 
 import { FC, useEffect } from 'react';
-import { CalendarIcon, ArrowRightIcon, MapIcon, ShieldIcon, ClockIcon, CloudSunIcon } from 'lucide-react';
+import { CalendarIcon, ArrowRightIcon, MapIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { IncomingWeekendsState } from '../state/incoming-weekends.state';
-import dayjs from 'dayjs';
 import { formatGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
-import { MessageContent } from '@/entities/comment/lexical-message';
 import { MissionModel } from '@/entities/mission/mission.model';
+
+const GameFaction: FC<{
+  name?: string | null;
+  role: string;
+  sideType?: string | null;
+}> = ({ name, role, sideType }) => {
+  if (!name) return null;
+
+  const color = MissionModel.resolveMissionSideColor(sideType ?? undefined);
+
+  return (
+    <span className={cn('inline-flex min-w-0 max-w-full items-baseline gap-1', color.text)}>
+      <span className="truncate font-semibold">{name}</span>
+      <span className="shrink-0 font-medium opacity-75">({role})</span>
+    </span>
+  );
+};
 
 export const IncomingWeekends: FC<{
   model: IncomingWeekendsState;
@@ -23,14 +38,12 @@ export const IncomingWeekends: FC<{
 
   const upcomingGames = model.upcomingGames;
 
-  // Return null if no future games
   if (upcomingGames.length === 0) {
     return null;
   }
 
   return (
     <div className="w-full relative overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 bg-linear-to-br from-black/95 via-black/90 to-black/95" />
       <div
         className='absolute inset-0 bg-[url("/images/hero.jpg")] bg-cover bg-center bg-no-repeat opacity-10'
@@ -38,11 +51,9 @@ export const IncomingWeekends: FC<{
       />
       <div className="absolute inset-0 bg-linear-to-r from-lime-700/5 via-transparent to-lime-700/5" />
 
-      {/* Content */}
       <div className="relative z-10 w-full py-4 md:py-5">
         <div className="container mx-auto px-4">
           <div className="paper rounded-lg p-3 md:p-4 max-w-5xl mx-auto">
-            {/* Header */}
             <div className="flex items-center justify-between mb-2.5 flex-wrap gap-2">
               <div>
                 <div className="mb-0.5 flex items-center gap-1.5 text-xs text-zinc-400">
@@ -59,137 +70,75 @@ export const IncomingWeekends: FC<{
               </Link>
             </div>
 
-            {/* Games Preview */}
             <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3">
               {upcomingGames.map(game => {
-                const attackColor = MissionModel.resolveMissionSideColor(game.missionVersion.attackSideType);
-                const defenseColor = MissionModel.resolveMissionSideColor(game.missionVersion.defenseSideType);
                 const sideLabels = MissionModel.getMissionSideRoleLabels(game.mission.missionObjective);
-                const attackWeaponrySummary = MissionModel.formatWeaponrySummary(
-                  game.missionVersion.weaponry?.filter(w => w.type === game.missionVersion.attackSideType),
-                );
-                const defenseWeaponrySummary = MissionModel.formatWeaponrySummary(
-                  game.missionVersion.weaponry?.filter(w => w.type === game.missionVersion.defenseSideType),
-                );
                 const weekendId = game.weekendId ?? model.weekend?.id;
+                const factions = [
+                  {
+                    name: game.missionVersion.attackSideName,
+                    role: sideLabels.attack,
+                    sideType: game.missionVersion.attackSideType,
+                  },
+                  {
+                    name: game.missionVersion.defenseSideName,
+                    role: sideLabels.defense,
+                    sideType: game.missionVersion.defenseSideType,
+                  },
+                  ...(game.missionVersion.friendlySideName
+                    ? [
+                        {
+                          name: game.missionVersion.friendlySideName,
+                          role: 'Союзники',
+                          sideType: game.missionVersion.friendlySideType,
+                        },
+                      ]
+                    : []),
+                ].filter(faction => faction.name);
 
                 return (
                   <Link
                     key={game.id}
                     href={weekendId ? ROUTES.weekendByAnchor(weekendId, game.id) : ROUTES.weekends}
-                    className="paper cursor-pointer rounded-md border border-white/10 p-2.5 transition-colors hover:border-lime-700/50 md:p-3">
-                    <div className="flex items-start gap-2">
-                      {/* Mission Image */}
-                      <div className="relative size-16 shrink-0 overflow-hidden rounded-md border border-white/10 md:size-18">
-                        <img
-                          src={game.mission.image?.url || '/images/avatar.jpg'}
-                          alt={game.mission.name ?? 'Місія'}
-                          className="size-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
-                      </div>
+                    className="group paper flex cursor-pointer items-center gap-3 rounded-md border border-white/10 p-2.5 transition-colors hover:border-lime-700/50 md:p-3">
+                    <div className="relative h-20 w-34 shrink-0 overflow-hidden rounded-md border border-white/10 md:h-24 md:w-40">
+                      <img
+                        src={game.mission.image?.url || '/images/avatar.jpg'}
+                        alt={game.mission.name ?? 'Місія'}
+                        className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
 
-                      {/* Game Info */}
-                      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                        <h3 className="wrap-break-word text-sm font-bold leading-tight text-white md:text-base">
-                          {game.mission.name ?? `Гра ${game.position + 1}`}
-                        </h3>
+                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                      <h3 className="wrap-break-word text-sm font-bold leading-tight text-white md:text-base">
+                        {game.mission.name ?? `Гра ${game.position + 1}`}
+                      </h3>
 
-                        {/* Date and Island */}
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          {game.date && (
-                            <div className="flex items-center gap-1 text-xs text-zinc-400">
-                              <CalendarIcon className="size-3 shrink-0" />
-                              <span>{formatGameDate(game.date)}</span>
-                            </div>
-                          )}
-                          {game.mission.island && (
-                            <div className="flex items-center gap-1 text-xs text-zinc-400">
-                              <MapIcon className="size-3 shrink-0" />
-                              <span>{game.mission.island.name}</span>
-                            </div>
-                          )}
-                          {game.missionVersion.inGameTime && (
-                            <div className="flex items-center gap-1 text-xs text-zinc-400">
-                              <ClockIcon className="size-3 shrink-0" />
-                              <span>{dayjs(game.missionVersion.inGameTime).format('HH:mm')}</span>
-                            </div>
-                          )}
-                          {game.missionVersion.weather && (
-                            <div className="flex items-center gap-1 text-xs text-zinc-400">
-                              <CloudSunIcon className="size-3 shrink-0" />
-                              <span>{game.missionVersion.weather}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Sides — slots + weaponry with SideType colors */}
-                        <div className="rounded-md border border-white/10 bg-black/35 px-2 py-1.5">
-                          <div className="mb-1 flex items-center gap-1.5">
-                            <ShieldIcon className="size-3 shrink-0 text-lime-500" />
-                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-                              Фракції конфлікту
-                            </span>
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+                        {game.date && (
+                          <div className="flex items-center gap-1 text-xs text-zinc-400">
+                            <CalendarIcon className="size-3 shrink-0" />
+                            <span>{formatGameDate(game.date)}</span>
                           </div>
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex flex-col gap-0.5">
-                              <div className="flex min-w-0 flex-wrap items-center gap-1">
-                                <div className={cn('size-1.5 shrink-0 rounded-full', attackColor.dot)} />
-                                <span className={cn('truncate text-xs font-semibold', attackColor.text)}>
-                                  {game.missionVersion.attackSideName}
-                                </span>
-                                <span className={cn('shrink-0 text-[11px] font-medium', attackColor.text)}>
-                                  ({game.missionVersion.attackSideSlots})
-                                </span>
-                                <span
-                                  className={cn(
-                                    'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
-                                    attackColor.soft,
-                                  )}>
-                                  {sideLabels.attack}
-                                </span>
-                              </div>
-                              {attackWeaponrySummary && (
-                                <span className={cn('pl-2.5 text-[10px] leading-snug', attackColor.text)}>
-                                  {attackWeaponrySummary}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <div className="flex min-w-0 flex-wrap items-center gap-1">
-                                <div className={cn('size-1.5 shrink-0 rounded-full', defenseColor.dot)} />
-                                <span className={cn('truncate text-xs font-semibold', defenseColor.text)}>
-                                  {game.missionVersion.defenseSideName}
-                                </span>
-                                <span className={cn('shrink-0 text-[11px] font-medium', defenseColor.text)}>
-                                  ({game.missionVersion.defenseSideSlots})
-                                </span>
-                                <span
-                                  className={cn(
-                                    'shrink-0 rounded px-1.5 py-px text-[10px] font-semibold leading-none',
-                                    defenseColor.soft,
-                                  )}>
-                                  {sideLabels.defense}
-                                </span>
-                              </div>
-                              {defenseWeaponrySummary && (
-                                <span className={cn('pl-2.5 text-[10px] leading-snug', defenseColor.text)}>
-                                  {defenseWeaponrySummary}
-                                </span>
-                              )}
-                            </div>
+                        )}
+                        {game.mission.island && (
+                          <div className="flex items-center gap-1 text-xs text-zinc-400">
+                            <MapIcon className="size-3 shrink-0" />
+                            <span>{game.mission.island.name}</span>
                           </div>
-                        </div>
-
-                        {/* Mission Description */}
-                        {game.mission.description && (
-                          <MessageContent
-                            message={game.mission.description}
-                            textOnly
-                            className="line-clamp-2 text-[11px] leading-snug text-zinc-400 [&_p]:inline"
-                          />
                         )}
                       </div>
+
+                      {factions.length > 0 && (
+                        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
+                          {factions.map((faction, index) => (
+                            <span key={`${faction.role}-${faction.name}`} className="inline-flex min-w-0 items-center">
+                              {index > 0 && <span className="mr-1.5 text-white/25">·</span>}
+                              <GameFaction name={faction.name} role={faction.role} sideType={faction.sideType} />
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </Link>
                 );

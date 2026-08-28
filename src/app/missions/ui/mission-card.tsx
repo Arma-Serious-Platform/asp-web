@@ -71,20 +71,18 @@ export const MissionCard: FC<{ mission: Mission }> = ({ mission }) => {
     <Card className="group hover:border-lime-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-lime-500/10">
       <div className="flex flex-col gap-4">
         {/* Image */}
-        <div className="relative w-full aspect-video overflow-hidden rounded-lg border border-white/10">
-          {mission.image?.url ? (
-            <Image
-              src={mission.image.url}
-              alt={mission.name}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              unoptimized={!mission.image.url.startsWith('https')}
-            />
-          ) : (
-            <div className="w-full h-full bg-linear-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
-              <span className="text-zinc-500 text-sm">Немає зображення</span>
-            </div>
-          )}
+        <div className="relative w-full aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/40">
+          <Image
+            src={mission.image?.url || '/images/logo.webp'}
+            alt={mission.name}
+            fill
+            className={
+              mission.image?.url
+                ? 'object-cover transition-transform duration-300 group-hover:scale-105'
+                : 'object-contain p-8'
+            }
+            unoptimized={!mission.image?.url?.startsWith('https')}
+          />
           <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
           <div className="absolute top-3 left-3 flex items-center gap-2">

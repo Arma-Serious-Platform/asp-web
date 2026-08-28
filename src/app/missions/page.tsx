@@ -270,7 +270,7 @@ const MissionsPageContent = observer(() => {
         <div className="flex flex-col gap-6 lg:flex-row lg:gap-6">
           {/* Desktop filters sidebar */}
           <aside className="hidden w-64 shrink-0 lg:block">
-            <div className="sticky top-24">
+            <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
               <h2 className="mb-4 text-xl font-semibold text-white">Фільтри</h2>
               <MissionFilters
                 filters={draftFilters}

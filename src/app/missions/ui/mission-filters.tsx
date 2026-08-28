@@ -4,7 +4,14 @@ import { observer } from 'mobx-react-lite';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
-import { MissionStatus, MissionType, MissionObjective, State, type MissionOrderBy, type MissionOrderType } from '@/shared/sdk/types';
+import {
+  MissionStatus,
+  MissionType,
+  MissionObjective,
+  State,
+  type MissionOrderBy,
+  type MissionOrderType,
+} from '@/shared/sdk/types';
 import { cn } from '@/shared/utils/cn';
 import { mapUsersToSelectOptions } from '@/entities/user/ui/user-select-options';
 import { missionsState } from '../state/missions-page.state';
@@ -162,7 +169,11 @@ export const MissionFilters = observer(
             Застосувати
           </Button>
 
-          <Button variant="ghost" disabled={isLoading || !isFilterApplied} onClick={onReset} className="w-full">
+          <Button
+            variant={isFilterApplied ? 'secondary' : 'ghost'}
+            disabled={isLoading || !isFilterApplied}
+            onClick={onReset}
+            className="w-full">
             Скинути
           </Button>
         </div>
