@@ -101,11 +101,16 @@ export const IncomingWeekends: FC<{
                     key={game.id}
                     href={weekendId ? ROUTES.weekendByAnchor(weekendId, game.id) : ROUTES.weekends}
                     className="group paper flex cursor-pointer items-center gap-3 rounded-md border border-white/10 p-2.5 transition-colors hover:border-lime-700/50 md:p-3">
-                    <div className="relative h-20 w-34 shrink-0 overflow-hidden rounded-md border border-white/10 md:h-24 md:w-40">
+                    <div className="relative h-20 w-34 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/40 md:h-24 md:w-40">
                       <img
-                        src={game.mission.image?.url || '/images/avatar.jpg'}
+                        src={game.mission.image?.url || '/images/logo.webp'}
                         alt={game.mission.name ?? 'Місія'}
-                        className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className={cn(
+                          'size-full',
+                          game.mission.image?.url
+                            ? 'object-cover transition-transform duration-300 group-hover:scale-105'
+                            : 'object-contain p-2',
+                        )}
                       />
                     </div>
 
