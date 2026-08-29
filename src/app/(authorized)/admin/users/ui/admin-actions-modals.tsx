@@ -6,7 +6,7 @@ import { AdminChangeNicknameModal } from './admin-change-nickname';
 import { ChangeUserRoleModal } from './change-user-role';
 import { IssueUserWarningModal } from './issue-user-warning';
 import { PunishmentHistoryModal } from './punishment-history';
-import { User, UserRole, UserWarning } from '@/shared/sdk/types';
+import { User, UserRole, CreateUserWarningResponse } from '@/shared/sdk/types';
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import { UserAdminActionsState } from '../state/admin-actions.state';
@@ -15,7 +15,7 @@ export type UserAdminActionsModalCallbacks = {
   onBanSuccess?: (user: User) => void;
   onUnbanSuccess?: (user: User) => void;
   onChangeNicknameSuccess?: (user: User) => void;
-  onIssueWarningSuccess?: (warning: UserWarning) => void;
+  onIssueWarningSuccess?: (response: CreateUserWarningResponse) => void;
   onWarningRemoved?: (warning: UserWarning) => void;
   onChangeRoleSuccess?: (userId: string, roles: UserRole[]) => void;
 };

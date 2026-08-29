@@ -56,8 +56,8 @@ const AdminPage = observer(() => {
           onChangeNicknameSuccess={user => {
             usersPageState.afterChangeNickname(user);
           }}
-          onIssueWarningSuccess={warning => {
-            usersPageState.afterIssueWarning(warning);
+          onIssueWarningSuccess={response => {
+            usersPageState.afterIssueWarning(response);
           }}
           onWarningRemoved={warning => {
             usersPageState.afterWarningRemoved(warning);

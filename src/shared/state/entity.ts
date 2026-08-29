@@ -1,5 +1,4 @@
 import { action, computed, makeObservable, observable, toJS } from 'mobx';
-import toast from 'react-hot-toast';
 import type { z, ZodSchema } from 'zod';
 
 /**
@@ -26,12 +25,7 @@ export function createEntity<S extends ZodSchema>(schema: S) {
 
     constructor(data: Data) {
       this.data = data;
-      try {
-        this.history = [structuredClone(toJS(data))];
-      } catch {
-        // API payloads can include non-cloneable values; keep a shallow snapshot.
-        this.history = [{ ...(data as object) } as Data];
-      }
+      this.history = [this.cloneData(data)];
       this.historyIndex = 0;
 
       makeObservable(this, {
@@ -67,13 +61,27 @@ export function createEntity<S extends ZodSchema>(schema: S) {
       return this.historyIndex < this.history.length - 1;
     }
 
-    private cloneData = (data: Data): Data => structuredClone(toJS(data));
+    private cloneData = (data: Data): Data => {
+      const plain = toJS(data);
+
+      try {
+        return structuredClone(plain);
+      } catch {
+        try {
+          // Nested MobX values inside a plain spread are not walked by toJS,
+          // but JSON.stringify still enumerates them.
+          return JSON.parse(JSON.stringify(plain)) as Data;
+        } catch {
+          return { ...(plain as object) } as Data;
+        }
+      }
+    };
 
     update = (data: Data, options?: { skipHistory?: boolean }) => {
       const validation = this.validate(data);
 
       if (!validation.success) {
-        toast.error('Cannot update entity');
+        console.error('Cannot update entity', validation.error);
 
         return;
       }

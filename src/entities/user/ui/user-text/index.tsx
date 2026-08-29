@@ -112,7 +112,7 @@ export const UserStatusText: FC<{
         className,
       )}>
       {UserModel.getStatusText(status)}
-      {bannedUntil && <span className="text-red-500"> {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
+      {bannedUntil && <span className="text-red-500"> до {dayjs(bannedUntil).format('DD.MM.YYYY HH:mm')}</span>}
       {isPermanentBan && <span className="text-red-500"> назавжди</span>}
       {status === UserStatus.BANNED && banReason && <span className="ml-1 text-zinc-400">— {banReason}</span>}
     </span>

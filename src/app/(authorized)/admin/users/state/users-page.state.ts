@@ -1,9 +1,9 @@
 import { UserModel } from '@/entities/user/user.model';
 import { UserAdminActionsState } from '@/app/(authorized)/admin/users/state/admin-actions.state';
 import { usersApi } from '@/shared/sdk';
-import { FindUsersDto, User, UserRole, UserStatus, UserWarning } from '@/shared/sdk/types';
+import { FindUsersDto, User, UserRole, UserStatus, UserWarning, CreateUserWarningResponse } from '@/shared/sdk/types';
 import { Pagination } from '@/shared/state/pagination';
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, toJS } from 'mobx';
 
 class UsersPageState {
   constructor() {
@@ -20,7 +20,7 @@ class UsersPageState {
   afterBanUser = (user: User) => {
     const next = this.pagination.data.map(u => {
       if (u.id === user.id) {
-        u.update({ ...u.data, status: user.status, bannedUntil: user.bannedUntil });
+        u.update({ ...toJS(u.data), status: user.status, bannedUntil: user.bannedUntil });
       }
       return u;
     });
@@ -30,22 +30,30 @@ class UsersPageState {
   afterChangeNickname = (user: User) => {
     const next = this.pagination.data.map(u => {
       if (u.id === user.id) {
-        u.update({ ...u.data, nickname: user.nickname });
+        u.update({ ...toJS(u.data), nickname: user.nickname });
       }
       return u;
     });
     this.pagination.setData(next);
   };
 
-  afterIssueWarning = (warning: UserWarning) => {
+  afterIssueWarning = (response: CreateUserWarningResponse) => {
+    const { warning } = response;
     const next = this.pagination.data.map(u => {
       if (u.id === warning.userId) {
+        const data = toJS(u.data);
         u.update({
-          ...u.data,
+          ...data,
           _count: {
-            ...u.data._count,
-            warnings: ((u.data._count as { warnings?: number } | undefined)?.warnings ?? 0) + 1,
+            ...data._count,
+            warnings: ((data._count as { warnings?: number } | undefined)?.warnings ?? 0) + 1,
           },
+          ...(response.autobanApplied && response.bannedUntil
+            ? {
+                status: UserStatus.BANNED,
+                bannedUntil: response.bannedUntil,
+              }
+            : {}),
         });
       }
       return u;
@@ -56,11 +64,12 @@ class UsersPageState {
   afterWarningRemoved = (warning: UserWarning) => {
     const next = this.pagination.data.map(u => {
       if (u.id === warning.userId) {
+        const data = toJS(u.data);
         u.update({
-          ...u.data,
+          ...data,
           _count: {
-            ...u.data._count,
-            warnings: Math.max(((u.data._count as { warnings?: number } | undefined)?.warnings ?? 1) - 1, 0),
+            ...data._count,
+            warnings: Math.max(((data._count as { warnings?: number } | undefined)?.warnings ?? 1) - 1, 0),
           },
         });
       }
@@ -72,7 +81,7 @@ class UsersPageState {
   afterUnbanUser = (user: User) => {
     const next = this.pagination.data.map(u => {
       if (u.id === user.id) {
-        u.update({ ...u.data, status: UserStatus.ACTIVE, bannedUntil: null });
+        u.update({ ...toJS(u.data), status: UserStatus.ACTIVE, bannedUntil: null });
       }
       return u;
     });
@@ -82,7 +91,7 @@ class UsersPageState {
   afterChangeRole = (userId: string, roles: UserRole[]) => {
     const next = this.pagination.data.map(u => {
       if (u.id === userId) {
-        u.update({ ...u.data, roles });
+        u.update({ ...toJS(u.data), roles });
       }
       return u;
     });

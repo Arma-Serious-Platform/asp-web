@@ -1,7 +1,8 @@
 import { Loader } from '@/shared/state/loader';
 import { Visibility } from '@/shared/state/visibility';
 import { usersApi } from '@/shared/sdk';
-import { User, UserWarning } from '@/shared/sdk/types';
+import { CreateUserWarningResponse, User } from '@/shared/sdk/types';
+import dayjs from 'dayjs';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -16,7 +17,10 @@ export class IssueUserWarningState {
     user: User;
   }>();
 
-  async issueWarning(reason: string, onSuccess?: (warning: UserWarning) => void) {
+  async issueWarning(
+    reason: string,
+    onSuccess?: (response: CreateUserWarningResponse) => void,
+  ) {
     const userId = this.visibility.payload?.user.id;
 
     if (!userId) return;
@@ -27,7 +31,14 @@ export class IssueUserWarningState {
 
       onSuccess?.(data);
 
-      toast.success('Попередження видано');
+      if (data.autobanApplied && data.bannedUntil) {
+        toast.success(
+          `Попередження видано. Автоматично забанено до ${dayjs(data.bannedUntil).format('DD.MM.YYYY HH:mm')}`,
+        );
+      } else {
+        toast.success('Попередження видано');
+      }
+
       this.visibility.close();
     } catch (error) {
       console.error(error);

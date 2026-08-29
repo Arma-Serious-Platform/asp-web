@@ -18,7 +18,7 @@ const loose = z.any();
 export const UserSchema = z
   .object({
     id: z.string(),
-    email: z.string(),
+    email: z.string().nullable().optional(),
     nickname: z.string(),
     password: z.string().optional().default(''),
     createdAt: dateLikeSchema,
@@ -44,11 +44,11 @@ export const UserSchema = z
     squad: loose.nullable().optional(),
     squadRole: SquadRoleSchema.nullable().optional(),
     specializations: z.array(loose).optional(),
-    telegramUrl: z.string().optional(),
-    discordUrl: z.string().optional(),
-    twitchUrl: z.string().optional(),
-    youtubeUrl: z.string().optional(),
-    tiktokUrl: z.string().optional(),
+    telegramUrl: z.string().nullable().optional(),
+    discordUrl: z.string().nullable().optional(),
+    twitchUrl: z.string().nullable().optional(),
+    youtubeUrl: z.string().nullable().optional(),
+    tiktokUrl: z.string().nullable().optional(),
     twoFactorEnabled: z.boolean().optional(),
     _count: z.record(z.string(), z.number()).optional(),
   })
@@ -100,6 +100,17 @@ export const UserWarningSchema = z
   })
   .passthrough();
 export type UserWarning = z.infer<typeof UserWarningSchema>;
+
+export const CreateUserWarningResponseSchema = z
+  .object({
+    warning: UserWarningSchema,
+    autobanApplied: z.boolean(),
+    bannedUntil: z.string().optional(),
+  })
+  .passthrough();
+export type CreateUserWarningResponse = z.infer<
+  typeof CreateUserWarningResponseSchema
+>;
 
 export const UserPunishmentTypeSchema = z.enum([
   'WARNING',

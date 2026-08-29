@@ -9,7 +9,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/shared/ui/organisms/drawer';
-import { UserWarning } from '@/shared/sdk/types';
+import { CreateUserWarningResponse } from '@/shared/sdk/types';
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -18,7 +18,7 @@ import { issueUserWarningState, IssueUserWarningState } from '../state/issue-use
 const IssueUserWarningModal: FC<
   PropsWithChildren<{
     model?: IssueUserWarningState;
-    onSuccess?: (warning: UserWarning) => void;
+    onSuccess?: (response: CreateUserWarningResponse) => void;
   }>
 > = observer(({ model = issueUserWarningState, children, onSuccess }) => {
   const [reason, setReason] = useState('');

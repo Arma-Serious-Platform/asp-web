@@ -8,6 +8,7 @@ import type {
   ChangeUserNicknameDto,
   ChangeUserRoleDto,
   CreateUserWarningDto,
+  CreateUserWarningResponse,
   FindUsersDto,
   UpdateUserDto,
   User,
@@ -97,7 +98,7 @@ class UsersApi extends ApiModel {
   };
 
   createUserWarning = async ({ userId, ...dto }: CreateUserWarningDto) => {
-    return await this.instance.post<UserWarning>(`/users/${userId}/warnings`, dto);
+    return await this.instance.post<CreateUserWarningResponse>(`/users/${userId}/warnings`, dto);
   };
 
   findUserWarnings = async (userId: string) => {
