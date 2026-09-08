@@ -65,6 +65,7 @@ const defaultGame: CreateGameDto = {
 
 const gameSchema = z
   .object({
+    id: z.string().optional(),
     date: z.string().min(1, "Дата є обов'язковою"),
     position: z.number().min(0),
     missionId: z.string().min(1, "Місія є обов'язковою"),
@@ -364,6 +365,7 @@ const ManageWeekendModal: FC<
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: 'games',
+    keyName: '_fieldId',
   });
 
   const sensors = useSensors(
@@ -377,8 +379,8 @@ const ManageWeekendModal: FC<
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = fields.findIndex(field => field.id === active.id);
-      const newIndex = fields.findIndex(field => field.id === over.id);
+      const oldIndex = fields.findIndex(field => field._fieldId === active.id);
+      const newIndex = fields.findIndex(field => field._fieldId === over.id);
       move(oldIndex, newIndex);
     }
   };
@@ -622,12 +624,12 @@ const ManageWeekendModal: FC<
                   <p className="text-sm text-destructive mb-2">{form.formState.errors.games.message}</p>
                 )}
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={fields.map(f => f._fieldId)} strategy={verticalListSortingStrategy}>
                     <div className="flex flex-col gap-6">
                       {fields.map((field, index) => (
                         <SortableGameItem
-                          key={field.id}
-                          id={field.id}
+                          key={field._fieldId}
+                          id={field._fieldId}
                           index={index}
                           form={form}
                           missionOptions={missionOptions}
