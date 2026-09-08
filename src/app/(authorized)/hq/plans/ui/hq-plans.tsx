@@ -253,11 +253,7 @@ export const HqPlans = observer(({ activePlanId }: HqPlansProps) => {
                 {activePlanId ? 'Завантаження плану…' : 'Оберіть план'}
               </div>
             ) : (
-              <PlanGameDetailsSection
-                selectedGame={selectedGame}
-                attackSideType={selectedGame?.attackSide?.type}
-                defenseSideType={selectedGame?.defenseSide?.type}
-              />
+              <PlanGameDetailsSection selectedGame={selectedGame} />
             )}
           </section>
         </div>

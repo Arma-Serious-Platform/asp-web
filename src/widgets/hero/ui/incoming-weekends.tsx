@@ -11,20 +11,26 @@ import { IncomingWeekendsState } from '../state/incoming-weekends.state';
 import { formatGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
 import { MissionModel } from '@/entities/mission/mission.model';
+import { SquadSideBadge } from '@/entities/side/ui/squad-side-badge';
 
 const GameFaction: FC<{
   name?: string | null;
   role: string;
   sideType?: string | null;
-}> = ({ name, role, sideType }) => {
+  squadName?: string | null;
+  squadType?: string | null;
+}> = ({ name, role, sideType, squadName, squadType }) => {
   if (!name) return null;
 
   const color = MissionModel.resolveMissionSideColor(sideType ?? undefined);
 
   return (
-    <span className={cn('inline-flex min-w-0 max-w-full items-baseline gap-1', color.text)}>
-      <span className="truncate font-semibold">{name}</span>
-      <span className="shrink-0 font-medium opacity-75">({role})</span>
+    <span className="inline-flex min-w-0 max-w-full flex-col items-start gap-0.5">
+      <SquadSideBadge name={squadName} type={squadType} size="compact" />
+      <span className={cn('inline-flex min-w-0 max-w-full items-baseline gap-1', color.text)}>
+        <span className="truncate font-semibold">{name}</span>
+        <span className="shrink-0 font-medium opacity-75">({role})</span>
+      </span>
     </span>
   );
 };
@@ -79,11 +85,15 @@ export const IncomingWeekends: FC<{
                     name: game.missionVersion.attackSideName,
                     role: sideLabels.attack,
                     sideType: game.missionVersion.attackSideType,
+                    squadName: game.attackSide?.name,
+                    squadType: game.attackSide?.type,
                   },
                   {
                     name: game.missionVersion.defenseSideName,
                     role: sideLabels.defense,
                     sideType: game.missionVersion.defenseSideType,
+                    squadName: game.defenseSide?.name,
+                    squadType: game.defenseSide?.type,
                   },
                   ...(game.missionVersion.friendlySideName
                     ? [
@@ -91,6 +101,8 @@ export const IncomingWeekends: FC<{
                           name: game.missionVersion.friendlySideName,
                           role: 'Союзники',
                           sideType: game.missionVersion.friendlySideType,
+                          squadName: undefined as string | undefined,
+                          squadType: undefined as string | undefined,
                         },
                       ]
                     : []),
@@ -139,7 +151,13 @@ export const IncomingWeekends: FC<{
                           {factions.map((faction, index) => (
                             <span key={`${faction.role}-${faction.name}`} className="inline-flex min-w-0 items-center">
                               {index > 0 && <span className="mr-1.5 text-white/25">·</span>}
-                              <GameFaction name={faction.name} role={faction.role} sideType={faction.sideType} />
+                              <GameFaction
+                                name={faction.name}
+                                role={faction.role}
+                                sideType={faction.sideType}
+                                squadName={faction.squadName}
+                                squadType={faction.squadType}
+                              />
                             </span>
                           ))}
                         </div>

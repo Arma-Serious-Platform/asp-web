@@ -4,21 +4,15 @@ import { CalendarIcon } from 'lucide-react';
 
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel';
 import { MissionDetails } from '@/entities/mission/mission-details';
-import { Game, SideType } from '@/shared/sdk/types';
+import { Game } from '@/shared/sdk/types';
 
 import { getGameHumanLabel } from './plan-card';
 
 type PlanGameDetailsSectionProps = {
   selectedGame?: Game;
-  attackSideType?: SideType;
-  defenseSideType?: SideType;
 };
 
-export function PlanGameDetailsSection({
-  selectedGame,
-  attackSideType,
-  defenseSideType,
-}: PlanGameDetailsSectionProps) {
+export function PlanGameDetailsSection({ selectedGame }: PlanGameDetailsSectionProps) {
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
       <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Деталі гри</div>
@@ -31,11 +25,7 @@ export function PlanGameDetailsSection({
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
             <MissionImagePanel game={selectedGame} descriptionMaxLength={100} />
             <div className="lg:w-3/5">
-              <MissionDetails
-                game={selectedGame}
-                attackSideType={attackSideType}
-                defenseSideType={defenseSideType}
-              />
+              <MissionDetails game={selectedGame} />
             </div>
           </div>
         </div>

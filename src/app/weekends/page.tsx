@@ -4,10 +4,8 @@ import { Layout } from '@/widgets/layout';
 import { WeekendAnnouncement } from '@/app/weekends/ui/weekend-announcement';
 import { observer } from 'mobx-react-lite';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { View } from '@/features/view';
-import { sidesApi } from '@/shared/sdk';
-import { Side } from '@/shared/sdk/types';
 
 import { weekendsPageState } from './state/weekends-page.state';
 
@@ -26,24 +24,9 @@ const scrollToWeekendAnchor = (hash: string) => {
 const WeekendsPage = observer(() => {
   const searchParams = useSearchParams();
   const activeGameId = searchParams.get('game');
-  const [sidesById, setSidesById] = useState<Record<string, Side>>({});
 
   useEffect(() => {
     weekendsPageState.init();
-  }, []);
-
-  useEffect(() => {
-    const loadSides = async () => {
-      try {
-        const sidesRes = await sidesApi.findSides({ take: 1000, skip: 0 });
-        const sides = sidesRes.data.data ?? [];
-        setSidesById(Object.fromEntries(sides.map(side => [side.id, side])));
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    void loadSides();
   }, []);
 
   useEffect(() => {
@@ -88,7 +71,6 @@ const WeekendsPage = observer(() => {
                 <WeekendAnnouncement
                   key={weekend.id}
                   weekend={weekend.data}
-                  sidesById={sidesById}
                   activeGameId={activeGameId}
                 />
               ))}

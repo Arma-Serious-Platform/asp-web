@@ -1,9 +1,9 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, ReactNode, useEffect, useState } from 'react';
 
 import { UsersIcon, CalendarIcon, ShieldIcon, MapIcon, ClockIcon, CloudSunIcon } from 'lucide-react';
 import { Card } from '@/shared/ui/atoms/card';
 import classNames from 'classnames';
-import { Game, SideType } from '@/shared/sdk/types';
+import { Game } from '@/shared/sdk/types';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uk';
 import { toGameDate } from '@/shared/utils/date';
@@ -11,12 +11,28 @@ import { cn } from '@/shared/utils/cn';
 import { UniformSection } from '@/entities/mission/uniform-section';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
 import { MissionModel } from '@/entities/mission/mission.model';
+import { SquadSideBadge } from '@/entities/side/ui/squad-side-badge';
 
 type MissionDetailsProps = {
   game: Game;
-  attackSideType?: SideType;
-  defenseSideType?: SideType;
 };
+
+type FactionPanelProps = {
+  children: ReactNode;
+  squadName?: string | null;
+  squadType?: string | null;
+};
+
+const FactionPanel: FC<FactionPanelProps> = ({ children, squadName, squadType }) => (
+  <div
+    className={cn(
+      'relative flex flex-col gap-2.5 rounded-lg border border-white/5 bg-black/30 p-3',
+      squadName && 'pt-5',
+    )}>
+    <SquadSideBadge name={squadName} type={squadType} className="absolute -top-2.5 left-3" />
+    {children}
+  </div>
+);
 
 export const MissionDetailsHeader: FC<{ game: Game; className?: string }> = ({ game, className }) => (
   <div className={cn('flex flex-col items-start justify-between gap-4', className)}>
@@ -29,7 +45,7 @@ export const MissionDetailsHeader: FC<{ game: Game; className?: string }> = ({ g
   </div>
 );
 
-export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, defenseSideType }) => {
+export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(true);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(true);
   const [isFriendlyUniformOpen, setIsFriendlyUniformOpen] = useState(true);
@@ -42,10 +58,8 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
     friendly: friendlyUniformScreenshots,
   } = MissionModel.resolveUniformScreenshots(game.missionVersion);
   const sideLabels = MissionModel.getMissionSideRoleLabels(game.mission.missionObjective);
-  const resolvedAttackSideType = attackSideType ?? game.missionVersion.attackSideType;
-  const resolvedDefenseSideType = defenseSideType ?? game.missionVersion.defenseSideType;
-  const attackColor = MissionModel.resolveMissionSideColor(resolvedAttackSideType);
-  const defenseColor = MissionModel.resolveMissionSideColor(resolvedDefenseSideType);
+  const attackColor = MissionModel.resolveMissionSideColor(game.missionVersion.attackSideType);
+  const defenseColor = MissionModel.resolveMissionSideColor(game.missionVersion.defenseSideType);
   const friendlyColor =
     game.missionVersion.friendlySideType != null
       ? game.missionVersion.friendlyTo === game.missionVersion.attackSideType
@@ -155,8 +169,8 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
           <ShieldIcon className="size-4 text-lime-500" />
           <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Фракції конфлікту</span>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="flex flex-col gap-2.5 rounded-lg border border-white/5 bg-black/30 p-3">
+        <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FactionPanel squadName={game.attackSide?.name} squadType={game.attackSide?.type}>
             <div className="flex flex-wrap items-center gap-2">
               <div className={classNames('w-2 h-2 rounded-full', attackColor.dot)} />
               <span className={classNames('font-bold text-base', attackColor.text)}>
@@ -177,9 +191,9 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
                 {unit.description && <span className="text-zinc-500">({unit.description})</span>}
               </div>
             ))}
-          </div>
+          </FactionPanel>
 
-          <div className="flex flex-col gap-2.5 rounded-lg border border-white/5 bg-black/30 p-3">
+          <FactionPanel squadName={game.defenseSide?.name} squadType={game.defenseSide?.type}>
             <div className="flex flex-wrap items-center gap-2">
               <div className={classNames('w-2 h-2 rounded-full', defenseColor.dot)} />
               <span className={classNames('font-bold text-base', defenseColor.text)}>
@@ -200,7 +214,7 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game, attackSideType, 
                 {unit.description && <span className="text-zinc-500">({unit.description})</span>}
               </div>
             ))}
-          </div>
+          </FactionPanel>
         </div>
 
         {hasFriendlySide && friendlyColor && (

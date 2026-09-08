@@ -4,15 +4,14 @@ import { FC, useEffect, useMemo, useState } from 'react';
 import { MissionImagePanel } from '@/entities/mission/mission-image-panel';
 import { MissionDetails } from '@/entities/mission/mission-details';
 import { Tab } from '@/shared/ui/moleculas/tab';
-import { Side, Weekend } from '@/shared/sdk/types';
+import { Weekend } from '@/shared/sdk/types';
 import { formatGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
 
 export const WeekendAnnouncement: FC<{
   weekend: Weekend;
-  sidesById: Record<string, Side>;
   activeGameId?: string | null;
-}> = ({ weekend, sidesById, activeGameId }) => {
+}> = ({ weekend, activeGameId }) => {
   const sortedGames = useMemo(
     () => (weekend.games ? [...weekend.games].sort((a, b) => a.position - b.position) : []),
     [weekend.games],
@@ -69,8 +68,8 @@ export const WeekendAnnouncement: FC<{
                         {game.mission?.name || `Гра ${index + 1}`}
                       </span>
                       {game.date && (
-                        <span className="text-[10px] font-medium uppercase tracking-wide text-white/60">
-                          {formatGameDate(game.date, 'DD.MM')}
+                        <span className="text-sm font-medium uppercase tracking-wide text-white/60">
+                          {formatGameDate(game.date, 'dddd DD.MM')}
                         </span>
                       )}
                     </span>
@@ -91,11 +90,7 @@ export const WeekendAnnouncement: FC<{
 
                 {/* Right Panel - Mission Details */}
                 <div className="lg:w-3/5">
-                  <MissionDetails
-                    game={activeGame}
-                    attackSideType={sidesById[activeGame.attackSideId]?.type}
-                    defenseSideType={sidesById[activeGame.defenseSideId]?.type}
-                  />
+                  <MissionDetails game={activeGame} />
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import { Game } from '@/shared/sdk/types';
 import { MissionModel } from '@/entities/mission/mission.model';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { SquadSideBadge } from '@/entities/side/ui/squad-side-badge';
 import { TooltipContent, TooltipPrimitive, TooltipProvider, TooltipTrigger } from '@/shared/ui/moleculas/tooltip';
 import { formatGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
@@ -16,17 +17,22 @@ const FactionLine: FC<{
   name?: string | null;
   sideType?: string | null;
   slots?: number | null;
-}> = ({ role, name, sideType, slots }) => {
+  squadName?: string | null;
+  squadType?: string | null;
+}> = ({ role, name, sideType, slots, squadName, squadType }) => {
   if (!name) return null;
 
   const color = MissionModel.resolveMissionSideColor(sideType ?? undefined);
 
   return (
-    <div className="flex min-w-0 items-center gap-1.5">
-      <span className={cn('size-1.5 shrink-0 rounded-full', color.dot)} />
-      <span className={cn('truncate font-semibold', color.text)}>{name}</span>
-      {typeof slots === 'number' && <span className={cn('shrink-0', color.text)}>({slots})</span>}
-      <span className="shrink-0 text-zinc-400">— {role}</span>
+    <div className="flex min-w-0 flex-col items-start gap-1">
+      <SquadSideBadge name={squadName} type={squadType} size="compact" />
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className={cn('size-1.5 shrink-0 rounded-full', color.dot)} />
+        <span className={cn('truncate font-semibold', color.text)}>{name}</span>
+        {typeof slots === 'number' && <span className={cn('shrink-0', color.text)}>({slots})</span>}
+        <span className="shrink-0 text-zinc-400">— {role}</span>
+      </div>
     </div>
   );
 };
@@ -78,18 +84,22 @@ const GameDetails: FC<{ game: Game }> = ({ game }) => {
         </span>
       )}
 
-      <div className="flex flex-col gap-1 border-t border-white/10 pt-2">
+      <div className="flex flex-col gap-2 border-t border-white/10 pt-2">
         <FactionLine
           role={sideLabels.attack}
           name={version.attackSideName}
           sideType={version.attackSideType}
           slots={version.attackSideSlots}
+          squadName={game.attackSide?.name}
+          squadType={game.attackSide?.type}
         />
         <FactionLine
           role={sideLabels.defense}
           name={version.defenseSideName}
           sideType={version.defenseSideType}
           slots={version.defenseSideSlots}
+          squadName={game.defenseSide?.name}
+          squadType={game.defenseSide?.type}
         />
         <FactionLine
           role={`союзник (${allySideLabel})`}

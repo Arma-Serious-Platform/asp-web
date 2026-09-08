@@ -103,6 +103,10 @@ class MissionModel extends createEntity(MissionSchema) {
         text: 'text-red-500',
         soft: 'bg-red-500/20 text-red-400',
         accent: 'text-red-400 border-red-500/30',
+        badge: 'border-red-500/55 bg-red-950/85 text-red-400',
+        badgeStroke: 'bg-red-500',
+        badgeFill: 'bg-[#1a080a]/92',
+        badgeGlow: 'drop-shadow-[0_0_6px_rgba(239,68,68,0.45)]',
       };
     }
 
@@ -112,6 +116,10 @@ class MissionModel extends createEntity(MissionSchema) {
         text: 'text-blue-500',
         soft: 'bg-blue-500/20 text-blue-400',
         accent: 'text-blue-400 border-blue-500/30',
+        badge: 'border-blue-500/55 bg-blue-950/85 text-blue-400',
+        badgeStroke: 'bg-blue-500',
+        badgeFill: 'bg-[#07101a]/92',
+        badgeGlow: 'drop-shadow-[0_0_6px_rgba(59,130,246,0.45)]',
       };
     }
 
@@ -121,6 +129,10 @@ class MissionModel extends createEntity(MissionSchema) {
         text: 'text-green-500',
         soft: 'bg-green-500/20 text-green-400',
         accent: 'text-green-400 border-green-500/30',
+        badge: 'border-green-500/55 bg-green-950/85 text-green-400',
+        badgeStroke: 'bg-green-500',
+        badgeFill: 'bg-[#07140a]/92',
+        badgeGlow: 'drop-shadow-[0_0_6px_rgba(34,197,94,0.45)]',
       };
     }
 
@@ -129,6 +141,10 @@ class MissionModel extends createEntity(MissionSchema) {
       text: 'text-zinc-300',
       soft: 'bg-zinc-500/20 text-zinc-300',
       accent: 'text-zinc-300 border-zinc-500/30',
+      badge: 'border-zinc-500/50 bg-zinc-950/85 text-zinc-300',
+      badgeStroke: 'bg-zinc-500',
+      badgeFill: 'bg-zinc-950/92',
+      badgeGlow: 'drop-shadow-[0_0_6px_rgba(161,161,170,0.35)]',
     };
   };
 
