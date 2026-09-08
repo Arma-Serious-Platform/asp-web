@@ -19,12 +19,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { observer } from 'mobx-react-lite';
-const sideAppearance = (sideType?: SideType) => {
+const sideAppearance = (sideType?: SideType, sideName?: string | null) => {
   if (sideType === SideType.RED) {
-    return { label: 'OPFOR', badge: 'bg-red-500/20 text-red-300 border-red-500/40', dot: 'bg-red-500' };
+    return { label: sideName || '', badge: 'bg-red-500/20 text-red-300 border-red-500/40', dot: 'bg-red-500' };
   }
   if (sideType === SideType.BLUE) {
-    return { label: 'BLUFOR', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40', dot: 'bg-blue-500' };
+    return { label: sideName || '', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40', dot: 'bg-blue-500' };
   }
   return { label: 'Незалежний', badge: 'bg-amber-500/15 text-amber-200 border-amber-400/35', dot: 'bg-amber-400' };
 };
@@ -89,7 +89,7 @@ export default observer(function SquadDetailPage() {
 
   const squadData = squad?.data;
   const sideType = squadData?.side?.type;
-  const appearance = sideAppearance(sideType);
+  const appearance = sideAppearance(sideType, squadData?.side?.name);
   const currentUserId = session.user?.data?.id;
   const subleaders = squad?.subleaders ?? [];
   const specializationStats = Array.from(
@@ -201,9 +201,6 @@ export default observer(function SquadDetailPage() {
                           )}>
                           <span className={cn('size-1.5 rounded-full', appearance.dot)} />
                           {appearance.label}
-                          {squadData.side?.name ? (
-                            <span className="font-normal normal-case text-zinc-400">· {squadData.side.name}</span>
-                          ) : null}
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-2.5 py-0.5 text-xs text-zinc-400">
                           <UsersRoundIcon className="size-3.5" />

@@ -18,13 +18,14 @@ import { squadsApi } from '@/shared/sdk';
 
 const NoSquadsInformer: FC<{
   type: SideType;
-}> = ({ type }) => (
+  name?: string | null;
+}> = ({ type, name }) => (
   <div
     className={cn('rounded-md border py-2 text-xs px-3', {
       'text-blue-100/80 border-blue-500/40 bg-blue-500/5': type === SideType.BLUE,
       'text-red-100/80 border-red-500/40 bg-red-500/5': type === SideType.RED,
     })}>
-    Наразі немає загонів, закріплених за {type === SideType.BLUE ? 'BLUFOR' : 'OPFOR'}.
+    Наразі немає загонів, закріплених за {name || 'цією стороною'}.
   </div>
 );
 
@@ -41,7 +42,7 @@ const SquadsPage = observer(() => {
   const [joinRequests, setJoinRequests] = useState<SquadJoinRequest[]>([]);
 
   useEffect(() => {
-    void squadsPageState.squads.init();
+    void squadsPageState.init();
   }, []);
 
   const currentUserId = session.user?.data?.id;
@@ -77,7 +78,11 @@ const SquadsPage = observer(() => {
     setJoinRequests(current => [...current.filter(item => item.id !== request.id), request]);
   }, []);
 
-  const isInitialLoading = squadsPageState.squads.loader.isLoading && squadsPageState.squads.data.length === 0;
+  const isInitialLoading =
+    (squadsPageState.squads.loader.isLoading && squadsPageState.squads.data.length === 0) ||
+    (squadsPageState.sides.pagination.loader.isLoading && squadsPageState.sides.pagination.data.length === 0);
+  const blueSideName = squadsPageState.blueSide?.name;
+  const redSideName = squadsPageState.redSide?.name;
 
   return (
     <Layout showHero className="w-full mx-auto">
@@ -85,9 +90,11 @@ const SquadsPage = observer(() => {
         <header className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold leading-tight tracking-tight">Загони проєкту</h1>
           <p className="max-w-2xl text-sm text-zinc-300">
-            Сторони <span className="font-semibold text-blue-400">BLUFOR</span> та{' '}
-            <span className="font-semibold text-red-400">OPFOR</span> протистоять одна одній. Незалежні загони мають
-            менший пріоритет займання слотів перед початком гри.
+            {blueSideName ? <span className="font-semibold text-blue-400">{blueSideName}</span> : null}
+            {blueSideName && redSideName ? ' та ' : null}
+            {redSideName ? <span className="font-semibold text-red-400">{redSideName}</span> : null}
+            {blueSideName || redSideName ? ' протистоять одна одній. ' : null}
+            Незалежні загони мають менший пріоритет займання слотів перед початком гри.
           </p>
         </header>
 
@@ -105,11 +112,8 @@ const SquadsPage = observer(() => {
                 <div className="flex items-center gap-2">
                   <span className="h-7 w-1 rounded-full bg-blue-500/70 shadow-[0_0_18px_rgba(59,130,246,0.8)]" />
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-300/80">
-                      Сторона
-                    </span>
                     <span className="text-xl font-semibold text-blue-200 drop-shadow-[0_0_12px_rgba(37,99,235,0.75)]">
-                      BLUFOR
+                      {blueSideName}
                     </span>
                   </div>
                 </div>
@@ -127,11 +131,8 @@ const SquadsPage = observer(() => {
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   <div className="flex flex-col text-right">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-red-300/80">
-                      Сторона
-                    </span>
                     <span className="text-xl font-semibold text-red-200 drop-shadow-[0_0_12px_rgba(220,38,38,0.8)]">
-                      OPFOR
+                      {redSideName}
                     </span>
                   </div>
                   <span className="h-7 w-1 rounded-full bg-red-500/70 shadow-[0_0_18px_rgba(239,68,68,0.9)]" />
@@ -139,10 +140,12 @@ const SquadsPage = observer(() => {
               </div>
 
               <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-                {/* BLUFOR side */}
+                {/* Blue side */}
                 <section className="flex w-full flex-col gap-3">
                   <div className="flex flex-col gap-3">
-                    {squadsPageState.blueSquads.length === 0 && <NoSquadsInformer type={SideType.BLUE} />}
+                    {squadsPageState.blueSquads.length === 0 && (
+                      <NoSquadsInformer type={SideType.BLUE} name={blueSideName} />
+                    )}
                     {squadsPageState.blueSquads.map(squad => (
                       <SquadListingCard
                         key={squad.id}
@@ -154,10 +157,12 @@ const SquadsPage = observer(() => {
                   </div>
                 </section>
 
-                {/* OPFOR side */}
+                {/* Red side */}
                 <section className="flex w-full flex-col gap-3">
                   <div className="flex flex-col gap-3">
-                    {squadsPageState.redSquads.length === 0 && <NoSquadsInformer type={SideType.RED} />}
+                    {squadsPageState.redSquads.length === 0 && (
+                      <NoSquadsInformer type={SideType.RED} name={redSideName} />
+                    )}
                     {squadsPageState.redSquads.map(squad => (
                       <SquadListingCard
                         key={squad.id}

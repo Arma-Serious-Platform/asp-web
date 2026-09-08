@@ -1,3 +1,4 @@
+import { SidesState } from '@/entities/side/side-list.state';
 import { SquadModel } from '@/entities/squad/squad.model';
 import { squadsApi } from '@/shared/sdk';
 import { SideType } from '@/shared/sdk/types';
@@ -13,6 +14,20 @@ class SquadsPageState {
     api: squadsApi.findSquads,
     Model: SquadModel,
   });
+
+  sides = new SidesState();
+
+  init = async () => {
+    await Promise.all([this.squads.init(), this.sides.pagination.loadAll()]);
+  };
+
+  get blueSide() {
+    return this.sides.pagination.data.find(side => side.data.type === SideType.BLUE);
+  }
+
+  get redSide() {
+    return this.sides.pagination.data.find(side => side.data.type === SideType.RED);
+  }
 
   get blueSquads() {
     return this.squads.data.filter(squad => squad.sideType === SideType.BLUE);
