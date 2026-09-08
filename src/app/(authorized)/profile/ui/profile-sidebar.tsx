@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/shared/ui/atoms/button';
-import { LockKeyholeIcon, MessageCircleIcon, UserIcon, UsersIcon } from 'lucide-react';
+import { BellIcon, LockKeyholeIcon, MessageCircleIcon, UserIcon, UsersIcon } from 'lucide-react';
 import { ProfileTab } from './user-profile';
 
 type ProfileSidebarProps = {
@@ -40,6 +40,14 @@ export const ProfileSidebar = ({ tab, setTab, isOwnProfile }: ProfileSidebarProp
               className="flex w-full items-center justify-start gap-2 text-xs">
               <UsersIcon className="size-4" />
               <span>Мій загін</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setTab(ProfileTab.NOTIFICATIONS)}
+              variant={tab === ProfileTab.NOTIFICATIONS ? 'default' : 'ghost'}
+              className="flex w-full items-center justify-start gap-2 text-xs">
+              <BellIcon className="size-4" />
+              <span>Нотифікації</span>
             </Button>
             <Button
               size="sm"

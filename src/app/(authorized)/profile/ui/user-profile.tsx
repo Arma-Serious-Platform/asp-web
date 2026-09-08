@@ -27,6 +27,7 @@ import { InfoTile } from '@/shared/ui/moleculas/info-tile';
 import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
 import { ChangeSocials } from '@/features/user/change-socials';
 import { UserHistorySection } from './user-history';
+import { NotificationPreferences } from './notification-preferences';
 import { UserAdminActionsButtons, UserAdminActionsModals } from '@/app/(authorized)/admin/users';
 import { UserProfileState } from '../state/user-profile.state';
 import { Preloader } from '@/shared/ui/atoms/preloader';
@@ -42,6 +43,7 @@ export enum ProfileTab {
   PROFILE = 'profile',
   CHAT = 'chat',
   SQUAD = 'squad',
+  NOTIFICATIONS = 'notifications',
   SECURITY = 'security',
 }
 import { User } from '@/shared/sdk/types';
@@ -56,9 +58,13 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
   const searchParams = useSearchParams();
   const [tab, setTab] = useQueryState(
     'tab',
-    parseAsStringEnum([ProfileTab.PROFILE, ProfileTab.CHAT, ProfileTab.SQUAD, ProfileTab.SECURITY]).withDefault(
+    parseAsStringEnum([
       ProfileTab.PROFILE,
-    ),
+      ProfileTab.CHAT,
+      ProfileTab.SQUAD,
+      ProfileTab.NOTIFICATIONS,
+      ProfileTab.SECURITY,
+    ]).withDefault(ProfileTab.PROFILE),
   );
   const [chatUserId, setChatUserId] = useQueryState('userId', parseAsString);
 
@@ -312,6 +318,15 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                         </div>
                         <ManageSessions />
                       </section>
+                    </div>
+                  </View.Condition>
+
+                  <View.Condition if={tab === 'notifications'}>
+                    <div className="flex flex-col gap-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                        Нотифікації
+                      </span>
+                      <NotificationPreferences />
                     </div>
                   </View.Condition>
 

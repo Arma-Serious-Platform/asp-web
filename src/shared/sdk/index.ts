@@ -49,3 +49,4 @@ export { missionsApi, MissionsApi } from './missions/missions.api';
 export { weekendsApi, WeekendsApi } from './weekends/weekends.api';
 export { headquartersApi, HeadquartersApi } from './headquarters/headquarters.api';
 export { chatApi, ChatApi } from './chat/chat.api';
+export { notificationsApi, NotificationsApi } from './notifications/notifications.api';

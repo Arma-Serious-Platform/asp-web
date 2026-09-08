@@ -301,6 +301,26 @@ export {
 
 export type { Chat, CreateChatDto, AddChatMembersDto, UpdateChatMessageDto } from './chat/chat.schemas';
 
+export {
+  NotificationGroupSchema,
+  NotificationGroup,
+  NotificationTypeSchema,
+  NotificationType,
+  NotificationSchema,
+  NotificationUnreadCountSchema,
+  NotificationPreferenceItemSchema,
+  NotificationPreferencesSchema,
+} from './notifications/notifications.schemas';
+
+export type {
+  Notification,
+  NotificationActor,
+  NotificationPayload,
+  NotificationUnreadCount,
+  NotificationPreferenceItem,
+  NotificationPreferences,
+} from './notifications/notifications.schemas';
+
 export { RulesContentSchema, UpdateRulesDtoSchema } from './rules/rules.schemas';
 
 export type { RulesContent, UpdateRulesDto } from './rules/rules.schemas';

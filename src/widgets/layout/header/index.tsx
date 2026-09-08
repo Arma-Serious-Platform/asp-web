@@ -31,6 +31,7 @@ import { env } from '@/shared/config/env';
 import { Social } from '@/widgets/layout/ui/social-links';
 import { headerState } from './state/header.state';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
+import { NotificationsBell } from '@/widgets/notifications';
 
 export type HeaderProps = {
   enableScrollVisibility?: boolean;
@@ -126,7 +127,8 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
       )}
 
       {session.isAuthorized && session.user?.data && !env.isLanding && (
-        <>
+        <div className="flex items-center gap-2">
+          <NotificationsBell />
           <Popover
             className="flex flex-col p-1 w-48 border border-white/5 bg-neutral-900/90 backdrop-blur-md shadow-xl rounded-xl duration-300 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[state=open]:slide-in-from-top-2 data-[state=closed]:slide-out-to-top-2"
             trigger={
@@ -227,7 +229,7 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
               </DialogContent>
             </Dialog>
           </Popover>
-        </>
+        </div>
       )}
     </>
   );
