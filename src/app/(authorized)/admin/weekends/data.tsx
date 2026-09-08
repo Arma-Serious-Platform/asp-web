@@ -1,11 +1,12 @@
 import { WeekendModel } from '@/entities/weekend/weekend.model';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
-import { EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
+import { EditIcon, MoreHorizontalIcon, Repeat2Icon, TrashIcon } from 'lucide-react';
 
 import { observer } from 'mobx-react-lite';
 import { Popover } from '@/shared/ui/moleculas/popover';
 import { weekendsPageState } from './state/weekends-page.state';
+import { WeekendGamesCell } from './ui/weekend-games-cell';
 
 function formatDate(iso: string | null | undefined) {
   if (!iso) return '—';
@@ -32,6 +33,15 @@ export const columns: ColumnDef<WeekendModel>[] = [
     ),
   },
   {
+    accessorKey: 'games',
+    header: () => <div>Ігри</div>,
+    cell: ({ row }) => (
+      <div className="whitespace-normal">
+        <WeekendGamesCell games={row.original.data.games} />
+      </div>
+    ),
+  },
+  {
     accessorKey: 'published',
     header: () => <div>Опубліковано</div>,
     cell: ({ row }) => <div>{row.original.data.published ? 'Так' : 'Ні'}</div>,
@@ -53,6 +63,20 @@ export const columns: ColumnDef<WeekendModel>[] = [
               <MoreHorizontalIcon className="w-4 h-4" />
             </Button>
           }>
+          <Button
+            size="sm"
+            variant="secondary"
+            align="left"
+            onClick={() => {
+              weekendsPageState.manageWeekend.modal.open({
+                weekend: row.original.data,
+                mode: 'reverse',
+              });
+            }}>
+            <Repeat2Icon className="w-4 h-4 text-sky-500" />
+            Створити зворотній анонс
+          </Button>
+
           <Button
             size="sm"
             variant="secondary"

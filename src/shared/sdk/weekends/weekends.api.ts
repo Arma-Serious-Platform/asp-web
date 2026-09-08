@@ -16,8 +16,13 @@ export * from './weekends.schemas';
 
 class WeekendsApi extends ApiModel {
   findWeekends = async (dto: FindWeekendsDto = {}) => {
+    const { missionIds, ...rest } = dto;
+
     return await this.instance.get<PaginatedResponse<Weekend>>('/weekends', {
-      params: dto,
+      params: {
+        ...rest,
+        ...(missionIds?.length ? { missionIds: missionIds.join(',') } : {}),
+      },
     });
   };
 

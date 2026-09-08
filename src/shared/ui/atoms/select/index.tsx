@@ -97,8 +97,9 @@ const Select: FC<SingleSelectProps | MultipleSelectProps> = ({
       setSavedOptions(nextSavedOptions);
       onChange(nextValue as never);
     } else {
-      setSavedOptions([option]);
-      onChange(option.value as never);
+      const isSelected = value === option.value;
+      setSavedOptions(isSelected ? [] : [option]);
+      onChange((isSelected ? null : option.value) as never);
     }
 
     if (shouldCloseOnSelect) {

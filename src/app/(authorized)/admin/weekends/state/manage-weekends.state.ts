@@ -18,7 +18,7 @@ export class ManageWeekendState {
 
   modal = new Visibility<{
     weekend?: Weekend;
-    mode: 'manage' | 'delete';
+    mode: 'manage' | 'delete' | 'reverse';
   }>();
 
   sides = new SidesState();

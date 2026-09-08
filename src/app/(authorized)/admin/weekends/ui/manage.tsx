@@ -49,6 +49,7 @@ import { CSS } from '@dnd-kit/utilities';
 import dayjs from 'dayjs';
 import { UserModel } from '@/entities/user/user.model';
 import { MissionModel } from '@/entities/mission/mission.model';
+import { getDefaultGameDateByIndex, getDefaultWeekendAnnouncementName } from '@/shared/utils/date';
 
 const defaultGame: CreateGameDto = {
   date: '',
@@ -95,6 +96,34 @@ type WeekendFormValues = {
   published: boolean;
   publishedAt: string;
   games: GameFormItem[];
+};
+
+const emptyWeekendFormValues = (): WeekendFormValues => ({
+  name: getDefaultWeekendAnnouncementName(),
+  description: '',
+  published: false,
+  publishedAt: '',
+  games: [{ ...defaultGame, date: getDefaultGameDateByIndex(0) }],
+});
+
+const mapWeekendGamesToForm = (games: Weekend['games'], reverseSides: boolean): GameFormItem[] => {
+  const list = games ?? [];
+  if (!list.length) return [{ ...defaultGame, date: getDefaultGameDateByIndex(0) }];
+
+  return [...list]
+    .sort((a, b) => a.position - b.position)
+    .map((g, index) => ({
+      ...(reverseSides ? {} : { id: g.id }),
+      date: reverseSides ? getDefaultGameDateByIndex(index) || g.date : g.date,
+      position: g.position,
+      missionId: g.missionId,
+      missionVersionId: g.missionVersionId,
+      attackSideId: reverseSides ? g.defenseSideId : g.attackSideId,
+      defenseSideId: reverseSides ? g.attackSideId : g.defenseSideId,
+      adminId: g.adminId ?? null,
+      attackHqSquadId: (reverseSides ? g.defenseHqSquadId : g.attackHqSquadId) ?? '',
+      defenseHqSquadId: (reverseSides ? g.attackHqSquadId : g.defenseHqSquadId) ?? '',
+    }));
 };
 
 type SortableGameItemProps = {
@@ -327,13 +356,7 @@ const ManageWeekendModal: FC<
 
   const form = useForm<WeekendFormValues>({
     resolver: zodResolver(schema) as Resolver<WeekendFormValues>,
-    defaultValues: {
-      name: `Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`,
-      description: '',
-      published: false,
-      publishedAt: '',
-      games: [{ ...defaultGame }],
-    },
+    defaultValues: emptyWeekendFormValues(),
   });
 
   const { isDirty } = form.formState;
@@ -374,7 +397,7 @@ const ManageWeekendModal: FC<
     }
   }, []);
 
-  const isEdit = Boolean(state.modal.payload?.weekend?.id);
+  const isEdit = state.modal.payload?.mode === 'manage' && Boolean(state.modal.payload?.weekend?.id);
 
   const onSubmit = async (data: WeekendFormValues) => {
     const weekendId = state.modal.payload?.weekend?.id;
@@ -465,52 +488,28 @@ const ManageWeekendModal: FC<
   useEffect(() => {
     if (state.modal.isOpen) {
       state.init();
-      if (state.modal.payload?.weekend) {
-        const w = state.modal.payload.weekend;
-        const games: GameFormItem[] = (w.games ?? []).length
-          ? (w.games ?? [])
-              .sort((a, b) => a.position - b.position)
-              .map(g => ({
-                id: g.id,
-                date: g.date,
-                position: g.position,
-                missionId: g.missionId,
-                missionVersionId: g.missionVersionId,
-                attackSideId: g.attackSideId,
-                defenseSideId: g.defenseSideId,
-                adminId: g.adminId ?? null,
-                attackHqSquadId: g.attackHqSquadId ?? '',
-                defenseHqSquadId: g.defenseHqSquadId ?? '',
-              }))
-          : [{ ...defaultGame }];
+      const weekend = state.modal.payload?.weekend;
+      const mode = state.modal.payload?.mode;
+
+      if (weekend && (mode === 'manage' || mode === 'reverse')) {
+        const reverseSides = mode === 'reverse';
+        const games = mapWeekendGamesToForm(weekend.games, reverseSides);
         games.forEach(g => g.missionId && fetchMissionVersions(g.missionId));
         form.reset({
-          name: w.name ?? '',
-          description: w.description ?? '',
-          published: w.published ?? false,
-          publishedAt: w.publishedAt ? w.publishedAt.slice(0, 16) : '',
+          name: reverseSides ? getDefaultWeekendAnnouncementName() : (weekend.name ?? ''),
+          description: weekend.description ?? '',
+          published: reverseSides ? false : (weekend.published ?? false),
+          publishedAt: reverseSides ? '' : weekend.publishedAt ? weekend.publishedAt.slice(0, 16) : '',
           games,
         });
       } else {
-        form.reset({
-          name: `Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`,
-          description: '',
-          published: false,
-          publishedAt: '',
-          games: [{ ...defaultGame }],
-        });
+        form.reset(emptyWeekendFormValues());
       }
     } else {
-      form.reset({
-        name: `Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`,
-        description: '',
-        published: false,
-        publishedAt: '',
-        games: [{ ...defaultGame }],
-      });
+      form.reset(emptyWeekendFormValues());
       state.modal.clearPayload();
     }
-  }, [state.modal.isOpen, state.modal.payload?.weekend]);
+  }, [state.modal.isOpen, state.modal.payload?.weekend, state.modal.payload?.mode]);
 
   const missionOptions = state.missions.options;
   const sideOptions = state.sides.options.filter(s => s.label !== 'Unassigned');
@@ -562,7 +561,7 @@ const ManageWeekendModal: FC<
                   <Input
                     {...field}
                     autoFocus
-                    placeholder={`Анонс ігор VTG ${dayjs(new Date()).format('DD.MM.YYYY')}`}
+                    placeholder={getDefaultWeekendAnnouncementName()}
                     label="Назва"
                     error={form.formState.errors.name?.message}
                   />
@@ -605,7 +604,16 @@ const ManageWeekendModal: FC<
               <div className="border-t border-neutral-700 pt-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">Ігри</span>
-                  <Button type="button" size="sm" variant="secondary" onClick={() => append({ ...defaultGame })}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() =>
+                      append({
+                        ...defaultGame,
+                        date: isEdit ? '' : getDefaultGameDateByIndex(fields.length),
+                      })
+                    }>
                     <PlusIcon className="w-4 h-4 mr-1" />
                     Додати гру
                   </Button>
@@ -644,7 +652,7 @@ const ManageWeekendModal: FC<
                 Скасувати
               </Button>
               <Button type="submit" disabled={state.loader.isLoading}>
-                {state?.modal?.payload?.weekend ? 'Зберегти' : 'Створити'}
+                {isEdit ? 'Зберегти' : 'Створити'}
               </Button>
             </DrawerFooter>
           </form>

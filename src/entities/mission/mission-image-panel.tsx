@@ -74,7 +74,7 @@ export const MissionImagePanel: FC<{
           </Button>
         )}
         <Button asChild variant="outline" className="flex-1">
-          <Link href={game.missionVersion.file?.url ?? ''} download>
+          <Link href={game.missionVersion.file?.url ?? ''} download={game.missionVersion.file?.filename ?? true}>
             <DownloadIcon className="size-4" />
             Завантажити
           </Link>

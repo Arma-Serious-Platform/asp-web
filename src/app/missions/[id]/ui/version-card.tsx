@@ -21,6 +21,7 @@ import { View } from '@/features/view';
 import { session } from '@/entities/session/session.state';
 import { FC, useState } from 'react';
 import dayjs from 'dayjs';
+import Link from 'next/link';
 import { UniformSection } from '@/entities/mission/uniform-section';
 import { WeaponrySection } from './weaponry-section';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
@@ -122,7 +123,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 <span>Версія {version.version} потребує змін. Перезалийте файл або створіть нову версію.</span>
               </Tooltip>
             </View.Condition>
-            <span className={cn('px-2 py-0.5 rounded text-xs font-semibold border', MissionModel.statusColors[version.status])}>
+            <span
+              className={cn(
+                'px-2 py-0.5 rounded text-xs font-semibold border',
+                MissionModel.statusColors[version.status],
+              )}>
               {MissionModel.statusLabels[version.status]}
               {version.reviewer && '. '}
               {version.reviewer && <UserNicknameText user={version.reviewer} className="truncate text-zinc-100" />}
@@ -244,7 +249,9 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 fullWidth ? 'flex-1' : 'w-72 shrink-0',
               )}>
               <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{sideLabels.defense}</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  {sideLabels.defense}
+                </span>
                 <div className="flex items-center justify-between">
                   <span className={cn('text-base font-bold', MissionModel.sideTypeColors[version.defenseSideType])}>
                     {version.defenseSideName}
@@ -295,9 +302,7 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                   </div>
                   <span className="text-xs text-zinc-500">
                     на боці{' '}
-                    {version.friendlyTo === version.attackSideType
-                      ? version.attackSideName
-                      : version.defenseSideName}
+                    {version.friendlyTo === version.attackSideType ? version.attackSideName : version.defenseSideName}
                   </span>
                 </div>
                 <WeaponrySection
@@ -327,9 +332,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
       {/* Fixed Bottom Actions */}
       <div className="absolute bottom-0 left-0 right-0 p-5 pt-0 flex gap-2 bg-linear-to-t from-black/95 via-black/90 to-transparent">
         {version.file?.url && (
-          <Button variant="outline" className="w-fit" onClick={() => window.open(version.file?.url, '_blank')}>
-            <DownloadIcon className="size-4" />
-            Завантажити
+          <Button asChild variant="outline" className="w-fit">
+            <Link href={version.file.url} download={version.file.filename ?? true}>
+              <DownloadIcon className="size-4" />
+              Завантажити
+            </Link>
           </Button>
         )}
         <View.Condition if={canEdit}>

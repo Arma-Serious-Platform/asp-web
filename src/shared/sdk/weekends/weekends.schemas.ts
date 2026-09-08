@@ -51,6 +51,11 @@ export type Weekend = z.infer<typeof WeekendSchema>;
 export type FindWeekendsDto = PaginatedRequest<{
   search?: string;
   published?: boolean;
+  missionIds?: string[];
+  hqSquadId?: string;
+  adminId?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }>;
 
 export const FindWeekendsDtoSchema = z
@@ -59,6 +64,11 @@ export const FindWeekendsDtoSchema = z
     skip: z.number().optional(),
     search: z.string().optional(),
     published: z.boolean().optional(),
+    missionIds: z.array(z.string()).optional(),
+    hqSquadId: z.string().optional(),
+    adminId: z.string().optional(),
+    dateFrom: z.string().optional(),
+    dateTo: z.string().optional(),
   })
   .passthrough();
 
