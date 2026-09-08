@@ -1,18 +1,45 @@
 'use client';
 
-import { Input } from '@/shared/ui/atoms/input';
 import { AdminSidebar } from '@/app/(authorized)/admin/ui/admin-sidebar';
 import { Layout } from '@/widgets/layout';
 import { session } from '@/entities/session/session.state';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useState } from 'react';
-import { parseAsString, useQueryStates } from 'nuqs';
+import { useEffect, useMemo, useState } from 'react';
+import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 import { usersPageState } from './state/users-page.state';
 import { useDebounce } from 'react-use';
 import { DataTable } from '@/shared/ui/organisms/data-table';
 import { columns } from './data';
 import { UserAdminActionsModals } from '@/app/(authorized)/admin/users';
 import { useAdminRouteGuard } from '@/app/(authorized)/admin/state/use-tech-admin-routes-guard';
+import { UserFilters, UserFiltersState } from './ui/user-filters';
+import { FindUsersDto, UserRole, UserStatus } from '@/shared/sdk/types';
+
+const emptyFilters: UserFiltersState & { search: string } = {
+  search: '',
+  roles: null,
+  status: null,
+  warningCount: null,
+};
+
+const toUsersListQuery = (
+  params: UserFiltersState & { search: string },
+): FindUsersDto => {
+  const warningCount =
+    params.warningCount !== null && params.warningCount !== ''
+      ? Number(params.warningCount)
+      : undefined;
+
+  return {
+    take: 25,
+    skip: 0,
+    search: params.search || '',
+    ...(params.roles?.length && { roles: params.roles as UserRole[] }),
+    ...(params.status && { status: params.status as UserStatus }),
+    ...(warningCount !== undefined &&
+      Number.isFinite(warningCount) && { warningCount }),
+  };
+};
 
 const AdminPage = observer(() => {
   useAdminRouteGuard(session.canManageUsers);
@@ -20,6 +47,9 @@ const AdminPage = observer(() => {
   const [search, setSearch] = useState('');
   const [params, setParams] = useQueryStates({
     search: parseAsString.withDefault(''),
+    roles: parseAsArrayOf(parseAsString),
+    status: parseAsString,
+    warningCount: parseAsString,
   });
 
   useDebounce(
@@ -31,11 +61,22 @@ const AdminPage = observer(() => {
   );
 
   useEffect(() => {
-    usersPageState.pagination.init({
-      take: 25,
-      skip: 0,
-      search: params.search || '',
-    });
+    setSearch(params.search || '');
+  }, [params.search]);
+
+  const isFilterApplied = useMemo(
+    () =>
+      Boolean(
+        params.search ||
+          params.roles?.length ||
+          params.status ||
+          params.warningCount,
+      ),
+    [params],
+  );
+
+  useEffect(() => {
+    usersPageState.pagination.init(toUsersListQuery(params));
   }, [params]);
 
   return (
@@ -67,13 +108,16 @@ const AdminPage = observer(() => {
           }}
         />
 
-        <Input
-          searchIcon
-          placeholder="Пошук..."
-          className="mb-4"
-          autoFocus
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+        <UserFilters
+          search={search}
+          onSearchChange={setSearch}
+          filters={params}
+          setFilters={patch => setParams(patch)}
+          isFilterApplied={isFilterApplied}
+          onReset={() => {
+            setSearch('');
+            setParams({ ...emptyFilters });
+          }}
         />
 
         <DataTable

@@ -34,9 +34,7 @@ class UserModel extends createEntity(UserSchema) {
       return UserRole.USER;
     }
 
-    return roles.reduce((best, role) =>
-      UserModel.roleRank[role] > UserModel.roleRank[best] ? role : best,
-    );
+    return roles.reduce((best, role) => (UserModel.roleRank[role] > UserModel.roleRank[best] ? role : best));
   };
 
   static getPrimaryDisplayRole = (roles?: UserRole[] | null): UserRole => {
@@ -115,12 +113,7 @@ class UserModel extends createEntity(UserSchema) {
   };
 
   static canAdminMission = (user: User) => {
-    return UserModel.hasAnyRole(user.roles, [
-      UserRole.OWNER,
-      UserRole.SERVER_ADMIN,
-      UserRole.UVK,
-      UserRole.GAME_ADMIN,
-    ]);
+    return UserModel.hasAnyRole(user.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK, UserRole.GAME_ADMIN]);
   };
 
   protected init() {
@@ -141,9 +134,7 @@ class UserModel extends createEntity(UserSchema) {
   }
 
   get isOwnerOrTech() {
-    return Boolean(
-      this.data.roles?.includes(UserRole.OWNER) || this.data.roles?.includes(UserRole.TECH_ADMIN),
-    );
+    return Boolean(this.data.roles?.includes(UserRole.OWNER) || this.data.roles?.includes(UserRole.TECH_ADMIN));
   }
 
   get isBanned() {

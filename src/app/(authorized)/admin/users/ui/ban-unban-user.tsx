@@ -1,7 +1,6 @@
 import { session } from '@/entities/session/session.state';
 import { Button } from '@/shared/ui/atoms/button';
 import { Checkbox } from '@/shared/ui/atoms/checkbox';
-import { Input } from '@/shared/ui/atoms/input';
 import { Textarea } from '@/shared/ui/atoms/textarea';
 import {
   Drawer,
@@ -18,6 +17,7 @@ import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { banUnbanUserState, BanUnbanUserState } from '../state/ban-unban-user.state';
+import { BanUntilPicker, getBanUntilDate } from './ban-until-picker';
 
 const BanUnbanUserModal: FC<
   PropsWithChildren<{
@@ -26,7 +26,8 @@ const BanUnbanUserModal: FC<
     onUnbanSuccess?: (user: User) => void;
   }>
 > = observer(({ model = banUnbanUserState, children, onBanSuccess, onUnbanSuccess }) => {
-  const [banTime, setBanTime] = useState('');
+  const [banDate, setBanDate] = useState<Date | undefined>();
+  const [banHour, setBanHour] = useState('23');
   const [reason, setReason] = useState('');
   const [isPermanent, setIsPermanent] = useState(false);
   const [mute, setMute] = useState(false);
@@ -37,7 +38,8 @@ const BanUnbanUserModal: FC<
 
   useEffect(() => {
     if (!model.visibility.isOpen) {
-      setBanTime('');
+      setBanDate(undefined);
+      setBanHour('23');
       setReason('');
       setIsPermanent(false);
       setMute(false);
@@ -64,15 +66,22 @@ const BanUnbanUserModal: FC<
       return;
     }
 
-    if (!banTime) {
-      toast.error('Оберіть час тимчасового блокування');
+    const bannedUntil = getBanUntilDate(banDate, banHour);
+
+    if (!bannedUntil) {
+      toast.error('Оберіть дату та годину тимчасового блокування');
+      return;
+    }
+
+    if (!dayjs(bannedUntil).isAfter(dayjs())) {
+      toast.error('Час блокування має бути в майбутньому');
       return;
     }
 
     model.banUser(
       {
         userId: user.id,
-        bannedUntil: dayjs(banTime).toDate(),
+        bannedUntil,
         reason: trimmedReason,
         mute,
       },
@@ -111,11 +120,11 @@ const BanUnbanUserModal: FC<
 
                 {!isPermanent && (
                   <>
-                    <Input
-                      label="Час блокування"
-                      type="datetime-local"
-                      value={banTime}
-                      onChange={e => setBanTime(e.target.value)}
+                    <BanUntilPicker
+                      date={banDate}
+                      hour={banHour}
+                      onDateChange={setBanDate}
+                      onHourChange={setBanHour}
                     />
                     <button
                       type="button"

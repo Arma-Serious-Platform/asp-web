@@ -54,8 +54,13 @@ class UsersApi extends ApiModel {
   };
 
   findUsers = async (dto: FindUsersDto) => {
+    const { roles, ...rest } = dto;
+
     return await this.instance.get<PaginatedResponse<User>>('/users', {
-      params: dto,
+      params: {
+        ...rest,
+        ...(roles?.length ? { roles: roles.join(',') } : {}),
+      },
     });
   };
 

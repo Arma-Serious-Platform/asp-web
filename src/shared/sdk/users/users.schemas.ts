@@ -108,17 +108,9 @@ export const CreateUserWarningResponseSchema = z
     bannedUntil: z.string().optional(),
   })
   .passthrough();
-export type CreateUserWarningResponse = z.infer<
-  typeof CreateUserWarningResponseSchema
->;
+export type CreateUserWarningResponse = z.infer<typeof CreateUserWarningResponseSchema>;
 
-export const UserPunishmentTypeSchema = z.enum([
-  'WARNING',
-  'WARNING_REMOVED',
-  'TEMP_BAN',
-  'PERMANENT_BAN',
-  'UNBAN',
-]);
+export const UserPunishmentTypeSchema = z.enum(['WARNING', 'WARNING_REMOVED', 'TEMP_BAN', 'PERMANENT_BAN', 'UNBAN']);
 export const UserPunishmentType = UserPunishmentTypeSchema.enum;
 export type UserPunishmentType = z.infer<typeof UserPunishmentTypeSchema>;
 
@@ -242,6 +234,8 @@ export type FindUsersDto = PaginatedRequest<{
   search?: string;
   status?: UserStatus;
   role?: UserRole;
+  roles?: UserRole[];
+  warningCount?: number;
   hasSquad?: boolean;
   /** Filter users who have authored at least one mission */
   hasMission?: boolean;
@@ -256,6 +250,8 @@ export const FindUsersDtoSchema = z
     search: z.string().optional(),
     status: UserStatusSchema.optional(),
     role: UserRoleSchema.optional(),
+    roles: z.array(UserRoleSchema).optional(),
+    warningCount: z.number().int().min(0).optional(),
     hasSquad: z.boolean().optional(),
     hasMission: z.boolean().optional(),
     canReviewMissions: z.boolean().optional(),
