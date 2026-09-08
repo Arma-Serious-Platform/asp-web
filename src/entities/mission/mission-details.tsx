@@ -60,12 +60,9 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
   const sideLabels = MissionModel.getMissionSideRoleLabels(game.mission.missionObjective);
   const attackColor = MissionModel.resolveMissionSideColor(game.missionVersion.attackSideType);
   const defenseColor = MissionModel.resolveMissionSideColor(game.missionVersion.defenseSideType);
-  const friendlyColor =
-    game.missionVersion.friendlySideType != null
-      ? game.missionVersion.friendlyTo === game.missionVersion.attackSideType
-        ? attackColor
-        : defenseColor
-      : null;
+  const friendlyColor = game.missionVersion.friendlySideType
+    ? MissionModel.resolveMissionSideColor(game.missionVersion.friendlySideType)
+    : null;
   const previewScreenshotUrl = previewScreenshots?.[previewScreenshotIndex]?.url || null;
   const hasPreview = Boolean(previewScreenshotUrl);
   const hasVersionMeta = Boolean(game.missionVersion.inGameTime || game.missionVersion.weather);
