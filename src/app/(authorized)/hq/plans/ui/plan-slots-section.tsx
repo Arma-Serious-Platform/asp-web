@@ -137,7 +137,6 @@ export const PlanSlotsSection = observer(
 
     const renderSquadAvatar = (squad: HeadquartersSlot['assignedSquads'][number], size: 'sm' | 'md' = 'sm') => (
       <Image
-        key={squad.id}
         src={model.squadsById[squad.id]?.logo?.url || '/images/avatar.jpg'}
         width={size === 'sm' ? 20 : 24}
         height={size === 'sm' ? 20 : 24}
@@ -149,6 +148,20 @@ export const PlanSlotsSection = observer(
         unoptimized={!model.squadsById[squad.id]?.logo?.url?.startsWith('https')}
       />
     );
+
+    const renderOverlappingSquads = (squads: HeadquartersSlot['assignedSquads']) => {
+      if (!squads.length) return null;
+
+      return (
+        <span className="flex -space-x-1.5" title={joinSquadTags(squads)}>
+          {squads.map((squad, index) => (
+            <span key={squad.id} className="relative inline-flex" style={{ zIndex: index + 1 }}>
+              {renderSquadAvatar(squad)}
+            </span>
+          ))}
+        </span>
+      );
+    };
 
     const renderSquadChips = (squads: HeadquartersSlot['assignedSquads']) => {
       if (!squads.length) {
@@ -215,24 +228,24 @@ export const PlanSlotsSection = observer(
               </span>
             </span>
 
-            {isTaken ? (
-              <span className="flex min-w-0 shrink-0 items-center gap-1.5">
-                <span className="flex -space-x-1.5">
-                  {slot.assignedSquads.slice(0, 3).map(squad => renderSquadAvatar(squad))}
-                </span>
-                <span className="hidden max-w-40 truncate text-xs font-medium text-lime-200 sm:inline">
-                  {joinSquadTags(slot.assignedSquads)}
-                </span>
-              </span>
-            ) : (
-              <span className="hidden shrink-0 text-xs text-zinc-600 sm:inline">Вільно</span>
-            )}
+            <span className="flex min-w-0 shrink-0 items-center gap-1.5">
+              {isTaken ? (
+                <>
+                  {renderOverlappingSquads(slot.assignedSquads)}
+                  <span className="hidden max-w-40 truncate text-xs font-medium text-lime-200 sm:inline">
+                    {joinSquadTags(slot.assignedSquads)}
+                  </span>
+                </>
+              ) : (
+                <span className="hidden text-xs text-zinc-600 sm:inline">Вільно</span>
+              )}
 
-            {wantedSquads.length > 0 && (
-              <span className="hidden shrink-0 rounded-full border border-amber-500/30 bg-amber-950/30 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300 sm:inline">
-                +{wantedSquads.length}
-              </span>
-            )}
+              {isTaken && wantedSquads.length > 0 && (
+                <span className="h-5 w-px shrink-0 bg-white/25" aria-hidden />
+              )}
+
+              {renderOverlappingSquads(wantedSquads)}
+            </span>
 
             <span
               className={cn(
