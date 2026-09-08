@@ -36,7 +36,7 @@ export const UniformSection: FC<UniformSectionProps> = ({ screenshots, isOpen, s
               key={screenshot.id}
               type="button"
               onClick={() => onPreview(screenshots, index)}
-              className="group relative aspect-square overflow-hidden rounded border border-white/10 bg-black/60 focus:outline-none focus:ring-2 focus:ring-lime-500/70 cursor-zoom-in">
+              className="group relative aspect-square w-full max-w-32 overflow-hidden rounded border border-white/10 bg-black/60 focus:outline-none focus:ring-2 focus:ring-lime-500/70 cursor-zoom-in">
               <img
                 src={screenshot.url}
                 alt="Скріншот уніформи"

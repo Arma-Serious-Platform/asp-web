@@ -17,7 +17,7 @@ type ScreenshotPreviewDialogProps = {
 };
 
 const previewDialogClassName =
-  'flex h-[85vh] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-2rem)] gap-0 overflow-hidden p-2';
+  'flex h-[85vh] w-full max-w-[calc(100vw-2rem)] gap-0 overflow-hidden p-2 sm:max-w-5xl';
 
 export const ScreenshotPreviewDialog: FC<ScreenshotPreviewDialogProps> = ({
   open,
