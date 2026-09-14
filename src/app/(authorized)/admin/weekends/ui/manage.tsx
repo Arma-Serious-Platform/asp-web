@@ -99,12 +99,18 @@ type WeekendFormValues = {
   games: GameFormItem[];
 };
 
+const DEFAULT_CREATE_GAMES_COUNT = 4;
+
 const emptyWeekendFormValues = (): WeekendFormValues => ({
   name: getDefaultWeekendAnnouncementName(),
   description: '',
   published: false,
   publishedAt: '',
-  games: [{ ...defaultGame, date: getDefaultGameDateByIndex(0) }],
+  games: Array.from({ length: DEFAULT_CREATE_GAMES_COUNT }, (_, index) => ({
+    ...defaultGame,
+    position: index,
+    date: getDefaultGameDateByIndex(index),
+  })),
 });
 
 const mapWeekendGamesToForm = (games: Weekend['games'], reverseSides: boolean): GameFormItem[] => {
