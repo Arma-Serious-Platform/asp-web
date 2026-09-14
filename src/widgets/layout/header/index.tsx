@@ -40,6 +40,7 @@ export type HeaderProps = {
 const getFirstAdminRoute = () => {
   if (session.canManageUsers) return ROUTES.admin.users;
   if (session.canManageWeekends) return ROUTES.admin.weekends;
+  if (session.canManageNews) return ROUTES.admin.news;
   if (session.canManageIslands) return ROUTES.admin.islands;
   if (session.canManageServers) return ROUTES.admin.servers;
   if (session.canManageSquadsAndSides) return ROUTES.admin.squads;

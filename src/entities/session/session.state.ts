@@ -62,6 +62,15 @@ export class SessionState {
     return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.UVK]);
   }
 
+  get canManageNews() {
+    return UserModel.hasAnyRole(this.roles, [
+      UserRole.OWNER,
+      UserRole.SERVER_ADMIN,
+      UserRole.TECH_ADMIN,
+      UserRole.UVK,
+    ]);
+  }
+
   get canReviewMissions() {
     return UserModel.hasAnyRole(this.roles, [UserRole.MISSION_REVIEWER]) || this.canManageMissions;
   }
@@ -74,7 +83,8 @@ export class SessionState {
       this.canManageServers ||
       this.canManageSquadsAndSides ||
       this.canManageRules ||
-      this.canManageSpecializations
+      this.canManageSpecializations ||
+      this.canManageNews
     );
   }
 

@@ -50,3 +50,4 @@ export { weekendsApi, WeekendsApi } from './weekends/weekends.api';
 export { headquartersApi, HeadquartersApi } from './headquarters/headquarters.api';
 export { chatApi, ChatApi } from './chat/chat.api';
 export { notificationsApi, NotificationsApi } from './notifications/notifications.api';
+export { newsApi, NewsApi } from './news/news.api';

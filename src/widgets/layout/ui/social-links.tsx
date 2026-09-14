@@ -37,7 +37,7 @@ const Social: FC<{
           href={social.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:scale-110 transition-transform">
+          className="hover:scale-110 transition-transform shrink-0">
           <Image src={social.src} alt={social.alt} width={24} height={24} className={iconClassName} />
         </a>
       ))}

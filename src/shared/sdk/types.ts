@@ -321,6 +321,21 @@ export type {
   NotificationPreferences,
 } from './notifications/notifications.schemas';
 
+export {
+  NewsTypeSchema,
+  NewsType,
+  NewsSchema,
+  NewsAttachmentSchema,
+} from './news/news.schemas';
+
+export type {
+  News,
+  NewsAttachment,
+  FindNewsDto,
+  CreateNewsDto,
+  UpdateNewsDto,
+} from './news/news.schemas';
+
 export { RulesContentSchema, UpdateRulesDtoSchema } from './rules/rules.schemas';
 
 export type { RulesContent, UpdateRulesDto } from './rules/rules.schemas';

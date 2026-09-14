@@ -193,6 +193,7 @@ const MissionsPageContent = observer(() => {
 
   const isLoading = missionsState.missionsPagination.loader.isLoading;
   const missions = missionsState.missionsPagination.data;
+  const totalMissions = missionsState.missionsPagination.total;
   const hasNoMissions = !isLoading && missions.length === 0;
 
   useEffect(() => {
@@ -214,7 +215,10 @@ const MissionsPageContent = observer(() => {
           <div>
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h1 className="text-2xl font-bold leading-tight tracking-tight text-white">Місії</h1>
+                <h1 className="flex items-baseline gap-2 text-2xl font-bold leading-tight tracking-tight text-white">
+                  Місії
+                  <span className="text-base font-medium tabular-nums text-zinc-400">({totalMissions})</span>
+                </h1>
               </div>
               <MissionSortControls
                 value={{ orderBy: filters.orderBy, orderType: filters.orderType }}
@@ -286,7 +290,10 @@ const MissionsPageContent = observer(() => {
           <main className="min-w-0 flex-1">
             <div className="mb-6 hidden lg:block lg:mb-8">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-                <h1 className="text-3xl font-bold leading-tight tracking-tight text-white">Місії</h1>
+                <h1 className="flex items-baseline gap-2 text-3xl font-bold leading-tight tracking-tight text-white">
+                  Місії
+                  <span className="text-xl font-medium tabular-nums text-zinc-400">({totalMissions})</span>
+                </h1>
                 <MissionSortControls
                   value={{ orderBy: filters.orderBy, orderType: filters.orderType }}
                   onChange={handleSortChange}

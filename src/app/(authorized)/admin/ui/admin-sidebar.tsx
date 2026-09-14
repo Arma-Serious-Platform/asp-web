@@ -8,6 +8,7 @@ import {
   CalendarIcon,
   MapPin,
   MedalIcon,
+  NewspaperIcon,
   ScrollTextIcon,
   ServerIcon,
   SwordIcon,
@@ -58,6 +59,10 @@ const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
 
         {session.canManageWeekends && (
           <AdminSidebarItem href={ROUTES.admin.weekends} label="Анонси" icon={<CalendarIcon />} />
+        )}
+
+        {session.canManageNews && (
+          <AdminSidebarItem href={ROUTES.admin.news} label="Новини" icon={<NewspaperIcon />} />
         )}
 
         {/* {session.canManageRules && (
