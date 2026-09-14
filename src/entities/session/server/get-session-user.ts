@@ -18,6 +18,7 @@ export async function getSessionUser(): Promise<User | null> {
     const response = await fetch(`${env.apiUrl}/auth/session/me`, {
       headers: {
         cookie: cookieHeader,
+        'X-Request-Id': crypto.randomUUID(),
       },
       cache: 'no-store',
     });

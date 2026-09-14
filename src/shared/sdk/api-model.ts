@@ -9,6 +9,32 @@ import { AUTH_REDIRECT_SKIP_PATHS } from '../lib/routes/lib';
 
 const AUTH_PAGES = [ROUTES.auth.login, ROUTES.auth.signup, ROUTES.auth.forgotPassword] as const;
 
+const REQUEST_ID_HEADER = 'X-Request-Id';
+
+const getHeaderValue = (headers: unknown, name: string): string | undefined => {
+  if (!headers || typeof headers !== 'object') return undefined;
+
+  if (typeof (headers as { get?: (key: string) => unknown }).get === 'function') {
+    const value = (headers as { get: (key: string) => unknown }).get(name);
+    return typeof value === 'string' && value ? value : undefined;
+  }
+
+  const record = headers as Record<string, unknown>;
+  const value = record[name] ?? record[name.toLowerCase()];
+  return typeof value === 'string' && value ? value : undefined;
+};
+
+const setHeaderValue = (headers: Record<string, unknown> | undefined, name: string, value: string) => {
+  if (!headers) return;
+
+  if (typeof (headers as { set?: (key: string, value: string) => void }).set === 'function') {
+    (headers as { set: (key: string, value: string) => void }).set(name, value);
+    return;
+  }
+
+  headers[name] = value;
+};
+
 /* Shared FormData helpers */
 
 export const appendStringArrayToFormData = (formData: FormData, key: string, values?: string[]) => {
@@ -210,6 +236,9 @@ class ApiModel {
 
   private setupInterceptors() {
     this.instance.interceptors.request.use(request => {
+      const requestId = crypto.randomUUID();
+      setHeaderValue(request.headers as Record<string, unknown>, REQUEST_ID_HEADER, requestId);
+
       if (request.data instanceof FormData && request.headers) {
         if (typeof request.headers.delete === 'function') {
           request.headers.delete('Content-Type');
@@ -226,6 +255,14 @@ class ApiModel {
       error => {
         const status = error.response?.status;
         const requestUrl = error.config?.url ?? '';
+        const requestId = getHeaderValue(error.config?.headers, REQUEST_ID_HEADER);
+
+        console.error('[API]', {
+          requestId,
+          method: error.config?.method?.toUpperCase(),
+          url: requestUrl,
+          status,
+        });
 
         if (
           status === 401 &&
