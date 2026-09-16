@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PaginatedRequest, SideTypeSchema } from '../api-model';
+import { MissionVersionSchema } from '../missions/missions.schemas';
 
 const GameSideShortSchema = z
   .object({
@@ -25,7 +26,7 @@ export const GameSchema = z
     defenseHqSquadId: z.string().nullable().optional(),
     weekendId: z.string().optional(),
     weekend: z.lazy(() => WeekendSchema).optional(),
-    missionVersion: z.any(),
+    missionVersion: MissionVersionSchema,
     mission: z.any(),
     admin: z.any().nullable().optional(),
     attackSide: GameSideShortSchema.optional(),
