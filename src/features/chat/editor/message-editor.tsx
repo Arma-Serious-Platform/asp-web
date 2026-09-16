@@ -17,6 +17,7 @@ import { OverflowNode } from '@lexical/overflow';
 import { $getRoot, EditorState } from 'lexical';
 import { newMessageAreaTheme } from './theme';
 import { YouTubeEmbedNode } from './youtube-node';
+import { ImageEmbedNode } from './image-node';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { SendHorizontalIcon } from 'lucide-react';
 import { Button } from '@/shared/ui/atoms/button';
@@ -45,6 +46,8 @@ export type MessageEditorProps = {
   showSubmit?: boolean;
   textFormattingOnly?: boolean;
   allowLists?: boolean;
+  allowImages?: boolean;
+  onUploadImage?: (file: File) => Promise<{ url: string; id?: string }>;
   allowEmptySubmit?: boolean;
   toolbarExtra?: ReactNode;
   composerFooter?: ReactNode;
@@ -181,13 +184,19 @@ export function MessageEditor({
   showSubmit = true,
   textFormattingOnly = false,
   allowLists = false,
+  allowImages = false,
+  onUploadImage,
   allowEmptySubmit = false,
   toolbarExtra,
   composerFooter,
 }: MessageEditorProps) {
-  const nodes = allowLists
-    ? [OverflowNode, LinkNode, YouTubeEmbedNode, ListNode, ListItemNode]
-    : [OverflowNode, LinkNode, YouTubeEmbedNode];
+  const nodes = [
+    OverflowNode,
+    LinkNode,
+    YouTubeEmbedNode,
+    ...(allowImages ? [ImageEmbedNode] : []),
+    ...(allowLists ? [ListNode, ListItemNode] : []),
+  ];
   const initialConfig = {
     namespace: 'MessageEditor',
     theme: newMessageAreaTheme,
@@ -214,6 +223,8 @@ export function MessageEditor({
         <ToolbarPlugin
           textFormattingOnly={textFormattingOnly}
           allowLists={allowLists}
+          allowImages={allowImages}
+          onUploadImage={onUploadImage}
           extraActions={toolbarExtra}
           disabled={disabled}
         />

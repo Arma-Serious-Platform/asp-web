@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import type { JSX } from 'react';
 import { MissionCommentMessage } from '@/shared/sdk/types';
 import { YOUTUBE_EMBED_TYPE } from '@/features/chat/editor/youtube-node';
+import { IMAGE_EMBED_TYPE } from '@/features/chat/editor/image-node';
 import { cn } from '@/shared/utils/cn';
 
 type SerializedNode = Record<string, unknown> & {
@@ -14,6 +15,8 @@ type SerializedNode = Record<string, unknown> & {
   value?: string;
   url?: string;
   videoId?: string;
+  src?: string;
+  alt?: string;
   format?: number | string;
   listType?: string;
 };
@@ -148,6 +151,23 @@ function renderNode(node: SerializedNode, key: number | string, options: RenderO
             className="h-[200px] w-full max-w-[360px] rounded-lg border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
+          />
+        </div>
+      );
+    }
+    case IMAGE_EMBED_TYPE: {
+      if (options.textOnly) return null;
+
+      const src = typeof node.src === 'string' ? node.src : '';
+      if (!src) return null;
+      const alt = typeof node.alt === 'string' ? node.alt : 'Зображення';
+      return (
+        <div key={key} className="my-3 flex justify-start" data-lexical-decorator>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={alt}
+            className="max-h-[640px] w-full max-w-full rounded-lg border border-white/10 object-contain"
           />
         </div>
       );

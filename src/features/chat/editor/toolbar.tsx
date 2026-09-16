@@ -14,7 +14,7 @@ import {
 } from 'lexical';
 import { TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BoldIcon,
   ItalicIcon,
@@ -24,6 +24,8 @@ import {
   LinkIcon,
   SmileIcon,
   VideoIcon,
+  ImageIcon,
+  LoaderIcon,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
@@ -37,6 +39,8 @@ import {
   DialogTrigger,
 } from '@/shared/ui/organisms/dialog';
 import { $createYouTubeEmbedNode, extractYouTubeVideoId } from './youtube-node';
+import { $createImageEmbedNode } from './image-node';
+import toast from 'react-hot-toast';
 
 type Format = 'bold' | 'italic' | 'underline';
 
@@ -66,6 +70,8 @@ const EMOJI_GRID = [
 type ToolbarPluginProps = {
   textFormattingOnly?: boolean;
   allowLists?: boolean;
+  allowImages?: boolean;
+  onUploadImage?: (file: File) => Promise<{ url: string; id?: string }>;
   extraActions?: ReactNode;
   disabled?: boolean;
 };
@@ -73,6 +79,8 @@ type ToolbarPluginProps = {
 export function ToolbarPlugin({
   textFormattingOnly = false,
   allowLists = false,
+  allowImages = false,
+  onUploadImage,
   extraActions,
   disabled = false,
 }: ToolbarPluginProps) {
@@ -83,6 +91,8 @@ export function ToolbarPlugin({
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [youtubeOpen, setYoutubeOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const updateFormats = useCallback(() => {
     editor.getEditorState().read(() => {
@@ -174,6 +184,31 @@ export function ToolbarPlugin({
     });
     setYoutubeUrl('');
     setYoutubeOpen(false);
+  };
+
+  const handleImagePick = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || disabled || !onUploadImage) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Можна додавати лише зображення');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const uploaded = await onUploadImage(file);
+      editor.update(() => {
+        const node = $createImageEmbedNode(uploaded.url, file.name, uploaded.id);
+        const paragraph = $createParagraphNode();
+        $insertNodes([node, paragraph]);
+      });
+    } catch {
+      toast.error('Не вдалося завантажити зображення');
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   return (
@@ -318,6 +353,33 @@ export function ToolbarPlugin({
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {allowImages && onUploadImage && (
+            <>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={event => void handleImagePick(event)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                aria-label="Додати зображення"
+                title="Додати зображення"
+                disabled={isUploadingImage}
+                onClick={() => imageInputRef.current?.click()}>
+                {isUploadingImage ? (
+                  <LoaderIcon className="size-4 animate-spin" />
+                ) : (
+                  <ImageIcon className="size-4" />
+                )}
+              </Button>
+            </>
+          )}
         </>
       )}
 

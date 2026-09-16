@@ -23,6 +23,19 @@ class NewsApi extends ApiModel {
     return await this.instance.get<News>(`/news/admin/${id}`);
   };
 
+  uploadNewsMedia = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await this.instance.post<{ id: string; url: string; filename?: string }>(
+      '/news/admin/media',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    );
+  };
+
   createNews = async (dto: CreateNewsDto) => {
     const formData = new FormData();
     formData.append('title', dto.title);

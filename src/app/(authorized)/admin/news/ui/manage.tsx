@@ -1,12 +1,13 @@
 'use client';
 
-import { ChangeEvent, FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
-import { LoaderIcon, PaperclipIcon, XIcon } from 'lucide-react';
+import { LoaderIcon } from 'lucide-react';
 
 import { ManageNewsState } from '../state/manage-news.state';
 import { News, NewsType } from '@/shared/sdk/news/news.schemas';
+import { newsApi } from '@/shared/sdk';
 import { NEWS_TYPE_LABELS } from '@/entities/news';
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, DateInput } from '@/shared/ui/atoms/input';
@@ -78,8 +79,6 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [removeImage, setRemoveImage] = useState(false);
-    const [attachments, setAttachments] = useState<File[]>([]);
-    const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>([]);
 
     useEffect(() => {
       if (state.modal.isOpen && state.modal.payload?.mode === 'manage') {
@@ -94,8 +93,6 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
         setImage(null);
         setImagePreview(null);
         setRemoveImage(false);
-        setAttachments([]);
-        setRemovedAttachmentIds([]);
       }
 
       if (!state.modal.isOpen) {
@@ -108,8 +105,6 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
         setImage(null);
         setImagePreview(null);
         setRemoveImage(false);
-        setAttachments([]);
-        setRemovedAttachmentIds([]);
       }
     }, [state.modal.isOpen, state.modal.payload?.mode, news]);
 
@@ -123,15 +118,9 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
       return () => URL.revokeObjectURL(url);
     }, [image]);
 
-    const existingAttachments = (news?.attachments ?? []).filter(
-      attachment => !removedAttachmentIds.includes(attachment.id),
-    );
-
-    const handleAttachmentsChange = (event: ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(event.target.files ?? []);
-      if (!files.length) return;
-      setAttachments(prev => [...prev, ...files].slice(0, 10));
-      event.target.value = '';
+    const uploadContentImage = async (file: File) => {
+      const { data } = await newsApi.uploadNewsMedia(file);
+      return { url: data.url, id: data.id };
     };
 
     const handleSubmit = async () => {
@@ -149,8 +138,6 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
             content,
             image,
             removeImage,
-            attachments,
-            removedAttachmentIds,
           },
           onUpdateSuccess,
         );
@@ -166,7 +153,6 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
           shortDescription,
           content,
           image,
-          attachments,
         },
         onCreateSuccess,
       );
@@ -177,7 +163,7 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
         <Drawer
           open={state.modal.isOpen && state.modal.payload?.mode === 'manage'}
           onOpenChange={open => !open && state.modal.close()}>
-          <DrawerContent className="max-w-2xl sm:max-w-2xl">
+          <DrawerContent className="w-full max-w-full max-sm:w-full sm:w-[75vw] sm:max-w-[75vw]">
             <DrawerHeader>
               <DrawerTitle>{isEdit ? 'Редагувати новину' : 'Нова новина'}</DrawerTitle>
             </DrawerHeader>
@@ -206,7 +192,7 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
                 </div>
               </div>
 
-              <label className="flex items-center justify-between gap-3 text-sm text-zinc-200">
+              <label className="flex w-fit items-center gap-3 text-sm text-zinc-200">
                 <span>Опубліковано</span>
                 <Switch checked={published} onCheckedChange={setPublished} />
               </label>
@@ -253,54 +239,16 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
                 <label className="text-sm font-semibold text-zinc-300">Контент</label>
                 <MessageEditor
                   key={`content-${news?.id ?? 'new'}-${state.modal.isOpen}`}
+                  className="min-h-[280px]"
                   initialState={content as MissionCommentMessage}
                   placeholder="Текст новини..."
                   maxCharacters={20000}
                   showSubmit={false}
                   allowLists
+                  allowImages
+                  onUploadImage={uploadContentImage}
                   onChange={({ lexicalState }) => setContent(lexicalState)}
                 />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-300">Вкладення</label>
-                {existingAttachments.length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    {existingAttachments.map(attachment => (
-                      <div
-                        key={attachment.id}
-                        className="flex items-center justify-between rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-300">
-                        <span className="truncate">{attachment.originalName}</span>
-                        <button
-                          type="button"
-                          className="text-zinc-400 hover:text-red-400"
-                          onClick={() =>
-                            setRemovedAttachmentIds(prev => [...prev, attachment.id])
-                          }>
-                          <XIcon className="size-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {attachments.map((file, index) => (
-                  <div
-                    key={`${file.name}-${index}`}
-                    className="flex items-center justify-between rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-zinc-300">
-                    <span className="truncate">{file.name}</span>
-                    <button
-                      type="button"
-                      className="text-zinc-400 hover:text-red-400"
-                      onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))}>
-                      <XIcon className="size-3.5" />
-                    </button>
-                  </div>
-                ))}
-                <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-md border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/5">
-                  <PaperclipIcon className="size-3.5" />
-                  Додати файли
-                  <input type="file" multiple className="hidden" onChange={handleAttachmentsChange} />
-                </label>
               </div>
             </DrawerBody>
             <DrawerFooter className="border-t border-white/10 pt-4">
