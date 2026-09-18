@@ -86,9 +86,7 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
         setType(news?.type ?? NewsType.INFO);
         setPublished(news?.published ?? false);
         setDate(news?.date ? dayjs(news.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'));
-        setShortDescription(
-          (news?.shortDescription as Record<string, unknown>) ?? emptyLexical,
-        );
+        setShortDescription((news?.shortDescription as Record<string, unknown>) ?? emptyLexical);
         setContent((news?.content as Record<string, unknown>) ?? emptyLexical);
         setImage(null);
         setImagePreview(null);
@@ -197,7 +195,7 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
                 <Switch checked={published} onCheckedChange={setPublished} />
               </label>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex max-w-md flex-col gap-2">
                 <label className="text-sm font-semibold text-zinc-300">Обкладинка</label>
                 <MissionImageField
                   previewUrl={imagePreview}
@@ -223,7 +221,7 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-300">Короткий опис</label>
+                <label className="text-sm font-semibold text-zinc-300">Короткий опис (для прев'ю в Анонсах)</label>
                 <MessageEditor
                   key={`short-${news?.id ?? 'new'}-${state.modal.isOpen}`}
                   initialState={shortDescription as MissionCommentMessage}

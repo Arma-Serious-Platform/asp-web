@@ -11,10 +11,9 @@ import { Layout } from '@/widgets/layout';
 import { View } from '@/features/view';
 import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
-import { NewsTypeBadge } from '@/entities/news';
+import { NewsAuthor, NewsTypeBadge } from '@/entities/news';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { MessageAttachments } from '@/entities/attachment/ui/message-attachments';
-import { UserNicknameText } from '@/entities/user/ui/user-text';
 import { MissionCommentMessage } from '@/shared/sdk/api-model';
 import { publicNewsPageState } from '../state/news-page.state';
 
@@ -33,7 +32,7 @@ const NewsDetailPage = observer(() => {
   return (
     <Layout>
       <div className="w-full py-8 md:py-12">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 max-w-3xl">
           <Button variant="ghost" size="sm" className="mb-6" onClick={() => router.push(ROUTES.weekends)}>
             <ArrowLeftIcon className="size-4" />
             До анонсів
@@ -45,6 +44,15 @@ const NewsDetailPage = observer(() => {
               else={<div className="py-16 text-center text-zinc-500">Новину не знайдено</div>}>
               {news && (
                 <article className="paper flex flex-col gap-6 rounded-2xl p-6 shadow-xl md:p-8">
+                  <div className="flex flex-col gap-3">
+                    <h1 className="text-3xl font-bold text-white md:text-4xl">{news.title}</h1>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <NewsTypeBadge type={news.type} />
+                      <span className="text-sm text-zinc-500">{dayjs(news.date).format('DD.MM.YYYY')}</span>
+                    </div>
+                    {news.author && <NewsAuthor user={news.author} />}
+                  </div>
+
                   {news.image?.url && (
                     <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-white/10 bg-black/40">
                       <Image
@@ -55,26 +63,6 @@ const NewsDetailPage = observer(() => {
                         unoptimized={!news.image.url.startsWith('https')}
                       />
                     </div>
-                  )}
-
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <NewsTypeBadge type={news.type} />
-                      <span className="text-sm text-zinc-500">{dayjs(news.date).format('DD.MM.YYYY')}</span>
-                    </div>
-                    <h1 className="text-3xl font-bold text-white md:text-4xl">{news.title}</h1>
-                    {news.author && (
-                      <div className="text-sm text-zinc-400">
-                        <UserNicknameText user={news.author} />
-                      </div>
-                    )}
-                  </div>
-
-                  {news.shortDescription && (
-                    <MessageContent
-                      message={news.shortDescription as MissionCommentMessage}
-                      className="text-lg text-zinc-300"
-                    />
                   )}
 
                   <MessageContent message={news.content as MissionCommentMessage} />
