@@ -26,7 +26,7 @@ export const ServerInfo: FC<{
   }
 
   return (
-    <div className={classNames('paper p-2.5 flex flex-col gap-1 h-fit w-fit rounded-sm', className)}>
+    <div className={classNames('paper p-2.5 flex flex-col gap-1 h-fit w-fit rounded-xl', className)}>
       <div className="flex gap-2 items-center">
         <ServerIcon className="size-4" />
         <span className="text-ellipsis overflow-hidden whitespace-nowrap">{server?.name}</span> |{' '}

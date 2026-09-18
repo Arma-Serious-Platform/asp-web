@@ -2,10 +2,13 @@
 
 import { Layout } from '@/widgets/layout';
 import { WeekendAnnouncement } from '@/app/weekends/ui/weekend-announcement';
+import { NewsAnnouncement } from '@/app/weekends/ui/news-announcement';
 import { observer } from 'mobx-react-lite';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { View } from '@/features/view';
+import { News } from '@/shared/sdk/news/news.schemas';
+import { Weekend } from '@/shared/sdk/weekends/weekends.schemas';
 
 import { weekendsPageState } from './state/weekends-page.state';
 
@@ -51,35 +54,39 @@ const WeekendsPage = observer(() => {
   return (
     <Layout>
       <div className="w-full py-8 md:py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 text-center">Анонси ігор</h1>
-            <p className="text-lg text-zinc-400 text-center">
-              Анонси ігрових подій та детальна інформація про сценарії
-            </p>
+        <div className="container mx-auto">
+          <div className="mx-auto mb-8 max-w-7xl px-4">
+            <h1 className="mb-3 text-4xl font-bold text-white md:text-5xl">Анонси ігор</h1>
+            <p className="text-lg text-zinc-400">Анонси ігрових подій та новини проєкту</p>
           </div>
 
           <View.Condition
             if={!weekendsPageState.pagination.preloader.isLoading}
             else={
-              <div className="max-w-7xl mx-auto flex justify-center py-16">
+              <div className="mx-auto flex max-w-7xl justify-center py-16">
                 <div className="text-zinc-400">Завантаження…</div>
               </div>
             }>
             <div className="flex flex-col gap-12">
-              {weekendsPageState.pagination.data.map(weekend => (
-                <WeekendAnnouncement
-                  key={weekend.id}
-                  weekend={weekend.data}
-                  activeGameId={activeGameId}
-                />
-              ))}
+              {weekendsPageState.pagination.data.map(item => {
+                if (item.type === 'weekends') {
+                  return (
+                    <WeekendAnnouncement
+                      key={`weekends-${item.id}`}
+                      weekend={item.data.data as Weekend}
+                      activeGameId={activeGameId}
+                    />
+                  );
+                }
+
+                return <NewsAnnouncement key={`news-${item.id}`} news={item.data.data as News} />;
+              })}
             </div>
           </View.Condition>
 
           <View.Condition
             if={!weekendsPageState.pagination.preloader.isLoading && weekendsPageState.pagination.data.length === 0}>
-            <div className="max-w-7xl mx-auto text-center text-zinc-500 py-16">Немає опублікованих анонсів</div>
+            <div className="mx-auto max-w-7xl py-16 text-center text-zinc-500">Немає опублікованих анонсів</div>
           </View.Condition>
         </div>
       </div>

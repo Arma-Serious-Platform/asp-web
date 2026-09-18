@@ -1,5 +1,6 @@
 export const ROUTES = {
   home: '/',
+  installationGuide: '/#installation-guide',
   headquarters: '/headquarters',
   hq: {
     root: '/hq',

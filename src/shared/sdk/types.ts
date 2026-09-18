@@ -336,6 +336,14 @@ export type {
   UpdateNewsDto,
 } from './news/news.schemas';
 
+export {
+  FeedItemTypeSchema,
+  FeedItemType,
+  FeedItemSchema,
+} from './feed/feed.schemas';
+
+export type { FeedItem, FindFeedDto } from './feed/feed.schemas';
+
 export { RulesContentSchema, UpdateRulesDtoSchema } from './rules/rules.schemas';
 
 export type { RulesContent, UpdateRulesDto } from './rules/rules.schemas';

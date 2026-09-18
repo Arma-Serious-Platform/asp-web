@@ -2,9 +2,9 @@
 
 import { makeAutoObservable } from 'mobx';
 
-import { WeekendModel } from '@/entities/weekend/weekend.model';
-import { weekendsApi } from '@/shared/sdk';
-import { FindWeekendsDto, Weekend } from '@/shared/sdk/types';
+import { FeedItemModel } from '@/entities/feed';
+import { feedApi } from '@/shared/sdk';
+import { FeedItem, FindFeedDto } from '@/shared/sdk/feed/feed.schemas';
 import { Pagination } from '@/shared/state/pagination';
 
 class WeekendsPageState {
@@ -12,14 +12,13 @@ class WeekendsPageState {
     makeAutoObservable(this);
   }
 
-  pagination = new Pagination<Weekend, FindWeekendsDto, WeekendModel>({
-    api: weekendsApi.findWeekends,
-    Model: WeekendModel,
+  pagination = new Pagination<FeedItem, FindFeedDto, FeedItemModel>({
+    api: feedApi.findFeed,
+    Model: FeedItemModel,
   });
 
   init = async () => {
     await this.pagination.init({
-      published: true,
       take: 4,
     });
   };

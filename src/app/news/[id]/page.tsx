@@ -11,7 +11,7 @@ import { Layout } from '@/widgets/layout';
 import { View } from '@/features/view';
 import { Button } from '@/shared/ui/atoms/button';
 import { ROUTES } from '@/shared/config/routes';
-import { NEWS_TYPE_LABELS } from '@/entities/news';
+import { NewsTypeBadge } from '@/entities/news';
 import { MessageContent } from '@/entities/comment/lexical-message';
 import { MessageAttachments } from '@/entities/attachment/ui/message-attachments';
 import { UserNicknameText } from '@/entities/user/ui/user-text';
@@ -33,28 +33,18 @@ const NewsDetailPage = observer(() => {
   return (
     <Layout>
       <div className="w-full py-8 md:py-12">
-        <div className="container mx-auto max-w-3xl px-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mb-6"
-            onClick={() => router.push(ROUTES.news)}>
+        <div className="container mx-auto px-4">
+          <Button variant="ghost" size="sm" className="mb-6" onClick={() => router.push(ROUTES.weekends)}>
             <ArrowLeftIcon className="size-4" />
-            До списку новин
+            До анонсів
           </Button>
 
-          <View.Condition
-            if={!isLoading}
-            else={
-              <div className="py-16 text-center text-zinc-400">Завантаження…</div>
-            }>
+          <View.Condition if={!isLoading} else={<div className="py-16 text-center text-zinc-400">Завантаження…</div>}>
             <View.Condition
               if={Boolean(news)}
-              else={
-                <div className="py-16 text-center text-zinc-500">Новину не знайдено</div>
-              }>
+              else={<div className="py-16 text-center text-zinc-500">Новину не знайдено</div>}>
               {news && (
-                <article className="flex flex-col gap-6">
+                <article className="paper flex flex-col gap-6 rounded-2xl p-6 shadow-xl md:p-8">
                   {news.image?.url && (
                     <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-white/10 bg-black/40">
                       <Image
@@ -69,12 +59,8 @@ const NewsDetailPage = observer(() => {
 
                   <div className="flex flex-col gap-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded border border-white/20 bg-black/40 px-2 py-1 text-xs font-semibold text-white">
-                        {NEWS_TYPE_LABELS[news.type]}
-                      </span>
-                      <span className="text-sm text-zinc-500">
-                        {dayjs(news.date).format('DD.MM.YYYY')}
-                      </span>
+                      <NewsTypeBadge type={news.type} />
+                      <span className="text-sm text-zinc-500">{dayjs(news.date).format('DD.MM.YYYY')}</span>
                     </div>
                     <h1 className="text-3xl font-bold text-white md:text-4xl">{news.title}</h1>
                     {news.author && (

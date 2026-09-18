@@ -19,7 +19,16 @@ import { Avatar } from '@/shared/ui/organisms/avatar';
 import NextLink from 'next/link';
 
 import classNames from 'classnames';
-import { ChevronDownIcon, LogOutIcon, MapIcon, MenuIcon, ShieldUserIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  LogOutIcon,
+  MapIcon,
+  MenuIcon,
+  ShieldUserIcon,
+  UserIcon,
+  UsersIcon,
+  XIcon,
+} from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Image from 'next/image';
 
@@ -50,7 +59,7 @@ const getFirstAdminRoute = () => {
   return ROUTES.home;
 };
 
-const MainLinks: FC<{
+const PrimaryLinks: FC<{
   className?: string;
   activeClassName?: string;
 }> = observer(({ className, activeClassName }) => {
@@ -99,13 +108,37 @@ const MainLinks: FC<{
       <a className={className} href="https://replays.vtg.in.ua" target="_blank" rel="noopener noreferrer">
         Реплеї
       </a>
-
-      <a className={className} href="https://feedback.vtg.in.ua" target="_blank" rel="noopener noreferrer">
-        Баг-трекер
-      </a>
     </>
   );
 });
+
+const SecondaryLinks: FC<{ className?: string; onClick?: () => void }> = ({ className, onClick }) => {
+  return (
+    <>
+      <a className={className} href={ROUTES.installationGuide} onClick={onClick}>
+        Почати грати
+      </a>
+
+      <a
+        className={className}
+        href="https://feedback.vtg.in.ua"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}>
+        Баг-трекер
+      </a>
+
+      <a
+        className={className}
+        href="https://wiki.vtg.in.ua/"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}>
+        Wiki
+      </a>
+    </>
+  );
+};
 
 const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer(({ className, activeClassName }) => {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -135,14 +168,16 @@ const AuthLinks: FC<{ className?: string; activeClassName?: string }> = observer
             trigger={
               <button
                 type="button"
-                className="group flex items-center gap-2 px-2.5 py-1 rounded-md bg-transparent hover:bg-white/5 active:bg-white/10 data-[state=open]:bg-white/5 transition-all duration-200 cursor-pointer outline-hidden"
-              >
+                className="group flex items-center gap-2 px-2.5 py-1 rounded-md bg-transparent hover:bg-white/5 active:bg-white/10 data-[state=open]:bg-white/5 transition-all duration-200 cursor-pointer outline-hidden">
                 <Avatar size="sm" src={session.user?.data?.avatar?.url} />
-                <UserNicknameText user={session.user?.data} link={false} className="text-xs font-semibold tracking-wide text-zinc-200" />
+                <UserNicknameText
+                  user={session.user?.data}
+                  link={false}
+                  className="text-xs font-semibold tracking-wide text-zinc-200"
+                />
                 <ChevronDownIcon className="size-3 text-zinc-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
               </button>
             }>
-            
             {/* Minimalist Header with User Role */}
             <div className="px-2 py-1 text-[9px] font-semibold text-zinc-500 uppercase tracking-wider">
               {UserModel.getRoleText(session.user?.data?.roles)}
@@ -253,7 +288,7 @@ export const MobileMenu = observer(() => {
           'translate-x-full': !headerState.mobileMenu.isOpen,
         },
       )}>
-      <div className="relative mx-auto flex w-full max-w-xl flex-col px-4 pt-4">
+      <div className="relative mx-auto flex w-full max-w-xl flex-col px-4 pt-4 overflow-y-auto">
         <div className="flex items-center justify-between">
           <Link className="w-fit shrink-0" href={ROUTES.home} onClick={headerState.mobileMenu.close}>
             <Image
@@ -275,7 +310,7 @@ export const MobileMenu = observer(() => {
         </div>
 
         <div className="mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-xs text-zinc-200">
-          <span className="font-semibold uppercase tracking-[0.24em] text-zinc-400">Анонси</span>
+          <span className="font-semibold uppercase tracking-[0.24em] text-zinc-400">Графік</span>
           <ScheduleInfo className="ml-3" version="short" />
         </div>
 
@@ -285,9 +320,21 @@ export const MobileMenu = observer(() => {
               Навігація
             </div>
             <div className="mt-2 flex flex-col">
-              <MainLinks
+              <PrimaryLinks
                 className="block px-2 py-2 text-sm font-medium text-zinc-100 hover:bg-white/5 rounded-md"
                 activeClassName="bg-primary text-white rounded-md"
+              />
+            </div>
+          </nav>
+
+          <nav className="paper mt-5 rounded-xl border px-4 py-4 shadow-xl">
+            <div className="border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">
+              Додатково
+            </div>
+            <div className="mt-2 flex flex-col">
+              <SecondaryLinks
+                className="block px-2 py-2 text-sm font-medium text-zinc-100 hover:bg-white/5 rounded-md"
+                onClick={headerState.mobileMenu.close}
               />
             </div>
           </nav>
@@ -344,7 +391,7 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
   return (
     <header
       className={cn(
-        'w-full h-16 sticky top-0 z-30 mx-auto flex items-center justify-center transition-colors duration-300 bg-card',
+        'w-full sticky top-0 z-30 mx-auto flex flex-col items-center justify-center transition-colors duration-300 bg-card',
         {
           fixed: enableScrollVisibility,
           'bg-transparent': !isScrolled && enableScrollVisibility,
@@ -352,7 +399,23 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
           'overflow-hidden': !headerState.mobileMenu.isOpen,
         },
       )}>
-      <div className="container max-lg:mx-4 flex items-center justify-between">
+      <div className="w-full border-b border-white/5 bg-white/5 max-xl:hidden">
+        <div className="container max-xl:mx-4 mx-auto flex h-8 items-center justify-end gap-4">
+          <div className="flex items-center gap-8 mr-auto">
+            <SecondaryLinks className="text-[11px] font-semibold whitespace-nowrap uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:text-white" />
+          </div>
+
+          {/* <span className="h-3 w-px bg-white/10" /> */}
+
+          <ScheduleInfo plain version="short" />
+
+          <span className="h-3 w-px bg-white/10" />
+
+          <Social className="gap-3" iconClassName="size-4 shrink-0" />
+        </div>
+      </div>
+
+      <div className="container max-xl:mx-4 flex h-16 items-center justify-between">
         <Link className="w-fit shrink-0" href={ROUTES.home}>
           <Image
             className="mr-4 hover:scale-110 transition-all duration-300"
@@ -364,26 +427,22 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
           />
         </Link>
 
-        <div className="mx-auto flex items-center justify-between w-full max-lg:hidden">
+        <div className="mx-auto flex items-center justify-between w-full max-xl:hidden">
           <div className="mr-auto flex items-center justify-between gap-3">
-            <MainLinks
+            <PrimaryLinks
               className="rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-white/10 hover:text-white"
               activeClassName="bg-primary/90 text-white rounded-md"
             />
           </div>
 
-          <div className="mx-4 flex items-center justify-between gap-7">
-            <Social iconClassName="size-4 shrink-0" />
-            <ScheduleInfo className="mr-4 hidden 2xl:flex" />
-            <ScheduleInfo className="my-2 mx-auto hidden max-2xl:flex" version="short" />
-
+          <div className="mx-4 flex items-center justify-between gap-4">
             <AuthLinks
               className="rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-200 transition-colors hover:bg-primary/90 hover:text-white"
               activeClassName="bg-primary/90 text-white rounded-md"
             />
           </div>
         </div>
-        <div className="flex items-center justify-center lg:hidden">
+        <div className="flex items-center justify-center xl:hidden">
           <MenuIcon className="w-6 h-6" onClick={() => headerState.mobileMenu.open()} />
         </div>
       </div>
