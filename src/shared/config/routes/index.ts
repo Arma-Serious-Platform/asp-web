@@ -42,5 +42,6 @@ export const ROUTES = {
     rules: '/admin/rules',
     specializations: '/admin/specializations',
     news: '/admin/news',
+    bots: '/admin/bots',
   },
 } as const;

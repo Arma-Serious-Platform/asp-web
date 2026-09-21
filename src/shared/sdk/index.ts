@@ -52,3 +52,4 @@ export { chatApi, ChatApi } from './chat/chat.api';
 export { notificationsApi, NotificationsApi } from './notifications/notifications.api';
 export { newsApi, NewsApi } from './news/news.api';
 export { feedApi, FeedApi } from './feed/feed.api';
+export { botNotificationsApi, BotNotificationsApi } from './bot-notifications/bot-notifications.api';

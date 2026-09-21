@@ -19,7 +19,7 @@ const socials = [
     alt: 'YouTube',
   },
   {
-    href: 'https://t.me/armaVTG',
+    href: 'https://t.me/virtual_tactical_games',
     src: '/images/social/telegram.svg',
     alt: 'Telegram',
   },

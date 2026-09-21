@@ -71,6 +71,23 @@ export class SessionState {
     ]);
   }
 
+  get canManageBotNotifications() {
+    return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
+  }
+
+  get canSendManualBotNotifications() {
+    return UserModel.hasAnyRole(this.roles, [
+      UserRole.OWNER,
+      UserRole.SERVER_ADMIN,
+      UserRole.GAME_ADMIN,
+      UserRole.MINI_ADMIN,
+    ]);
+  }
+
+  get canAccessBotNotifications() {
+    return this.canManageBotNotifications || this.canSendManualBotNotifications;
+  }
+
   get canReviewMissions() {
     return UserModel.hasAnyRole(this.roles, [UserRole.MISSION_REVIEWER]) || this.canManageMissions;
   }
@@ -84,7 +101,8 @@ export class SessionState {
       this.canManageSquadsAndSides ||
       this.canManageRules ||
       this.canManageSpecializations ||
-      this.canManageNews
+      this.canManageNews ||
+      this.canAccessBotNotifications
     );
   }
 

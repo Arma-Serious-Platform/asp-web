@@ -14,6 +14,7 @@ import {
   SwordIcon,
   UserIcon,
   UsersIcon,
+  BotIcon,
 } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Link from 'next/link';
@@ -71,6 +72,10 @@ const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
 
         {session.canManageSpecializations && (
           <AdminSidebarItem href={ROUTES.admin.specializations} label="Спеціалізації" icon={<MedalIcon />} />
+        )}
+
+        {session.canAccessBotNotifications && (
+          <AdminSidebarItem href={ROUTES.admin.bots} label="Боти-месенджери" icon={<BotIcon />} />
         )}
       </div>
     </aside>

@@ -344,6 +344,19 @@ export {
 
 export type { FeedItem, FindFeedDto } from './feed/feed.schemas';
 
+export {
+  BotNotificationTypeSchema,
+  BotNotificationType,
+  BotNotificationSchema,
+} from './bot-notifications/bot-notifications.schemas';
+
+export type {
+  BotNotification,
+  CreateBotNotificationDto,
+  UpdateBotNotificationDto,
+  SendBotNotificationDto,
+} from './bot-notifications/bot-notifications.schemas';
+
 export { RulesContentSchema, UpdateRulesDtoSchema } from './rules/rules.schemas';
 
 export type { RulesContent, UpdateRulesDto } from './rules/rules.schemas';
