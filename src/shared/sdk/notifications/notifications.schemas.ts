@@ -7,6 +7,7 @@ export const NotificationGroupSchema = z.enum([
   'SQUAD',
   'MISSIONS',
   'ANNOUNCEMENTS',
+  'NEWS',
   'PUNISHMENTS',
 ]);
 export const NotificationGroup = NotificationGroupSchema.enum;
@@ -24,6 +25,7 @@ export const NotificationTypeSchema = z.enum([
   'PERMANENT_BAN',
   'UNBAN',
   'WEEKEND_PUBLISHED',
+  'NEWS_PUBLISHED',
 ]);
 export const NotificationType = NotificationTypeSchema.enum;
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
@@ -63,6 +65,7 @@ export const NotificationPayloadSchema = z
     bannedUntil: z.string().nullable().optional(),
     warningId: z.string().optional(),
     name: z.string().optional(),
+    title: z.string().optional(),
     automatic: z.boolean().optional(),
     isMuted: z.boolean().optional(),
   })

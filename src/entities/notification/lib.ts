@@ -12,6 +12,7 @@ export const NOTIFICATION_GROUP_LABELS: Record<NotificationGroup, string> = {
   [NotificationGroup.SQUAD]: 'Загін',
   [NotificationGroup.MISSIONS]: 'Місії',
   [NotificationGroup.ANNOUNCEMENTS]: 'Анонси',
+  [NotificationGroup.NEWS]: 'Новини',
   [NotificationGroup.PUNISHMENTS]: 'Покарання',
 };
 
@@ -27,6 +28,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   [NotificationType.PERMANENT_BAN]: 'Перманентний бан',
   [NotificationType.UNBAN]: 'Розбан',
   [NotificationType.WEEKEND_PUBLISHED]: 'Опубліковано анонс',
+  [NotificationType.NEWS_PUBLISHED]: 'Опубліковано новину',
 };
 
 export const ALL_NOTIFICATION_GROUPS = Object.values(NotificationGroup);
@@ -50,6 +52,8 @@ export const getNotificationHref = (notification: Notification): string | null =
       return `${ROUTES.user.profile}?tab=squad`;
     case NotificationType.WEEKEND_PUBLISHED:
       return targetId ? ROUTES.weekendByAnchor(targetId) : ROUTES.weekends;
+    case NotificationType.NEWS_PUBLISHED:
+      return targetId ? ROUTES.newsById(targetId) : ROUTES.news;
     case NotificationType.WARNING:
     case NotificationType.WARNING_REMOVED:
     case NotificationType.TEMP_BAN:
@@ -74,6 +78,10 @@ export const getNotificationDescription = (notification: Notification): string |
 
   if (notification.type === NotificationType.WEEKEND_PUBLISHED && payload.name) {
     return payload.name;
+  }
+
+  if (notification.type === NotificationType.NEWS_PUBLISHED && payload.title) {
+    return payload.title;
   }
 
   return null;

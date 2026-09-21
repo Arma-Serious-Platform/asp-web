@@ -221,7 +221,9 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-300">Короткий опис (для прев'ю в Анонсах)</label>
+                <label className="text-sm font-semibold text-zinc-300">
+                  Короткий опис (для прев'ю в списках новин та мессенджерах)
+                </label>
                 <MessageEditor
                   key={`short-${news?.id ?? 'new'}-${state.modal.isOpen}`}
                   initialState={shortDescription as MissionCommentMessage}

@@ -28,6 +28,7 @@ class NotificationsState {
     [NotificationGroup.SQUAD]: 0,
     [NotificationGroup.MISSIONS]: 0,
     [NotificationGroup.ANNOUNCEMENTS]: 0,
+    [NotificationGroup.NEWS]: 0,
     [NotificationGroup.PUNISHMENTS]: 0,
   };
   preferences: NotificationPreferenceItem[] = [];

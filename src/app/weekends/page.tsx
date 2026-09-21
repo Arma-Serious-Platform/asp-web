@@ -58,7 +58,7 @@ const WeekendsPage = observer(() => {
       <div className="w-full py-8 md:py-12">
         <div className="container mx-auto">
           <div className="mx-auto mb-8 max-w-7xl px-4">
-            <h1 className="mb-3 text-4xl font-bold text-white md:text-5xl">Анонси ігор</h1>
+            <h1 className="mb-3 text-4xl font-bold text-white md:text-5xl">Анонси та новини VTG</h1>
             <p className="text-lg text-zinc-400">Анонси ігрових подій та новини проєкту</p>
           </div>
 
@@ -97,8 +97,7 @@ const WeekendsPage = observer(() => {
             )}
           </View.Condition>
 
-          <View.Condition
-            if={!pagination.preloader.isLoading && pagination.data.length === 0}>
+          <View.Condition if={!pagination.preloader.isLoading && pagination.data.length === 0}>
             <div className="mx-auto max-w-7xl py-16 text-center text-zinc-500">Немає опублікованих анонсів</div>
           </View.Condition>
         </div>
