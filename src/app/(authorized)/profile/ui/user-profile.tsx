@@ -214,7 +214,18 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     <InfoTile
                       icon={<IdCardIcon className="size-4" />}
                       title="Steam ID"
-                      description={model.user?.steamId ? model.user.steamId : 'Не підключено'}
+                      description={
+                        model.user?.steamId ? (
+                          <a
+                            href={`https://steamcommunity.com/profiles/${model.user.steamId}`}
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {model.user.steamId}
+                          </a>
+                        ) : (
+                          'Не підключено'
+                        )
+                      }
                     />
                   </View.Condition>
 

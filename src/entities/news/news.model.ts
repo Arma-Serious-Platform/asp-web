@@ -5,6 +5,7 @@ import { makeObservable, computed } from 'mobx';
 export const NEWS_TYPE_LABELS: Record<NewsType, string> = {
   [NewsType.INFO]: 'Інфо',
   [NewsType.TECH_UPDATE]: 'Тех. оновлення',
+  [NewsType.WEBSITE_UPDATE]: 'Оновлення сайту',
 };
 
 class NewsModel extends createEntity(NewsSchema) {

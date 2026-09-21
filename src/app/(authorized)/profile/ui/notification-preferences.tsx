@@ -30,14 +30,14 @@ export const NotificationPreferences = observer(() => {
           const enabled = pref?.enabled ?? true;
 
           return (
-            <label key={group} className="flex items-center justify-between gap-3 text-sm text-zinc-200">
-              <span>{NOTIFICATION_GROUP_LABELS[group]}</span>
+            <label key={group} className="flex items-center gap-3 text-sm text-zinc-200">
               <Switch
                 checked={enabled}
                 onCheckedChange={checked => {
                   void notificationsState.setPreferenceEnabled(group, checked);
                 }}
               />
+              <span>{NOTIFICATION_GROUP_LABELS[group]}</span>
             </label>
           );
         })}

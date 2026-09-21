@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { LucideIcon, ScrollTextIcon, WrenchIcon } from 'lucide-react';
+import { GlobeIcon, LucideIcon, ScrollTextIcon, WrenchIcon } from 'lucide-react';
 
 import { NEWS_TYPE_LABELS } from '@/entities/news/news.model';
 import { NewsType } from '@/shared/sdk/news/news.schemas';
@@ -8,6 +8,7 @@ import { cn } from '@/shared/utils/cn';
 const NEWS_TYPE_ICONS: Record<NewsType, LucideIcon> = {
   [NewsType.TECH_UPDATE]: WrenchIcon,
   [NewsType.INFO]: ScrollTextIcon,
+  [NewsType.WEBSITE_UPDATE]: GlobeIcon,
 };
 
 export const NewsTypeBadge: FC<{ type: NewsType; className?: string }> = ({ type, className }) => {

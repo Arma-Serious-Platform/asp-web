@@ -10,7 +10,7 @@ import {
   messageAttachmentItemSchema,
 } from '../api-model';
 
-export const NewsTypeSchema = z.enum(['INFO', 'TECH_UPDATE']);
+export const NewsTypeSchema = z.enum(['INFO', 'TECH_UPDATE', 'WEBSITE_UPDATE']);
 export const NewsType = NewsTypeSchema.enum;
 export type NewsType = z.infer<typeof NewsTypeSchema>;
 

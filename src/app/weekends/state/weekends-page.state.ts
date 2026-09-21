@@ -19,7 +19,7 @@ class WeekendsPageState {
 
   init = async () => {
     await this.pagination.init({
-      take: 4,
+      take: 5,
     });
   };
 

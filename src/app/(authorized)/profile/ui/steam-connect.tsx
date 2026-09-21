@@ -25,7 +25,9 @@ const ProfileSteamConnect: FC<{
 
       {user.steamId ? (
         <div className="flex gap-2">
-          <span className="text-sm text-zinc-200">{user.steamId}</span>
+          <a href={`https://steamcommunity.com/profiles/${user.steamId}`} target="_blank" rel="noopener noreferrer">
+            <span className="text-sm text-zinc-200 hover:underline">{user.steamId}</span>
+          </a>
           <UnplugIcon
             className="size-4 cursor-pointer text-zinc-400 hover:text-destructive"
             onClick={() => disconnectModel.modal.open()}

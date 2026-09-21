@@ -143,7 +143,9 @@ export const ManageBotsModal: FC<ManageBotsModalProps> = observer(
                   value={url}
                   onChange={e => setUrl(e.target.value)}
                   placeholder={
-                    type === BotNotificationType.NEWS ? 'https://vtg.in.ua/news/:id' : 'https://vtg.in.ua/weekends'
+                    type.startsWith('NEWS')
+                      ? 'https://vtg.in.ua/news/:id'
+                      : 'https://vtg.in.ua/weekends'
                   }
                 />
               </div>

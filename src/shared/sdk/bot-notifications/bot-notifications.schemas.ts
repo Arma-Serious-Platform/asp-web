@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import { StateSchema } from '../api-model';
 
-export const BotNotificationTypeSchema = z.enum(['WEEKENDS', 'NEWS', 'MANUAL']);
+export const BotNotificationTypeSchema = z.enum([
+  'WEEKENDS',
+  'NEWS',
+  'NEWS_INFO',
+  'NEWS_TECH_UPDATE',
+  'NEWS_WEBSITE_UPDATE',
+  'MANUAL',
+]);
 export const BotNotificationType = BotNotificationTypeSchema.enum;
 export type BotNotificationType = z.infer<typeof BotNotificationTypeSchema>;
 
