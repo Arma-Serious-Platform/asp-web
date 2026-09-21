@@ -142,11 +142,7 @@ export const ManageBotsModal: FC<ManageBotsModalProps> = observer(
                 <Input
                   value={url}
                   onChange={e => setUrl(e.target.value)}
-                  placeholder={
-                    type.startsWith('NEWS')
-                      ? 'https://vtg.in.ua/news/:id'
-                      : 'https://vtg.in.ua/weekends'
-                  }
+                  placeholder={type.startsWith('NEWS') ? 'https://vtg.in.ua/news/:id' : 'https://vtg.in.ua/weekends'}
                 />
               </div>
 
@@ -179,7 +175,7 @@ export const ManageBotsModal: FC<ManageBotsModalProps> = observer(
                   <Input
                     value={discordChannelId}
                     onChange={e => setDiscordChannelId(e.target.value)}
-                    placeholder="Channel snowflake"
+                    placeholder="Channel ID"
                   />
                 </div>
               </div>
