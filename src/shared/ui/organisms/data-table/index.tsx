@@ -39,6 +39,7 @@ export function DataTable<TData, TValue>({
 
   const headerGroups = table.getHeaderGroups();
   const hasActions = headerGroups.some(headerGroup => headerGroup.headers.some(header => header.id === 'actions'));
+  const isInitialLoading = isLoading && data.length === 0;
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-md">
@@ -64,7 +65,7 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <TableBody>
-          {isLoading ? (
+          {isInitialLoading ? (
             <TableRow>
               <TableCell
                 colSpan={columns.length}
@@ -97,7 +98,7 @@ export function DataTable<TData, TValue>({
             </TableRow>
           )}
         </TableBody>
-        {!isLoading && data.length > 0 && (
+        {data.length > 0 && (
           <TableFooter>
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={columns.length} className="bg-black/70 text-xs text-zinc-300">
@@ -109,7 +110,8 @@ export function DataTable<TData, TValue>({
                   )}
 
                   {total !== data.length && onLoadMore && (
-                    <Button className="ml-4" variant="outline" size="sm" onClick={onLoadMore}>
+                    <Button className="ml-4" variant="outline" size="sm" disabled={isLoading} onClick={onLoadMore}>
+                      {isLoading && <LoaderIcon className="size-4 animate-spin" />}
                       Показати більше
                     </Button>
                   )}

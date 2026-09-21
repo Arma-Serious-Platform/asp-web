@@ -8,7 +8,7 @@ import { cn } from '@/shared/utils/cn';
 
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
-import { PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
+import { LoaderIcon, PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { MISSIONS_PAGE_SIZE, missionsState } from './state/missions-page.state';
 
 import { CreateMissionModal } from './ui/create-mission';
@@ -194,6 +194,7 @@ const MissionsPageContent = observer(() => {
   const isLoading = missionsState.missionsPagination.loader.isLoading;
   const missions = missionsState.missionsPagination.data;
   const totalMissions = missionsState.missionsPagination.total;
+  const isInitialLoading = isLoading && missions.length === 0;
   const hasNoMissions = !isLoading && missions.length === 0;
 
   useEffect(() => {
@@ -302,7 +303,7 @@ const MissionsPageContent = observer(() => {
               <p className="text-zinc-400">Перегляньте доступні місії або створіть нову</p>
             </div>
 
-            {isLoading ? (
+            {isInitialLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-zinc-400">Завантаження...</div>
               </div>
@@ -351,7 +352,9 @@ const MissionsPageContent = observer(() => {
               <Button
                 variant="outline"
                 className="mx-auto mt-2 w-full sm:mt-0 sm:w-fit flex"
+                disabled={isLoading}
                 onClick={() => missionsState.missionsPagination.loadMore()}>
+                {isLoading && <LoaderIcon className="size-4 animate-spin" />}
                 <span className="text-center text-sm sm:text-base">Показати більше</span>
               </Button>
             )}

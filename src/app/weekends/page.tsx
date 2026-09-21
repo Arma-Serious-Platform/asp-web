@@ -10,6 +10,7 @@ import { View } from '@/features/view';
 import { News } from '@/shared/sdk/news/news.schemas';
 import { Weekend } from '@/shared/sdk/weekends/weekends.schemas';
 import { Button } from '@/shared/ui/atoms/button';
+import { LoaderIcon } from 'lucide-react';
 
 import { weekendsPageState } from './state/weekends-page.state';
 
@@ -29,6 +30,7 @@ const WeekendsPage = observer(() => {
   const searchParams = useSearchParams();
   const activeGameId = searchParams.get('game');
   const { pagination } = weekendsPageState;
+  const isInitialLoading = pagination.preloader.isLoading && pagination.data.length === 0;
 
   useEffect(() => {
     weekendsPageState.init();
@@ -63,7 +65,7 @@ const WeekendsPage = observer(() => {
           </div>
 
           <View.Condition
-            if={!pagination.preloader.isLoading}
+            if={!isInitialLoading}
             else={
               <div className="mx-auto flex max-w-7xl justify-center py-16">
                 <div className="text-zinc-400">Завантаження…</div>
@@ -91,6 +93,7 @@ const WeekendsPage = observer(() => {
                   variant="outline"
                   disabled={pagination.preloader.isLoading}
                   onClick={() => pagination.loadMore()}>
+                  {pagination.preloader.isLoading && <LoaderIcon className="size-4 animate-spin" />}
                   Показати ще
                 </Button>
               </div>
