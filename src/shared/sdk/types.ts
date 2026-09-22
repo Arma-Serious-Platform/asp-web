@@ -164,6 +164,20 @@ export type {
 } from './specializations/specializations.schemas';
 
 export {
+  AchievementSchema,
+  CreateAchievementDtoSchema,
+  UpdateAchievementDtoSchema,
+  SetUserAchievementsDtoSchema,
+} from './achievements/achievements.schemas';
+
+export type {
+  Achievement,
+  CreateAchievementDto,
+  UpdateAchievementDto,
+  SetUserAchievementsDto,
+} from './achievements/achievements.schemas';
+
+export {
   SquadSchema,
   SquadInviteStatusSchema,
   SquadInviteStatus,

@@ -5,7 +5,7 @@ import { ChangeNicknameState } from './change-nickname.state';
 import { DisconnectSteamState } from './disconnect-steam.state';
 import { Loader } from '@/shared/state/loader';
 import { usersApi } from '@/shared/sdk';
-import { UpdateUserDto, User } from '@/shared/sdk/types';
+import { Achievement, UpdateUserDto, User } from '@/shared/sdk/types';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -29,6 +29,17 @@ class UserProfileState {
   get user() {
     return this.isOwnProfile ? session.user?.data : this.otherUser;
   }
+
+  setUserAchievements = (achievements: Achievement[]) => {
+    if (this.isOwnProfile && session.user?.data) {
+      session.user.update({ ...session.user.data, achievements });
+      return;
+    }
+
+    if (this.otherUser) {
+      this.otherUser = { ...this.otherUser, achievements };
+    }
+  };
 
   init = async (userIdOrNickname?: string, options?: { refresh?: boolean }) => {
     const shouldFetchOwnProfile = this.isOwnProfile && !userIdOrNickname;

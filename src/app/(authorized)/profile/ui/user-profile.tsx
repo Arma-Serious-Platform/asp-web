@@ -38,6 +38,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ProfileSteamConnect } from './steam-connect';
 import toast from 'react-hot-toast';
 import { Card } from '@/shared/ui/atoms/card';
+import { UserAchievements } from '@/entities/achievement';
+import { Achievement, User } from '@/shared/sdk/types';
 
 export enum ProfileTab {
   PROFILE = 'profile',
@@ -46,7 +48,6 @@ export enum ProfileTab {
   NOTIFICATIONS = 'notifications',
   SECURITY = 'security',
 }
-import { User } from '@/shared/sdk/types';
 
 type UserProfileProps = {
   model: UserProfileState;
@@ -122,6 +123,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
           onChangeRoleSuccess={refreshOtherUser}
           onIssueWarningSuccess={refreshOtherUser}
           onWarningRemoved={refreshOtherUser}
+          onSetUserAchievementsSuccess={(_, achievements) => model.setUserAchievements(achievements)}
         />
       )}
 
@@ -150,6 +152,8 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                   </Button>
                 )}
               </div>
+
+              <UserAchievements achievements={model.user?.achievements as Achievement[] | undefined} />
 
               {!model.isOwnProfile && (
                 <>

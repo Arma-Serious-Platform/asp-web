@@ -12,6 +12,7 @@ import {
   ScrollTextIcon,
   ServerIcon,
   SwordIcon,
+  TrophyIcon,
   UserIcon,
   UsersIcon,
   BotIcon,
@@ -72,6 +73,10 @@ const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
 
         {session.canManageSpecializations && (
           <AdminSidebarItem href={ROUTES.admin.specializations} label="Спеціалізації" icon={<MedalIcon />} />
+        )}
+
+        {session.canManageAchievements && (
+          <AdminSidebarItem href={ROUTES.admin.achievements} label="Досягнення" icon={<TrophyIcon />} />
         )}
 
         {session.canAccessBotNotifications && (

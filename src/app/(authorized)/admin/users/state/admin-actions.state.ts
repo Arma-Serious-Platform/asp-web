@@ -2,6 +2,7 @@ import { BanUnbanUserState } from './ban-unban-user.state';
 import { AdminChangeNicknameState } from './admin-change-nickname.state';
 import { ChangeUserRoleState } from './change-user-role.state';
 import { IssueUserWarningState } from './issue-user-warning.state';
+import { ManageUserAchievementsState } from './manage-user-achievements.state';
 import { PunishmentHistoryState } from './punishment-history.state';
 import { makeAutoObservable } from 'mobx';
 
@@ -15,4 +16,5 @@ export class UserAdminActionsState {
   issueUserWarningState = new IssueUserWarningState();
   punishmentHistoryState = new PunishmentHistoryState();
   changeUserRoleState = new ChangeUserRoleState();
+  manageUserAchievementsState = new ManageUserAchievementsState();
 }

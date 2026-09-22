@@ -41,6 +41,7 @@ export const ROUTES = {
     islands: '/admin/islands',
     rules: '/admin/rules',
     specializations: '/admin/specializations',
+    achievements: '/admin/achievements',
     news: '/admin/news',
     bots: '/admin/bots',
   },

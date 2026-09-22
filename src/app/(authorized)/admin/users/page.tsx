@@ -106,6 +106,9 @@ const AdminPage = observer(() => {
           onChangeRoleSuccess={(userId, roles) => {
             usersPageState.afterChangeRole(userId, roles);
           }}
+          onSetUserAchievementsSuccess={(userId, achievements) => {
+            usersPageState.afterSetUserAchievements(userId, achievements);
+          }}
         />
 
         <UserFilters

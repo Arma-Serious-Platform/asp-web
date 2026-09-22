@@ -5,8 +5,9 @@ import { BanUnbanUserModal } from './ban-unban-user';
 import { AdminChangeNicknameModal } from './admin-change-nickname';
 import { ChangeUserRoleModal } from './change-user-role';
 import { IssueUserWarningModal } from './issue-user-warning';
+import { ManageUserAchievementsModal } from './manage-user-achievements';
 import { PunishmentHistoryModal } from './punishment-history';
-import { User, UserRole, CreateUserWarningResponse } from '@/shared/sdk/types';
+import { Achievement, User, UserRole, UserWarning, CreateUserWarningResponse } from '@/shared/sdk/types';
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import { UserAdminActionsState } from '../state/admin-actions.state';
@@ -18,6 +19,7 @@ export type UserAdminActionsModalCallbacks = {
   onIssueWarningSuccess?: (response: CreateUserWarningResponse) => void;
   onWarningRemoved?: (warning: UserWarning) => void;
   onChangeRoleSuccess?: (userId: string, roles: UserRole[]) => void;
+  onSetUserAchievementsSuccess?: (userId: string, achievements: Achievement[]) => void;
 };
 
 const UserAdminActionsModals: FC<
@@ -33,6 +35,7 @@ const UserAdminActionsModals: FC<
     onIssueWarningSuccess,
     onWarningRemoved,
     onChangeRoleSuccess,
+    onSetUserAchievementsSuccess,
   }) => {
     return (
       <>
@@ -50,6 +53,13 @@ const UserAdminActionsModals: FC<
 
         {session.canManageRoles && (
           <ChangeUserRoleModal model={model.changeUserRoleState} onSuccess={onChangeRoleSuccess} />
+        )}
+
+        {session.canManageAchievements && (
+          <ManageUserAchievementsModal
+            model={model.manageUserAchievementsState}
+            onSuccess={onSetUserAchievementsSuccess}
+          />
         )}
       </>
     );

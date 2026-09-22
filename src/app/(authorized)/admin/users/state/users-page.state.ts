@@ -1,7 +1,15 @@
 import { UserModel } from '@/entities/user/user.model';
 import { UserAdminActionsState } from '@/app/(authorized)/admin/users/state/admin-actions.state';
 import { usersApi } from '@/shared/sdk';
-import { FindUsersDto, User, UserRole, UserStatus, UserWarning, CreateUserWarningResponse } from '@/shared/sdk/types';
+import {
+  Achievement,
+  FindUsersDto,
+  User,
+  UserRole,
+  UserStatus,
+  UserWarning,
+  CreateUserWarningResponse,
+} from '@/shared/sdk/types';
 import { Pagination } from '@/shared/state/pagination';
 import { makeAutoObservable, toJS } from 'mobx';
 
@@ -92,6 +100,16 @@ class UsersPageState {
     const next = this.pagination.data.map(u => {
       if (u.id === userId) {
         u.update({ ...toJS(u.data), roles });
+      }
+      return u;
+    });
+    this.pagination.setData(next);
+  };
+
+  afterSetUserAchievements = (userId: string, achievements: Achievement[]) => {
+    const next = this.pagination.data.map(u => {
+      if (u.id === userId) {
+        u.update({ ...toJS(u.data), achievements });
       }
       return u;
     });

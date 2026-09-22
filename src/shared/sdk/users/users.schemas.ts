@@ -44,6 +44,7 @@ export const UserSchema = z
     squad: loose.nullable().optional(),
     squadRole: SquadRoleSchema.nullable().optional(),
     specializations: z.array(loose).optional(),
+    achievements: z.array(loose).optional(),
     telegramUrl: z.string().nullable().optional(),
     discordUrl: z.string().nullable().optional(),
     twitchUrl: z.string().nullable().optional(),

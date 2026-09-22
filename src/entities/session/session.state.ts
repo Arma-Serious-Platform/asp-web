@@ -54,6 +54,10 @@ export class SessionState {
     return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
   }
 
+  get canManageAchievements() {
+    return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
+  }
+
   get canManageSquadsAndSides() {
     return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN]);
   }
@@ -101,6 +105,7 @@ export class SessionState {
       this.canManageSquadsAndSides ||
       this.canManageRules ||
       this.canManageSpecializations ||
+      this.canManageAchievements ||
       this.canManageNews ||
       this.canAccessBotNotifications
     );

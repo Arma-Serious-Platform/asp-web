@@ -3,7 +3,15 @@
 import { User } from '@/shared/sdk/types';
 import { Button } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
-import { BanIcon, HandHeartIcon, PencilIcon, ScrollTextIcon, ShieldIcon, TriangleAlertIcon } from 'lucide-react';
+import {
+  BanIcon,
+  HandHeartIcon,
+  PencilIcon,
+  ScrollTextIcon,
+  ShieldIcon,
+  TriangleAlertIcon,
+  TrophyIcon,
+} from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import { getUserAdminActionsAvailability, hasAnyUserAdminAction } from '../lib/admin-actions.lib';
@@ -47,6 +55,20 @@ const UserAdminActionsButtons: FC<{
           }}>
           <PencilIcon className="w-4 h-4" />
           Змінити позивний
+        </Button>
+      )}
+
+      {availability.manageAchievements && (
+        <Button
+          size="sm"
+          className="w-full"
+          align="left"
+          variant="secondary"
+          onClick={() => {
+            model.manageUserAchievementsState.visibility.open({ user });
+          }}>
+          <TrophyIcon className="w-4 h-4" />
+          Досягнення
         </Button>
       )}
 

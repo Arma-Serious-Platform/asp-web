@@ -45,6 +45,7 @@ export { islandsApi, IslandsApi } from './islands/islands.api';
 export { sidesApi, SidesApi } from './sides/sides.api';
 export { squadsApi, SquadsApi } from './squads/squads.api';
 export { specializationsApi, SpecializationsApi } from './specializations/specializations.api';
+export { achievementsApi, AchievementsApi } from './achievements/achievements.api';
 export { missionsApi, MissionsApi } from './missions/missions.api';
 export { weekendsApi, WeekendsApi } from './weekends/weekends.api';
 export { headquartersApi, HeadquartersApi } from './headquarters/headquarters.api';

@@ -4,6 +4,7 @@ import { User, UserRole, UserStatus } from '@/shared/sdk/types';
 export type UserAdminActionsAvailability = {
   changeRoles: boolean;
   changeNickname: boolean;
+  manageAchievements: boolean;
   issueWarning: boolean;
   punishmentHistory: boolean;
   ban: boolean;
@@ -14,6 +15,7 @@ export const getUserAdminActionsAvailability = (target: User | null | undefined)
   const empty: UserAdminActionsAvailability = {
     changeRoles: false,
     changeNickname: false,
+    manageAchievements: false,
     issueWarning: false,
     punishmentHistory: false,
     ban: false,
@@ -32,6 +34,7 @@ export const getUserAdminActionsAvailability = (target: User | null | undefined)
   return {
     changeRoles: session.canManageRoles && !(actorIsOwner && targetIsOwner),
     changeNickname: canModerate,
+    manageAchievements: session.canManageAchievements,
     issueWarning: canModerate,
     punishmentHistory: canModerate,
     ban: canModerate && target.status !== UserStatus.BANNED,
