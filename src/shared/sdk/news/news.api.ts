@@ -91,6 +91,13 @@ class NewsApi extends ApiModel {
   deleteNews = async (id: string) => {
     return await this.instance.delete<{ message: string }>(`/news/${id}`);
   };
+
+  announceNews = async (id: string, channels: { telegram?: boolean; discord?: boolean } = {}) => {
+    return await this.instance.post<{ id: string; announced: boolean }>(
+      `/news/${id}/announce`,
+      channels,
+    );
+  };
 }
 
 export const newsApi = new NewsApi();

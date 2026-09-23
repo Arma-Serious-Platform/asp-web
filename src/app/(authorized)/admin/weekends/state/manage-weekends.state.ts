@@ -18,7 +18,7 @@ export class ManageWeekendState {
 
   modal = new Visibility<{
     weekend?: Weekend;
-    mode: 'manage' | 'delete' | 'reverse';
+    mode: 'manage' | 'delete' | 'reverse' | 'announce';
   }>();
 
   sides = new SidesState();
@@ -81,6 +81,27 @@ export class ManageWeekendState {
       onSuccess?.(deletedWeekend);
     } catch {
       toast.error('Не вдалося видалити анонс');
+    } finally {
+      this.loader.stop();
+    }
+  };
+
+  announceWeekend = async (
+    weekendId: string,
+    channels: { telegram?: boolean; discord?: boolean } = {},
+    onSuccess?: () => void,
+  ) => {
+    try {
+      this.loader.start();
+      await weekendsApi.announceWeekend(weekendId, channels);
+
+      toast.success('Сповіщення надіслано');
+
+      this.modal.close();
+
+      onSuccess?.();
+    } catch {
+      toast.error('Не вдалося надіслати сповіщення');
     } finally {
       this.loader.stop();
     }

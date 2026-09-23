@@ -1,7 +1,7 @@
 import { WeekendModel } from '@/entities/weekend/weekend.model';
 import { Button } from '@/shared/ui/atoms/button';
 import { ColumnDef } from '@tanstack/react-table';
-import { EditIcon, MoreHorizontalIcon, Repeat2Icon, TrashIcon } from 'lucide-react';
+import { BellIcon, EditIcon, MoreHorizontalIcon, Repeat2Icon, TrashIcon } from 'lucide-react';
 
 import { observer } from 'mobx-react-lite';
 import { Popover } from '@/shared/ui/moleculas/popover';
@@ -89,6 +89,20 @@ export const columns: ColumnDef<WeekendModel>[] = [
             }}>
             <EditIcon className="w-4 h-4 text-yellow-500" />
             Редагувати
+          </Button>
+
+          <Button
+            size="sm"
+            variant="secondary"
+            align="left"
+            onClick={() => {
+              weekendsPageState.manageWeekend.modal.open({
+                weekend: row.original.data,
+                mode: 'announce',
+              });
+            }}>
+            <BellIcon className="w-4 h-4 text-lime-500" />
+            Надіслати сповіщення
           </Button>
 
           <Button

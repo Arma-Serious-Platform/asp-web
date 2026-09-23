@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
+import { BellIcon, EditIcon, MoreHorizontalIcon, TrashIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 
 import { NewsModel } from '@/entities/news';
@@ -93,6 +93,19 @@ export const columns: ColumnDef<NewsModel>[] = [
           }>
           <EditIcon className="size-4 text-yellow-500" />
           Редагувати
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          align="left"
+          onClick={() =>
+            newsPageState.manageNews.modal.open({
+              news: row.original.data,
+              mode: 'announce',
+            })
+          }>
+          <BellIcon className="size-4 text-lime-500" />
+          Надіслати сповіщення
         </Button>
         <Button
           size="sm"

@@ -13,6 +13,7 @@ import { Button } from '@/shared/ui/atoms/button';
 import { Input, DateInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { Switch } from '@/shared/ui/atoms/switch';
+import { Checkbox } from '@/shared/ui/atoms/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -79,6 +80,8 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [removeImage, setRemoveImage] = useState(false);
+    const [announceTelegram, setAnnounceTelegram] = useState(true);
+    const [announceDiscord, setAnnounceDiscord] = useState(true);
 
     useEffect(() => {
       if (state.modal.isOpen && state.modal.payload?.mode === 'manage') {
@@ -91,6 +94,11 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
         setImage(null);
         setImagePreview(null);
         setRemoveImage(false);
+      }
+
+      if (state.modal.isOpen && state.modal.payload?.mode === 'announce') {
+        setAnnounceTelegram(true);
+        setAnnounceDiscord(true);
       }
 
       if (!state.modal.isOpen) {
@@ -282,6 +290,58 @@ export const ManageNewsModal: FC<ManageNewsModalProps> = observer(
                 disabled={state.loader.isLoading}
                 onClick={() => news?.id && void state.deleteNews(news.id, onDeleteSuccess)}>
                 Видалити
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={state.modal.isOpen && state.modal.payload?.mode === 'announce'}
+          onOpenChange={open => !open && state.modal.close()}>
+          <DialogContent showCloseButton>
+            <DialogHeader>
+              <DialogTitle>Надіслати сповіщення</DialogTitle>
+              <DialogDescription>
+                Надіслати новину «{news?.title}» у вибрані канали?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                aria-pressed={announceTelegram}
+                className="flex items-center gap-2 text-sm text-zinc-100"
+                onClick={() => setAnnounceTelegram(value => !value)}>
+                <Checkbox checked={announceTelegram} />
+                Telegram
+              </button>
+              <button
+                type="button"
+                aria-pressed={announceDiscord}
+                className="flex items-center gap-2 text-sm text-zinc-100"
+                onClick={() => setAnnounceDiscord(value => !value)}>
+                <Checkbox checked={announceDiscord} />
+                Discord
+              </button>
+            </div>
+            <DialogFooter className="flex gap-2">
+              <Button variant="outline" onClick={() => state.modal.close()}>
+                Скасувати
+              </Button>
+              <Button
+                disabled={
+                  state.loader.isLoading ||
+                  !news?.id ||
+                  (!announceTelegram && !announceDiscord)
+                }
+                onClick={() =>
+                  news?.id &&
+                  void state.announceNews(news.id, {
+                    telegram: announceTelegram,
+                    discord: announceDiscord,
+                  })
+                }>
+                {state.loader.isLoading && <LoaderIcon className="size-4 animate-spin" />}
+                Надіслати
               </Button>
             </DialogFooter>
           </DialogContent>

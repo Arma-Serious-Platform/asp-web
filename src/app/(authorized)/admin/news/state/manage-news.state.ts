@@ -13,7 +13,7 @@ export class ManageNewsState {
 
   modal = new Visibility<{
     news?: News;
-    mode: 'manage' | 'delete';
+    mode: 'manage' | 'delete' | 'announce';
   }>();
 
   constructor() {
@@ -69,6 +69,24 @@ export class ManageNewsState {
       onSuccess?.();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Не вдалося видалити новину');
+    } finally {
+      this.loader.stop();
+    }
+  };
+
+  announceNews = async (
+    id: string,
+    channels: { telegram?: boolean; discord?: boolean } = {},
+    onSuccess?: () => void,
+  ) => {
+    try {
+      this.loader.start();
+      await newsApi.announceNews(id, channels);
+      toast.success('Сповіщення надіслано');
+      this.modal.close();
+      onSuccess?.();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Не вдалося надіслати сповіщення');
     } finally {
       this.loader.stop();
     }

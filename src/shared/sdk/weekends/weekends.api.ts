@@ -42,6 +42,16 @@ class WeekendsApi extends ApiModel {
     return await this.instance.get<Weekend>(`/weekends/${weekendId}`);
   };
 
+  announceWeekend = async (
+    weekendId: string,
+    channels: { telegram?: boolean; discord?: boolean } = {},
+  ) => {
+    return await this.instance.post<{ id: string; announced: boolean }>(
+      `/weekends/${weekendId}/announce`,
+      channels,
+    );
+  };
+
   createGame = async (weekendId: string, dto: CreateGameDto) => {
     return await this.instance.post<Game>(`/weekends/${weekendId}/games`, dto);
   };

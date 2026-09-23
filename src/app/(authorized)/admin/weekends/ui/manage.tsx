@@ -18,6 +18,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { FC, PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { manageWeekendState, ManageWeekendState } from '../state/manage-weekends.state';
+import { Checkbox } from '@/shared/ui/atoms/checkbox';
 import { DateInput, Input } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
 import { CreateWeekendDto, CreateGameDto, Weekend } from '@/shared/sdk/types';
@@ -360,6 +361,8 @@ const ManageWeekendModal: FC<
   }>
 > = observer(({ state = manageWeekendState, children, onCreateSuccess, onUpdateSuccess, onDeleteSuccess }) => {
   const [missionVersionsCache, setMissionVersionsCache] = useState<Record<string, MissionVersion[]>>({});
+  const [announceTelegram, setAnnounceTelegram] = useState(true);
+  const [announceDiscord, setAnnounceDiscord] = useState(true);
 
   const form = useForm<WeekendFormValues>({
     resolver: zodResolver(schema) as Resolver<WeekendFormValues>,
@@ -413,18 +416,12 @@ const ManageWeekendModal: FC<
     if (isEdit && weekendId) {
       try {
         state.loader.start();
-        await weekendsApi.updateWeekend(weekendId, {
-          name: data.name,
-          description: data.description,
-          published: data.published,
-          publishedAt: data.publishedAt || null,
-        });
 
         const originalGames = state.modal.payload?.weekend?.games ?? [];
         const currentIds = data.games.filter(g => g.id).map(g => g.id as string);
         const toDelete = originalGames.filter(g => !currentIds.includes(g.id));
 
-        // Process games in order to maintain correct positions
+        // Sync games before updateWeekend so publish announcements see the new lineup
         // Position is based on the index in the data.games array (which reflects drag-and-drop order)
         for (let index = 0; index < data.games.length; index++) {
           const g = data.games[index];
@@ -463,6 +460,13 @@ const ManageWeekendModal: FC<
           await weekendsApi.deleteGame(weekendId, g.id);
         }
 
+        await weekendsApi.updateWeekend(weekendId, {
+          name: data.name,
+          description: data.description,
+          published: data.published,
+          publishedAt: data.publishedAt || null,
+        });
+
         toast.success('Анонс успішно оновлений');
         state.modal.close();
         onUpdateSuccess?.(await weekendsApi.findWeekendById(weekendId).then(r => r.data));
@@ -498,6 +502,11 @@ const ManageWeekendModal: FC<
       state.init();
       const weekend = state.modal.payload?.weekend;
       const mode = state.modal.payload?.mode;
+
+      if (mode === 'announce') {
+        setAnnounceTelegram(true);
+        setAnnounceDiscord(true);
+      }
 
       if (weekend && (mode === 'manage' || mode === 'reverse')) {
         const reverseSides = mode === 'reverse';
@@ -543,7 +552,13 @@ const ManageWeekendModal: FC<
 
   return (
     <>
-      <Drawer open={state.modal.isOpen && state.modal?.payload?.mode !== 'delete'} onOpenChange={state.modal.switch}>
+      <Drawer
+        open={
+          state.modal.isOpen &&
+          state.modal?.payload?.mode !== 'delete' &&
+          state.modal?.payload?.mode !== 'announce'
+        }
+        onOpenChange={state.modal.switch}>
         {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
         <DrawerContent
           className="w-full max-w-full overflow-hidden sm:w-[60vw] sm:max-w-[60vw]"
@@ -692,6 +707,64 @@ const ManageWeekendModal: FC<
                 state.deleteWeekend(state.modal?.payload?.weekend?.id ?? '', onDeleteSuccess);
               }}>
               Видалити
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={state.modal.isOpen && state.modal?.payload?.mode === 'announce'} onOpenChange={state.modal.switch}>
+        <DialogOverlay />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Надіслати сповіщення</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Надіслати анонс{' '}
+            {state.modal?.payload?.weekend?.name ? (
+              <span className="text-green-500">«{state.modal.payload.weekend.name}»</span>
+            ) : (
+              <span className="text-muted-foreground">(без назви)</span>
+            )}{' '}
+            у вибрані канали?
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            <button
+              type="button"
+              aria-pressed={announceTelegram}
+              className="flex items-center gap-2 text-sm text-zinc-100"
+              onClick={() => setAnnounceTelegram(value => !value)}>
+              <Checkbox checked={announceTelegram} />
+              Telegram
+            </button>
+            <button
+              type="button"
+              aria-pressed={announceDiscord}
+              className="flex items-center gap-2 text-sm text-zinc-100"
+              onClick={() => setAnnounceDiscord(value => !value)}>
+              <Checkbox checked={announceDiscord} />
+              Discord
+            </button>
+          </div>
+          <div className="mt-4 flex justify-between">
+            <Button variant="outline" onClick={() => state.modal.close()}>
+              Скасувати
+            </Button>
+            <Button
+              disabled={
+                state.loader.isLoading ||
+                !state.modal?.payload?.weekend?.id ||
+                (!announceTelegram && !announceDiscord)
+              }
+              onClick={() => {
+                const weekendId = state.modal?.payload?.weekend?.id;
+                if (weekendId) {
+                  void state.announceWeekend(weekendId, {
+                    telegram: announceTelegram,
+                    discord: announceDiscord,
+                  });
+                }
+              }}>
+              Надіслати
             </Button>
           </div>
         </DialogContent>
