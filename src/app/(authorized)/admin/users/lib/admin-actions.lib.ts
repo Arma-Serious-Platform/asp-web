@@ -25,7 +25,15 @@ export const getUserAdminActionsAvailability = (target: User | null | undefined)
   if (!target) return empty;
 
   const actorId = session.user?.data?.id;
-  if (actorId && actorId === target.id) return empty;
+  const isSelf = Boolean(actorId && actorId === target.id);
+
+  // Owner / server admin may manage their own achievements from the users list.
+  if (isSelf) {
+    return {
+      ...empty,
+      manageAchievements: session.canManageAchievements,
+    };
+  }
 
   const canModerate = session.canModerateUsers;
   const actorIsOwner = session.user?.data?.roles?.includes(UserRole.OWNER) ?? false;

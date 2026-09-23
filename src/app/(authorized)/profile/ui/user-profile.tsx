@@ -153,7 +153,14 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                 )}
               </div>
 
-              <UserAchievements achievements={model.user?.achievements as Achievement[] | undefined} />
+              {(model.user?.achievements as Achievement[] | undefined)?.length ? (
+                <div className="flex w-full flex-col gap-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                    Нагороди
+                  </span>
+                  <UserAchievements achievements={model.user?.achievements as Achievement[] | undefined} />
+                </div>
+              ) : null}
 
               {!model.isOwnProfile && (
                 <>

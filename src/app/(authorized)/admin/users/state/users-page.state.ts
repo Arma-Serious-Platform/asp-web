@@ -1,5 +1,6 @@
 import { UserModel } from '@/entities/user/user.model';
 import { UserAdminActionsState } from '@/app/(authorized)/admin/users/state/admin-actions.state';
+import { session } from '@/entities/session/session.state';
 import { usersApi } from '@/shared/sdk';
 import {
   Achievement,
@@ -114,6 +115,10 @@ class UsersPageState {
       return u;
     });
     this.pagination.setData(next);
+
+    if (session.user?.data?.id === userId) {
+      session.user.update({ ...session.user.data, achievements });
+    }
   };
 }
 

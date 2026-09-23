@@ -81,10 +81,6 @@ export const columns: ColumnDef<UserModel>[] = [
     accessorKey: 'actions',
     header: () => <div className="text-center">Дії</div>,
     cell: observer(({ row }) => {
-      if (session.user?.data?.id === row.original.id) {
-        return null;
-      }
-
       if (!hasAnyUserAdminAction(getUserAdminActionsAvailability(row.original.data))) {
         return null;
       }
