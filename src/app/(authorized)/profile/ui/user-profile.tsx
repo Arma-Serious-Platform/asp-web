@@ -295,7 +295,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     />
                   </div>
 
-                  {model.canSeeHistory && <UserHistorySection userId={model.user?.id} />}
+                  <UserHistorySection userId={model.user?.id} />
                 </div>
               </View.Condition>
 

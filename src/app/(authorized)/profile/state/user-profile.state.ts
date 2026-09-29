@@ -30,14 +30,9 @@ class UserProfileState {
     return this.isOwnProfile ? session.user?.data : this.otherUser;
   }
 
-  // Mirror the API: other users' SteamID is returned only to admins,
-  // and user history only to the owner and moderators.
+  // Mirror the API: other users' SteamID is returned only to admins.
   get canSeeOtherUserSteamId() {
     return !this.isOwnProfile && session.canSeeSensitiveUsersData;
-  }
-
-  get canSeeHistory() {
-    return this.isOwnProfile || session.canModerateUsers;
   }
 
   setUserAchievements = (achievements: Achievement[]) => {
