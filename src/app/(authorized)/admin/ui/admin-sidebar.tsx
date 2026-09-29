@@ -16,6 +16,7 @@ import {
   UserIcon,
   UsersIcon,
   BotIcon,
+  KeyRoundIcon,
 } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import Link from 'next/link';
@@ -81,6 +82,10 @@ const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
 
         {session.canAccessBotNotifications && (
           <AdminSidebarItem href={ROUTES.admin.bots} label="Боти-месенджери" icon={<BotIcon />} />
+        )}
+
+        {session.canManageApiKeys && (
+          <AdminSidebarItem href={ROUTES.admin.apiKeys} label="API ключі" icon={<KeyRoundIcon />} />
         )}
       </div>
     </aside>

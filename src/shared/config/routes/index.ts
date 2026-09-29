@@ -44,5 +44,6 @@ export const ROUTES = {
     achievements: '/admin/achievements',
     news: '/admin/news',
     bots: '/admin/bots',
+    apiKeys: '/admin/api-keys',
   },
 } as const;
