@@ -154,7 +154,7 @@ export const ManageAchievementModal: FC<ManageAchievementModalProps> = observer(
           <DrawerContent>
             <div className="flex min-h-0 flex-1 flex-col gap-4">
               <DrawerHeader>
-                <DrawerTitle>{isEdit ? 'Редагувати досягнення' : 'Нове досягнення'}</DrawerTitle>
+                <DrawerTitle>{isEdit ? 'Редагувати нагороду' : 'Нова нагорода'}</DrawerTitle>
               </DrawerHeader>
 
               <DrawerBody>
@@ -201,7 +201,7 @@ export const ManageAchievementModal: FC<ManageAchievementModalProps> = observer(
                         {iconSrc ? (
                           <Image
                             src={iconSrc}
-                            alt={title || 'Іконка досягнення'}
+                            alt={title || 'Іконка нагороди'}
                             width={96}
                             height={96}
                             className="size-24 object-cover"
@@ -274,7 +274,7 @@ export const ManageAchievementModal: FC<ManageAchievementModalProps> = observer(
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                Видалити досягнення <span className="text-lime-400">{achievement?.title}</span>?
+                Видалити нагороду <span className="text-lime-400">{achievement?.title}</span>?
               </DialogTitle>
             </DialogHeader>
 

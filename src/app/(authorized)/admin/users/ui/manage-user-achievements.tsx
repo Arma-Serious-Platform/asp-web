@@ -83,7 +83,7 @@ const ManageUserAchievementsModal: FC<
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           <DrawerHeader>
             <DrawerTitle>
-              Досягнення гравця <span className="text-primary">{user.nickname}</span>
+              Нагороди гравця <span className="text-primary">{user.nickname}</span>
             </DrawerTitle>
           </DrawerHeader>
 
@@ -94,7 +94,7 @@ const ManageUserAchievementsModal: FC<
               value={draftIds}
               onChange={value => setDraftIds(value)}
               options={options}
-              placeholder="Оберіть досягнення"
+              placeholder="Оберіть нагороди"
               localSearch
               isLoading={model.catalogLoader.isLoading}
               disabled={isBusy || options.length === 0}

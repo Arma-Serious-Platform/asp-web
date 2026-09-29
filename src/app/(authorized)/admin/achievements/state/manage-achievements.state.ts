@@ -26,11 +26,11 @@ export class ManageAchievementState {
       this.loader.start();
       const { data } = await achievementsApi.createAchievement(dto);
 
-      toast.success('Досягнення створено');
+      toast.success('Нагороду створено');
       this.modal.close();
       onSuccess?.(data);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Не вдалося створити досягнення');
+      toast.error(error?.response?.data?.message || 'Не вдалося створити нагороду');
     } finally {
       this.loader.stop();
     }
@@ -41,11 +41,11 @@ export class ManageAchievementState {
       this.loader.start();
       const { data } = await achievementsApi.updateAchievement(dto);
 
-      toast.success('Досягнення оновлено');
+      toast.success('Нагороду оновлено');
       this.modal.close();
       onSuccess?.(data);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Не вдалося оновити досягнення');
+      toast.error(error?.response?.data?.message || 'Не вдалося оновити нагороду');
     } finally {
       this.loader.stop();
     }
@@ -56,11 +56,11 @@ export class ManageAchievementState {
       this.loader.start();
       await achievementsApi.deleteAchievement(id);
 
-      toast.success('Досягнення видалено');
+      toast.success('Нагороду видалено');
       this.modal.close();
       onSuccess?.();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Не вдалося видалити досягнення');
+      toast.error(error?.response?.data?.message || 'Не вдалося видалити нагороду');
     } finally {
       this.loader.stop();
     }

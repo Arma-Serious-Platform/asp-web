@@ -29,7 +29,7 @@ export class ManageUserAchievementsState {
       this.catalog = data;
     } catch (error) {
       console.error(error);
-      toast.error('Не вдалося завантажити досягнення');
+      toast.error('Не вдалося завантажити нагороди');
     } finally {
       this.catalogLoader.stop();
     }
@@ -50,7 +50,7 @@ export class ManageUserAchievementsState {
       console.error(error);
       this.assignedIds = (user.achievements as Achievement[] | undefined)?.map(item => item.id) ?? [];
       if (!user.achievements) {
-        toast.error('Не вдалося завантажити досягнення гравця');
+        toast.error('Не вдалося завантажити нагороди гравця');
       }
     } finally {
       this.catalogLoader.stop();
@@ -69,10 +69,10 @@ export class ManageUserAchievementsState {
       });
 
       onSuccess?.(user.id, data.achievements ?? []);
-      toast.success('Досягнення оновлено');
+      toast.success('Нагороди оновлено');
       this.visibility.close();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Не вдалося оновити досягнення');
+      toast.error(error?.response?.data?.message || 'Не вдалося оновити нагороди');
     } finally {
       this.loader.stop();
     }

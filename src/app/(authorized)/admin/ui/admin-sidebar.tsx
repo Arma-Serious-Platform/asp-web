@@ -77,7 +77,7 @@ const AdminSidebar: FC<{ className?: string }> = observer(({ className }) => {
         )}
 
         {session.canManageAchievements && (
-          <AdminSidebarItem href={ROUTES.admin.achievements} label="Досягнення" icon={<TrophyIcon />} />
+          <AdminSidebarItem href={ROUTES.admin.achievements} label="Нагороди" icon={<TrophyIcon />} />
         )}
 
         {session.canAccessBotNotifications && (

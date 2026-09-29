@@ -68,7 +68,7 @@ const UserAdminActionsButtons: FC<{
             model.manageUserAchievementsState.visibility.open({ user });
           }}>
           <TrophyIcon className="w-4 h-4" />
-          Досягнення
+          Нагороди
         </Button>
       )}
 

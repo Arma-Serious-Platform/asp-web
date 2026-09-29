@@ -45,12 +45,12 @@ const AdminAchievementsPage = observer(() => {
         />
         <AdminSidebar className="mb-4" />
         <div className="mb-2 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Досягнення</h1>
+          <h1 className="text-2xl font-bold">Нагороди</h1>
           <Button
             size="sm"
             variant="secondary"
             onClick={() => achievementsPageState.manageAchievement.modal.open({ mode: 'manage' })}>
-            Додати досягнення
+            Додати нагороду
           </Button>
         </div>
 
