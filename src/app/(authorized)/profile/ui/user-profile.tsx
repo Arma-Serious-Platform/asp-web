@@ -221,7 +221,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     />
                   </View.Condition>
 
-                  <View.Condition if={!model.isOwnProfile}>
+                  <View.Condition if={model.canSeeOtherUserSteamId}>
                     <InfoTile
                       icon={<IdCardIcon className="size-4" />}
                       title="Steam ID"
@@ -295,7 +295,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     />
                   </div>
 
-                  <UserHistorySection userId={model.user?.id} />
+                  {model.canSeeHistory && <UserHistorySection userId={model.user?.id} />}
                 </div>
               </View.Condition>
 
