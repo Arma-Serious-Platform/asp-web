@@ -30,6 +30,11 @@ class UserProfileState {
     return this.isOwnProfile ? session.user?.data : this.otherUser;
   }
 
+  // Mirror the API: other users' SteamID is returned only to admins.
+  get canSeeOtherUserSteamId() {
+    return !this.isOwnProfile && session.canSeeSensitiveUsersData;
+  }
+
   setUserAchievements = (achievements: Achievement[]) => {
     if (this.isOwnProfile && session.user?.data) {
       session.user.update({ ...session.user.data, achievements });
