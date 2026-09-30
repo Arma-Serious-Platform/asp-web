@@ -24,6 +24,9 @@ const ALLOWED_IMAGE_MIME_TYPES = new Set([
   'image/jpg',
 ]);
 
+// Image formats the API accepts (checked there by file signature).
+export const IMAGE_FILE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp';
+
 export const ATTACHMENT_FILE_ACCEPT = [
   'image/jpeg',
   'image/png',

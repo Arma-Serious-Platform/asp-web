@@ -21,6 +21,7 @@ import {
   uploadFileSizeLimitMessage,
 } from '@/shared/utils/file';
 import { MissionModel } from '@/entities/mission/mission.model';
+import { IMAGE_FILE_ACCEPT } from '@/shared/utils/attachment-file-types';
 
 const sideTypeOptions = [
   { label: 'BLUE', value: MissionGameSide.BLUE },
@@ -699,7 +700,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 <input
                   ref={attackScreenshotsRef}
                   type="file"
-                  accept="image/*"
+                  accept={IMAGE_FILE_ACCEPT}
                   multiple
                   onChange={e => {
                     const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
@@ -946,7 +947,7 @@ const CreateUpdateMissionVersionModal: FC<{
                 <input
                   ref={defenseScreenshotsRef}
                   type="file"
-                  accept="image/*"
+                  accept={IMAGE_FILE_ACCEPT}
                   multiple
                   onChange={e => {
                     const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
@@ -1256,7 +1257,7 @@ const CreateUpdateMissionVersionModal: FC<{
                   <input
                     ref={friendlyScreenshotsRef}
                     type="file"
-                    accept="image/*"
+                    accept={IMAGE_FILE_ACCEPT}
                     multiple
                     onChange={e => {
                       const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
