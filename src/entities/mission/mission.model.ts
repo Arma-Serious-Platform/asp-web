@@ -53,7 +53,7 @@ class MissionModel extends createEntity(MissionSchema) {
     { label: 'Перевірено', value: MissionStatus.APPROVED },
     { label: 'Очікує перевірки', value: MissionStatus.PENDING_APPROVAL },
     { label: 'На перевірці', value: MissionStatus.IN_REVIEW },
-    { label: 'Очікує ігрової перевірки', value: MissionStatus.PENDING_GAME_APPROVAL },
+    { label: 'Очікує публічної перевірки', value: MissionStatus.PENDING_GAME_APPROVAL },
     { label: 'Потребує змін', value: MissionStatus.CHANGES_REQUESTED },
   ];
 
