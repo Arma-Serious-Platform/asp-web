@@ -127,8 +127,13 @@ export const IncomingWeekends: FC<{
                     </div>
 
                     <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                      <h3 className="wrap-break-word text-sm font-bold leading-tight text-white md:text-base">
-                        {game.mission.name ?? `Гра ${game.position + 1}`}
+                      <h3 className="inline-flex flex-wrap items-center gap-2 wrap-break-word text-sm font-bold leading-tight text-white md:text-base">
+                        <span>{game.mission.name ?? `Гра ${game.position + 1}`}</span>
+                        {game.missionVersion?.version && (
+                          <span className="shrink-0 rounded border border-lime-500/40 bg-lime-950/40 px-1.5 py-0.5 text-[10px] font-semibold text-lime-200">
+                            {game.missionVersion.version}
+                          </span>
+                        )}
                       </h3>
 
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
