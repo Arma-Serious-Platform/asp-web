@@ -20,7 +20,7 @@ class MissionModel extends createEntity(MissionSchema) {
     [MissionStatus.PENDING_APPROVAL]: 'Очікує перевірки',
     [MissionStatus.CHANGES_REQUESTED]: 'Потребує змін',
     [MissionStatus.IN_REVIEW]: 'На перевірці',
-    [MissionStatus.PENDING_GAME_APPROVAL]: 'Очікує ігрової перевірки',
+    [MissionStatus.PENDING_GAME_APPROVAL]: 'Очікує публічної перевірки',
   };
 
   static statusColors: Record<MissionStatus, string> = {
