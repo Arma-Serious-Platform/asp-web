@@ -41,6 +41,7 @@ import {
 import { $createYouTubeEmbedNode, extractYouTubeVideoId } from './youtube-node';
 import { $createImageEmbedNode } from './image-node';
 import toast from 'react-hot-toast';
+import { IMAGE_FILE_ACCEPT } from '@/shared/utils/attachment-file-types';
 
 type Format = 'bold' | 'italic' | 'underline';
 
@@ -359,7 +360,7 @@ export function ToolbarPlugin({
               <input
                 ref={imageInputRef}
                 type="file"
-                accept="image/*"
+                accept={IMAGE_FILE_ACCEPT}
                 className="hidden"
                 onChange={event => void handleImagePick(event)}
               />
