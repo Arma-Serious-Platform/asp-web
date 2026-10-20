@@ -1,4 +1,5 @@
 import { session } from '@/entities/session/session.state';
+import { UserModel } from '@/entities/user/user.model';
 import { User, UserRole, UserStatus } from '@/shared/sdk/types';
 
 export type UserAdminActionsAvailability = {
@@ -9,6 +10,23 @@ export type UserAdminActionsAvailability = {
   punishmentHistory: boolean;
   ban: boolean;
   unban: boolean;
+};
+
+const canChangeTargetRoles = (target: User): boolean => {
+  if (!session.canManageRoles) return false;
+
+  const actorRoles = session.user?.data?.roles ?? [];
+  const targetRoles = target.roles ?? [];
+
+  if (UserModel.hasAnyRole(actorRoles, [UserRole.OWNER])) {
+    return true;
+  }
+
+  if (UserModel.hasAnyRole(targetRoles, [UserRole.OWNER, UserRole.SERVER_ADMIN])) {
+    return false;
+  }
+
+  return UserModel.hasAnyRole(actorRoles, [UserRole.SERVER_ADMIN, UserRole.UVK]);
 };
 
 export const getUserAdminActionsAvailability = (target: User | null | undefined): UserAdminActionsAvailability => {
@@ -36,11 +54,9 @@ export const getUserAdminActionsAvailability = (target: User | null | undefined)
   }
 
   const canModerate = session.canModerateUsers;
-  const actorIsOwner = session.user?.data?.roles?.includes(UserRole.OWNER) ?? false;
-  const targetIsOwner = target.roles?.includes(UserRole.OWNER) ?? false;
 
   return {
-    changeRoles: session.canManageRoles && !(actorIsOwner && targetIsOwner),
+    changeRoles: canChangeTargetRoles(target),
     changeNickname: canModerate,
     manageAchievements: session.canManageAchievements,
     issueWarning: canModerate,

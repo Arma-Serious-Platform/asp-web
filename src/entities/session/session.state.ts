@@ -27,7 +27,11 @@ export class SessionState {
   }
 
   get canManageRoles() {
-    return UserModel.hasAnyRole(this.roles, [UserRole.OWNER]);
+    return UserModel.hasAnyRole(this.roles, [
+      UserRole.OWNER,
+      UserRole.SERVER_ADMIN,
+      UserRole.UVK,
+    ]);
   }
 
   get canManageUsers() {

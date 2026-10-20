@@ -16,8 +16,10 @@ import { FC, PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { changeUserRoleState, ChangeUserRoleState } from '../state/change-user-role.state';
 import { UserRole } from '@/shared/sdk/types';
 import { UserModel } from '@/entities/user/user.model';
+import { session } from '@/entities/session/session.state';
+import { cn } from '@/shared/utils/cn';
 
-const ASSIGNABLE_ROLES: UserRole[] = [
+const BASE_ASSIGNABLE_ROLES: UserRole[] = [
   UserRole.SERVER_ADMIN,
   UserRole.TECH_ADMIN,
   UserRole.MISSION_REVIEWER,
@@ -35,6 +37,51 @@ const sameRoles = (a: UserRole[], b: UserRole[]) => {
   return left.length === right.length && left.every((role, index) => role === right[index]);
 };
 
+type RoleOption = {
+  value: UserRole;
+  label: string;
+  editable: boolean;
+};
+
+const getRoleOptions = (actorRoles: UserRole[] | undefined, currentRoles: UserRole[]): RoleOption[] => {
+  if (UserModel.hasAnyRole(actorRoles, [UserRole.OWNER])) {
+    return [UserRole.OWNER, ...BASE_ASSIGNABLE_ROLES].map(role => ({
+      value: role,
+      label: UserModel.roleLabels[role],
+      editable: true,
+    }));
+  }
+
+  if (UserModel.hasAnyRole(actorRoles, [UserRole.SERVER_ADMIN])) {
+    return BASE_ASSIGNABLE_ROLES.filter(
+      role => role !== UserRole.SERVER_ADMIN && role !== UserRole.OWNER,
+    ).map(role => ({
+      value: role,
+      label: UserModel.roleLabels[role],
+      editable: true,
+    }));
+  }
+
+  if (UserModel.hasAnyRole(actorRoles, [UserRole.UVK])) {
+    const lockedRoles = currentRoles.filter(role => role !== UserRole.MISSION_REVIEWER);
+    const options: RoleOption[] = lockedRoles.map(role => ({
+      value: role,
+      label: UserModel.roleLabels[role],
+      editable: false,
+    }));
+
+    options.push({
+      value: UserRole.MISSION_REVIEWER,
+      label: UserModel.roleLabels[UserRole.MISSION_REVIEWER],
+      editable: true,
+    });
+
+    return options;
+  }
+
+  return [];
+};
+
 const ChangeUserRoleModal: FC<
   PropsWithChildren<{
     model?: ChangeUserRoleState;
@@ -43,13 +90,14 @@ const ChangeUserRoleModal: FC<
 > = observer(({ model = changeUserRoleState, children, onSuccess }) => {
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
 
-  const roleOptions = useMemo(
-    () => ASSIGNABLE_ROLES.map(role => ({ value: role, label: UserModel.roleLabels[role] })),
-    [],
-  );
-
   const user = model.visibility?.payload?.user;
   const open = model.visibility.isOpen;
+  const actorRoles = session.user?.data?.roles;
+
+  const roleOptions = useMemo(
+    () => getRoleOptions(actorRoles, user?.roles ?? []),
+    [actorRoles, user?.roles],
+  );
 
   useEffect(() => {
     if (open && user) {
@@ -62,11 +110,19 @@ const ChangeUserRoleModal: FC<
     model.visibility.switch(next);
   };
 
+  const isUvkOnly = UserModel.hasAnyRole(actorRoles, [UserRole.UVK])
+    && !UserModel.hasAnyRole(actorRoles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
+
   const toggleRole = (role: UserRole) => {
     setSelectedRoles(current => {
       if (current.includes(role)) {
         const next = current.filter(item => item !== role);
         return next.length ? next : [UserRole.USER];
+      }
+
+      // UVK only toggles MISSION_REVIEWER — keep every other role (including USER).
+      if (isUvkOnly || role === UserRole.MISSION_REVIEWER) {
+        return [...current, role];
       }
 
       return [...current.filter(item => item !== UserRole.USER || role === UserRole.USER), role];
@@ -75,8 +131,20 @@ const ChangeUserRoleModal: FC<
 
   const handleConfirm = () => {
     if (!user || !selectedRoles.length) return;
-    if (sameRoles(selectedRoles, user.roles ?? [])) return;
-    model.changeRole(user.id, selectedRoles, (userId, roles) => {
+
+    // UVK must submit original roles with only MISSION_REVIEWER added/removed.
+    const rolesToSubmit = isUvkOnly
+      ? [
+          ...(user.roles ?? []).filter(role => role !== UserRole.MISSION_REVIEWER),
+          ...(selectedRoles.includes(UserRole.MISSION_REVIEWER)
+            ? [UserRole.MISSION_REVIEWER]
+            : []),
+        ]
+      : selectedRoles;
+
+    if (!rolesToSubmit.length) return;
+    if (sameRoles(rolesToSubmit, user.roles ?? [])) return;
+    model.changeRole(user.id, rolesToSubmit, (userId, roles) => {
       onSuccess?.(userId, roles);
     });
   };
@@ -106,9 +174,19 @@ const ChangeUserRoleModal: FC<
                     key={option.value}
                     type="button"
                     aria-pressed={checked}
-                    className="flex items-center gap-2 text-sm text-zinc-100"
-                    onClick={() => toggleRole(option.value)}>
-                    <Checkbox checked={checked} />
+                    disabled={!option.editable}
+                    className={cn(
+                      'flex items-center gap-2 text-sm text-zinc-100',
+                      !option.editable && 'cursor-not-allowed opacity-50',
+                    )}
+                    onClick={() => {
+                      if (!option.editable) return;
+                      toggleRole(option.value);
+                    }}>
+                    <Checkbox
+                      checked={checked}
+                      className={!option.editable ? 'cursor-not-allowed' : undefined}
+                    />
                     {option.label}
                   </button>
                 );
