@@ -55,3 +55,4 @@ export { newsApi, NewsApi } from './news/news.api';
 export { feedApi, FeedApi } from './feed/feed.api';
 export { botNotificationsApi, BotNotificationsApi } from './bot-notifications/bot-notifications.api';
 export { apiKeysApi, ApiKeysApi } from './api-keys/api-keys.api';
+export { ssoApi, SsoApi } from './sso/sso.api';

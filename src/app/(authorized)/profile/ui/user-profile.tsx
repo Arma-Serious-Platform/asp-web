@@ -20,6 +20,7 @@ import { parseAsString, parseAsStringEnum, useQueryState } from 'nuqs';
 import { UserSquad } from './user-squad';
 import ChangePassword from './change-password';
 import { ManageSessions } from './manage-sessions';
+import { ConnectedApps } from './connected-apps';
 import { ManageTwoFactor } from './manage-two-factor';
 import { ChangeNicknameModal, ProfileNickname } from './change-nickname';
 import { ChangeAvatarModal } from './change-avatar';
@@ -47,6 +48,7 @@ export enum ProfileTab {
   SQUAD = 'squad',
   NOTIFICATIONS = 'notifications',
   SECURITY = 'security',
+  APPS = 'apps',
 }
 
 type UserProfileProps = {
@@ -65,6 +67,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
       ProfileTab.SQUAD,
       ProfileTab.NOTIFICATIONS,
       ProfileTab.SECURITY,
+      ProfileTab.APPS,
     ]).withDefault(ProfileTab.PROFILE),
   );
   const [chatUserId, setChatUserId] = useQueryState('userId', parseAsString);
@@ -340,6 +343,19 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                         </div>
                         <ManageSessions />
                       </section>
+                    </div>
+                  </View.Condition>
+
+                  <View.Condition if={tab === 'apps'}>
+                    <div className="flex min-w-0 flex-col gap-3">
+                      <div className="flex flex-col gap-0.5">
+                        <h2 className="text-sm font-semibold text-white">Підключені додатки</h2>
+                        <p className="text-xs text-zinc-500">
+                          Сайти, у які ви входили через VTG. Після відкликання додаток одразу втрачає доступ, а
+                          наступний вхід знову попросить дозволу.
+                        </p>
+                      </div>
+                      <ConnectedApps />
                     </div>
                   </View.Condition>
 

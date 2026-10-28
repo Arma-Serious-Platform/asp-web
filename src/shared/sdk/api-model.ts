@@ -7,7 +7,7 @@ import { env } from '../config/env';
 import { ROUTES } from '../config/routes';
 import { AUTH_REDIRECT_SKIP_PATHS } from '../lib/routes/lib';
 
-const AUTH_PAGES = [ROUTES.auth.login, ROUTES.auth.signup, ROUTES.auth.forgotPassword] as const;
+const AUTH_PAGES = [ROUTES.auth.login, ROUTES.auth.signup, ROUTES.auth.forgotPassword, '/oauth/'] as const;
 
 const REQUEST_ID_HEADER = 'X-Request-Id';
 
