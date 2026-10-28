@@ -16,11 +16,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { isAxiosError } from 'axios';
 import { observer } from 'mobx-react-lite';
-
-const LOGIN_CONFIRMATION_MESSAGES = {
-  confirmEmail: 'Please confirm your email before logging in',
-  expiredTokenNewSent: 'Activation token expired. New token sent to your email',
-} as const;
+import { getLoginErrorKind, showActivationToast } from '../lib/login-error';
 
 const loginSchema = z.object({
   email: z.string().min(1, "Обов'язкове поле"),
@@ -50,51 +46,16 @@ const LoginForm: FC<{
   const router = useRouter();
 
   const handleLoginError = (error: unknown) => {
-    if (!isAxiosError(error)) {
+    const kind = getLoginErrorKind(error);
+
+    if (kind === 'failed') {
       toast.error('Не вдалося увійти. Спробуйте ще раз.');
-      return;
-    }
-
-    const message = error.response?.data?.message;
-
-    if (message === 'Вас забанено назавжди') {
+    } else if (kind === 'permanentBan') {
       toast.error('Вас забанено назавжди');
-      return;
-    }
-
-    if (message === 'Invalid credentials' || error.response?.status === 401) {
+    } else if (kind === 'invalidCredentials') {
       form.setError('password', { message: 'Неправильний email або пароль' });
-    }
-
-    if (message === LOGIN_CONFIRMATION_MESSAGES.confirmEmail) {
-      toast.error(
-        <div className="text-left">
-          Аккаунт ще не активовано.
-          <br />
-          <br />
-          На пошту надіслано посилання для активації. У вас є 10 хвилин для активації аккаунту. <br />
-          <br />
-          Якщо ви не активуєте аккаунт за цей час, вам необхідно буде спробувати авторизуватися заново для відправки
-          нового листа.
-        </div>,
-        {
-          duration: 15000,
-        },
-      );
-    }
-
-    if (message === LOGIN_CONFIRMATION_MESSAGES.expiredTokenNewSent) {
-      toast.error(
-        <div className="text-left">
-          Попереднє посилання для активації вже не дійсне.
-          <br />
-          <br />
-          Ми надіслали новий лист для підтвердження на вашу електронну пошту. У вас є 10 хвилин для активації аккаунту.
-        </div>,
-        {
-          duration: 15000,
-        },
-      );
+    } else if (kind === 'confirmEmail' || kind === 'activationResent') {
+      showActivationToast(kind);
     }
   };
 

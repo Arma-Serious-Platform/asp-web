@@ -10,4 +10,5 @@ export const AUTH_REDIRECT_SKIP_PATHS = [
   '/users/sign-up/confirm',
   '/users/forgot-password',
   '/users/change-password',
+  '/sso/interactions',
 ] as const;

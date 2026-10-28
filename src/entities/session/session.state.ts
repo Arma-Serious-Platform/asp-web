@@ -66,6 +66,11 @@ export class SessionState {
     return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
   }
 
+  /** Apps that sign users in through VTG (OpenID Connect clients). */
+  get canManageSsoClients() {
+    return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN]);
+  }
+
   get canManageSquadsAndSides() {
     return UserModel.hasAnyRole(this.roles, [UserRole.OWNER, UserRole.SERVER_ADMIN, UserRole.TECH_ADMIN]);
   }
@@ -115,6 +120,7 @@ export class SessionState {
       this.canManageSpecializations ||
       this.canManageAchievements ||
       this.canManageApiKeys ||
+      this.canManageSsoClients ||
       this.canManageNews ||
       this.canAccessBotNotifications
     );

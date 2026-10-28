@@ -16,6 +16,7 @@ export const getFirstAllowedAdminRoute = () => {
   if (session.canManageSpecializations) return ROUTES.admin.specializations;
   if (session.canManageAchievements) return ROUTES.admin.achievements;
   if (session.canManageApiKeys) return ROUTES.admin.apiKeys;
+  if (session.canManageSsoClients) return ROUTES.admin.apps;
   if (session.canAccessBotNotifications) return ROUTES.admin.bots;
 
   return ROUTES.home;

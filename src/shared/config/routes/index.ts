@@ -27,6 +27,8 @@ export const ROUTES = {
     forgotPassword: '/auth/forgot-password',
     forgotPasswordConfirm: (token: string) => `/auth/forgot-password/confirm?token=${token}`,
   },
+  /** Sign-in requested by a connected app ("Увійти через VTG"). */
+  oauth: (uid: string) => `/oauth/${encodeURIComponent(uid)}`,
   user: {
     profile: '/profile',
     profileById: (id: string) => `/profile/${id}`,
@@ -45,5 +47,6 @@ export const ROUTES = {
     news: '/admin/news',
     bots: '/admin/bots',
     apiKeys: '/admin/api-keys',
+    apps: '/admin/apps',
   },
 } as const;
