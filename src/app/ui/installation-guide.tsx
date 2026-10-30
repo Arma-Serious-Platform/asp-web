@@ -126,10 +126,6 @@ const InstallationGuideLinks: FC<{
       title: 'JSRS SOUNDMOD (опційно)',
       href: 'https://steamcommunity.com/sharedfiles/filedetails/?id=3407948300',
     },
-    {
-      title: 'Українська локалізація (опційно)',
-      href: 'https://steamcommunity.com/sharedfiles/filedetails/?id=1972553686',
-    },
   ];
 
   const copyLinks: { title: string; copy: string }[] = [
