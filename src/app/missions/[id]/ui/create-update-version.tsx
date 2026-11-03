@@ -3,15 +3,27 @@
 import { Button } from '@/shared/ui/atoms/button';
 import { Input, NumericInput } from '@/shared/ui/atoms/input';
 import { Select } from '@/shared/ui/atoms/select';
-import { Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/shared/ui/organisms/drawer';
+import {
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/shared/ui/organisms/drawer';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
 import { z } from 'zod';
 import { useEffect, useMemo, useRef, useState, FC } from 'react';
 import { PlusIcon, LoaderIcon, UploadIcon, TrashIcon, MinusIcon } from 'lucide-react';
 import { observer } from 'mobx-react-lite';
 import { MissionGameSide, MissionType, MissionVersion } from '@/shared/sdk/types';
-import { CreateUpdateMissionVersionState, VersionFormData, WeaponryFormItem } from '../state/create-update-version.state';
+import {
+  CreateUpdateMissionVersionState,
+  VersionFormData,
+  WeaponryFormItem,
+} from '../state/create-update-version.state';
 import { MessageEditor } from '@/features/chat/editor';
 import {
   isValidUploadFileSize,
@@ -22,6 +34,7 @@ import {
 } from '@/shared/utils/file';
 import { MissionModel } from '@/entities/mission/mission.model';
 import { IMAGE_FILE_ACCEPT } from '@/shared/utils/attachment-file-types';
+import toast from 'react-hot-toast';
 
 const sideTypeOptions = [
   { label: 'BLUE', value: MissionGameSide.BLUE },
@@ -31,10 +44,8 @@ const sideTypeOptions = [
 
 const factionLabel = (name: string | undefined | null, fallback: string) => name?.trim() || fallback;
 
-const filterSideTypeOptions = (
-  current: string | null | undefined,
-  ...excluded: Array<string | null | undefined>
-) => sideTypeOptions.filter(option => option.value === current || !excluded.includes(option.value));
+const filterSideTypeOptions = (current: string | null | undefined, ...excluded: Array<string | null | undefined>) =>
+  sideTypeOptions.filter(option => option.value === current || !excluded.includes(option.value));
 
 const fileSizeSchema = z.custom<File>(file => file instanceof File && isValidUploadFileSize(file), {
   message: uploadFileSizeLimitMessage,
@@ -241,21 +252,11 @@ const CreateUpdateMissionVersionModal: FC<{
   const friendlyFactionLabel = factionLabel(friendlySideName, 'Союзна фракція');
 
   const attackSideTypeSelectOptions = useMemo(
-    () =>
-      filterSideTypeOptions(
-        attackSideType,
-        defenseSideType,
-        enableFriendlySide ? friendlySideType : null,
-      ),
+    () => filterSideTypeOptions(attackSideType, defenseSideType, enableFriendlySide ? friendlySideType : null),
     [attackSideType, defenseSideType, enableFriendlySide, friendlySideType],
   );
   const defenseSideTypeSelectOptions = useMemo(
-    () =>
-      filterSideTypeOptions(
-        defenseSideType,
-        attackSideType,
-        enableFriendlySide ? friendlySideType : null,
-      ),
+    () => filterSideTypeOptions(defenseSideType, attackSideType, enableFriendlySide ? friendlySideType : null),
     [attackSideType, defenseSideType, enableFriendlySide, friendlySideType],
   );
   const friendlySideTypeSelectOptions = useMemo(
@@ -341,7 +342,7 @@ const CreateUpdateMissionVersionModal: FC<{
         attackSideSlots: previousVersion.attackSideSlots,
         defenseSideSlots: previousVersion.defenseSideSlots,
         minSlotsToPlay: previousVersion.minSlotsToPlay ?? null,
-                attackSideName: previousVersion.attackSideName,
+        attackSideName: previousVersion.attackSideName,
         defenseSideName: previousVersion.defenseSideName,
         enableFriendlySide: Boolean(previousVersion.friendlySideType),
         friendlySideType: previousVersion.friendlySideType ?? MissionGameSide.GREEN,
@@ -446,7 +447,9 @@ const CreateUpdateMissionVersionModal: FC<{
     try {
       await state.save(data, onSuccess);
     } catch (error) {
-      // Error is handled in the model
+      if (isAxiosError(error) && error.response?.data?.message === 'Mission file name already exists') {
+        versionForm.setError('file', { message: 'Файл з такою назвою вже існує. Змініть назву.' });
+      }
     }
   };
 
@@ -472,690 +475,128 @@ const CreateUpdateMissionVersionModal: FC<{
             <DrawerTitle>{editingVersion ? 'Редагувати версію' : 'Створити нову версію'}</DrawerTitle>
           </DrawerHeader>
           <DrawerBody>
-          <Controller
-            control={versionForm.control}
-            name="version"
-            render={({ field }) => (
-              <Input
-                {...field}
-                label="Версія"
-                placeholder="v1.0"
-                error={versionForm.formState.errors.version?.message}
-              />
-            )}
-          />
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Controller
               control={versionForm.control}
-              name="inGameTime"
+              name="version"
               render={({ field }) => (
                 <Input
                   {...field}
-                  type="time"
-                  label="Ігровий час"
-                  value={field.value || ''}
-                  placeholder="HH:mm"
+                  label="Версія"
+                  placeholder="v1.0"
+                  error={versionForm.formState.errors.version?.message}
                 />
               )}
             />
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Controller
+                control={versionForm.control}
+                name="inGameTime"
+                render={({ field }) => (
+                  <Input {...field} type="time" label="Ігровий час" value={field.value || ''} placeholder="HH:mm" />
+                )}
+              />
+              <Controller
+                control={versionForm.control}
+                name="weather"
+                render={({ field }) => (
+                  <Input {...field} label="Погода" value={field.value || ''} placeholder="Напр. дощ, туман, ясно" />
+                )}
+              />
+            </div>
+
             <Controller
               control={versionForm.control}
-              name="weather"
+              name="changelog"
               render={({ field }) => (
-                <Input {...field} label="Погода" value={field.value || ''} placeholder="Напр. дощ, туман, ясно" />
-              )}
-            />
-          </div>
-
-          <Controller
-            control={versionForm.control}
-            name="changelog"
-            render={({ field }) => (
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-300">Список змін (опційно)</label>
-                <MessageEditor
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-zinc-300">Список змін (опційно)</label>
+                  <MessageEditor
                     key={
                       state.visibility.isOpen
                         ? `mission-version-changelog-${editingVersion?.id ?? 'new'}-${editingVersion?.updatedAt ?? ''}`
                         : 'mission-version-changelog-closed'
                     }
-                  initialState={field.value}
-                  placeholder="Що змінилось у цій версії..."
-                  maxCharacters={2000}
-                  showSubmit={false}
-                  textFormattingOnly
-                  allowLists
-                  onChange={({ text, lexicalState }) => field.onChange(text ? lexicalState : null)}
-                />
-              </div>
-            )}
-          />
-
-          {/* Sides and Weaponry in 2 columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Attack Side Column */}
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-white">{attackFactionLabel}</h3>
-              <Controller
-                control={versionForm.control}
-                name="attackSideType"
-                render={({ field }) => (
-                  <Select
-                    label={sideLabels.attackTypeLabel}
-                    options={attackSideTypeSelectOptions}
-                    value={field.value || null}
-                    onChange={field.onChange}
-                    error={versionForm.formState.errors.attackSideType?.message}
-                  />
-                )}
-              />
-              <Controller
-                control={versionForm.control}
-                name="attackSideName"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label={sideLabels.attackNameLabel}
-                    error={versionForm.formState.errors.attackSideName?.message}
-                  />
-                )}
-              />
-              <Controller
-                control={versionForm.control}
-                name="attackSideSlots"
-                render={({ field }) => (
-                  <NumericInput
-                    {...field}
-                    label={`Слоти ${attackFactionLabel}`}
-                    value={field.value || ''}
-                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                    error={versionForm.formState.errors.attackSideSlots?.message}
-                  />
-                )}
-              />
-
-              {/* Attack Side Weaponry */}
-              <div className="flex flex-col gap-3 mt-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({attackFactionLabel})</h4>
-                </div>
-                {versionForm.watch('attackWeaponry').map((weaponry, index) => (
-                  <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1 flex flex-col gap-2">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <Controller
-                            control={versionForm.control}
-                            name={`attackWeaponry.${index}.name`}
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label="Назва"
-                                placeholder="Назва озброєння"
-                                error={versionForm.formState.errors.attackWeaponry?.[index]?.name?.message}
-                              />
-                            )}
-                          />
-                          <Controller
-                            control={versionForm.control}
-                            name={`attackWeaponry.${index}.description`}
-                            render={({ field }) => (
-                              <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
-                            )}
-                          />
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                          <Controller
-                            control={versionForm.control}
-                            name={`attackWeaponry.${index}.count`}
-                            render={({ field }) => (
-                              <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-zinc-400">Кількість</label>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-9 w-9 p-0"
-                                    onClick={() => {
-                                      const current = field.value || 1;
-                                      field.onChange(Math.max(1, current - 1));
-                                    }}>
-                                    <MinusIcon className="size-3" />
-                                  </Button>
-                                  <NumericInput
-                                    {...field}
-                                    value={field.value || ''}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 1)}
-                                    className="w-20"
-                                    min={1}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-9 w-9 p-0"
-                                    onClick={() => {
-                                      const current = field.value || 1;
-                                      field.onChange(current + 1);
-                                    }}>
-                                    <PlusIcon className="size-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 w-9 p-0 mt-5 ml-auto"
-                            onClick={() => {
-                              const current = versionForm.getValues('attackWeaponry');
-                              versionForm.setValue(
-                                'attackWeaponry',
-                                current.filter((_, i) => i !== index),
-                              );
-                            }}>
-                            <TrashIcon className="size-4 text-red-400" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!attackSideType}
-                  onClick={() => {
-                    const current = versionForm.getValues('attackWeaponry');
-                    const sideType = versionForm.getValues('attackSideType');
-                    if (!sideType) return;
-                    versionForm.setValue('attackWeaponry', [
-                      ...current,
-                      {
-                        name: '',
-                        description: '',
-                        count: 1,
-                        type: sideType,
-                      },
-                    ]);
-                  }}>
-                  <PlusIcon className="size-3" />
-                  Додати
-                </Button>
-              </div>
-
-              <div className="flex flex-col gap-2 mt-2">
-                <label className="text-sm font-semibold text-zinc-300">
-                  Скріншоти уніформи ({attackFactionLabel})
-                </label>
-                <Button type="button" variant="outline" size="sm" onClick={() => attackScreenshotsRef.current?.click()}>
-                  <UploadIcon className="size-4" />
-                  Завантажити скріншоти
-                </Button>
-                <input
-                  ref={attackScreenshotsRef}
-                  type="file"
-                  accept={IMAGE_FILE_ACCEPT}
-                  multiple
-                  onChange={e => {
-                    const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
-                    notifyOversizedUploadFiles(rejected);
-                    if (!accepted.length) {
-                      e.currentTarget.value = '';
-                      return;
-                    }
-                    const current = versionForm.getValues('attackScreenshots');
-                    versionForm.setValue('attackScreenshots', [...current, ...accepted], { shouldValidate: true });
-                    e.currentTarget.value = '';
-                  }}
-                  className="invisible"
-                />
-
-                {resolvedEditingScreenshots?.attack
-                  ?.filter(s => !versionForm.watch('removeAttackScreenshotIds').includes(s.id))
-                  .map(screenshot => (
-                    <div
-                      key={screenshot.id}
-                      className="flex items-center justify-between rounded border border-white/10 p-2">
-                      <a
-                        href={screenshot.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 min-w-0 text-xs underline">
-                        <img
-                          src={screenshot.url}
-                          alt="Існуючий скріншот уніформи"
-                          className="h-8 w-8 rounded object-cover border border-white/10 shrink-0"
-                        />
-                        <span className="truncate">Існуючий скріншот</span>
-                      </a>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          versionForm.setValue(
-                            'removeAttackScreenshotIds',
-                            [...versionForm.getValues('removeAttackScreenshotIds'), screenshot.id],
-                            { shouldValidate: true },
-                          )
-                        }>
-                        <TrashIcon className="size-4 text-red-400" />
-                      </Button>
-                    </div>
-                  ))}
-
-                {versionForm.watch('attackScreenshots').map((file, index) => (
-                  <div
-                    key={`${file.name}-${index}`}
-                    className="flex items-center justify-between rounded border border-white/10 p-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <LocalScreenshotPreview file={file} />
-                      <span className="text-xs text-zinc-300 truncate">{file.name}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        const current = versionForm.getValues('attackScreenshots');
-                        versionForm.setValue(
-                          'attackScreenshots',
-                          current.filter((_, i) => i !== index),
-                          { shouldValidate: true },
-                        );
-                      }}>
-                      <TrashIcon className="size-4 text-red-400" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Defense Side Column */}
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-white">{defenseFactionLabel}</h3>
-              <Controller
-                control={versionForm.control}
-                name="defenseSideType"
-                render={({ field }) => (
-                  <Select
-                    label={sideLabels.defenseTypeLabel}
-                    options={defenseSideTypeSelectOptions}
-                    value={field.value || null}
-                    onChange={field.onChange}
-                    error={versionForm.formState.errors.defenseSideType?.message}
-                  />
-                )}
-              />
-              <Controller
-                control={versionForm.control}
-                name="defenseSideName"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label={sideLabels.defenseNameLabel}
-                    error={versionForm.formState.errors.defenseSideName?.message}
-                  />
-                )}
-              />
-              <Controller
-                control={versionForm.control}
-                name="defenseSideSlots"
-                render={({ field }) => (
-                  <NumericInput
-                    {...field}
-                    label={`Слоти ${defenseFactionLabel}`}
-                    value={field.value || ''}
-                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                    error={versionForm.formState.errors.defenseSideSlots?.message}
-                  />
-                )}
-              />
-
-              {/* Defense Side Weaponry */}
-              <div className="flex flex-col gap-3 mt-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({defenseFactionLabel})</h4>
-                </div>
-                {versionForm.watch('defenseWeaponry').map((weaponry, index) => (
-                  <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1 flex flex-col gap-2">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <Controller
-                            control={versionForm.control}
-                            name={`defenseWeaponry.${index}.name`}
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label="Назва"
-                                placeholder="Назва озброєння"
-                                error={versionForm.formState.errors.defenseWeaponry?.[index]?.name?.message}
-                              />
-                            )}
-                          />
-                          <Controller
-                            control={versionForm.control}
-                            name={`defenseWeaponry.${index}.description`}
-                            render={({ field }) => (
-                              <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
-                            )}
-                          />
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                          <Controller
-                            control={versionForm.control}
-                            name={`defenseWeaponry.${index}.count`}
-                            render={({ field }) => (
-                              <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-zinc-400">Кількість</label>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-9 w-9 p-0"
-                                    onClick={() => {
-                                      const current = field.value || 1;
-                                      field.onChange(Math.max(1, current - 1));
-                                    }}>
-                                    <MinusIcon className="size-3" />
-                                  </Button>
-                                  <NumericInput
-                                    {...field}
-                                    value={field.value || ''}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 1)}
-                                    className="w-20"
-                                    min={1}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-9 w-9 p-0"
-                                    onClick={() => {
-                                      const current = field.value || 1;
-                                      field.onChange(current + 1);
-                                    }}>
-                                    <PlusIcon className="size-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 w-9 p-0 mt-5 ml-auto"
-                            onClick={() => {
-                              const current = versionForm.getValues('defenseWeaponry');
-                              versionForm.setValue(
-                                'defenseWeaponry',
-                                current.filter((_, i) => i !== index),
-                              );
-                            }}>
-                            <TrashIcon className="size-4 text-red-400" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!defenseSideType}
-                  onClick={() => {
-                    const current = versionForm.getValues('defenseWeaponry');
-                    const sideType = versionForm.getValues('defenseSideType');
-                    if (!sideType) return;
-                    versionForm.setValue('defenseWeaponry', [
-                      ...current,
-                      {
-                        name: '',
-                        description: '',
-                        count: 1,
-                        type: sideType,
-                      },
-                    ]);
-                  }}>
-                  <PlusIcon className="size-3" />
-                  Додати
-                </Button>
-              </div>
-
-              <div className="flex flex-col gap-2 mt-2">
-                <label className="text-sm font-semibold text-zinc-300">
-                  Скріншоти уніформи ({defenseFactionLabel})
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => defenseScreenshotsRef.current?.click()}>
-                  <UploadIcon className="size-4" />
-                  Завантажити скріншоти
-                </Button>
-                <input
-                  ref={defenseScreenshotsRef}
-                  type="file"
-                  accept={IMAGE_FILE_ACCEPT}
-                  multiple
-                  onChange={e => {
-                    const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
-                    notifyOversizedUploadFiles(rejected);
-                    if (!accepted.length) {
-                      e.currentTarget.value = '';
-                      return;
-                    }
-                    const current = versionForm.getValues('defenseScreenshots');
-                    versionForm.setValue('defenseScreenshots', [...current, ...accepted], { shouldValidate: true });
-                    e.currentTarget.value = '';
-                  }}
-                  className="invisible"
-                />
-
-                {resolvedEditingScreenshots?.defense
-                  ?.filter(s => !versionForm.watch('removeDefenseScreenshotIds').includes(s.id))
-                  .map(screenshot => (
-                    <div
-                      key={screenshot.id}
-                      className="flex items-center justify-between rounded border border-white/10 p-2">
-                      <a
-                        href={screenshot.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 min-w-0 text-xs underline">
-                        <img
-                          src={screenshot.url}
-                          alt="Існуючий скріншот уніформи"
-                          className="h-8 w-8 rounded object-cover border border-white/10 shrink-0"
-                        />
-                        <span className="truncate">Існуючий скріншот</span>
-                      </a>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          versionForm.setValue(
-                            'removeDefenseScreenshotIds',
-                            [...versionForm.getValues('removeDefenseScreenshotIds'), screenshot.id],
-                            { shouldValidate: true },
-                          )
-                        }>
-                        <TrashIcon className="size-4 text-red-400" />
-                      </Button>
-                    </div>
-                  ))}
-
-                {versionForm.watch('defenseScreenshots').map((file, index) => (
-                  <div
-                    key={`${file.name}-${index}`}
-                    className="flex items-center justify-between rounded border border-white/10 p-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <LocalScreenshotPreview file={file} />
-                      <span className="text-xs text-zinc-300 truncate">{file.name}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        const current = versionForm.getValues('defenseScreenshots');
-                        versionForm.setValue(
-                          'defenseScreenshots',
-                          current.filter((_, i) => i !== index),
-                          { shouldValidate: true },
-                        );
-                      }}>
-                      <TrashIcon className="size-4 text-red-400" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-black/20 p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">
-                {enableFriendlySide ? friendlyFactionLabel : 'Третя (союзна) фракція'}
-              </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const enabled = !versionForm.getValues('enableFriendlySide');
-                  versionForm.setValue('enableFriendlySide', enabled);
-                  if (!enabled) {
-                    versionForm.setValue('friendlySideName', '');
-                    versionForm.setValue('friendlySideSlots', null);
-                    versionForm.setValue('friendlyWeaponry', []);
-                    versionForm.setValue('friendlyScreenshots', []);
-                    versionForm.setValue('removeFriendlyScreenshotIds', []);
-                  } else {
-                    const attackType = versionForm.getValues('attackSideType');
-                    const defenseType = versionForm.getValues('defenseSideType');
-                    const freeType =
-                      sideTypeOptions.find(option => option.value !== attackType && option.value !== defenseType)
-                        ?.value ?? MissionGameSide.GREEN;
-                    versionForm.setValue('friendlySideType', freeType);
-                    versionForm.setValue('friendlyTo', attackType || defenseType || null);
-                  }
-                }}>
-                {enableFriendlySide ? 'Прибрати' : 'Додати фракцію'}
-              </Button>
-            </div>
-
-            {enableFriendlySide && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Controller
-                    control={versionForm.control}
-                    name="friendlySideType"
-                    render={({ field }) => (
-                      <Select
-                        label="Тип союзної фракції"
-                        options={friendlySideTypeSelectOptions}
-                        value={field.value}
-                        onChange={field.onChange}
-                        error={versionForm.formState.errors.friendlySideType?.message}
-                      />
-                    )}
-                  />
-                  <Controller
-                    control={versionForm.control}
-                    name="friendlyTo"
-                    render={({ field }) => (
-                      <Select
-                        label="Союзник до"
-                        options={[
-                          ...(attackSideType
-                            ? [
-                                {
-                                  value: attackSideType,
-                                  label: `${attackFactionLabel} (${attackSideType})`,
-                                },
-                              ]
-                            : []),
-                          ...(defenseSideType
-                            ? [
-                                {
-                                  value: defenseSideType,
-                                  label: `${defenseFactionLabel} (${defenseSideType})`,
-                                },
-                              ]
-                            : []),
-                        ]}
-                        value={field.value || null}
-                        onChange={field.onChange}
-                      />
-                    )}
-                  />
-                  <Controller
-                    control={versionForm.control}
-                    name="friendlySideName"
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        label="Назва союзної фракції"
-                        error={versionForm.formState.errors.friendlySideName?.message}
-                      />
-                    )}
-                  />
-                  <Controller
-                    control={versionForm.control}
-                    name="friendlySideSlots"
-                    render={({ field }) => (
-                      <NumericInput
-                        {...field}
-                        label={`Слоти ${friendlyFactionLabel}`}
-                        value={field.value || ''}
-                        onChange={e => {
-                          const parsed = parseInt(e.target.value, 10);
-                          field.onChange(Number.isFinite(parsed) ? parsed : null);
-                        }}
-                        error={versionForm.formState.errors.friendlySideSlots?.message}
-                      />
-                    )}
+                    initialState={field.value}
+                    placeholder="Що змінилось у цій версії..."
+                    maxCharacters={2000}
+                    showSubmit={false}
+                    textFormattingOnly
+                    allowLists
+                    onChange={({ text, lexicalState }) => field.onChange(text ? lexicalState : null)}
                   />
                 </div>
+              )}
+            />
 
+            {/* Sides and Weaponry in 2 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Attack Side Column */}
+              <div className="flex flex-col gap-4">
+                <h3 className="text-lg font-semibold text-white">{attackFactionLabel}</h3>
+                <Controller
+                  control={versionForm.control}
+                  name="attackSideType"
+                  render={({ field }) => (
+                    <Select
+                      label={sideLabels.attackTypeLabel}
+                      options={attackSideTypeSelectOptions}
+                      value={field.value || null}
+                      onChange={field.onChange}
+                      error={versionForm.formState.errors.attackSideType?.message}
+                    />
+                  )}
+                />
+                <Controller
+                  control={versionForm.control}
+                  name="attackSideName"
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      label={sideLabels.attackNameLabel}
+                      error={versionForm.formState.errors.attackSideName?.message}
+                    />
+                  )}
+                />
+                <Controller
+                  control={versionForm.control}
+                  name="attackSideSlots"
+                  render={({ field }) => (
+                    <NumericInput
+                      {...field}
+                      label={`Слоти ${attackFactionLabel}`}
+                      value={field.value || ''}
+                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      error={versionForm.formState.errors.attackSideSlots?.message}
+                    />
+                  )}
+                />
+
+                {/* Attack Side Weaponry */}
                 <div className="flex flex-col gap-3 mt-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({friendlyFactionLabel})</h4>
+                    <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({attackFactionLabel})</h4>
                   </div>
-                  {versionForm.watch('friendlyWeaponry').map((weaponry, index) => (
+                  {versionForm.watch('attackWeaponry').map((weaponry, index) => (
                     <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
                       <div className="flex items-start gap-2">
                         <div className="flex-1 flex flex-col gap-2">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <Controller
                               control={versionForm.control}
-                              name={`friendlyWeaponry.${index}.name`}
+                              name={`attackWeaponry.${index}.name`}
                               render={({ field }) => (
                                 <Input
                                   {...field}
                                   label="Назва"
                                   placeholder="Назва озброєння"
-                                  error={versionForm.formState.errors.friendlyWeaponry?.[index]?.name?.message}
+                                  error={versionForm.formState.errors.attackWeaponry?.[index]?.name?.message}
                                 />
                               )}
                             />
                             <Controller
                               control={versionForm.control}
-                              name={`friendlyWeaponry.${index}.description`}
+                              name={`attackWeaponry.${index}.description`}
                               render={({ field }) => (
                                 <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
                               )}
@@ -1164,7 +605,7 @@ const CreateUpdateMissionVersionModal: FC<{
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                             <Controller
                               control={versionForm.control}
-                              name={`friendlyWeaponry.${index}.count`}
+                              name={`attackWeaponry.${index}.count`}
                               render={({ field }) => (
                                 <div className="flex flex-col gap-1">
                                   <label className="text-xs font-semibold text-zinc-400">Кількість</label>
@@ -1208,9 +649,9 @@ const CreateUpdateMissionVersionModal: FC<{
                               size="sm"
                               className="h-9 w-9 p-0 mt-5 ml-auto"
                               onClick={() => {
-                                const current = versionForm.getValues('friendlyWeaponry');
+                                const current = versionForm.getValues('attackWeaponry');
                                 versionForm.setValue(
-                                  'friendlyWeaponry',
+                                  'attackWeaponry',
                                   current.filter((_, i) => i !== index),
                                 );
                               }}>
@@ -1225,15 +666,18 @@ const CreateUpdateMissionVersionModal: FC<{
                     type="button"
                     variant="outline"
                     size="sm"
+                    disabled={!attackSideType}
                     onClick={() => {
-                      const current = versionForm.getValues('friendlyWeaponry');
-                      versionForm.setValue('friendlyWeaponry', [
+                      const current = versionForm.getValues('attackWeaponry');
+                      const sideType = versionForm.getValues('attackSideType');
+                      if (!sideType) return;
+                      versionForm.setValue('attackWeaponry', [
                         ...current,
                         {
                           name: '',
                           description: '',
                           count: 1,
-                          type: versionForm.getValues('friendlySideType') || MissionGameSide.GREEN,
+                          type: sideType,
                         },
                       ]);
                     }}>
@@ -1244,18 +688,18 @@ const CreateUpdateMissionVersionModal: FC<{
 
                 <div className="flex flex-col gap-2 mt-2">
                   <label className="text-sm font-semibold text-zinc-300">
-                    Скріншоти уніформи ({friendlyFactionLabel})
+                    Скріншоти уніформи ({attackFactionLabel})
                   </label>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => friendlyScreenshotsRef.current?.click()}>
+                    onClick={() => attackScreenshotsRef.current?.click()}>
                     <UploadIcon className="size-4" />
                     Завантажити скріншоти
                   </Button>
                   <input
-                    ref={friendlyScreenshotsRef}
+                    ref={attackScreenshotsRef}
                     type="file"
                     accept={IMAGE_FILE_ACCEPT}
                     multiple
@@ -1266,15 +710,15 @@ const CreateUpdateMissionVersionModal: FC<{
                         e.currentTarget.value = '';
                         return;
                       }
-                      const current = versionForm.getValues('friendlyScreenshots');
-                      versionForm.setValue('friendlyScreenshots', [...current, ...accepted], { shouldValidate: true });
+                      const current = versionForm.getValues('attackScreenshots');
+                      versionForm.setValue('attackScreenshots', [...current, ...accepted], { shouldValidate: true });
                       e.currentTarget.value = '';
                     }}
                     className="invisible"
                   />
 
-                  {resolvedEditingScreenshots?.friendly
-                    ?.filter(s => !versionForm.watch('removeFriendlyScreenshotIds').includes(s.id))
+                  {resolvedEditingScreenshots?.attack
+                    ?.filter(s => !versionForm.watch('removeAttackScreenshotIds').includes(s.id))
                     .map(screenshot => (
                       <div
                         key={screenshot.id}
@@ -1297,8 +741,8 @@ const CreateUpdateMissionVersionModal: FC<{
                           variant="ghost"
                           onClick={() =>
                             versionForm.setValue(
-                              'removeFriendlyScreenshotIds',
-                              [...versionForm.getValues('removeFriendlyScreenshotIds'), screenshot.id],
+                              'removeAttackScreenshotIds',
+                              [...versionForm.getValues('removeAttackScreenshotIds'), screenshot.id],
                               { shouldValidate: true },
                             )
                           }>
@@ -1307,7 +751,7 @@ const CreateUpdateMissionVersionModal: FC<{
                       </div>
                     ))}
 
-                  {versionForm.watch('friendlyScreenshots').map((file, index) => (
+                  {versionForm.watch('attackScreenshots').map((file, index) => (
                     <div
                       key={`${file.name}-${index}`}
                       className="flex items-center justify-between rounded border border-white/10 p-2">
@@ -1320,9 +764,9 @@ const CreateUpdateMissionVersionModal: FC<{
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          const current = versionForm.getValues('friendlyScreenshots');
+                          const current = versionForm.getValues('attackScreenshots');
                           versionForm.setValue(
-                            'friendlyScreenshots',
+                            'attackScreenshots',
                             current.filter((_, i) => i !== index),
                             { shouldValidate: true },
                           );
@@ -1332,60 +776,621 @@ const CreateUpdateMissionVersionModal: FC<{
                     </div>
                   ))}
                 </div>
-              </>
-            )}
-          </div>
+              </div>
 
-          {mission.missionType === MissionType.mini && (
+              {/* Defense Side Column */}
+              <div className="flex flex-col gap-4">
+                <h3 className="text-lg font-semibold text-white">{defenseFactionLabel}</h3>
+                <Controller
+                  control={versionForm.control}
+                  name="defenseSideType"
+                  render={({ field }) => (
+                    <Select
+                      label={sideLabels.defenseTypeLabel}
+                      options={defenseSideTypeSelectOptions}
+                      value={field.value || null}
+                      onChange={field.onChange}
+                      error={versionForm.formState.errors.defenseSideType?.message}
+                    />
+                  )}
+                />
+                <Controller
+                  control={versionForm.control}
+                  name="defenseSideName"
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      label={sideLabels.defenseNameLabel}
+                      error={versionForm.formState.errors.defenseSideName?.message}
+                    />
+                  )}
+                />
+                <Controller
+                  control={versionForm.control}
+                  name="defenseSideSlots"
+                  render={({ field }) => (
+                    <NumericInput
+                      {...field}
+                      label={`Слоти ${defenseFactionLabel}`}
+                      value={field.value || ''}
+                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      error={versionForm.formState.errors.defenseSideSlots?.message}
+                    />
+                  )}
+                />
+
+                {/* Defense Side Weaponry */}
+                <div className="flex flex-col gap-3 mt-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({defenseFactionLabel})</h4>
+                  </div>
+                  {versionForm.watch('defenseWeaponry').map((weaponry, index) => (
+                    <div key={index} className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1 flex flex-col gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <Controller
+                              control={versionForm.control}
+                              name={`defenseWeaponry.${index}.name`}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  label="Назва"
+                                  placeholder="Назва озброєння"
+                                  error={versionForm.formState.errors.defenseWeaponry?.[index]?.name?.message}
+                                />
+                              )}
+                            />
+                            <Controller
+                              control={versionForm.control}
+                              name={`defenseWeaponry.${index}.description`}
+                              render={({ field }) => (
+                                <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
+                              )}
+                            />
+                          </div>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <Controller
+                              control={versionForm.control}
+                              name={`defenseWeaponry.${index}.count`}
+                              render={({ field }) => (
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-xs font-semibold text-zinc-400">Кількість</label>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-9 w-9 p-0"
+                                      onClick={() => {
+                                        const current = field.value || 1;
+                                        field.onChange(Math.max(1, current - 1));
+                                      }}>
+                                      <MinusIcon className="size-3" />
+                                    </Button>
+                                    <NumericInput
+                                      {...field}
+                                      value={field.value || ''}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 1)}
+                                      className="w-20"
+                                      min={1}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-9 w-9 p-0"
+                                      onClick={() => {
+                                        const current = field.value || 1;
+                                        field.onChange(current + 1);
+                                      }}>
+                                      <PlusIcon className="size-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 mt-5 ml-auto"
+                              onClick={() => {
+                                const current = versionForm.getValues('defenseWeaponry');
+                                versionForm.setValue(
+                                  'defenseWeaponry',
+                                  current.filter((_, i) => i !== index),
+                                );
+                              }}>
+                              <TrashIcon className="size-4 text-red-400" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!defenseSideType}
+                    onClick={() => {
+                      const current = versionForm.getValues('defenseWeaponry');
+                      const sideType = versionForm.getValues('defenseSideType');
+                      if (!sideType) return;
+                      versionForm.setValue('defenseWeaponry', [
+                        ...current,
+                        {
+                          name: '',
+                          description: '',
+                          count: 1,
+                          type: sideType,
+                        },
+                      ]);
+                    }}>
+                    <PlusIcon className="size-3" />
+                    Додати
+                  </Button>
+                </div>
+
+                <div className="flex flex-col gap-2 mt-2">
+                  <label className="text-sm font-semibold text-zinc-300">
+                    Скріншоти уніформи ({defenseFactionLabel})
+                  </label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => defenseScreenshotsRef.current?.click()}>
+                    <UploadIcon className="size-4" />
+                    Завантажити скріншоти
+                  </Button>
+                  <input
+                    ref={defenseScreenshotsRef}
+                    type="file"
+                    accept={IMAGE_FILE_ACCEPT}
+                    multiple
+                    onChange={e => {
+                      const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
+                      notifyOversizedUploadFiles(rejected);
+                      if (!accepted.length) {
+                        e.currentTarget.value = '';
+                        return;
+                      }
+                      const current = versionForm.getValues('defenseScreenshots');
+                      versionForm.setValue('defenseScreenshots', [...current, ...accepted], { shouldValidate: true });
+                      e.currentTarget.value = '';
+                    }}
+                    className="invisible"
+                  />
+
+                  {resolvedEditingScreenshots?.defense
+                    ?.filter(s => !versionForm.watch('removeDefenseScreenshotIds').includes(s.id))
+                    .map(screenshot => (
+                      <div
+                        key={screenshot.id}
+                        className="flex items-center justify-between rounded border border-white/10 p-2">
+                        <a
+                          href={screenshot.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 min-w-0 text-xs underline">
+                          <img
+                            src={screenshot.url}
+                            alt="Існуючий скріншот уніформи"
+                            className="h-8 w-8 rounded object-cover border border-white/10 shrink-0"
+                          />
+                          <span className="truncate">Існуючий скріншот</span>
+                        </a>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            versionForm.setValue(
+                              'removeDefenseScreenshotIds',
+                              [...versionForm.getValues('removeDefenseScreenshotIds'), screenshot.id],
+                              { shouldValidate: true },
+                            )
+                          }>
+                          <TrashIcon className="size-4 text-red-400" />
+                        </Button>
+                      </div>
+                    ))}
+
+                  {versionForm.watch('defenseScreenshots').map((file, index) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between rounded border border-white/10 p-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <LocalScreenshotPreview file={file} />
+                        <span className="text-xs text-zinc-300 truncate">{file.name}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          const current = versionForm.getValues('defenseScreenshots');
+                          versionForm.setValue(
+                            'defenseScreenshots',
+                            current.filter((_, i) => i !== index),
+                            { shouldValidate: true },
+                          );
+                        }}>
+                        <TrashIcon className="size-4 text-red-400" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-black/20 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-white">
+                  {enableFriendlySide ? friendlyFactionLabel : 'Третя (союзна) фракція'}
+                </h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const enabled = !versionForm.getValues('enableFriendlySide');
+                    versionForm.setValue('enableFriendlySide', enabled);
+                    if (!enabled) {
+                      versionForm.setValue('friendlySideName', '');
+                      versionForm.setValue('friendlySideSlots', null);
+                      versionForm.setValue('friendlyWeaponry', []);
+                      versionForm.setValue('friendlyScreenshots', []);
+                      versionForm.setValue('removeFriendlyScreenshotIds', []);
+                    } else {
+                      const attackType = versionForm.getValues('attackSideType');
+                      const defenseType = versionForm.getValues('defenseSideType');
+                      const freeType =
+                        sideTypeOptions.find(option => option.value !== attackType && option.value !== defenseType)
+                          ?.value ?? MissionGameSide.GREEN;
+                      versionForm.setValue('friendlySideType', freeType);
+                      versionForm.setValue('friendlyTo', attackType || defenseType || null);
+                    }
+                  }}>
+                  {enableFriendlySide ? 'Прибрати' : 'Додати фракцію'}
+                </Button>
+              </div>
+
+              {enableFriendlySide && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Controller
+                      control={versionForm.control}
+                      name="friendlySideType"
+                      render={({ field }) => (
+                        <Select
+                          label="Тип союзної фракції"
+                          options={friendlySideTypeSelectOptions}
+                          value={field.value}
+                          onChange={field.onChange}
+                          error={versionForm.formState.errors.friendlySideType?.message}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={versionForm.control}
+                      name="friendlyTo"
+                      render={({ field }) => (
+                        <Select
+                          label="Союзник до"
+                          options={[
+                            ...(attackSideType
+                              ? [
+                                  {
+                                    value: attackSideType,
+                                    label: `${attackFactionLabel} (${attackSideType})`,
+                                  },
+                                ]
+                              : []),
+                            ...(defenseSideType
+                              ? [
+                                  {
+                                    value: defenseSideType,
+                                    label: `${defenseFactionLabel} (${defenseSideType})`,
+                                  },
+                                ]
+                              : []),
+                          ]}
+                          value={field.value || null}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={versionForm.control}
+                      name="friendlySideName"
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          value={field.value ?? ''}
+                          label="Назва союзної фракції"
+                          error={versionForm.formState.errors.friendlySideName?.message}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={versionForm.control}
+                      name="friendlySideSlots"
+                      render={({ field }) => (
+                        <NumericInput
+                          {...field}
+                          label={`Слоти ${friendlyFactionLabel}`}
+                          value={field.value || ''}
+                          onChange={e => {
+                            const parsed = parseInt(e.target.value, 10);
+                            field.onChange(Number.isFinite(parsed) ? parsed : null);
+                          }}
+                          error={versionForm.formState.errors.friendlySideSlots?.message}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-3 mt-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-zinc-300">Озброєння ({friendlyFactionLabel})</h4>
+                    </div>
+                    {versionForm.watch('friendlyWeaponry').map((weaponry, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col gap-2 p-3 rounded-lg border border-white/10 bg-black/40">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1 flex flex-col gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <Controller
+                                control={versionForm.control}
+                                name={`friendlyWeaponry.${index}.name`}
+                                render={({ field }) => (
+                                  <Input
+                                    {...field}
+                                    label="Назва"
+                                    placeholder="Назва озброєння"
+                                    error={versionForm.formState.errors.friendlyWeaponry?.[index]?.name?.message}
+                                  />
+                                )}
+                              />
+                              <Controller
+                                control={versionForm.control}
+                                name={`friendlyWeaponry.${index}.description`}
+                                render={({ field }) => (
+                                  <Input {...field} label="Опис (опційно)" placeholder="Опис озброєння" />
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                              <Controller
+                                control={versionForm.control}
+                                name={`friendlyWeaponry.${index}.count`}
+                                render={({ field }) => (
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-semibold text-zinc-400">Кількість</label>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-9 w-9 p-0"
+                                        onClick={() => {
+                                          const current = field.value || 1;
+                                          field.onChange(Math.max(1, current - 1));
+                                        }}>
+                                        <MinusIcon className="size-3" />
+                                      </Button>
+                                      <NumericInput
+                                        {...field}
+                                        value={field.value || ''}
+                                        onChange={e => field.onChange(parseInt(e.target.value) || 1)}
+                                        className="w-20"
+                                        min={1}
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-9 w-9 p-0"
+                                        onClick={() => {
+                                          const current = field.value || 1;
+                                          field.onChange(current + 1);
+                                        }}>
+                                        <PlusIcon className="size-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0 mt-5 ml-auto"
+                                onClick={() => {
+                                  const current = versionForm.getValues('friendlyWeaponry');
+                                  versionForm.setValue(
+                                    'friendlyWeaponry',
+                                    current.filter((_, i) => i !== index),
+                                  );
+                                }}>
+                                <TrashIcon className="size-4 text-red-400" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const current = versionForm.getValues('friendlyWeaponry');
+                        versionForm.setValue('friendlyWeaponry', [
+                          ...current,
+                          {
+                            name: '',
+                            description: '',
+                            count: 1,
+                            type: versionForm.getValues('friendlySideType') || MissionGameSide.GREEN,
+                          },
+                        ]);
+                      }}>
+                      <PlusIcon className="size-3" />
+                      Додати
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-2 mt-2">
+                    <label className="text-sm font-semibold text-zinc-300">
+                      Скріншоти уніформи ({friendlyFactionLabel})
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => friendlyScreenshotsRef.current?.click()}>
+                      <UploadIcon className="size-4" />
+                      Завантажити скріншоти
+                    </Button>
+                    <input
+                      ref={friendlyScreenshotsRef}
+                      type="file"
+                      accept={IMAGE_FILE_ACCEPT}
+                      multiple
+                      onChange={e => {
+                        const { accepted, rejected } = rejectOversizedUploadFiles(Array.from(e.target.files || []));
+                        notifyOversizedUploadFiles(rejected);
+                        if (!accepted.length) {
+                          e.currentTarget.value = '';
+                          return;
+                        }
+                        const current = versionForm.getValues('friendlyScreenshots');
+                        versionForm.setValue('friendlyScreenshots', [...current, ...accepted], {
+                          shouldValidate: true,
+                        });
+                        e.currentTarget.value = '';
+                      }}
+                      className="invisible"
+                    />
+
+                    {resolvedEditingScreenshots?.friendly
+                      ?.filter(s => !versionForm.watch('removeFriendlyScreenshotIds').includes(s.id))
+                      .map(screenshot => (
+                        <div
+                          key={screenshot.id}
+                          className="flex items-center justify-between rounded border border-white/10 p-2">
+                          <a
+                            href={screenshot.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 min-w-0 text-xs underline">
+                            <img
+                              src={screenshot.url}
+                              alt="Існуючий скріншот уніформи"
+                              className="h-8 w-8 rounded object-cover border border-white/10 shrink-0"
+                            />
+                            <span className="truncate">Існуючий скріншот</span>
+                          </a>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              versionForm.setValue(
+                                'removeFriendlyScreenshotIds',
+                                [...versionForm.getValues('removeFriendlyScreenshotIds'), screenshot.id],
+                                { shouldValidate: true },
+                              )
+                            }>
+                            <TrashIcon className="size-4 text-red-400" />
+                          </Button>
+                        </div>
+                      ))}
+
+                    {versionForm.watch('friendlyScreenshots').map((file, index) => (
+                      <div
+                        key={`${file.name}-${index}`}
+                        className="flex items-center justify-between rounded border border-white/10 p-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <LocalScreenshotPreview file={file} />
+                          <span className="text-xs text-zinc-300 truncate">{file.name}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            const current = versionForm.getValues('friendlyScreenshots');
+                            versionForm.setValue(
+                              'friendlyScreenshots',
+                              current.filter((_, i) => i !== index),
+                              { shouldValidate: true },
+                            );
+                          }}>
+                          <TrashIcon className="size-4 text-red-400" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {mission.missionType === MissionType.mini && (
+              <Controller
+                control={versionForm.control}
+                name="minSlotsToPlay"
+                render={({ field }) => (
+                  <NumericInput
+                    label="Мін. слотів для гри (опційно)"
+                    value={field.value ?? ''}
+                    onChange={e => {
+                      const value = e.target.value;
+                      field.onChange(value === '' ? null : parseInt(value, 10) || null);
+                    }}
+                    error={versionForm.formState.errors.minSlotsToPlay?.message}
+                  />
+                )}
+              />
+            )}
+
             <Controller
               control={versionForm.control}
-              name="minSlotsToPlay"
-              render={({ field }) => (
-                <NumericInput
-                  label="Мін. слотів для гри (опційно)"
-                  value={field.value ?? ''}
-                  onChange={e => {
-                    const value = e.target.value;
-                    field.onChange(value === '' ? null : parseInt(value, 10) || null);
-                  }}
-                  error={versionForm.formState.errors.minSlotsToPlay?.message}
-                />
+              name="file"
+              render={({ field: { onChange, value, ...field } }) => (
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-zinc-300">
+                    Файл місії {editingVersion && '(залиште порожнім, щоб не змінювати)'}
+                  </label>
+                  {versionForm.formState.errors.file && (
+                    <p className="text-sm text-red-400">{versionForm.formState.errors.file.message}</p>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    type="button"
+                    onClick={e => {
+                      e.preventDefault();
+                      fileRef.current?.click();
+                    }}>
+                    <UploadIcon className="size-4" />
+                    {value ? 'Змінити файл' : 'Обрати файл'}
+                  </Button>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept=".pbo,.p3d"
+                    onChange={e => onChange(resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget))}
+                    className="invisible"
+                  />
+                </div>
               )}
             />
-          )}
-
-          <Controller
-            control={versionForm.control}
-            name="file"
-            render={({ field: { onChange, value, ...field } }) => (
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-300">
-                  Файл місії {editingVersion && '(залиште порожнім, щоб не змінювати)'}
-                </label>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  type="button"
-                  onClick={e => {
-                    e.preventDefault();
-                    fileRef.current?.click();
-                  }}>
-                  <UploadIcon className="size-4" />
-                  {value ? 'Змінити файл' : 'Обрати файл'}
-                </Button>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept=".pbo,.p3d"
-                  onChange={e => onChange(resolveUploadFileFromInput(e.target.files?.[0], e.currentTarget))}
-                  className="invisible"
-                />
-                {versionForm.formState.errors.file && (
-                  <p className="text-sm text-red-400">{versionForm.formState.errors.file.message}</p>
-                )}
-              </div>
-            )}
-          />
           </DrawerBody>
 
           <DrawerFooter className="border-t border-white/10 pt-4 sm:flex-row sm:justify-between">

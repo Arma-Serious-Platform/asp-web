@@ -12,6 +12,7 @@ import {
   UpdateMissionVersionDto,
   CreateMissionWeaponryDto,
 } from '@/shared/sdk/types';
+import { isAxiosError } from 'axios';
 import { makeAutoObservable } from 'mobx';
 import toast from 'react-hot-toast';
 
@@ -203,7 +204,14 @@ export class CreateUpdateMissionVersionState {
 
       this.visibility.close();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не вдалося зберегти версію');
+      const isDuplicateMissionFile =
+        isAxiosError(error) &&
+        error.response?.status === 400 &&
+        error.response?.data?.message === 'Mission file name already exists';
+
+      if (!isDuplicateMissionFile) {
+        toast.error(error instanceof Error ? error.message : 'Не вдалося зберегти версію');
+      }
       throw error;
     } finally {
       this.loader.stop();
