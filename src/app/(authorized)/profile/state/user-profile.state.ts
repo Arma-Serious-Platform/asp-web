@@ -2,6 +2,7 @@ import { session } from '@/entities/session/session.state';
 import { UserAdminActionsState } from '@/app/(authorized)/admin/users/state/admin-actions.state';
 import { ChangeAvatarState } from './change-avatar.state';
 import { ChangeNicknameState } from './change-nickname.state';
+import { UserStatsState } from './user-stats.state';
 import { DisconnectSteamState } from './disconnect-steam.state';
 import { Loader } from '@/shared/state/loader';
 import { usersApi } from '@/shared/sdk';
@@ -25,6 +26,7 @@ class UserProfileState {
   nickname = new ChangeNicknameState();
   steamDisconnect = new DisconnectSteamState();
   adminActions = new UserAdminActionsState();
+  stats = new UserStatsState();
 
   get user() {
     return this.isOwnProfile ? session.user?.data : this.otherUser;

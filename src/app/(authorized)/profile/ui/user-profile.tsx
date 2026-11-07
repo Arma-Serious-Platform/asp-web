@@ -4,15 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/button';
 import Image from 'next/image';
-import {
-  ActivityIcon,
-  IdCardIcon,
-  MailIcon,
-  MessageCircleIcon,
-  SendIcon,
-  ShieldUserIcon,
-  UserIcon,
-} from 'lucide-react';
+import { ActivityIcon, IdCardIcon, MailIcon, SendIcon, ShieldUserIcon, UserIcon } from 'lucide-react';
 
 import { UserNicknameText, UserRoleText, UserStatusText } from '@/entities/user/ui/user-text';
 import { View } from '@/features/view';
@@ -29,10 +21,15 @@ import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-
 import { ChangeSocials } from '@/features/user/change-socials';
 import { UserHistorySection } from './user-history';
 import { NotificationPreferences } from './notification-preferences';
-import { UserAdminActionsButtons, UserAdminActionsModals } from '@/app/(authorized)/admin/users';
+import {
+  getUserAdminActionsAvailability,
+  hasAnyUserAdminAction,
+  UserAdminActionsButtons,
+  UserAdminActionsModals,
+} from '@/app/(authorized)/admin/users';
 import { UserProfileState } from '../state/user-profile.state';
 import { Preloader } from '@/shared/ui/atoms/preloader';
-import { ProfileSidebar } from './profile-sidebar';
+import { ProfileSidebar, ProfileSidebarCard } from './profile-sidebar';
 import { ProfileChat } from './profile-chat';
 import { ROUTES } from '@/shared/config/routes';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -41,9 +38,11 @@ import toast from 'react-hot-toast';
 import { Card } from '@/shared/ui/atoms/card';
 import { UserAchievements } from '@/entities/achievement';
 import { Achievement, User } from '@/shared/sdk/types';
+import { Stats } from './stats';
 
 export enum ProfileTab {
   PROFILE = 'profile',
+  STATS = 'stats',
   CHAT = 'chat',
   SQUAD = 'squad',
   NOTIFICATIONS = 'notifications',
@@ -63,6 +62,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
     'tab',
     parseAsStringEnum([
       ProfileTab.PROFILE,
+      ProfileTab.STATS,
       ProfileTab.CHAT,
       ProfileTab.SQUAD,
       ProfileTab.NOTIFICATIONS,
@@ -71,6 +71,9 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
     ]).withDefault(ProfileTab.PROFILE),
   );
   const [chatUserId, setChatUserId] = useQueryState('userId', parseAsString);
+  // Other players' profiles only have the profile and stats tabs.
+  const activeTab = model.isOwnProfile || tab === ProfileTab.STATS ? tab : ProfileTab.PROFILE;
+  const otherUserId = model.user?.id;
 
   useEffect(() => {
     model.init(userIdOrNickname ?? undefined);
@@ -158,29 +161,32 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
 
               {(model.user?.achievements as Achievement[] | undefined)?.length ? (
                 <div className="flex w-full flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
-                    Нагороди
-                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Нагороди</span>
                   <UserAchievements achievements={model.user?.achievements as Achievement[] | undefined} />
                 </div>
               ) : null}
 
               {!model.isOwnProfile && (
                 <>
-                  <Button
-                    size="sm"
-                    disabled={!model.user?.id}
-                    onClick={() =>
-                      router.push(
-                        `${ROUTES.user.profile}?tab=${ProfileTab.CHAT}&userId=${encodeURIComponent(model.user?.id ?? '')}`,
-                      )
+                  <ProfileSidebar
+                    tab={activeTab}
+                    setTab={setTab}
+                    isOwnProfile={model.isOwnProfile}
+                    onMessage={
+                      otherUserId
+                        ? () =>
+                            router.push(
+                              `${ROUTES.user.profile}?tab=${ProfileTab.CHAT}&userId=${encodeURIComponent(otherUserId)}`,
+                            )
+                        : undefined
                     }
-                    className="w-full">
-                    <MessageCircleIcon className="size-4" />
-                    Написати
-                  </Button>
+                  />
 
-                  <UserAdminActionsButtons user={model.user} model={model.adminActions} />
+                  {model.user && hasAnyUserAdminAction(getUserAdminActionsAvailability(model.user)) && (
+                    <ProfileSidebarCard title="Дії">
+                      <UserAdminActionsButtons user={model.user} model={model.adminActions} variant="ghost" size="xs" />
+                    </ProfileSidebarCard>
+                  )}
                 </>
               )}
 
@@ -189,7 +195,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
 
             {/* Right column: tab content */}
             <div className="flex min-w-0 flex-1 flex-col gap-4 border-t border-white/10 pt-4 lg:min-w-0 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-              <View.Condition if={tab === 'profile' || !model.isOwnProfile}>
+              <View.Condition if={activeTab === ProfileTab.PROFILE}>
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-1">
                     <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
@@ -300,6 +306,10 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
 
                   <UserHistorySection userId={model.user?.id} />
                 </div>
+              </View.Condition>
+
+              <View.Condition if={activeTab === ProfileTab.STATS}>
+                <Stats model={model.stats} user={model.user} isOwnProfile={model.isOwnProfile} />
               </View.Condition>
 
               {model.isOwnProfile && (

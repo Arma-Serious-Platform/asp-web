@@ -1,7 +1,7 @@
 'use client';
 
 import { User } from '@/shared/sdk/types';
-import { Button } from '@/shared/ui/atoms/button';
+import { Button, ButtonProps } from '@/shared/ui/atoms/button';
 import { cn } from '@/shared/utils/cn';
 import {
   BanIcon,
@@ -20,8 +20,11 @@ import { UserAdminActionsState } from '../state/admin-actions.state';
 const UserAdminActionsButtons: FC<{
   user: User;
   model: UserAdminActionsState;
+  size?: ButtonProps['size'];
+  variant?: ButtonProps['variant'];
+  buttonClassName?: string;
   className?: string;
-}> = observer(({ user, model, className }) => {
+}> = observer(({ user, model, className, size = 'sm', variant = 'secondary', buttonClassName }) => {
   const availability = getUserAdminActionsAvailability(user);
 
   if (!hasAnyUserAdminAction(availability)) {
@@ -32,10 +35,10 @@ const UserAdminActionsButtons: FC<{
     <div className={cn('flex w-full flex-col gap-2', className)}>
       {availability.changeRoles && (
         <Button
-          size="sm"
-          className="w-full"
+          size={size}
+          className={cn('w-full', buttonClassName)}
           align="left"
-          variant="secondary"
+          variant={variant}
           onClick={() => {
             model.changeUserRoleState.visibility.open({ user });
           }}>
@@ -46,10 +49,10 @@ const UserAdminActionsButtons: FC<{
 
       {availability.changeNickname && (
         <Button
-          size="sm"
-          className="w-full"
+          size={size}
+          className={cn('w-full', buttonClassName)}
           align="left"
-          variant="secondary"
+          variant={variant}
           onClick={() => {
             model.adminChangeNicknameState.visibility.open({ user });
           }}>
@@ -60,10 +63,10 @@ const UserAdminActionsButtons: FC<{
 
       {availability.manageAchievements && (
         <Button
-          size="sm"
-          className="w-full"
+          size={size}
+          className={cn('w-full', buttonClassName)}
           align="left"
-          variant="secondary"
+          variant={variant}
           onClick={() => {
             model.manageUserAchievementsState.visibility.open({ user });
           }}>
@@ -74,10 +77,10 @@ const UserAdminActionsButtons: FC<{
 
       {availability.issueWarning && (
         <Button
-          size="sm"
+          size={size}
           className="w-full"
           align="left"
-          variant="secondary"
+          variant={variant}
           onClick={() => {
             model.issueUserWarningState.visibility.open({ user });
           }}>
@@ -88,10 +91,10 @@ const UserAdminActionsButtons: FC<{
 
       {availability.punishmentHistory && (
         <Button
-          size="sm"
-          className="w-full"
+          size={size}
+          className={cn('w-full', buttonClassName)}
           align="left"
-          variant="secondary"
+          variant={variant}
           onClick={() => {
             model.punishmentHistoryState.visibility.open({ user });
           }}>
@@ -102,10 +105,10 @@ const UserAdminActionsButtons: FC<{
 
       {availability.ban && (
         <Button
-          size="sm"
-          className="w-full"
+          size={size}
+          className={cn('w-full', buttonClassName)}
           align="left"
-          variant="secondary"
+          variant={variant}
           onClick={() => {
             model.banUnbanUserState.visibility.open({ user });
           }}>
@@ -117,9 +120,9 @@ const UserAdminActionsButtons: FC<{
       {availability.unban && (
         <Button
           size="sm"
-          className="w-full"
+          className={cn('w-full', buttonClassName)}
           align="left"
-          variant="secondary"
+          variant={variant}
           onClick={() => {
             model.banUnbanUserState.visibility.open({ user });
           }}>

@@ -2,6 +2,7 @@
 
 import { env } from '@/shared/config/env';
 import { ApiModel, type PaginatedResponse } from '../api-model';
+import { playerStatsResponseSchema } from '../stats/stats.schemas';
 import type {
   BanUserDto,
   ChangeNicknameDto,
@@ -120,6 +121,12 @@ class UsersApi extends ApiModel {
 
   findUserHistory = async (userId: string) => {
     return await this.instance.get<UserHistoryEvent[]>(`/users/${userId}/history`);
+  };
+
+  findUserStats = async (userId: string) => {
+    const { data } = await this.instance.get<unknown>(`/users/${userId}/stats`);
+
+    return playerStatsResponseSchema.parse(data);
   };
 }
 

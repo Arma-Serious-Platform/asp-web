@@ -112,6 +112,9 @@ const PrimaryLinks: FC<{
       <a className={className} href="https://replays.vtg.in.ua" target="_blank" rel="noopener noreferrer">
         Реплеї
       </a>
+      <a className={className} href="https://stats.replays.vtg.in.ua" target="_blank" rel="noopener noreferrer">
+        Статистика
+      </a>
     </>
   );
 });
