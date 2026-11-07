@@ -32,6 +32,20 @@ export const MissionWeaponrySchema = z
   .passthrough();
 export type MissionWeaponry = z.infer<typeof MissionWeaponrySchema>;
 
+export const MissionSlotSchema = z.object({
+  callsign: z.string(),
+  name: z.string().nullable(),
+  count: z.number().nullable(),
+});
+export type MissionSlot = z.infer<typeof MissionSlotSchema>;
+
+export const MissionVersionSlotsSchema = z.object({
+  attack: z.array(MissionSlotSchema),
+  defense: z.array(MissionSlotSchema),
+  friendly: z.array(MissionSlotSchema),
+});
+export type MissionVersionSlots = z.infer<typeof MissionVersionSlotsSchema>;
+
 export const MissionVersionScreenshotSchema = fileRefSchema;
 export type MissionVersionScreenshot = z.infer<typeof MissionVersionScreenshotSchema>;
 
@@ -56,6 +70,7 @@ export const MissionVersionSchema = z
     file: fileRefSchema.optional(),
     rating: z.number().optional(),
     weaponry: z.array(MissionWeaponrySchema).optional(),
+    slots: MissionVersionSlotsSchema.optional(),
     attackScreenshots: z.array(fileRefSchema).optional(),
     defenseScreenshots: z.array(fileRefSchema).optional(),
     friendlyScreenshots: z.array(fileRefSchema).optional(),

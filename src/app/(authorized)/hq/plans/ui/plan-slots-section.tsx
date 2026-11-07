@@ -13,12 +13,11 @@ import { ChevronDownIcon, ChevronUpIcon, MapPinIcon, MessageSquareIcon, UsersIco
 import { HqPlansState } from '../state/hq-plans.state';
 import { TableCellTooltip } from './table-cell-tooltip';
 import { cn } from '@/shared/utils/cn';
+import { MissionModel } from '@/entities/mission/mission.model';
 
 const normalizeSlotCount = (value: number | null | undefined) => (typeof value === 'number' ? value : 0);
 
 const joinSquadTags = (squads: Pick<Squad, 'tag'>[]) => squads.map(s => s.tag).join(', ');
-
-const stripRoleNamePrefix = (value: string) => value.replace(/^\d+:\s*/, '');
 
 const getInGameSideName = (
   side: MissionGameSide | null | undefined,
@@ -192,7 +191,7 @@ export const PlanSlotsSection = observer(
       const nazvaRaw = canEditCommanderFields
         ? model.getSlotNazvaDraft(slot)
         : [slot.name, slot.weaponry].filter(Boolean).join(' | ');
-      const nazvaDisplay = stripRoleNamePrefix(nazvaRaw);
+      const nazvaDisplay = MissionModel.stripRoleNamePrefix(nazvaRaw);
       const spawnValue = canEditCommanderFields
         ? model.getSlotTextDraft(slot, 'spawnPoint')
         : (slot.spawnPoint ?? '');
@@ -274,7 +273,7 @@ export const PlanSlotsSection = observer(
                     onBlur={event =>
                       void model.updateSlotField(
                         slot.id,
-                        { name: stripRoleNamePrefix(event.target.value) || null, weaponry: null },
+                        { name: MissionModel.stripRoleNamePrefix(event.target.value) || null, weaponry: null },
                         ['name', 'weaponry'],
                       )
                     }

@@ -9,6 +9,7 @@ import 'dayjs/locale/uk';
 import { toGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
 import { UniformSection } from '@/entities/mission/uniform-section';
+import { MissionSlotsSection } from '@/entities/mission/mission-slots-section';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
 import { MissionModel } from '@/entities/mission/mission.model';
 import { SquadSideBadge } from '@/entities/side/ui/squad-side-badge';
@@ -56,6 +57,9 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(true);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(true);
   const [isFriendlyUniformOpen, setIsFriendlyUniformOpen] = useState(true);
+  const [isAttackSlotsOpen, setIsAttackSlotsOpen] = useState(false);
+  const [isDefenseSlotsOpen, setIsDefenseSlotsOpen] = useState(false);
+  const [isFriendlySlotsOpen, setIsFriendlySlotsOpen] = useState(false);
   const [previewScreenshots, setPreviewScreenshots] = useState<{ id: string; url: string }[]>([]);
   const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
 
@@ -91,6 +95,9 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
     setIsAttackUniformOpen(true);
     setIsDefenseUniformOpen(true);
     setIsFriendlyUniformOpen(true);
+    setIsAttackSlotsOpen(false);
+    setIsDefenseSlotsOpen(false);
+    setIsFriendlySlotsOpen(false);
   }, [game.id]);
 
   const handleOpenPreview = (screenshots: { id: string; url: string }[], startIndex: number) => {
@@ -195,6 +202,12 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
                 {unit.description && <span className="text-zinc-500">({unit.description})</span>}
               </div>
             ))}
+            <MissionSlotsSection
+              slots={game.missionVersion.slots?.attack}
+              factionName={game.missionVersion.attackSideName}
+              isOpen={isAttackSlotsOpen}
+              setIsOpen={setIsAttackSlotsOpen}
+            />
           </FactionPanel>
 
           <FactionPanel squadName={game.defenseSide?.name} squadType={game.defenseSide?.type}>
@@ -218,6 +231,12 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
                 {unit.description && <span className="text-zinc-500">({unit.description})</span>}
               </div>
             ))}
+            <MissionSlotsSection
+              slots={game.missionVersion.slots?.defense}
+              factionName={game.missionVersion.defenseSideName}
+              isOpen={isDefenseSlotsOpen}
+              setIsOpen={setIsDefenseSlotsOpen}
+            />
           </FactionPanel>
         </div>
 
@@ -248,6 +267,12 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
                   {unit.description && <span className="text-zinc-500">({unit.description})</span>}
                 </div>
               ))}
+              <MissionSlotsSection
+                slots={game.missionVersion.slots?.friendly}
+                factionName={game.missionVersion.friendlySideName}
+                isOpen={isFriendlySlotsOpen}
+                setIsOpen={setIsFriendlySlotsOpen}
+              />
             </div>
           </div>
         )}

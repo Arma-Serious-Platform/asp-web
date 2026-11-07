@@ -45,11 +45,26 @@
   scroll-padding-top: 104px;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: 'Roboto Condensed', 'Roboto Condensed Fallback"';
   color: var(--color-foreground);
-  background: url('/images/bg.jpeg') no-repeat center center fixed;
-  background-size: cover;
+  background-color: #000;
+}
+
+/* Fixed background on its own composited layer — `background-attachment: fixed` repaints on every
+   height change, which makes the backdrop-blurred cards flicker when accordions toggle. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/images/bg.jpeg') no-repeat center center / cover;
+  transform: translateZ(0);
+  pointer-events: none;
 }
 
 a:hover {

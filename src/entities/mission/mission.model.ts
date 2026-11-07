@@ -286,6 +286,9 @@ class MissionModel extends createEntity(MissionSchema) {
     };
   };
 
+  /** Mission file role names may be prefixed with an index, e.g. `3: Rifleman`. */
+  static stripRoleNamePrefix = (value: string) => value.replace(/^\d+:\s*/, '');
+
   static formatWeaponrySummary = (weaponry?: { name: string; count: number }[] | null): string => {
     if (!weaponry?.length) return '';
 

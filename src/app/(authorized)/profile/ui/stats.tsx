@@ -57,7 +57,7 @@ const METRICS = {
     badge: 'bg-amber-500/15',
   },
   assists: {
-    label: 'Асисти',
+    label: 'Допомога у вбивстві',
     icon: HandshakeIcon,
     text: 'text-sky-500',
     border: 'border-t-sky-500',

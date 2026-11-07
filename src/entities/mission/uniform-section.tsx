@@ -1,8 +1,9 @@
 'use client';
 
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { ShirtIcon } from 'lucide-react';
 import { FC } from 'react';
 import { MissionVersionScreenshot } from '@/shared/sdk/types';
+import { AccordionToggle } from '@/shared/ui/moleculas/accordion-toggle';
 
 type UniformSectionProps = {
   screenshots: MissionVersionScreenshot[];
@@ -18,17 +19,13 @@ export const UniformSection: FC<UniformSectionProps> = ({ screenshots, isOpen, s
 
   return (
     <div className="pt-2 border-t border-white/5">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full hover:opacity-80 transition-opacity cursor-pointer">
-        <span className="text-xs font-medium text-zinc-400">Уніформа ({screenshots.length})</span>
-        {isOpen ? (
-          <ChevronUpIcon className="size-4 text-zinc-400" />
-        ) : (
-          <ChevronDownIcon className="size-4 text-zinc-400" />
-        )}
-      </button>
+      <AccordionToggle
+        isOpen={isOpen}
+        onToggle={() => setIsOpen(!isOpen)}
+        icon={<ShirtIcon />}
+        title="Уніформа"
+        meta={`(${screenshots.length})`}
+      />
       {isOpen && (
         <div className="mt-2 grid w-full grid-cols-3 gap-2">
           {screenshots.map((screenshot, index) => (

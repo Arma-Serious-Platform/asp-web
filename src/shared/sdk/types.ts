@@ -234,6 +234,8 @@ export type {
   MissionVersion,
   MissionComment,
   MissionWeaponry,
+  MissionSlot,
+  MissionVersionSlots,
   MissionVersionScreenshot,
   MissionOrderBy,
   MissionOrderType,
