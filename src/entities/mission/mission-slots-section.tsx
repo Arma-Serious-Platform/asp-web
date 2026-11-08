@@ -8,7 +8,6 @@ import { AccordionToggle } from '@/shared/ui/moleculas/accordion-toggle';
 
 type MissionSlotsSectionProps = {
   slots?: MissionSlot[] | null;
-  factionName?: string | null;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 };
@@ -19,7 +18,7 @@ const formatSlotName = (name: string | null) =>
 
 const formatSlotCount = (count: number | null) => String(Math.min(99, Math.max(0, Number(count) || 0)));
 
-export const MissionSlotsSection: FC<MissionSlotsSectionProps> = ({ slots, factionName, isOpen, setIsOpen }) => {
+export const MissionSlotsSection: FC<MissionSlotsSectionProps> = ({ slots, isOpen, setIsOpen }) => {
   if (!slots?.length) {
     return null;
   }
@@ -30,7 +29,7 @@ export const MissionSlotsSection: FC<MissionSlotsSectionProps> = ({ slots, facti
         isOpen={isOpen}
         onToggle={() => setIsOpen(!isOpen)}
         icon={<UsersIcon />}
-        title={factionName ? `Слоти ${factionName}` : 'Слоти'}
+        title="Слоти"
       />
       {isOpen && (
         <div className="mt-2 flex flex-col gap-1.5">

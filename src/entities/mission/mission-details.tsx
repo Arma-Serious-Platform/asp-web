@@ -10,6 +10,7 @@ import { toGameDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
 import { UniformSection } from '@/entities/mission/uniform-section';
 import { MissionSlotsSection } from '@/entities/mission/mission-slots-section';
+import { WeaponrySection } from '@/entities/mission/weaponry-section';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
 import { MissionModel } from '@/entities/mission/mission.model';
 import { SquadSideBadge } from '@/entities/side/ui/squad-side-badge';
@@ -54,6 +55,9 @@ export const MissionDetailsHeader: FC<{ game: Game; className?: string }> = ({ g
 );
 
 export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
+  const [isAttackWeaponryOpen, setIsAttackWeaponryOpen] = useState(true);
+  const [isDefenseWeaponryOpen, setIsDefenseWeaponryOpen] = useState(true);
+  const [isFriendlyWeaponryOpen, setIsFriendlyWeaponryOpen] = useState(true);
   const [isAttackUniformOpen, setIsAttackUniformOpen] = useState(true);
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(true);
   const [isFriendlyUniformOpen, setIsFriendlyUniformOpen] = useState(true);
@@ -92,6 +96,9 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
     game.missionVersion.friendlySideSlots != null;
 
   useEffect(() => {
+    setIsAttackWeaponryOpen(true);
+    setIsDefenseWeaponryOpen(true);
+    setIsFriendlyWeaponryOpen(true);
     setIsAttackUniformOpen(true);
     setIsDefenseUniformOpen(true);
     setIsFriendlyUniformOpen(true);
@@ -195,16 +202,20 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
                 {sideLabels.attack}
               </span>
             </div>
-            {attackWeaponry.map((unit, idx) => (
-              <div key={idx} className="text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
-                <span className={cn('text-sm', attackColor.accent)}>{unit.name}</span>{' '}
-                <span className={cn(attackColor.text)}>×{unit.count}</span>{' '}
-                {unit.description && <span className="text-zinc-500">({unit.description})</span>}
-              </div>
-            ))}
+            <WeaponrySection
+              weaponry={attackWeaponry}
+              isOpen={isAttackWeaponryOpen}
+              setIsOpen={setIsAttackWeaponryOpen}
+              sideType={game.missionVersion.attackSideType}
+            />
+            <UniformSection
+              screenshots={attackUniformScreenshots}
+              isOpen={isAttackUniformOpen}
+              setIsOpen={setIsAttackUniformOpen}
+              onPreview={handleOpenPreview}
+            />
             <MissionSlotsSection
               slots={game.missionVersion.slots?.attack}
-              factionName={game.missionVersion.attackSideName}
               isOpen={isAttackSlotsOpen}
               setIsOpen={setIsAttackSlotsOpen}
             />
@@ -224,16 +235,20 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
                 {sideLabels.defense}
               </span>
             </div>
-            {defenseWeaponry.map((unit, idx) => (
-              <div key={idx} className="text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
-                <span className={cn(defenseColor.accent)}>{unit.name}</span>{' '}
-                <span className={cn(defenseColor.text)}>×{unit.count}</span>{' '}
-                {unit.description && <span className="text-zinc-500">({unit.description})</span>}
-              </div>
-            ))}
+            <WeaponrySection
+              weaponry={defenseWeaponry}
+              isOpen={isDefenseWeaponryOpen}
+              setIsOpen={setIsDefenseWeaponryOpen}
+              sideType={game.missionVersion.defenseSideType}
+            />
+            <UniformSection
+              screenshots={defenseUniformScreenshots}
+              isOpen={isDefenseUniformOpen}
+              setIsOpen={setIsDefenseUniformOpen}
+              onPreview={handleOpenPreview}
+            />
             <MissionSlotsSection
               slots={game.missionVersion.slots?.defense}
-              factionName={game.missionVersion.defenseSideName}
               isOpen={isDefenseSlotsOpen}
               setIsOpen={setIsDefenseSlotsOpen}
             />
@@ -260,16 +275,20 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
                   ? game.missionVersion.attackSideName
                   : game.missionVersion.defenseSideName}
               </span>
-              {friendlyWeaponry.map((unit, idx) => (
-                <div key={idx} className="text-sm py-1 group hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
-                  <span className={cn(friendlyColor.accent)}>{unit.name}</span>{' '}
-                  <span className={cn(friendlyColor.text)}>×{unit.count}</span>{' '}
-                  {unit.description && <span className="text-zinc-500">({unit.description})</span>}
-                </div>
-              ))}
+              <WeaponrySection
+                weaponry={friendlyWeaponry}
+                isOpen={isFriendlyWeaponryOpen}
+                setIsOpen={setIsFriendlyWeaponryOpen}
+                sideType={game.missionVersion.friendlySideType!}
+              />
+              <UniformSection
+                screenshots={friendlyUniformScreenshots}
+                isOpen={isFriendlyUniformOpen}
+                setIsOpen={setIsFriendlyUniformOpen}
+                onPreview={handleOpenPreview}
+              />
               <MissionSlotsSection
                 slots={game.missionVersion.slots?.friendly}
-                factionName={game.missionVersion.friendlySideName}
                 isOpen={isFriendlySlotsOpen}
                 setIsOpen={setIsFriendlySlotsOpen}
               />
@@ -278,59 +297,6 @@ export const MissionDetails: FC<MissionDetailsProps> = ({ game }) => {
         )}
       </Card>
 
-      <Card>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Уніформа</span>
-        </div>
-        <div
-          className={cn(
-            'grid grid-cols-1 gap-4',
-            friendlyUniformScreenshots.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2',
-          )}>
-          <div className="flex flex-col gap-2">
-            <div className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', attackColor.accent)}>
-              {game.missionVersion.attackSideName}
-            </div>
-            <UniformSection
-              screenshots={attackUniformScreenshots}
-              isOpen={isAttackUniformOpen}
-              setIsOpen={setIsAttackUniformOpen}
-              onPreview={handleOpenPreview}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div
-              className={cn('text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b', defenseColor.accent)}>
-              {game.missionVersion.defenseSideName}
-            </div>
-            <UniformSection
-              screenshots={defenseUniformScreenshots}
-              isOpen={isDefenseUniformOpen}
-              setIsOpen={setIsDefenseUniformOpen}
-              onPreview={handleOpenPreview}
-            />
-          </div>
-
-          {friendlyUniformScreenshots.length > 0 && friendlyColor && (
-            <div className="flex flex-col gap-2">
-              <div
-                className={cn(
-                  'text-xs font-semibold uppercase tracking-wide mb-2 pb-2 border-b',
-                  friendlyColor.accent,
-                )}>
-                {game.missionVersion.friendlySideName}
-              </div>
-              <UniformSection
-                screenshots={friendlyUniformScreenshots}
-                isOpen={isFriendlyUniformOpen}
-                setIsOpen={setIsFriendlyUniformOpen}
-                onPreview={handleOpenPreview}
-              />
-            </div>
-          )}
-        </div>
-      </Card>
       <ScreenshotPreviewDialog
         open={hasPreview}
         onOpenChange={open => !open && handleClosePreview()}

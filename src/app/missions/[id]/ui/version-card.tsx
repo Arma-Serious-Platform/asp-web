@@ -23,7 +23,8 @@ import { FC, useState } from 'react';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { UniformSection } from '@/entities/mission/uniform-section';
-import { WeaponrySection } from './weaponry-section';
+import { MissionSlotsSection } from '@/entities/mission/mission-slots-section';
+import { WeaponrySection } from '@/entities/mission/weaponry-section';
 import { Popover, PopoverTrigger } from '@/shared/ui/moleculas/popover';
 import { Tooltip } from '@/shared/ui/moleculas/tooltip';
 import { ScreenshotPreviewDialog } from '@/shared/ui/moleculas/screenshot-preview-dialog';
@@ -67,6 +68,9 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
   const [isDefenseUniformOpen, setIsDefenseUniformOpen] = useState(defaultSectionsOpen);
   const [isFriendlyWeaponryOpen, setIsFriendlyWeaponryOpen] = useState(defaultSectionsOpen);
   const [isFriendlyUniformOpen, setIsFriendlyUniformOpen] = useState(defaultSectionsOpen);
+  const [isAttackSlotsOpen, setIsAttackSlotsOpen] = useState(false);
+  const [isDefenseSlotsOpen, setIsDefenseSlotsOpen] = useState(false);
+  const [isFriendlySlotsOpen, setIsFriendlySlotsOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [previewScreenshots, setPreviewScreenshots] = useState<MissionVersion['attackScreenshots']>([]);
   const [previewScreenshotIndex, setPreviewScreenshotIndex] = useState(0);
@@ -240,6 +244,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 setIsOpen={setIsAttackUniformOpen}
                 onPreview={handleOpenPreview}
               />
+              <MissionSlotsSection
+                slots={version.slots?.attack}
+                isOpen={isAttackSlotsOpen}
+                setIsOpen={setIsAttackSlotsOpen}
+              />
             </div>
 
             {/* Defense Side */}
@@ -275,6 +284,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                 isOpen={isDefenseUniformOpen}
                 setIsOpen={setIsDefenseUniformOpen}
                 onPreview={handleOpenPreview}
+              />
+              <MissionSlotsSection
+                slots={version.slots?.defense}
+                isOpen={isDefenseSlotsOpen}
+                setIsOpen={setIsDefenseSlotsOpen}
               />
             </div>
           </div>
@@ -316,6 +330,11 @@ export const MissionVersionCard: FC<MissionVersionCardProps> = ({
                   isOpen={isFriendlyUniformOpen}
                   setIsOpen={setIsFriendlyUniformOpen}
                   onPreview={handleOpenPreview}
+                />
+                <MissionSlotsSection
+                  slots={version.slots?.friendly}
+                  isOpen={isFriendlySlotsOpen}
+                  setIsOpen={setIsFriendlySlotsOpen}
                 />
               </div>
             </div>
