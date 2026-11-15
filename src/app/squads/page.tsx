@@ -85,7 +85,7 @@ const SquadsPage = observer(() => {
   const redSideName = squadsPageState.redSide?.name;
 
   return (
-    <Layout showHero className="w-full mx-auto">
+    <Layout className="w-full mx-auto">
       <div className="container mx-auto mt-6 flex w-full flex-col gap-6 px-4">
         <header className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold leading-tight tracking-tight">Загони проєкту</h1>
@@ -103,7 +103,7 @@ const SquadsPage = observer(() => {
           <div className="pointer-events-none absolute -right-24 -bottom-40 h-72 w-72 rounded-full bg-red-500/10 blur-3xl" />
 
           {isInitialLoading ? (
-            <div className="relative flex min-h-[200px] items-center justify-center py-12">
+            <div className="relative flex min-h-[50vh] items-center justify-center py-12">
               <LoaderIcon className="h-8 w-8 animate-spin text-zinc-300" />
             </div>
           ) : (

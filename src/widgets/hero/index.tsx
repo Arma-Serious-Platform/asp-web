@@ -21,7 +21,14 @@ const LogoAndTitle: FC<{
     {size === 'md' && <div className="absolute inset-0 bg-black opacity-90 z-10" />}
     <div className="z-10">
       <Link href="/" className="w-fit block mx-auto hover:scale-105 transition-transform max-w-40 max-md:max-w-36">
-        <img className="mx-auto w-full" src="/images/logo.webp" alt="VTG logo" />
+        <img
+          className="mx-auto w-full h-auto aspect-square"
+          src="/images/logo.webp"
+          width={512}
+          height={512}
+          fetchPriority="high"
+          alt="VTG logo"
+        />
       </Link>
       <h1 className="font-bold mb-4 text-center">
         <span className="tracking-widest font-extrabold text-center text-3xl max-md:text-2xl">
@@ -58,7 +65,14 @@ export const Hero: FC<{
         'relative flex flex-col items-center justify-center min-h-screen w-full shadow-2xl shadow-black',
         className,
       )}>
-      <video className="absolute inset-0 w-full h-full object-cover z-10 " src="/media/hero.webm" autoPlay muted loop playsInline />
+      <video
+        className="absolute inset-0 w-full h-full object-cover z-10 "
+        src="/media/hero.webm"
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
       <div className="absolute inset-0 bg-black opacity-75 z-10"></div>
       <div className="z-20 text-white mx-auto w-full flex flex-col items-center">
         <LogoAndTitle size="lg" />
@@ -67,7 +81,10 @@ export const Hero: FC<{
             Почати грати
           </Button>
         </a>
-        <ServerInfo className="mx-auto mt-12 min-w-[200px]" />
+        {/* Резервуємо висоту картки сервера, щоб центрований hero не "стрибав" після завантаження даних */}
+        <div className="mt-12 flex min-h-[132px] items-start justify-center">
+          <ServerInfo className="mx-auto min-w-[200px]" />
+        </div>
       </div>
     </div>
   );

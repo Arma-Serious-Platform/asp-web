@@ -67,7 +67,7 @@ const WeekendsPage = observer(() => {
           <View.Condition
             if={!isInitialLoading}
             else={
-              <div className="mx-auto flex max-w-7xl justify-center py-16">
+              <div className="mx-auto flex min-h-[70vh] max-w-7xl justify-center py-16">
                 <div className="text-zinc-400">Завантаження…</div>
               </div>
             }>

@@ -1,9 +1,16 @@
-import { Hero } from '@/widgets/hero';
+import type { Metadata } from 'next';
 import { Layout } from '@/widgets/layout';
 import { RulesMobileMenu } from './rules-mobile-menu';
-import { env } from '@/shared/config/env';
 import { RulesRenderer } from './components/rules-renderer';
 import { cloneRuleSections, parseMarkdownRuleSections } from './data';
+
+export const metadata: Metadata = {
+  title: 'Правила проєкту',
+  description:
+    'Правила Virtual Tactical Games: регламенти поведінки, ігрового процесу та організації української Arma 3 спільноти.',
+  alternates: { canonical: '/rules' },
+  openGraph: { title: 'Правила проєкту | VTG', url: '/rules' },
+};
 
 const RULES_URL = 'https://rules.vtg.in.ua/latest.md';
 
@@ -31,7 +38,6 @@ const RulesPage = async () => {
 
   return (
     <Layout className="w-full mx-auto">
-      {!env.isLanding && <Hero />}
       <div className="container mx-auto mt-6 w-full px-4">
         <div className="mb-4 flex flex-col gap-2">
           <h1 className="text-3xl font-bold leading-tight tracking-tight text-white">Правила проєкту VTG</h1>

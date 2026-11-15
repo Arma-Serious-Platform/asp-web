@@ -56,7 +56,14 @@ export default function Home() {
             <div className="relative w-full max-w-sm">
               <div className="pointer-events-none absolute inset-0 -z-10 rounded-2xl" />
               <div className="overflow-hidden rounded-2xl">
-                <img src="/images/two-dudes.webp" alt="VTG operators" className="h-full w-full object-cover" />
+                <img
+                  src="/images/two-dudes.webp"
+                  width={1272}
+                  height={1588}
+                  loading="lazy"
+                  alt="VTG operators"
+                  className="h-auto w-full object-cover"
+                />
               </div>
             </div>
           </aside>
@@ -74,6 +81,7 @@ export default function Home() {
                   className="absolute inset-0 h-full w-full"
                   src={`https://www.youtube.com/embed/${id}`}
                   title="VTG video"
+                  loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
@@ -134,6 +142,7 @@ export default function Home() {
                   className="absolute inset-0 h-full w-full"
                   src="https://www.youtube.com/embed/wOaGAuV6YcU"
                   title="Відеогайд встановлення збірки VTG"
+                  loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen

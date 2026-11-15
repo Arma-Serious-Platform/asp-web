@@ -50,7 +50,8 @@ html {
 }
 
 body {
-  font-family: 'Roboto Condensed', 'Roboto Condensed Fallback"';
+  /* next/font сам підставляє метрично підігнаний fallback у змінну — так текст не зсувається при підвантаженні шрифту */
+  font-family: var(--font-roboto-condensed), system-ui, sans-serif;
   color: var(--color-foreground);
   background-color: #000;
 }

@@ -70,11 +70,19 @@ export class IncomingWeekendsState {
       .slice(0, 2);
   }
 
+  /** true після першого завантаження — до цього показуємо skeleton тієї ж висоти (CLS) */
+  isLoaded = false;
+
   init = async () => {
-    await this.pagination.loadAll({ published: true });
+    try {
+      await this.pagination.loadAll({ published: true });
+    } finally {
+      this.isLoaded = true;
+    }
   };
 
   reset = () => {
     this.pagination.reset();
+    this.isLoaded = false;
   };
 }

@@ -35,6 +35,40 @@ const GameFaction: FC<{
   );
 };
 
+/** Плейсхолдер з тими ж розмірами, що й реальний блок — щоб контент нижче не зсувався після завантаження. */
+const IncomingWeekendsSkeleton: FC = () => (
+  <div className="w-full relative overflow-hidden" aria-hidden>
+    <div className="absolute inset-0 bg-linear-to-br from-black/95 via-black/90 to-black/95" />
+    <div className="relative z-10 w-full py-4 md:py-5">
+      <div className="container mx-auto px-4">
+        <div className="paper rounded-lg p-3 md:p-4 max-w-5xl mx-auto">
+          <div className="flex items-center justify-between mb-2.5 flex-wrap gap-2">
+            <div>
+              <div className="mb-0.5 h-4 w-32 rounded bg-white/5 animate-pulse" />
+              <h2 className="text-lg font-bold text-white md:text-xl">Найближчі ігри</h2>
+            </div>
+            <div className="h-8 w-24 rounded-md bg-white/5 animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3">
+            {[0, 1].map(index => (
+              <div
+                key={index}
+                className="paper flex min-h-[102px] items-center gap-3 rounded-md border border-white/10 p-2.5 md:min-h-[122px] md:p-3">
+                <div className="h-20 w-34 shrink-0 rounded-md bg-white/5 animate-pulse md:h-24 md:w-40" />
+                <div className="flex flex-1 flex-col gap-2">
+                  <div className="h-4 w-2/3 rounded bg-white/5 animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-white/5 animate-pulse" />
+                  <div className="h-3 w-3/4 rounded bg-white/5 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export const IncomingWeekends: FC<{
   model: IncomingWeekendsState;
 }> = observer(({ model }) => {
@@ -43,6 +77,10 @@ export const IncomingWeekends: FC<{
   }, []);
 
   const upcomingGames = model.upcomingGames;
+
+  if (!model.isLoaded) {
+    return <IncomingWeekendsSkeleton />;
+  }
 
   if (upcomingGames.length === 0) {
     return null;
@@ -112,9 +150,12 @@ export const IncomingWeekends: FC<{
                   <Link
                     key={game.id}
                     href={weekendId ? ROUTES.weekendByAnchor(weekendId, game.id) : ROUTES.weekends}
-                    className="group paper flex cursor-pointer items-center gap-3 rounded-md border border-white/10 p-2.5 transition-colors hover:border-lime-700/50 md:p-3">
+                    className="group paper flex min-h-[102px] cursor-pointer items-center gap-3 rounded-md border border-white/10 p-2.5 transition-colors hover:border-lime-700/50 md:min-h-[122px] md:p-3">
                     <div className="relative h-20 w-34 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/40 md:h-24 md:w-40">
                       <img
+                        width={160}
+                        height={96}
+                        loading="lazy"
                         src={game.mission.image?.url || '/images/logo.webp'}
                         alt={game.mission.name ?? 'Місія'}
                         className={cn(
