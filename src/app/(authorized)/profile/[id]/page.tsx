@@ -3,7 +3,6 @@
 import { Layout } from '@/widgets/layout';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo } from 'react';
-import { Hero } from '@/widgets/hero';
 import { session } from '@/entities/session/session.state';
 import { ROUTES } from '@/shared/config/routes';
 import { useRouter, useParams, redirect } from 'next/navigation';
@@ -31,13 +30,15 @@ const UserProfilePage = observer(() => {
     return null;
   }
 
-  if (userIdOrNickname === session.user?.data?.id || userProfilePageState.userProfile.user?.id === session.user?.data?.id) {
+  if (
+    userIdOrNickname === session.user?.data?.id ||
+    userProfilePageState.userProfile.user?.id === session.user?.data?.id
+  ) {
     return redirect(`${ROUTES.user.profile}?tab=profile`);
   }
 
   return (
     <Layout>
-      <Hero />
       <UserProfile userIdOrNickname={userIdOrNickname} model={userProfilePageState.userProfile} />
     </Layout>
   );

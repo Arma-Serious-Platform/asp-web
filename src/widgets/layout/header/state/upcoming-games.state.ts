@@ -37,7 +37,7 @@ const pickClosestWeekend = (weekends: WeekendModel[]): Weekend | null => {
   return closestAny?.weekend ?? null;
 };
 
-export class IncomingWeekendsState {
+export class UpcomingGamesState {
   constructor() {
     makeAutoObservable(this);
   }
@@ -70,10 +70,12 @@ export class IncomingWeekendsState {
       .slice(0, 2);
   }
 
-  /** true після першого завантаження — до цього показуємо skeleton тієї ж висоти (CLS) */
   isLoaded = false;
 
+  /** Завантажує анонси один раз за сесію сторінки (стан спільний для всіх хедерів). */
   init = async () => {
+    if (this.isLoaded || this.pagination.loader.isLoading) return;
+
     try {
       await this.pagination.loadAll({ published: true });
     } finally {
@@ -86,3 +88,5 @@ export class IncomingWeekendsState {
     this.isLoaded = false;
   };
 }
+
+export const upcomingGamesState = new UpcomingGamesState();

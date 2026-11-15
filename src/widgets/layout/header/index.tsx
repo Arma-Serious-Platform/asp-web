@@ -2,6 +2,7 @@
 
 import { session } from '@/entities/session/session.state';
 import { ScheduleInfo } from '@/widgets/layout/header/ui/schedule-info';
+import { UpcomingGames } from '@/widgets/layout/header/ui/upcoming-games';
 import { View } from '@/features/view';
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
@@ -412,7 +413,10 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
             <SecondaryLinks className="text-[11px] font-semibold whitespace-nowrap uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:text-white" />
           </div>
 
-          {/* <span className="h-3 w-px bg-white/10" /> */}
+          <View.Condition if={!env.isLanding}>
+            <UpcomingGames />
+            <span className="h-3 w-px bg-white/10" />
+          </View.Condition>
 
           <ScheduleInfo plain version="short" />
 

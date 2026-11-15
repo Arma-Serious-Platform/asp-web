@@ -13,7 +13,7 @@ import { session } from '@/entities/session/session.state';
 export default function Home() {
   return (
     <Layout headerProps={{ enableScrollVisibility: true }}>
-      <Hero variant="home" />
+      <Hero />
       <Section sectionClassName="py-10" id="about" eyebrow="Про проект" title="VTG" background={false}>
         <div className="flex w-full flex-col gap-10 lg:flex-row lg:items-stretch lg:gap-12">
           <section className="paper relative flex w-full flex-col gap-6 rounded-xl px-6 py-6 shadow-xl lg:w-2/3">

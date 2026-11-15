@@ -224,7 +224,7 @@ const MissionDetailsPage = observer(() => {
 
   if (isLoading) {
     return (
-      <Layout showHero={false}>
+      <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-12">
             <LoaderIcon className="size-6 animate-spin text-zinc-400" />
@@ -236,7 +236,7 @@ const MissionDetailsPage = observer(() => {
 
   if (!mission) {
     return (
-      <Layout showHero={false}>
+      <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center justify-center py-12">
             <p className="mb-4 text-zinc-400">Місію не знайдено</p>
@@ -250,7 +250,7 @@ const MissionDetailsPage = observer(() => {
   }
 
   return (
-    <Layout showHero={false}>
+    <Layout>
       <ChangeMissionVersionStatusModal
         state={missionDetailsState.changeMissionVersionStatusState}
         onSuccess={async () => {
@@ -352,11 +352,7 @@ const MissionDetailsPage = observer(() => {
                   <div className="mb-3 flex flex-col gap-1">
                     <div className="flex items-center gap-1.5 text-sm text-zinc-500">
                       <UserIcon className="size-3.5 shrink-0" />
-                      <MissionAuthorsText
-                        mission={mission}
-                        className="min-w-0"
-                        userClassName="text-zinc-300"
-                      />
+                      <MissionAuthorsText mission={mission} className="min-w-0" userClassName="text-zinc-300" />
                     </div>
                     {mission.missionObjective && (
                       <div className="flex items-center gap-1.5 text-sm text-zinc-500">

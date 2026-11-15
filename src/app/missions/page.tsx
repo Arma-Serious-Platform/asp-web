@@ -208,7 +208,7 @@ const MissionsPageContent = observer(() => {
   }
 
   return (
-    <Layout showHero={false} className="container paper mx-auto my-2 sm:my-4">
+    <Layout className="container paper mx-auto my-2 sm:my-4">
       <CreateMissionModal state={missionsState.createMissionState} onSuccess={handleMissionCreated} />
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:py-8">
         {/* Mobile header */}
@@ -369,7 +369,7 @@ const MissionsPage = () => {
   return (
     <Suspense
       fallback={
-        <Layout showHero={false} className="container paper mx-auto my-2 sm:my-4">
+        <Layout className="container paper mx-auto my-2 sm:my-4">
           <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
             <div className="flex items-center justify-center py-12">
               <div className="text-zinc-400">Завантаження...</div>
