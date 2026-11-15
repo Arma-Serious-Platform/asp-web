@@ -296,7 +296,7 @@ export const MobileMenu = observer(() => {
           'translate-x-full': !headerState.mobileMenu.isOpen,
         },
       )}>
-      <div className="relative mx-auto flex w-full max-w-xl flex-col px-4 pt-4 overflow-y-auto">
+      <div className="relative mx-auto flex w-full max-w-xl flex-col px-5 pt-4 overflow-y-auto">
         <div className="flex items-center justify-between">
           <Link className="w-fit shrink-0" href={ROUTES.home} onClick={headerState.mobileMenu.close}>
             <Image
@@ -408,7 +408,7 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
         },
       )}>
       <div className="w-full border-b border-white/5 bg-white/5 max-xl:hidden">
-        <div className="container max-xl:mx-4 mx-auto flex h-8 items-center justify-end gap-4">
+        <div className="container mx-auto flex h-8 items-center justify-end gap-4 max-xl:px-5">
           <div className="flex items-center gap-8 mr-auto">
             <SecondaryLinks className="text-[11px] font-semibold whitespace-nowrap uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:text-white" />
           </div>
@@ -426,7 +426,7 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
         </div>
       </div>
 
-      <div className="container max-xl:mx-4 flex h-16 items-center justify-between">
+      <div className="container mx-auto flex h-16 items-center justify-between max-xl:px-5">
         <Link className="w-fit shrink-0" href={ROUTES.home}>
           <Image
             className="mr-4 hover:scale-110 transition-all duration-300"
@@ -454,7 +454,13 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
           </div>
         </div>
         <div className="flex items-center justify-center xl:hidden">
-          <MenuIcon className="w-6 h-6" onClick={() => headerState.mobileMenu.open()} />
+          <button
+            type="button"
+            aria-label="Відкрити меню"
+            className="-mr-2 inline-flex size-10 items-center justify-center rounded-md text-zinc-200 transition-colors hover:bg-white/10"
+            onClick={() => headerState.mobileMenu.open()}>
+            <MenuIcon className="size-6" />
+          </button>
         </div>
       </div>
     </header>
