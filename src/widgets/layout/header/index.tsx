@@ -3,6 +3,7 @@
 import { session } from '@/entities/session/session.state';
 import { ScheduleInfo } from '@/widgets/layout/header/ui/schedule-info';
 import { UpcomingGames } from '@/widgets/layout/header/ui/upcoming-games';
+import { MonobankJar, MonobankJarProgress, SupportProjectButton } from '@/widgets/layout/header/ui/monobank-jar';
 import { View } from '@/features/view';
 import { ROUTES } from '@/shared/config/routes';
 import { Button } from '@/shared/ui/atoms/button';
@@ -322,6 +323,13 @@ export const MobileMenu = observer(() => {
           <ScheduleInfo className="ml-3" version="short" />
         </div>
 
+        <View.Condition if={env.isMonobankJarEnabled}>
+          <div className="mt-3 flex flex-col gap-3 rounded-lg border border-white/10 bg-black/60 px-3 py-3">
+            <MonobankJarProgress layout="stacked" />
+            <SupportProjectButton className="justify-center py-2 text-xs" onClick={headerState.mobileMenu.close} />
+          </div>
+        </View.Condition>
+
         <div className="mt-5 flex-1 overflow-y-auto pb-6">
           <nav className="paper rounded-xl border px-4 py-4 shadow-xl">
             <div className="border-b border-white/10 pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">
@@ -408,21 +416,25 @@ export const Header: FC<HeaderProps> = observer(({ enableScrollVisibility = fals
         },
       )}>
       <div className="w-full border-b border-white/5 bg-white/5 max-xl:hidden">
-        <div className="container mx-auto flex h-8 items-center justify-end gap-4 max-xl:px-5">
-          <div className="flex items-center gap-8 mr-auto">
+        <div className="container mx-auto grid h-8 grid-cols-[1fr_auto_1fr] items-center gap-4 max-xl:px-5">
+          <div className="flex items-center gap-8">
             <SecondaryLinks className="text-[11px] font-semibold whitespace-nowrap uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:text-white" />
           </div>
 
-          <View.Condition if={!env.isLanding}>
-            <UpcomingGames />
+          {env.isMonobankJarEnabled ? <MonobankJar /> : <div />}
+
+          <div className="flex items-center justify-end gap-4">
+            <View.Condition if={!env.isLanding}>
+              <UpcomingGames />
+              <span className="h-3 w-px bg-white/10" />
+            </View.Condition>
+
+            <ScheduleInfo plain version="short" />
+
             <span className="h-3 w-px bg-white/10" />
-          </View.Condition>
 
-          <ScheduleInfo plain version="short" />
-
-          <span className="h-3 w-px bg-white/10" />
-
-          <Social className="gap-3" iconClassName="size-4 shrink-0" />
+            <Social className="gap-3" iconClassName="size-4 shrink-0" />
+          </div>
         </div>
       </div>
 
