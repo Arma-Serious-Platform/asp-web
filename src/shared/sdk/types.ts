@@ -43,6 +43,8 @@ export type {
 export {
   UserSchema,
   UserWarningSchema,
+  ActiveUserWarningSchema,
+  ActiveUserWarningsSchema,
   UserPunishmentTypeSchema,
   UserPunishmentType,
   UserPunishmentSchema,
@@ -65,6 +67,8 @@ export {
 export type {
   User,
   UserWarning,
+  ActiveUserWarning,
+  ActiveUserWarnings,
   UserPunishment,
   UserHistoryEventPayload,
   UserHistoryEvent,

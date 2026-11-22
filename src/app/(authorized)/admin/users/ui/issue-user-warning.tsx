@@ -1,4 +1,5 @@
 import { Button } from '@/shared/ui/atoms/button';
+import { Input } from '@/shared/ui/atoms/input';
 import { Textarea } from '@/shared/ui/atoms/textarea';
 import {
   Drawer,
@@ -21,24 +22,42 @@ const IssueUserWarningModal: FC<
     onSuccess?: (response: CreateUserWarningResponse) => void;
   }>
 > = observer(({ model = issueUserWarningState, children, onSuccess }) => {
-  const [reason, setReason] = useState('');
+  const [ruleText, setRuleText] = useState('');
+  const [comment, setComment] = useState('');
+  const [ruleNumber, setRuleNumber] = useState('');
+  const [weight, setWeight] = useState('1');
   const user = model.visibility.payload?.user;
 
   useEffect(() => {
     if (model.visibility.isOpen) {
-      setReason('');
+      setRuleText('');
+      setComment('');
+      setRuleNumber('');
+      setWeight('1');
     }
   }, [model.visibility.isOpen]);
 
   const submit = () => {
-    const trimmedReason = reason.trim();
+    const trimmedText = ruleText.trim();
+    const trimmedComment = comment.trim();
+    const count = Number(weight);
 
-    if (trimmedReason.length < 3) {
-      toast.error('Вкажіть причину попередження');
+    if (trimmedText.length < 3 && trimmedComment.length < 3) {
+      toast.error('Вкажіть текст правила або коментар');
       return;
     }
 
-    model.issueWarning(trimmedReason, onSuccess);
+    if (!Number.isInteger(count) || count < 1 || count > 10) {
+      toast.error('Кількість попереджень має бути від 1 до 10');
+      return;
+    }
+
+    model.issueWarning(trimmedComment || trimmedText, onSuccess, {
+      weight: count,
+      ...(ruleNumber.trim() ? { ruleNumber: ruleNumber.trim() } : {}),
+      ...(trimmedText ? { ruleText: trimmedText } : {}),
+      ...(trimmedComment ? { comment: trimmedComment } : {}),
+    });
   };
 
   return (
@@ -52,13 +71,33 @@ const IssueUserWarningModal: FC<
             </DrawerTitle>
           </DrawerHeader>
 
-          <DrawerBody>
-            <Textarea
-              label="Причина"
-              value={reason}
-              autoFocus
+          <DrawerBody className="flex flex-col gap-3">
+            <Input
+              label="№ правила"
+              value={ruleNumber}
               disabled={model.loader.isLoading}
-              onChange={event => setReason(event.target.value)}
+              onChange={event => setRuleNumber(event.target.value)}
+            />
+            <Input
+              label="Кількість попереджень"
+              type="number"
+              min={1}
+              max={10}
+              value={weight}
+              disabled={model.loader.isLoading}
+              onChange={event => setWeight(event.target.value)}
+            />
+            <Textarea
+              label="Текст правила"
+              value={ruleText}
+              disabled={model.loader.isLoading}
+              onChange={event => setRuleText(event.target.value)}
+            />
+            <Textarea
+              label="Коментар"
+              value={comment}
+              disabled={model.loader.isLoading}
+              onChange={event => setComment(event.target.value)}
             />
           </DrawerBody>
 

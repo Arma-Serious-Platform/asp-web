@@ -28,6 +28,7 @@ type MessageComposerProps = Omit<MessageEditorProps, 'onSubmit' | 'toolbarExtra'
   existingAttachments?: MessageAttachmentItem[];
   editingKey?: string;
   showCancel?: boolean;
+  allowAttachments?: boolean;
 };
 
 export const MessageComposer: FC<MessageComposerProps> = ({
@@ -38,6 +39,7 @@ export const MessageComposer: FC<MessageComposerProps> = ({
   existingAttachments,
   editingKey,
   showCancel = Boolean(onCancel),
+  allowAttachments = true,
   submitLabel,
   clearOnSubmit = !onCancel,
   ...editorProps
@@ -101,17 +103,19 @@ export const MessageComposer: FC<MessageComposerProps> = ({
         submitLabel={submitLabel}
         clearOnSubmit={clearOnSubmit}
         toolbarExtra={
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0"
-            disabled={disabled}
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Додати вкладення"
-            title="Додати вкладення">
-            <PaperclipIcon className="size-4" />
-          </Button>
+          allowAttachments ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0"
+              disabled={disabled}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Додати вкладення"
+              title="Додати вкладення">
+              <PaperclipIcon className="size-4" />
+            </Button>
+          ) : null
         }
         composerFooter={
           isEditMode ? (

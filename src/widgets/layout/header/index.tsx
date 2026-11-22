@@ -111,6 +111,11 @@ const PrimaryLinks: FC<{
           Загони
         </Link>
       )}
+      {!env.isLanding && session.isAuthorized && (
+        <Link className={className} activeClassName={activeClassName} href={ROUTES.tribunal}>
+          Трибунал
+        </Link>
+      )}
       <a className={className} href="https://replays.vtg.in.ua" target="_blank" rel="noopener noreferrer">
         Реплеї
       </a>
