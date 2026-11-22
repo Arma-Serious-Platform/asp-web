@@ -20,6 +20,7 @@ export class IssueUserWarningState {
   async issueWarning(
     reason: string,
     onSuccess?: (response: CreateUserWarningResponse) => void,
+    options?: { weight?: number; ruleNumber?: string; ruleText?: string; comment?: string },
   ) {
     const userId = this.visibility.payload?.user.id;
 
@@ -27,7 +28,14 @@ export class IssueUserWarningState {
 
     try {
       this.loader.start();
-      const { data } = await usersApi.createUserWarning({ userId, reason });
+      const { data } = await usersApi.createUserWarning({
+        userId,
+        reason,
+        ...(options?.weight ? { weight: options.weight } : {}),
+        ...(options?.ruleNumber ? { ruleNumber: options.ruleNumber } : {}),
+        ...(options?.ruleText ? { ruleText: options.ruleText } : {}),
+        ...(options?.comment ? { comment: options.comment } : {}),
+      });
 
       onSuccess?.(data);
 

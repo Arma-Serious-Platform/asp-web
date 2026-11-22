@@ -14,6 +14,8 @@ export const ROUTES = {
   news: '/news',
   newsById: (id: string) => `/news/${id}`,
   squads: '/squads',
+  tribunal: '/tribunal',
+  tribunalById: (id: string) => `/tribunal/${id}`,
   squadById: (id: string) => `/squads/${id}`,
   replays: '/replays',
   missions: {

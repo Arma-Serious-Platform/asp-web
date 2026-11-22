@@ -70,6 +70,10 @@ export type ChangeUserNicknameDto = z.infer<typeof ChangeUserNicknameDtoSchema>;
 export const CreateUserWarningDtoSchema = z.object({
   userId: z.string(),
   reason: z.string(),
+  weight: z.number().int().min(1).max(10).optional(),
+  ruleNumber: z.string().optional(),
+  ruleText: z.string().optional(),
+  comment: z.string().optional(),
 });
 export type CreateUserWarningDto = z.infer<typeof CreateUserWarningDtoSchema>;
 
@@ -101,6 +105,31 @@ export const UserWarningSchema = z
   })
   .passthrough();
 export type UserWarning = z.infer<typeof UserWarningSchema>;
+
+export const ActiveUserWarningSchema = z.object({
+  id: z.string(),
+  reason: z.string(),
+  ruleNumber: z.string().nullable().optional(),
+  ruleText: z.string().nullable().optional(),
+  comment: z.string().nullable().optional(),
+  weight: z.number().optional(),
+  createdAt: z.string(),
+  expiresAt: z.string(),
+});
+export type ActiveUserWarning = z.infer<typeof ActiveUserWarningSchema>;
+
+export const ActiveUserWarningsSchema = z.object({
+  count: z.number(),
+  limit: z.number(),
+  ban: z
+    .object({
+      bannedUntil: z.string().nullable(),
+      days: z.number().nullable(),
+    })
+    .nullable(),
+  items: z.array(ActiveUserWarningSchema),
+});
+export type ActiveUserWarnings = z.infer<typeof ActiveUserWarningsSchema>;
 
 export const CreateUserWarningResponseSchema = z
   .object({

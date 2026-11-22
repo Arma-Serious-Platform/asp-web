@@ -19,6 +19,7 @@ import { ChangeAvatarModal } from './change-avatar';
 import { InfoTile } from '@/shared/ui/moleculas/info-tile';
 import { RevealableBlurredText } from '@/shared/ui/moleculas/revealable-blurred-text';
 import { ChangeSocials } from '@/features/user/change-socials';
+import { ActiveWarningsSection } from './active-warnings';
 import { UserHistorySection } from './user-history';
 import { NotificationPreferences } from './notification-preferences';
 import {
@@ -304,6 +305,7 @@ const UserProfile = observer(({ userIdOrNickname, model }: UserProfileProps) => 
                     />
                   </div>
 
+                  <ActiveWarningsSection userId={model.user?.id} />
                   <UserHistorySection userId={model.user?.id} />
                 </div>
               </View.Condition>

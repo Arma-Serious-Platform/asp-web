@@ -4,6 +4,7 @@ import { env } from '@/shared/config/env';
 import { ApiModel, type PaginatedResponse } from '../api-model';
 import { playerStatsResponseSchema } from '../stats/stats.schemas';
 import type {
+  ActiveUserWarnings,
   BanUserDto,
   ChangeNicknameDto,
   ChangeUserNicknameDto,
@@ -117,6 +118,10 @@ class UsersApi extends ApiModel {
 
   findUserPunishmentHistory = async (userId: string) => {
     return await this.instance.get<UserPunishment[]>(`/users/${userId}/punishments`);
+  };
+
+  findActiveUserWarnings = async (userId: string) => {
+    return await this.instance.get<ActiveUserWarnings>(`/users/${userId}/active-warnings`);
   };
 
   findUserHistory = async (userId: string) => {
